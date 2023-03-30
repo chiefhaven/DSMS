@@ -86,8 +86,8 @@
         </div>
     </div>
 
-      <div class="row items-push p-0 m-0 mt-4">
-        <div class="col-sm-6 col-md-6">
+    <div class="row items-push p-0 mt-4">
+        <div class="col-sm-6 col-md-6 p-0">
             <div class="block block-rounded block-bordered block-mode-loading-refresh h-100 mb-0">
               <div class="block-header border-bottom">
                 <h3 class="block-title">Students</h3>
@@ -163,7 +163,7 @@
         </div>
 
         <!-- Invoices snipest -->
-        <div class="col-sm-6 col-md-6" id="invoices">
+        <div class="col-sm-6 col-md-6 p-0" id="invoices">
             <div class="block block-rounded block-bordered block-mode-loading-refresh h-100 mb-0">
               <div class="block-header border-bottom">
                 <h3 class="block-title">Invoices</h3>
@@ -202,7 +202,7 @@
                 </div>
             </div>
         </div>
-</div>
+    </div>
 
 <script>
     const { createApp } = Vue
