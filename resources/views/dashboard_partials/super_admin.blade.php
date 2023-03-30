@@ -1,19 +1,21 @@
 <div class="row" id="app">
     <div class="row items-push block">
         <div class="col-md-12 mb-3">
-            <div class="col-md-12 block-rounded block-bordered p-4 dropdown d-inline-block">
-                <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <span class="d-sm-inline-block">Filter report</span>
-                </button>
-                <div class="dropdown-menu dropdown-menu-start p-0">
-                    <div class="p-2">
-                        <button class="dropdown-item" @click="view_invoice(item.invoice_number)">Today</button>
-                        <button class="dropdown-item" @click="invoice_edit(item.invoice_number)">This month</button>
-                        <button class="dropdown-item delete-confirm" @click="invoice_delete(item.invoice_number)">This year</button>
-                        <button class="dropdown-item delete-confirm" @click="invoice_delete(item.invoice_number)">Last year</button>
-                        <button class="dropdown-item delete-confirm" @click="invoice_delete(item.invoice_number)">Custom</button>
-                    </div>
-                </div>
+            <div class="col-md-12 block-rounded block-bordered p-4 dropdown d-inline-block p-0">
+                <form action="{{ url('/') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    Filter
+                    <select class="btn btn-primary" id="filter" name="filter" onchange="this.form.submit()">
+                        <option value="today">Today</option>
+                        <option value="yesterday">Yesterday</option>
+                        <option value="thisweek">This Week</option>
+                        <option value="thismonth">This Month</option>
+                        <option value="lastmonth">Last Month</option>
+                        <option value="thisyear">This Year</option>
+                        <option value="lastyear">Last Year</option>
+                        <option value="alltime">All Time</option>
+                    </select>
+                </form>
             </div>
         </div>
         <div class="col-md-4 col-xl-4">
@@ -24,7 +26,7 @@
                     </div>
                     <div class="ml-3 text-right">
                         <p class="text-white font-size-h3 font-w300 mb-0">
-                            K{{number_format($earningsTotalThisMonth, 2)}}
+                            K{{number_format($earningsTotal, 2)}}
                         </p>
                         <p class="text-white-75 mb-0">
                             Total Sales
@@ -58,7 +60,7 @@
                     </div>
                     <div class="ml-3 text-right">
                         <p class="text-white font-size-h3 font-w300 mb-0">
-                            {{$studentCountThisMonth}}
+                            {{$studentCount}}
                         </p>
                         <p class="text-white-75 mb-0">
                             Students
@@ -257,4 +259,8 @@
         }
 
     }).mount('#invoices')
+</script>
+
+<script>
+    document.getElementById("filter").value = "{{ $time }}"
 </script>

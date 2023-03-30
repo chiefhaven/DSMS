@@ -28,7 +28,7 @@ class InvoiceController extends Controller
     public function index()
     {
 
-        $invoice = Invoice::with('Student','User')->where('invoice_balance', '>', 0.00)->orderBy('date_created', 'DESC')->take(10)->get();
+        $invoice = Invoice::with('Student','User')->where('invoice_balance', '>', 0.00)->orderBy('date_created', 'DESC')->take(15)->get();
 
         return response()->json($invoice); // or use API Resource here
 

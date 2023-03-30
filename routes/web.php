@@ -29,6 +29,7 @@ use App\Http\Controllers\FleetController;
 
 include_once('install_r.php');
 
+Route::post('/', [HomeController::class,'index'])->middleware(['auth'])->name('dashboard');
 Route::get('/', [HomeController::class,'index'])->middleware(['auth'])->name('dashboard');
 
 Auth::routes();
