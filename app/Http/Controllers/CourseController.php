@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use App\Models\Instructor;
 use App\Models\Student;
+use App\Models\Invoice;
 use Illuminate\Http\Request;
 
 class CourseController extends Controller
@@ -16,8 +17,9 @@ class CourseController extends Controller
      */
     public function index()
     {
-        $course = Course::with('Student')->get();
-        return view('courses.courses', compact('course'));
+        $course = Course::with('Student', 'Invoice')->get();
+        $invoiceCount = Invoice::all()->groupBy('course_id');
+        return view('courses.courses', compact('course', 'invoiceCount'));
     }
 
     /**
@@ -42,7 +44,7 @@ class CourseController extends Controller
         $messages = [
             'course_name.required' => 'Course name is required!',
             'course_description.required'   => 'Course description is required',
-            'course_price.required' => 'Price is required!',            
+            'course_price.required' => 'Price is required!',
             'course_practicals.required' => 'Practicals number of days is required',
             'course_practicals.numeric' => 'Practicals number of days must be a number',
             'course_theory.numeric' => 'Theory number of days must be a number',
@@ -62,7 +64,7 @@ class CourseController extends Controller
         $post = $request->All();
 
         $course = new Course;
- 
+
         $course->name = $post['course_name'];
         $course->short_description = $post['course_description'];
         $course->price = $post['course_price'];
@@ -111,7 +113,7 @@ class CourseController extends Controller
         $messages = [
             'course_name.required' => 'Course name is required!',
             'course_description.required'   => 'Course description is required',
-            'course_price.required' => 'Price is required!',            
+            'course_price.required' => 'Price is required!',
             'course_practicals.required' => 'Practicals number of days is required',
             'course_practicals.numeric' => 'Practicals number of days must be a number',
             'course_theory.numeric' => 'Theory number of days must be a number',
@@ -131,7 +133,7 @@ class CourseController extends Controller
         $post = $request->All();
 
         $course = Course::find($post['course_id']);
- 
+
         $course->name = $post['course_name'];
         $course->short_description = $post['course_description'];
         $course->price = $post['course_price'];

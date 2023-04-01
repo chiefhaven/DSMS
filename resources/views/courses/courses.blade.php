@@ -49,37 +49,37 @@
                         {{$course->practicals}} days practicals plus {{$course->theory}} days theory.
                     </p>
                 </div>
-                <div class="block-content block-content-full">
+                <div class="block-content block-content-full overflow-visible">
                     <div class="row gutters-tiny">
-                        <div class="col-6">
+                        <div class="col-10">
                             <p class="mb-2">
-                                <i class="fa fa-fw fa-users text-black"></i>
+
                             </p>
                             <p class="font-size-sm text-muted mb-0">
-                                22k students enrolled
+                                <b>{{$course->invoice->count()}}</b> Students all time enrolled
                             </p>
                         </div>
-                        <div class="col-6">
-                                <div class="dropdown d-inline-block">
-                                  <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <span class="d-sm-inline-block">Action</span>
-                                  </button>
-                                  <div class="dropdown-menu dropdown-menu-end p-0">
-                                    <div class="p-2">
-                                      <a class="dropdown-item" href="{{ url('/view-course', $course->id) }}">
-                                        View
-                                      </a>
-                                      <form method="POST" action="{{ url('/edit-course', $course->id) }}">
-                                        {{ csrf_field() }}
-                                        <button class="dropdown-item" type="submit">Edit</button>
-                                      </form>
-                                      <form method="POST" action="{{ url('/delete-course', $course->id) }}">
-                                        {{ csrf_field() }}
-                                        {{ method_field('DELETE') }}
-                                        <button class="dropdown-item" onclick="return confirm('Are you sure?')" type="submit">Delete</button>
-                                      </form>
-                                    </div>
-                                  </div>
+                        <div class="col-2">
+                            <div class="dropdown d-inline-block">
+                                <button type="button" class="btn btn-clear" id="" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end p-0">
+                                <div class="p-2">
+                                    <a class="dropdown-item" href="{{ url('/view-course', $course->id) }}">
+                                    View
+                                    </a>
+                                    <form method="POST" action="{{ url('/edit-course', $course->id) }}">
+                                    {{ csrf_field() }}
+                                    <button class="dropdown-item" type="submit">Edit</button>
+                                    </form>
+                                    <form method="POST" action="{{ url('/delete-course', $course->id) }}">
+                                    {{ csrf_field() }}
+                                    {{ method_field('DELETE') }}
+                                    <button class="dropdown-item delete-confirm" onclick="return confirm('Are you sure you want to delete this course?');" type="submit">Delete</button>
+                                    </form>
+                                </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -94,3 +94,21 @@
   <!-- END Hero -->
 
 @endsection
+
+<script type="text/javascript">
+    $('.delete-confirm').on('click', function (e) {
+        e.preventDefault();
+        var form = $(this).parents('form');
+        swal({
+            title: 'Delete course',
+            text: 'Are you sure you want to delete course',
+            icon: 'warning',
+            buttons: ["Cancel", "Yes!"],
+        }).then(function(isConfirm){
+                if(isConfirm){
+                        form.submit();
+                }
+        });
+    });
+
+</script>

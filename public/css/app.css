@@ -740,7 +740,7 @@ select {
   display: block;
 }
 .block-content{
-  auto;overflow-x:auto !important;
+  overflow-x:auto !important;
 }
 .inline-block {
   display: inline-block;

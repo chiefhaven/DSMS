@@ -124,21 +124,21 @@
   <!-- END Hero -->
 
   <script type="text/javascript">
-            $('.delete-confirm').on('click', function (e) {
-                e.preventDefault();
-                var form = $(this).parents('form');
-                swal({
-                    title: 'Delete student',
-                    text: 'Are you sure you want to delete student',
-                    icon: 'warning',
-                    buttons: ["Cancel", "Yes!"],
-                }).then(function(isConfirm){
-                        if(isConfirm){
-                                form.submit();
-                        }
-                });
+        $('.delete-confirm').on('click', function (e) {
+            e.preventDefault();
+            var form = $(this).parents('form');
+            swal({
+                title: 'Delete student',
+                text: 'Are you sure you want to delete student',
+                icon: 'warning',
+                buttons: ["Cancel", "Yes!"],
+            }).then(function(isConfirm){
+                    if(isConfirm){
+                            form.submit();
+                    }
             });
+        });
 
-        </script>
+    </script>
 
 @endsection
