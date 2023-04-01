@@ -68,7 +68,7 @@
                 <div class="table-responsive">
                   <table class="table table-bordered ">
                       <thead>
-                          
+
                       </thead>
                       <tbody>
                           <tr>
@@ -92,7 +92,7 @@
                                 @if(isset($student->invoice->created_at))
                                   {{$student->course->name}}<br>{{$student->course->duration}} days
                                 @else
-                                  
+
                                 @endif
                               </td>
                           </tr>
@@ -116,7 +116,7 @@
                                 @if(isset($student->invoice->created_at))
                                   K{{number_format($student->invoice->invoice_amount_paid)}}
                                 @else
-                                  
+
                                 @endif
                               </td>
                           </tr>
@@ -128,11 +128,11 @@
                                 @if(isset($student->invoice->created_at))
                                   K{{number_format($student->invoice->invoice_balance)}}
                                 @else
-                                  
+
                                 @endif
                               </td>
                           </tr>
-                          
+
                       </tbody>
                   </table>
                   </div>
@@ -232,35 +232,35 @@
                       @if(isset($student->invoice->created_at))
                         {{$student->invoice->date_created->format('j F, Y')}}
                       @else
-                                  
+
                       @endif
                     </td>
                     <td class="font-w600">
                       @if(isset($student->invoice->created_at))
                         {{$student->invoice->invoice_number}}
                       @else
-                                  
+
                       @endif
                     </td>
                     <td>
                       @if(isset($student->invoice->created_at))
                         K{{number_format($student->invoice->invoice_total)}}
                       @else
-                                  
+
                       @endif
                     </td>
                     <td>
                       @if(isset($student->invoice->created_at))
                         K{{number_format($student->invoice->invoice_balance)}}
                       @else
-                                  
+
                       @endif
                     </td>
                     <td>
                       @if(isset($student->invoice->created_at))
                         {{$student->invoice->invoice_payment_due_date->format('j F, Y')}}
                       @else
-                                  
+
                       @endif
                     </td>
                     @if(isset($student->invoice->created_at))
@@ -286,7 +286,7 @@
                               </a>
                               <form method="POST" action="{{ url('/invoice-delete', $student->invoice->id) }}">
                                 {{ csrf_field() }}
-                                {{ method_field('DELETE') }} 
+                                {{ method_field('DELETE') }}
                                 <button class="dropdown-item" onclick="return confirm('Are you sure?')" type="submit">Delete</button>
                               </form>
                             </div>
@@ -297,7 +297,7 @@
                 </tr>
             </tbody>
         </table>
-      </div>        
+      </div>
     </div>
     <div class="tab-pane fade" id="payments" role="tabpanel" aria-labelledby="payments-tab">
       <div class="table-responsive">
@@ -345,7 +345,7 @@
                             <div class="p-2">
                               <form method="POST" action="{{ url('delete-payment', $payment->id) }}">
                                 {{ csrf_field() }}
-                                {{ method_field('DELETE') }} 
+                                {{ method_field('DELETE') }}
                                 <button class="dropdown-item" onclick="return confirm('Are you sure you want to delete payment number {{$payment->transaction_id}}?')" type="submit">Delete</button>
                               </form>
                             </div>
@@ -356,7 +356,7 @@
                 @endforeach
             </tbody>
         </table>
-      </div>      
+      </div>
     </div>
   </div>
   </div>
@@ -377,11 +377,11 @@
           </div>
           <div class="block-content">
             <form class="mb-5" action="{{ url('/add-payment') }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
-                  @csrf 
+                  @csrf
                   @if(isset($student->invoice->created_at))
                     <input type="text" class="form-control" id="invoice_number" name="invoice_number" value="{{$student->invoice->invoice_number}}" hidden>
                 @else
-                                  
+
                 @endif
               <div class="col-12 form-floating mb-4">
                   <input type="date" class="form-control" id="date_created" name="date_created" placeholder="Enter invoice date">
@@ -393,7 +393,7 @@
                       <label for="invoice_discount">Amount</label>
                   </div>
                   <div class="col-6 form-floating mb-4">
-                      <select class="form-select" id="payment_method" name="payment_method">                              
+                      <select class="form-select" id="payment_method" name="payment_method">
                           <option value="Cash" selected>Cash</option>
                           <option value="National Bank">National Bank</option>
                           <option value="Airtel Money">Airtel Money</option>

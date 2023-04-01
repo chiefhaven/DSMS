@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Attendance;
+use App\Models\Invoice;
 use App\Models\Lesson;
 use App\Models\Student;
 use App\Models\Instructor;
@@ -35,7 +36,7 @@ class AttendanceController extends Controller
         $lesson = Lesson::get();
         $student = Student::get();
         $instructor = Instructor::get();
-        return view('attendances.addattendance', compact('student','lesson', 'instructor')); 
+        return view('attendances.addattendance', compact('student','lesson', 'instructor'));
     }
 
     /**
@@ -49,8 +50,8 @@ class AttendanceController extends Controller
         $messages = [
             'date.required' => 'Date is required!',
             'student.required'   => 'Student is required!',
-            'lesson.required' => 'Lesson is required!', 
-            'instructor.required' => 'Instructor is required!', 
+            'lesson.required' => 'Lesson is required!',
+            'instructor.required' => 'Instructor is required!',
         ];
 
         // Validate the request
@@ -64,8 +65,18 @@ class AttendanceController extends Controller
         ], $messages);
 
         $post = $request->All();
-
         $student_id = havenUtils::studentID($post['student']);
+
+        //Check course days and compare with attendance
+        $courseID = Invoice::where('student_id', $student_id)->firstOrFail()->course_id;
+        $courseDuration = havenUtils::courseDuration($courseID);
+        $attendanceCount = Attendance::where('student_id', $student_id)->count();
+
+        if($attendanceCount >= $courseDuration){
+            Alert::toast('You can not enter more attendances than course duration a student enrolled!', 'warning');
+            return redirect('/attendances');
+        }
+
         $instructor_id = havenUtils::instructorID($post['instructor']);
         $lesson_id = havenUtils::lessonID($post['lesson']);
 
@@ -81,9 +92,9 @@ class AttendanceController extends Controller
 
             $attendance->student_id = $student_id;
         }
- 
+
         $attendance->attendance_date = $post['date'];
-        $attendance->lesson_id = $lesson_id;        
+        $attendance->lesson_id = $lesson_id;
         $attendance->instructor_id = $instructor_id;
         $attendance->entered_by = Auth::user()->name;
 
@@ -91,7 +102,7 @@ class AttendanceController extends Controller
 
         Alert::toast('Attendance added successifuly!', 'success');
         return redirect('/attendances');
-        
+
     }
 
     /**
@@ -131,7 +142,7 @@ class AttendanceController extends Controller
         $messages = [
             'date.required' => 'Date is required!',
             'student.required'   => 'Student is required!',
-            'lesson.required' => 'Lesson is required!', 
+            'lesson.required' => 'Lesson is required!',
         ];
 
         // Validate the request
@@ -148,7 +159,7 @@ class AttendanceController extends Controller
         $lesson_id = havenUtils::lessonID($post['lesson']);
 
         $attendance = Attendance::find($post['attendance_id']);
- 
+
         $attendance->student_id = $student_id;
         $attendance->attendance_date = $post['date'];
         $attendance->lesson_id = $lesson_id;
@@ -179,7 +190,7 @@ class AttendanceController extends Controller
     public function autocompletestudentSearch(Request $request)
     {
         $datas = Student::select("fname", "mname", "sname")
-            ->where("fname","LIKE","%{$request->student}%")            
+            ->where("fname","LIKE","%{$request->student}%")
             ->orWhere("mname","LIKE","%{$request->student}%")
             ->orWhere("sname","LIKE","%{$request->student}%")
             ->get();

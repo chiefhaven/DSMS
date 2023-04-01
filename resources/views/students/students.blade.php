@@ -49,7 +49,7 @@
                               <th>Email</th>
                               <th style="width: 20%;">TRN</th>
                               <th style="width: 15%;">Course Enrolled</th>
-                              <th style="width: 15%;">Status</th>
+                              <th style="width: 10%;">Status</th>
                               <th class="text-center" style="width: 100px;">Actions</th>
                           </tr>
                       </thead>
@@ -82,8 +82,20 @@
                                   <a href="{{ url('/addinvoice', $students->id) }}">Enroll Course</a>
                                 @endif
                               </td>
-                              <td>
-                                  {{$students->status}}
+                              <td class="text-center">
+                                @if(number_format($students->attendance->count()/$students->course->duration*100) >= 100)
+                                    <span class="badge rounded-pill bg-success">Finished</span>
+                                @elseif(number_format($students->attendance->count()/$students->course->duration*100) >= 50 && number_format($students->attendance->count()/$students->course->duration*100) !== 100)
+                                    <div class="push">
+                                        <span class="badge rounded-pill bg-info text-light">
+                                                {{number_format($students->attendance->count()/$students->course->duration*100)}}%
+                                        </span>
+                                    </div>
+                                @else
+                                    <span class="badge rounded-pill bg-warning text-dark">
+                                        {{number_format($students->attendance->count()/$students->course->duration*100)}}%
+                                    </span>
+                                @endif
                               </td>
                               <td class="text-center">
                                 <div class="dropdown d-inline-block">

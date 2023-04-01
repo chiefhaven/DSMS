@@ -62,7 +62,7 @@ class havenUtils extends Controller
     static function studentID_InvoiceNumber($invoiceNumber){
 
             $student_id = Invoice::where('invoice_number', $invoiceNumber)->first()->student_id;
-            return $student_id;           
+            return $student_id;
 
     }
 
@@ -74,7 +74,7 @@ class havenUtils extends Controller
         return $instructor->id;
     }
 
-    
+
     static function courseID($courseName){
 
         $course = Course::where('name', $courseName)->firstOrFail();
@@ -155,7 +155,7 @@ class havenUtils extends Controller
             $attendancePercent = 0;
         }
 
-        
+
         return number_format((integer)$attendancePercent);
     }
 
@@ -184,7 +184,7 @@ class havenUtils extends Controller
             $newInvoiceNumber = sprintf("%05d", 1);
 
         }
-        
+
 
         $prefix = Invoice_Setting::find(1)->prefix;
 
