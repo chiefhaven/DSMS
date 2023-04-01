@@ -4,9 +4,7 @@
             @section('project_title', config('app.name'))
 
         <x-slot name="logo">
-            <p>
-                <h1 style="font-size: 2.7em; text-align:center;padding-top: 3em;"><strong>Daron Driving School</strong></h1>
-            </p>
+                <h1 style="font-size: 2.7em; text-align:center; color:aliceblue"><strong>Daron Driving School</strong></h1>
         </x-slot>
 
         <!-- Session Status -->

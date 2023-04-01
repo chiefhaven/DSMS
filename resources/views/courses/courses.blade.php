@@ -37,8 +37,8 @@
         @foreach ($course as $course)
         <div class="col-md-6 col-xl-3">
             <div class="block block-rounded block-link-shadow text-center">
-                <div class="block-content block-content-full">
-                    <img class="img-avatar" src="media/avatars/avatar6.jpg" alt="">
+                <div class="block-content block-content-full p-5">
+                    <i class="fa fa-fw fa-book fa-2xl text-large"></i>
                 </div>
                 <div class="block-content block-content-full block-content-sm bg-body-light">
                     <p class="font-w600 mb-0">{{$course->name}}</p>
@@ -46,7 +46,7 @@
                         {{$course->short_description}}
                     </p>
                     <p class="font-size-sm font-italic text-muted mb-0">
-                        {{$course->practicals}} days practicals plus {{$course->theory}} days theory. 
+                        {{$course->practicals}} days practicals plus {{$course->theory}} days theory.
                     </p>
                 </div>
                 <div class="block-content block-content-full">
@@ -75,7 +75,7 @@
                                       </form>
                                       <form method="POST" action="{{ url('/delete-course', $course->id) }}">
                                         {{ csrf_field() }}
-                                        {{ method_field('DELETE') }} 
+                                        {{ method_field('DELETE') }}
                                         <button class="dropdown-item" onclick="return confirm('Are you sure?')" type="submit">Delete</button>
                                       </form>
                                     </div>
