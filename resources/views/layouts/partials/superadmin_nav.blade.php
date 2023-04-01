@@ -3,7 +3,7 @@
           <ul class="nav-main Sidebar">
             <li>
               <a class="nav-main-link" class="fw-semibold text-white tracking-wide" href="{{ url('/') }}">
-                <i class="nav-main-link-icon fa fa-location-arrow"></i>
+                <i class="nav-main-link-icon fa fa-tachometer"></i>
                 <span class="nav-main-link-name">Dashboard</span>
               </a>
             </li>
