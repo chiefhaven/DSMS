@@ -9,7 +9,7 @@ class Attendance extends Model
 {
     use HasFactory;
 
-    protected $dates = ['attendance_date'];
+    protected $casts = ['attendance_date'=>'datetime'];
 
     public function Student()
     {
