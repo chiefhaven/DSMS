@@ -49,6 +49,7 @@
                               <th>Email</th>
                               <th style="width: 20%;">TRN</th>
                               <th style="width: 15%;">Course Enrolled</th>
+                              <th>Balance</th>
                               <th style="width: 10%;">Status</th>
                               <th class="text-center" style="width: 100px;">Actions</th>
                           </tr>
@@ -81,6 +82,19 @@
                                 @else
                                   <a href="{{ url('/addinvoice', $students->id) }}">Enroll Course</a>
                                 @endif
+                              </td>
+                              <td>
+                                <strong>
+                                @if (number_format($students->invoice->invoice_balance) > 0)
+                                    <span class="text-danger">
+                                        K{{number_format($students->invoice->invoice_balance, 2)}}
+                                    </span>
+                                @else
+                                    <span class="text-success">
+                                        K{{number_format($students->invoice->invoice_balance, 2)}}
+                                    </span>
+                                @endif
+                                </strong>
                               </td>
                               <td class="text-center">
                                 @if(number_format($students->attendance->count()/$students->course->duration*100) >= 100)
