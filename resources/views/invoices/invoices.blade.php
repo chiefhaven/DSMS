@@ -74,19 +74,34 @@
                           <td>
                               {{$invoice->invoice_payment_due_date->format('j F, Y')}}
                           </td>
-                          <td>
+                          <td class="text-center">
                             <div class="dropdown d-inline-block">
-                                <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <span class="d-sm-inline-block">Action</span>
-                                </button>
-                                <div class="dropdown-menu dropdown-menu-end p-0">
-                                    <div class="p-2">
-                                        <button class="dropdown-item" @click="view_invoice(item.invoice_number)">View</button>
-                                        <button class="dropdown-item" @click="invoice_edit(item.invoice_number)">Edit</button>
-                                        <button class="dropdown-item delete-confirm" @click="invoice_delete(item.invoice_number)">Delete</button>
-                                    </div>
-                                </div>
+                            <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                              <span class="d-sm-inline-block">Action</span>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end p-0">
+                              <div class="p-2">
+                                <a class="dropdown-item" href="{{ url('/view-invoice', $invoice->invoice_number) }}">
+                                  View
+                                </a>
+                                <form method="POST" action="{{ url('/edit-invoice', $invoice->invoice_number) }}">
+                                      {{ csrf_field() }}
+                                      <button class="dropdown-item" type="submit">Edit</button>
+                                    </form>
+                                <a class="dropdown-item" href="javascript:void(0)">
+                                  Add payment
+                                </a>
+                                <a class="dropdown-item" href="javascript:void(0)">
+                                  Print Invoice
+                                </a>
+                                <form method="POST" action="{{ url('/invoice-delete', $invoice->id) }}">
+                                      {{ csrf_field() }}
+                                      {{ method_field('DELETE') }}
+                                      <button class="dropdown-item delete-confirm" type="submit">Delete</button>
+                                    </form>
+                              </div>
                             </div>
+                          </div>
                         </td>
                       </tr>
                       @endforeach
