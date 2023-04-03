@@ -85,29 +85,40 @@
                               </td>
                               <td>
                                 <strong>
-                                @if (number_format($students->invoice->invoice_balance) > 0)
-                                    <span class="text-danger">
-                                        K{{number_format($students->invoice->invoice_balance, 2)}}
-                                    </span>
+                                @if(isset($students->invoice->invoice_balance))
+                                    @if (number_format($students->invoice->invoice_balance) > 0)
+                                        <span class="text-danger">
+                                            K{{number_format($students->invoice->invoice_balance, 2)}}
+                                        </span>
+                                    @else
+                                        <span class="text-success">
+                                            K{{number_format($students->invoice->invoice_balance, 2)}}
+                                        </span>
+                                    @endif
+
                                 @else
-                                    <span class="text-success">
-                                        K{{number_format($students->invoice->invoice_balance, 2)}}
-                                    </span>
+                                        -
                                 @endif
                                 </strong>
                               </td>
                               <td class="text-center">
-                                @if(number_format($students->attendance->count()/$students->course->duration*100) >= 100)
-                                    <span class="badge rounded-pill bg-success">Finished</span>
-                                @elseif(number_format($students->attendance->count()/$students->course->duration*100) >= 50 && number_format($students->attendance->count()/$students->course->duration*100) !== 100)
-                                    <div class="push">
-                                        <span class="badge rounded-pill bg-info text-light">
-                                                {{number_format($students->attendance->count()/$students->course->duration*100)}}%
+                                @if(isset($students->course->duration))
+                                    @if(number_format($students->attendance->count()/$students->course->duration*100) >= 100)
+                                        <span class="badge rounded-pill bg-success">Finished</span>
+                                    @elseif(number_format($students->attendance->count()/$students->course->duration*100) >= 50 && number_format($students->attendance->count()/$students->course->duration*100) !== 100)
+                                        <div class="push">
+                                            <span class="badge rounded-pill bg-info text-light">
+                                                    {{number_format($students->attendance->count()/$students->course->duration*100)}}%
+                                            </span>
+                                        </div>
+                                    @else
+                                        <span class="badge rounded-pill bg-warning text-dark">
+                                            {{number_format($students->attendance->count()/$students->course->duration*100)}}%
                                         </span>
-                                    </div>
+                                    @endif
                                 @else
                                     <span class="badge rounded-pill bg-warning text-dark">
-                                        {{number_format($students->attendance->count()/$students->course->duration*100)}}%
+                                        0%
                                     </span>
                                 @endif
                               </td>

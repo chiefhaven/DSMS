@@ -169,11 +169,11 @@ class havenUtils extends Controller
     //Generate invoice number
     static function generateInvoiceNumber(){
 
-        $LatestInvoice = Invoice::max('id');
+        $LatestInvoice = Invoice::whereMonth('created_at', Carbon::now())->max('id');
 
         if(isset($LatestInvoice)){
 
-            $highestInvoiceNumber = Invoice::whereMonth('created_at', Carbon::now())->where('id', $LatestInvoice)->firstOrFail()->invoice_number;
+            $highestInvoiceNumber = Invoice::where('id', $LatestInvoice)->firstOrFail()->invoice_number;
             $invoiceNumberOnly = substr(strrchr($highestInvoiceNumber, '-'), 1) ;
             $newInvoiceNumberPlus =++ $invoiceNumberOnly;
             $newInvoiceNumber = sprintf("%05d", $newInvoiceNumberPlus);
