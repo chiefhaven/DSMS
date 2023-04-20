@@ -13,6 +13,7 @@ use App\Http\Controllers\AdministratorController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\InvoiceSettingController;
 use App\Http\Controllers\FleetController;
+use App\Http\Controllers\NotificationController;
 
 
 /*
@@ -33,6 +34,8 @@ Route::post('/', [HomeController::class,'index'])->middleware(['auth'])->name('d
 Route::get('/', [HomeController::class,'index'])->middleware(['auth'])->name('dashboard');
 
 Auth::routes();
+
+Route::post('/send-notification/{id}', [NotificationController::class, 'sendSMS'])->middleware('auth')->name('notification');
 
 Route::get('/students', [StudentController::class, 'index'])->middleware('auth')->name('students');
 Route::get('/viewstudent/{id}', [StudentController::class, 'show'])->middleware('auth')->name('viewStudent');

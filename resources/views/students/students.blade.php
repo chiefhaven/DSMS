@@ -47,8 +47,8 @@
                               <th>Name</th>
                               <th>Phone</th>
                               <th>Email</th>
-                              <th style="width: 20%;">TRN</th>
-                              <th style="width: 15%;">Course Enrolled</th>
+                              <th>TRN</th>
+                              <th>Course Enrolled</th>
                               <th>Balance</th>
                               <th style="width: 10%;">Status</th>
                               <th class="text-center" style="width: 100px;">Actions</th>
@@ -140,6 +140,10 @@
                                         {{ csrf_field() }}
                                         {{ method_field('DELETE') }}
                                         <button class="dropdown-item delete-confirm" type="submit">Delete</button>
+                                      </form>
+                                      <form method="POST" action="{{ url('send-notification', $students->id) }}">
+                                        {{ csrf_field() }}
+                                        <button class="dropdown-item" type="submit">Send balance reminder</button>
                                       </form>
                                     </div>
                                   </div>
