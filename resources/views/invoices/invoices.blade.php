@@ -98,7 +98,11 @@
                                       {{ csrf_field() }}
                                       {{ method_field('DELETE') }}
                                       <button class="dropdown-item delete-confirm" type="submit">Delete</button>
-                                    </form>
+                                </form>
+                                <form method="POST" action="{{ url('send-notification', $invoice->student->id) }}">
+                                    {{ csrf_field() }}
+                                    <button class="dropdown-item" type="submit">Send balance reminder</button>
+                                  </form>
                               </div>
                             </div>
                           </div>
