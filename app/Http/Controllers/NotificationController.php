@@ -26,7 +26,7 @@ class NotificationController extends Controller
         $student = Student::with('User', 'Invoice')->where('id', $id)->firstOrFail();
         $balance = number_format($student->invoice->invoice_balance, 2);
         $due_date = $student->invoice->invoice_payment_due_date->format('j F, Y');
-        $sms_body = 'Dear '.$student->fname.' '.$student->sname.', you have a balance of K'.$balance.' from Daron Driving School due today '.$due_date.'. Pay as as possible. For more information Call/WhatsApp 0999532688. Best regards!';
+        $sms_body = 'Dear '.$student->fname.' '.$student->sname.', you have a balance of K'.$balance.' from Daron Driving School due '.$due_date.'. Pay as as possible. \n For more information Call/WhatsApp 0999532688. Best regards!';
         $destination = $student->phone;
         $source = "Daron DS";
 
@@ -34,7 +34,7 @@ class NotificationController extends Controller
 
         $response = $client->post('http://api.rmlconnect.net/bulksms/bulksms?username=haventechno&password=08521hav&type=0&dlr=0&destination='.$destination.'&source=Daron DS&message='.$sms_body);
 
-        Alert::toast('Student'.' '.'added successifully', 'success');
+        Alert::toast('SMS sent succifully', 'success');
         return back();
 
     }
