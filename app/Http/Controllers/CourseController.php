@@ -38,7 +38,6 @@ class CourseController extends Controller
      */
     public function create()
     {
-        $this->middleware(['role:superAdmin']);
 
         $instructor = Instructor::get();
         return view('courses.addcourse', compact('instructor'));
