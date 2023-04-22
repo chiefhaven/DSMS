@@ -8,7 +8,7 @@
         <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Instructors</h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
           <ol class="breadcrumb">
-            <a href="/addinstructor" class="btn btn-primary">
+            <a href="{{ url('/addinstructor') }}" class="btn btn-primary">
                     <i class="fa fa-fw fa-user-plus mr-1"></i> Add Instructor
             </a>
           </ol>
@@ -51,11 +51,11 @@
                             <p class="font-size-sm text-muted mb-0">
                                 Phone: {{$instructor->phone}}<br>
                                 Email: @if(isset($instructor->user->email))
-    
+
                                   {{$instructor->user->email}}
-    
+
                                 @else
-                                  
+
                                 @endif
                                 <br>
                             </p>
@@ -78,7 +78,7 @@
                                       </form>
                                       <form method="POST" action="{{ url('/deleteinstructor', $instructor->id) }}">
                                         {{ csrf_field() }}
-                                        {{ method_field('DELETE') }} 
+                                        {{ method_field('DELETE') }}
                                         <button class="dropdown-item delete-confirm" type="submit">Delete</button>
                                       </form>
                                     </div>
@@ -89,7 +89,7 @@
                 </div>
             </div>
         </div>
-        @endforeach        
+        @endforeach
       </div>
 
       </div>
@@ -104,12 +104,12 @@
             text: 'All Lessons belonging to him/her will be transfered to Super instructor!',
             icon: 'warning',
             buttons: ["Cancel", "Yes!"],
-        }).then(function(isConfirm){        
-                if(isConfirm){ 
+        }).then(function(isConfirm){
+                if(isConfirm){
                         form.submit();
-                } 
+                }
         });
     });
-  
+
 </script>
 @endsection

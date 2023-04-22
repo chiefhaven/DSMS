@@ -11,6 +11,11 @@ use RealRashid\SweetAlert\Facades\Alert;
 
 class SettingController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['role:superAdmin']);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -99,7 +104,7 @@ class SettingController extends Controller
             'time_zone' =>'required'
 
         ], $messages);
-        
+
 
         $post = $request->All();
 
@@ -126,7 +131,7 @@ class SettingController extends Controller
             $request->favicon->move(public_path('media/favicons'), $faviconName);
             $settings->favicon = $faviconName;
         }
- 
+
         $settings->school_name = $post['school_name'];
         $settings->slogan = $post['slogan'];
         $settings->company_description = $post['company_description'];

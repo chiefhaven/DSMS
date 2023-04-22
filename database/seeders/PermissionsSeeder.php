@@ -62,7 +62,7 @@ class PermissionsSeeder extends Seeder
         $role2->givePermissionTo('delete students');
         $role2->givePermissionTo('create expenses');
         $role2->givePermissionTo('edit expenses');
-        $role2->givePermissionTo('delete expenses');        
+        $role2->givePermissionTo('delete expenses');
         $role2->givePermissionTo('view dashboard');
         $role2->givePermissionTo('create reference letters');
         $role2->givePermissionTo('view settings');
@@ -88,6 +88,6 @@ class PermissionsSeeder extends Seeder
             'email' => 'superadmin@example.com',
         ]);
         $user->assignRole($role3);
-    
+
     }
 }

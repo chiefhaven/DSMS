@@ -9,7 +9,7 @@
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
           <ol class="breadcrumb">
             <a href="{{ url('/addstudent') }}" class="btn btn-primary">
-                    <i class="fa fa-fw fa-user-plus mr-1"></i> Add student
+                <i class="fa fa-fw fa-user-plus mr-1"></i> Add student
             </a>
           </ol>
         </nav>
@@ -49,8 +49,10 @@
                               <th>Email</th>
                               <th>TRN</th>
                               <th>Course Enrolled</th>
-                              <th>Balance</th>
-                              <th style="width: 10%;">Status</th>
+                              @role('superAdmin')
+                                <th>Balance</th>
+                                @endrole
+                              <th>Status</th>
                               <th class="text-center" style="width: 100px;">Actions</th>
                           </tr>
                       </thead>
@@ -80,27 +82,34 @@
                                   {{$students->course->short_description}}
 
                                 @else
-                                  <a href="{{ url('/addinvoice', $students->id) }}">Enroll Course</a>
-                                @endif
-                              </td>
-                              <td>
-                                <strong>
-                                @if(isset($students->invoice->invoice_balance))
-                                    @if (number_format($students->invoice->invoice_balance) > 0)
-                                        <span class="text-danger">
-                                            K{{number_format($students->invoice->invoice_balance, 2)}}
-                                        </span>
+                                    @role(['superAdmin', 'admin'])
+                                        <a href="{{ url('/addinvoice', $students->id) }}">Enroll Course</a>
                                     @else
-                                        <span class="text-success">
-                                            K{{number_format($students->invoice->invoice_balance, 2)}}
-                                        </span>
-                                    @endif
-
-                                @else
-                                        -
+                                        <strong>Not enrolled yet.</strong>
+                                        <br class="muted sm-text"><small>Ask administrator to enroll the student</small>
+                                    @endrole
                                 @endif
-                                </strong>
                               </td>
+                              @role('superAdmin')
+                                <td>
+                                    <strong>
+                                    @if(isset($students->invoice->invoice_balance))
+                                        @if (number_format($students->invoice->invoice_balance) > 0)
+                                            <span class="text-danger">
+                                                K{{number_format($students->invoice->invoice_balance, 2)}}
+                                            </span>
+                                        @else
+                                            <span class="text-success">
+                                                K{{number_format($students->invoice->invoice_balance, 2)}}
+                                            </span>
+                                        @endif
+
+                                    @else
+                                            -
+                                    @endif
+                                    </strong>
+                                </td>
+                                @endrole
                               <td class="text-center">
                                 @if(isset($students->course->duration))
                                     @if(number_format($students->attendance->count()/$students->course->duration*100) >= 100)

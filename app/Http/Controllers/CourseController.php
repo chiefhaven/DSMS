@@ -7,9 +7,18 @@ use App\Models\Instructor;
 use App\Models\Student;
 use App\Models\Invoice;
 use Illuminate\Http\Request;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class CourseController extends Controller
 {
+    public function __construct()
+    {
+        if($this->middleware(['role: superAdmin']) == false){
+            Alert::toast('You don\'t have permission to perfom this task, Ask the administrator for more information.', 'warning');
+            return back();
+        }
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -29,6 +38,8 @@ class CourseController extends Controller
      */
     public function create()
     {
+        $this->middleware(['role:superAdmin']);
+
         $instructor = Instructor::get();
         return view('courses.addcourse', compact('instructor'));
     }

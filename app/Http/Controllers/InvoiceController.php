@@ -22,7 +22,11 @@ use Spatie\Searchable\SearchResult;
 
 class InvoiceController extends Controller
 {
-    /**
+    public function __construct()
+    {
+        $this->middleware(['role:superAdmin']);
+    }
+/**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
@@ -40,9 +44,18 @@ class InvoiceController extends Controller
      */
     public function create($id)
     {
-        $course = Course::get();
-        $student = Student::find($id);
-        return view('invoices.addinvoice', compact('course', 'student'));
+        $this->middleware(['role:superAdmin']);
+
+        if(Auth::user()->can('create invoices')){
+            $course = Course::get();
+            $student = Student::find($id);
+            return view('invoices.addinvoice', compact('course', 'student'));
+        }
+
+        else{
+            Alert::toast('You don\'t have permission to enroll a student, Ask the administrator for more information.', 'warning');
+            return back();
+        }
     }
 
     /**

@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\District;
 use App\Models\Lesson;
-use App\Models\Permission; 
+use App\Models\Permission;
 use App\Models\Role;
 use App\Http\Requests\StoreInstructorRequest;
 use App\Http\Requests\UpdateInstructorRequest;
@@ -21,6 +21,10 @@ use RealRashid\SweetAlert\Facades\Alert;
 
 class InstructorController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['role:superAdmin']);
+    }
     /**
      * Display a listing of the resource.
      *
@@ -55,7 +59,7 @@ class InstructorController extends Controller
         $messages = [
             'fname.required' => 'The "First name" field is required!',
             'sname.required'   => 'The "Sir name" field is should be unique!',
-            'email.required' => 'The "Email" is required!',            
+            'email.required' => 'The "Email" is required!',
             'email.unique' => 'The "Email" is already in use',
             'gender.required'   => 'The "Gender" field required!',
             'date_of_birth.required' => 'Date of birth is required',
@@ -79,7 +83,7 @@ class InstructorController extends Controller
         $district = havenUtils::selectDistrict($post['district']);
 
         $instructor = new instructor;
- 
+
         $instructor->fname = $post['first_name'];
         $instructor->sname = $post['sir_name'];
         $instructor->gender = $post['gender'];
@@ -153,7 +157,7 @@ class InstructorController extends Controller
         $messages = [
             'fname.required' => 'Firstname is required',
             'sname.required'   => 'Sirname is required',
-            'email.required' => 'Email is required',            
+            'email.required' => 'Email is required',
             'email.unique' => 'Email is already in use',
             'gender.required'   => 'The "Gender" field required',
             'date_of_birth.required' => 'Date of birth is required',
@@ -178,7 +182,7 @@ class InstructorController extends Controller
         $district = havenUtils::selectDistrict($post['district']);
 
         $instructor = Instructor::find($post['instructor_id']);
- 
+
         $instructor->fname = $post['first_name'];
         $instructor->sname = $post['sir_name'];
         $instructor->gender = $post['gender'];
