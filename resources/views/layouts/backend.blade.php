@@ -115,15 +115,7 @@
       <!-- Sidebar Scrolling -->
       <div class="js-sidebar-scroll">
         <!-- Side Navigation -->
-        @role('superAdmin')
-          @include('layouts.partials.superadmin_nav')
-        @endcan
-        @role('admin')
-          @include('layouts.partials.admin_nav')
-        @endcan
-        @role('instructor')
-          @include('layouts.partials.instructor_nav')
-        @endcan
+          @include('layouts.partials.main_nav')
         <!-- END Side Navigation -->
       </div>
       <!-- END Sidebar Scrolling -->

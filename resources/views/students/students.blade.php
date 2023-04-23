@@ -7,11 +7,14 @@
       <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
         <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Students</h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
-          <ol class="breadcrumb">
-            <a href="{{ url('/addstudent') }}" class="btn btn-primary">
-                <i class="fa fa-fw fa-user-plus mr-1"></i> Add student
-            </a>
-          </ol>
+
+            @role(['superAdmin', 'admin'])
+                <ol class="breadcrumb">
+                    <a href="{{ url('/addstudent') }}" class="btn btn-primary">
+                        <i class="fa fa-fw fa-user-plus mr-1"></i> Add student
+                    </a>
+                </ol>
+            @endcan
         </nav>
       </div>
     </div>
@@ -138,22 +141,27 @@
                                   </button>
                                   <div class="dropdown-menu dropdown-menu-end p-0">
                                     <div class="p-2">
-                                      <a class="dropdown-item" href="{{ url('/viewstudent', $students->id) }}">
-                                        Profile
+                                      <a class="dropdown-item nav-main-link" href="{{ url('/viewstudent', $students->id) }}">
+                                        <i class="nav-main-link-icon fa fa-user"></i>Profile
                                       </a>
-                                      <form method="POST" action="{{ url('/edit-student', $students->id) }}">
-                                        {{ csrf_field() }}
-                                        <button class="dropdown-item" type="submit">Edit</button>
-                                      </form>
-                                      <form method="POST" action="{{ url('student-delete', $students->id) }}">
-                                        {{ csrf_field() }}
-                                        {{ method_field('DELETE') }}
-                                        <button class="dropdown-item delete-confirm" type="submit">Delete</button>
-                                      </form>
-                                      <form method="POST" action="{{ url('send-notification', $students->id) }}">
-                                        {{ csrf_field() }}
-                                        <button class="dropdown-item" type="submit">Send balance reminder</button>
-                                      </form>
+                                    @role(['superAdmin', 'admin'])
+                                        <form method="POST" class="dropdown-item nav-main-link" action="{{ url('/edit-student', $students->id) }}">
+                                            {{ csrf_field() }}
+                                            <i class="nav-main-link-icon fa fa-pencil"></i>
+                                            <button class="btn" type="submit">Edit</button>
+                                        </form>
+                                        <form class="dropdown-item nav-main-link" method="POST" action="{{ url('student-delete', $students->id) }}">
+                                            {{ csrf_field() }}
+                                            {{ method_field('DELETE') }}
+                                            <i class="nav-main-link-icon fa fa-trash"></i>
+                                            <button class="btn delete-confirm" type="submit">Delete</button>
+                                        </form>
+                                        <form method="POST" class="dropdown-item nav-main-link" action="{{ url('send-notification', $students->id) }}">
+                                            {{ csrf_field() }}
+                                            <i class="nav-main-link-icon fa fa-paper-plane"></i>
+                                            <button class="btn" type="submit">Send balance reminder</button>
+                                        </form>
+                                    @endcan
                                     </div>
                                   </div>
                                 </div>

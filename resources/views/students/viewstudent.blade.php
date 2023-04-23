@@ -38,16 +38,18 @@
             Student Details
           </button>
         </li>
-        <li class="nav-item">
-          <button class="nav-link" id="invoices-tab" data-bs-toggle="tab" data-bs-target="#invoices" role="tab" aria-controls="invoices" aria-selected="false">
-            Invoices
-          </button>
-        </li>
-        <li class="nav-item">
-          <button class="nav-link" id="payments-tab" data-bs-toggle="tab" data-bs-target="#payments" role="tab" aria-controls="payments" aria-selected="false">
-            Payments
-          </button>
-        </li>
+        @role(['superAdmin', 'admin'])
+            <li class="nav-item">
+            <button class="nav-link" id="invoices-tab" data-bs-toggle="tab" data-bs-target="#invoices" role="tab" aria-controls="invoices" aria-selected="false">
+                Invoices
+            </button>
+            </li>
+            <li class="nav-item">
+            <button class="nav-link" id="payments-tab" data-bs-toggle="tab" data-bs-target="#payments" role="tab" aria-controls="payments" aria-selected="false">
+                Payments
+            </button>
+            </li>
+        @endcan
       </ul>
       <div class="block-content tab-content">
         <div class="tab-pane fade active show" id="student-details" role="tabpanel" aria-labelledby="student-details-tab">
@@ -71,19 +73,21 @@
 
                       </thead>
                       <tbody>
-                          <tr>
-                              <td>
-                                  Enrolled on
-                              </td>
-                              <td>
-                                @if(isset($student->invoice->created_at))
-                                  {{$student->invoice->created_at->format('j F, Y')}}
+                        @role(['superAdmin', 'admin'])
+                            <tr>
+                                <td>
+                                    Enrolled on
+                                </td>
+                                <td>
+                                    @if(isset($student->invoice->created_at))
+                                    {{$student->invoice->created_at->format('j F, Y')}}
 
-                                @else
-                                  <a href="{{ url('/addinvoice', $student->id) }}">Enroll Course</a>
-                                @endif
-                              </td>
-                          </tr>
+                                    @else
+                                    <a href="{{ url('/addinvoice', $student->id) }}">Enroll Course</a>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endcan
                           <tr>
                               <td>
                                   Course
@@ -96,43 +100,44 @@
                                 @endif
                               </td>
                           </tr>
-                          <tr>
-                              <td>
-                                  Fees
-                              </td>
-                              <td>
-                                @if(isset($student->invoice->created_at))
-                                  K{{number_format($student->invoice->invoice_total)}}
-                                @else
+                          @role(['superAdmin', 'admin'])
+                            <tr>
+                                <td>
+                                    Fees
+                                </td>
+                                <td>
+                                    @if(isset($student->invoice->created_at))
+                                    K{{number_format($student->invoice->invoice_total)}}
+                                    @else
 
-                                @endif
-                              </td>
-                          </tr>
-                          <tr>
-                              <td>
-                                  Paid
-                              </td>
-                              <td>
-                                @if(isset($student->invoice->created_at))
-                                  K{{number_format($student->invoice->invoice_amount_paid)}}
-                                @else
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    Paid
+                                </td>
+                                <td>
+                                    @if(isset($student->invoice->created_at))
+                                    K{{number_format($student->invoice->invoice_amount_paid)}}
+                                    @else
 
-                                @endif
-                              </td>
-                          </tr>
-                          <tr>
-                              <td>
-                                  Balance
-                              </td>
-                              <td>
-                                @if(isset($student->invoice->created_at))
-                                  K{{number_format($student->invoice->invoice_balance)}}
-                                @else
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    Balance
+                                </td>
+                                <td>
+                                    @if(isset($student->invoice->created_at))
+                                    K{{number_format($student->invoice->invoice_balance)}}
+                                    @else
 
-                                @endif
-                              </td>
-                          </tr>
-
+                                    @endif
+                                </td>
+                            </tr>
+                            @endcan
                       </tbody>
                   </table>
                   </div>
@@ -213,213 +218,217 @@
               </div>
          </div>
     </div>
-    <div class="tab-pane fade" id="invoices" role="tabpanel" aria-labelledby="invoices-tab">
-     <div class="table-responsive" style="overflow-x: inherit;">
-        <table class="table table-bordered table-striped table-vcenter">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Invoice No</th>
-                    <th>Total</th>
-                    <th>Balance</th>
-                    <th >Due</th>
-                    <th class="text-center" style="width: 100px;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="font-w600">
-                      @if(isset($student->invoice->created_at))
-                        {{$student->invoice->date_created->format('j F, Y')}}
-                      @else
+    @role(['superAdmin', 'admin'])
+        <div class="tab-pane fade" id="invoices" role="tabpanel" aria-labelledby="invoices-tab">
+        <div class="table-responsive" style="overflow-x: inherit;">
+            <table class="table table-bordered table-striped table-vcenter">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Invoice No</th>
+                        <th>Total</th>
+                        <th>Balance</th>
+                        <th >Due</th>
+                        <th class="text-center" style="width: 100px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="font-w600">
+                        @if(isset($student->invoice->created_at))
+                            {{$student->invoice->date_created->format('j F, Y')}}
+                        @else
 
-                      @endif
-                    </td>
-                    <td class="font-w600">
-                      @if(isset($student->invoice->created_at))
-                        {{$student->invoice->invoice_number}}
-                      @else
+                        @endif
+                        </td>
+                        <td class="font-w600">
+                        @if(isset($student->invoice->created_at))
+                            {{$student->invoice->invoice_number}}
+                        @else
 
-                      @endif
-                    </td>
-                    <td>
-                      @if(isset($student->invoice->created_at))
-                        K{{number_format($student->invoice->invoice_total)}}
-                      @else
+                        @endif
+                        </td>
+                        <td>
+                        @if(isset($student->invoice->created_at))
+                            K{{number_format($student->invoice->invoice_total)}}
+                        @else
 
-                      @endif
-                    </td>
-                    <td>
-                      @if(isset($student->invoice->created_at))
-                        K{{number_format($student->invoice->invoice_balance)}}
-                      @else
+                        @endif
+                        </td>
+                        <td>
+                        @if(isset($student->invoice->created_at))
+                            K{{number_format($student->invoice->invoice_balance)}}
+                        @else
 
-                      @endif
-                    </td>
-                    <td>
-                      @if(isset($student->invoice->created_at))
-                        {{$student->invoice->invoice_payment_due_date->format('j F, Y')}}
-                      @else
+                        @endif
+                        </td>
+                        <td>
+                        @if(isset($student->invoice->created_at))
+                            {{$student->invoice->invoice_payment_due_date->format('j F, Y')}}
+                        @else
 
-                      @endif
-                    </td>
-                    @if(isset($student->invoice->created_at))
-                    <td class="text-center">
-                      <div class="dropdown d-inline-block">
-                          <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <span class="d-none d-sm-inline-block">Action</span>
-                          </button>
-                          <div class="dropdown-menu dropdown-menu-end p-0">
-                            <div class="p-2">
-                              <a class="dropdown-item" href="{{ url('/view-invoice', $student->invoice->invoice_number) }}">
-                                View
-                              </a>
-                              <form method="POST" action="{{ url('/edit-invoice', $student->invoice->invoice_number) }}">
+                        @endif
+                        </td>
+                        @if(isset($student->invoice->created_at))
+                        <td class="text-center">
+                        <div class="dropdown d-inline-block">
+                            <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="d-none d-sm-inline-block">Action</span>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end p-0">
+                                <div class="p-2">
+                                <a class="dropdown-item" href="{{ url('/view-invoice', $student->invoice->invoice_number) }}">
+                                    View
+                                </a>
+                                <form method="POST" action="{{ url('/edit-invoice', $student->invoice->invoice_number) }}">
+                                        {{ csrf_field() }}
+                                    <button class="dropdown-item" type="submit">Edit</button>
+                                </form>
+                                <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal-block-vcenter">
+                                    Add payment
+                                </button>
+                                <a class="dropdown-item" href="{{ url('/invoice-pdf', $student->invoice->invoice_number) }}">
+                                    Print Invoice
+                                </a>
+                                <form method="POST" action="{{ url('/invoice-delete', $student->invoice->id) }}">
                                     {{ csrf_field() }}
-                                <button class="dropdown-item" type="submit">Edit</button>
-                              </form>
-                              <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal-block-vcenter">
-                                Add payment
-                              </button>
-                              <a class="dropdown-item" href="{{ url('/invoice-pdf', $student->invoice->invoice_number) }}">
-                                Print Invoice
-                              </a>
-                              <form method="POST" action="{{ url('/invoice-delete', $student->invoice->id) }}">
-                                {{ csrf_field() }}
-                                {{ method_field('DELETE') }}
-                                <button class="dropdown-item" onclick="return confirm('Are you sure?')" type="submit">Delete</button>
-                              </form>
-                              <form method="POST" action="{{ url('send-notification', $student->id) }}">
-                                {{ csrf_field() }}
-                                <button class="dropdown-item" type="submit">Send balance reminder</button>
-                              </form>
+                                    {{ method_field('DELETE') }}
+                                    <button class="dropdown-item" onclick="return confirm('Are you sure?')" type="submit">Delete</button>
+                                </form>
+                                <form method="POST" action="{{ url('send-notification', $student->id) }}">
+                                    {{ csrf_field() }}
+                                    <button class="dropdown-item" type="submit">Send balance reminder</button>
+                                </form>
+                                </div>
                             </div>
-                          </div>
-                        </div>
-                    </td>
-                    @endif
-                </tr>
-            </tbody>
-        </table>
-      </div>
-    </div>
-    <div class="tab-pane fade" id="payments" role="tabpanel" aria-labelledby="payments-tab">
-      <div class="table-responsive">
-        <table class="table table-bordered table-striped table-vcenter">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Reference number</th>
-                    <th style="width: 20%;">Payment Method</th>
-                    <th style="width: 15%;">Amount</th>
-                    <th style="width: 15%;">Entered By</th>
-                    <th style="width: 15%;">Payment Proof</th>
-                    <th class="text-center" style="width: 100px;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($student->payment as $payment)
-                  <tr>
-                      <td class="font-w600">
-                          {{$payment->created_at->format('j F, Y')}}
-                      </td>
-                      <td class="font-w600">
-                          {{$payment->transaction_id}}
-                      </td>
-                      <td>@if(isset($payment->paymentMethod->name))
-                            {{$payment->paymentMethod->name}}</td>
-                          @else
-
-                          @endif
-                      <td>
-                          K{{number_format($payment->amount_paid)}}
-                      </td>
-                      <td>
-                          {{$payment->entered_by}}
-                      </td>
-                      <td>
-                        <img src="/../media/paymentProof/{{$payment->payment_proof}}"  width="200px" alt="img proof of payment"/>
-                      </td>
-                      <td class="text-center">
-                          <div class="dropdown d-inline-block">
-                          <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <span class="d-none d-sm-inline-block">Action</span>
-                          </button>
-                          <div class="dropdown-menu dropdown-menu-end p-0">
-                            <div class="p-2">
-                              <form method="POST" action="{{ url('delete-payment', $payment->id) }}">
-                                {{ csrf_field() }}
-                                {{ method_field('DELETE') }}
-                                <button class="dropdown-item" onclick="return confirm('Are you sure you want to delete payment number {{$payment->transaction_id}}?')" type="submit">Delete</button>
-                              </form>
                             </div>
-                          </div>
-                        </div>
-                      </td>
-                  </tr>
-                @endforeach
-            </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  </div>
-</div>
-
-<!-- Payment Modal -->
-<div class="modal" id="modal-block-vcenter" tabindex="-1" aria-labelledby="modal-block-vcenter" style="display: none;" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <div class="block block-rounded block-themed block-transparent mb-0">
-          <div class="block-header bg-primary-dark">
-            <h3 class="block-title">Add Payment</h3>
-            <div class="block-options">
-              <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
-                <i class="fa fa-fw fa-times"></i>
-              </button>
-            </div>
-          </div>
-          <div class="block-content">
-            <form class="mb-5" action="{{ url('/add-payment') }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
-                  @csrf
-                  @if(isset($student->invoice->created_at))
-                    <input type="text" class="form-control" id="invoice_number" name="invoice_number" value="{{$student->invoice->invoice_number}}" hidden>
-                @else
-
-                @endif
-              <div class="col-12 form-floating mb-4">
-                  <input type="date" class="form-control" id="date_created" name="date_created" placeholder="Enter invoice date">
-                  <label for="invoice_discount">Date</label>
-              </div>
-              <div class="row">
-                  <div class="col-6 form-floating mb-4">
-                      <input type="number" class="form-control" id="paid_amount" name="paid_amount" value="0">
-                      <label for="invoice_discount">Amount</label>
-                  </div>
-                  <div class="col-6 form-floating mb-4">
-                      <select class="form-select" id="payment_method" name="payment_method">
-                          <option value="Cash" selected>Cash</option>
-                          <option value="National Bank">National Bank</option>
-                          <option value="Airtel Money">Airtel Money</option>
-                          <option value="TNM Mpamba">TNM Mpamba</option>
-                          <option value="Other">Other</option>
-                      </select>
-                      <label for="district">Payment Method</label>
-                  </div>
-              </div>
-              <div class="col-12 form-floating mb-4">
-                  <input type="file" class="form-control" id="payment_proof" name="payment_proof" placeholder="Upload a reciept">
-                  <label for="invoice_discount">Payment proof</label>
-              </div>
-              <div class="block-content block-content-full text-end bg-body">
-                  <button type="submit" class="btn btn-primary">Save</button>
-                  <button type="button" class="btn btn-sm btn-alt-secondary" data-bs-dismiss="modal">Close</button>
-              </div>
-          </form>
+                        </td>
+                        @endif
+                    </tr>
+                </tbody>
+            </table>
         </div>
-      </div>
-    </div>
+        </div>
+        <div class="tab-pane fade" id="payments" role="tabpanel" aria-labelledby="payments-tab">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-vcenter">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Reference number</th>
+                        <th style="width: 20%;">Payment Method</th>
+                        <th style="width: 15%;">Amount</th>
+                        <th style="width: 15%;">Entered By</th>
+                        <th style="width: 15%;">Payment Proof</th>
+                        <th class="text-center" style="width: 100px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($student->payment as $payment)
+                    <tr>
+                        <td class="font-w600">
+                            {{$payment->created_at->format('j F, Y')}}
+                        </td>
+                        <td class="font-w600">
+                            {{$payment->transaction_id}}
+                        </td>
+                        <td>@if(isset($payment->paymentMethod->name))
+                                {{$payment->paymentMethod->name}}</td>
+                            @else
+
+                            @endif
+                        <td>
+                            K{{number_format($payment->amount_paid)}}
+                        </td>
+                        <td>
+                            {{$payment->entered_by}}
+                        </td>
+                        <td>
+                            <img src="/../media/paymentProof/{{$payment->payment_proof}}"  width="200px" alt="img proof of payment"/>
+                        </td>
+                        <td class="text-center">
+                            <div class="dropdown d-inline-block">
+                            <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="d-none d-sm-inline-block">Action</span>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end p-0">
+                                <div class="p-2">
+                                <form method="POST" action="{{ url('delete-payment', $payment->id) }}">
+                                    {{ csrf_field() }}
+                                    {{ method_field('DELETE') }}
+                                    <button class="dropdown-item" onclick="return confirm('Are you sure you want to delete payment number {{$payment->transaction_id}}?')" type="submit">Delete</button>
+                                </form>
+                                </div>
+                            </div>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        </div>
+    @endcan
+  </div>
   </div>
 </div>
+
+@role(['superAdmin', 'admin'])
+    <!-- Payment Modal -->
+    <div class="modal" id="modal-block-vcenter" tabindex="-1" aria-labelledby="modal-block-vcenter" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="block block-rounded block-themed block-transparent mb-0">
+            <div class="block-header bg-primary-dark">
+                <h3 class="block-title">Add Payment</h3>
+                <div class="block-options">
+                <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="fa fa-fw fa-times"></i>
+                </button>
+                </div>
+            </div>
+            <div class="block-content">
+                <form class="mb-5" action="{{ url('/add-payment') }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
+                    @csrf
+                    @if(isset($student->invoice->created_at))
+                        <input type="text" class="form-control" id="invoice_number" name="invoice_number" value="{{$student->invoice->invoice_number}}" hidden>
+                    @else
+
+                    @endif
+                <div class="col-12 form-floating mb-4">
+                    <input type="date" class="form-control" id="date_created" name="date_created" placeholder="Enter invoice date">
+                    <label for="invoice_discount">Date</label>
+                </div>
+                <div class="row">
+                    <div class="col-6 form-floating mb-4">
+                        <input type="number" class="form-control" id="paid_amount" name="paid_amount" value="0">
+                        <label for="invoice_discount">Amount</label>
+                    </div>
+                    <div class="col-6 form-floating mb-4">
+                        <select class="form-select" id="payment_method" name="payment_method">
+                            <option value="Cash" selected>Cash</option>
+                            <option value="National Bank">National Bank</option>
+                            <option value="Airtel Money">Airtel Money</option>
+                            <option value="TNM Mpamba">TNM Mpamba</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <label for="district">Payment Method</label>
+                    </div>
+                </div>
+                <div class="col-12 form-floating mb-4">
+                    <input type="file" class="form-control" id="payment_proof" name="payment_proof" placeholder="Upload a reciept">
+                    <label for="invoice_discount">Payment proof</label>
+                </div>
+                <div class="block-content block-content-full text-end bg-body">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-sm btn-alt-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </form>
+            </div>
+        </div>
+        </div>
+    </div>
+    </div>
+    @endcan
 
 @endsection
