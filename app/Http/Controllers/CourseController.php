@@ -13,7 +13,7 @@ class CourseController extends Controller
 {
     public function __construct()
     {
-        if($this->middleware(['role: superAdmin']) == false){
+        if($this->middleware(['role: superAdmin'])){
             Alert::toast('You don\'t have permission to perfom this task, Ask the administrator for more information.', 'warning');
             return back();
         }
