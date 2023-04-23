@@ -22,6 +22,10 @@ use RealRashid\SweetAlert\Facades\Alert;
 
 class AdministratorController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['role:superAdmin'], ['role:admin']);
+    }
     /**
      * Display a listing of the resource.
      *
@@ -56,7 +60,7 @@ class AdministratorController extends Controller
         $messages = [
             'fname.required' => 'First name is required',
             'sname.required'   => 'Sirname is required',
-            'email.required' => 'Email is required',            
+            'email.required' => 'Email is required',
             'email.unique' => 'Email is already in use',
             'gender.required'   => 'The "Gender" field required',
             'date_of_birth.required' => 'Date of birth is required',
@@ -84,7 +88,7 @@ class AdministratorController extends Controller
         $district = havenUtils::selectDistrict($post['district']);
 
         $administrator = new Administrator;
- 
+
         $administrator->fname = $post['first_name'];
         $administrator->sname = $post['sir_name'];
         $administrator->gender = $post['gender'];
@@ -111,7 +115,7 @@ class AdministratorController extends Controller
 
             $user->assignRole('admin');
         }
-        
+
 
         Alert::toast('Administrator'.' '.$administrator->fname.' '.'added successifully', 'success');
         return redirect('/administrators');
@@ -167,7 +171,7 @@ class AdministratorController extends Controller
         $messages = [
             'fname.required' => 'Firstname is required',
             'sname.required'   => 'Sirname is required',
-            'email.required' => 'Email is required',            
+            'email.required' => 'Email is required',
             'email.unique' => 'Email is already in use',
             'gender.required'   => 'The "Gender" field required',
             'date_of_birth.required' => 'Date of birth is required',
@@ -193,7 +197,7 @@ class AdministratorController extends Controller
         $district = havenUtils::selectDistrict($post['district']);
 
         $Administrator = Administrator::find($post['administrator_id']);
- 
+
         $Administrator->fname = $post['first_name'];
         $Administrator->sname = $post['sir_name'];
         $Administrator->gender = $post['gender'];
@@ -209,7 +213,7 @@ class AdministratorController extends Controller
         if(isset($post['password'])){
             $user->password = Hash::make($post['password']);
         }
-        
+
 
         $Administrator->save();
         $user->save();

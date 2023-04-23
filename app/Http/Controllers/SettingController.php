@@ -13,7 +13,7 @@ class SettingController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['role:superAdmin']);
+        $this->middleware(['role:superAdmin'], ['role:admin']);
     }
 
     /**

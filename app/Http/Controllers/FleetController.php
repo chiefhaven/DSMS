@@ -13,11 +13,16 @@ use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use RealRashid\SweetAlert\Facades\Alert;
-use App\Models\Permission; 
+use App\Models\Permission;
 use App\Models\Role;
 
 class FleetController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['role:superAdmin'], ['role:admin']);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -85,16 +90,16 @@ class FleetController extends Controller
                 $fleet->instructor_id = $instructorID;
 
             }
-            else{            
+            else{
                 $fleet->instructor_id = 1000000;
             }
         }
 
-        else{            
+        else{
                 $fleet->instructor_id = 1000000;
         }
 
- 
+
         $fleet->car_brand_model = $post['car_brand_model'];
         $fleet->car_registration_number = $post['reg_number'];
         $fleet->car_description = $post['car_description'];
