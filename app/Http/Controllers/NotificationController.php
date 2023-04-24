@@ -16,7 +16,32 @@ use App\Models\Setting;
 
 class NotificationController extends Controller
 {
-     /**
+    public function __construct()
+    {
+        $this->middleware(['role:superAdmin'], ['role:admin']);
+    }
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function updateSMSTempates()
+    {
+
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function createSMSTempate()
+    {
+        return view('sms_templates');
+    }
+
+
+    /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response

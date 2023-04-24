@@ -143,7 +143,7 @@
                     </a>
                     <ul class="nav-main-submenu">
                         <li class="nav-main-item">
-                            <a class="nav-main-link" href="{{ url('#') }}">
+                            <a class="nav-main-link" href="{{ url('/sms-templates') }}">
                                 <span class="nav-main-link-name">Templates</span>
                             </a>
                         </li>
