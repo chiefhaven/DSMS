@@ -46,9 +46,9 @@ class InvoiceController extends Controller
      */
     public function create($id)
     {
-        $this->middleware(['role:superAdmin']);
 
-        if(Auth::user()->can('create invoices')){
+
+        if($this->middleware(['role:superAdmin'], ['role:admin'])){
             $course = Course::get();
             $student = Student::find($id);
             return view('invoices.addinvoice', compact('course', 'student'));
