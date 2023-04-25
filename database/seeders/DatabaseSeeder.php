@@ -35,6 +35,7 @@ class DatabaseSeeder extends Seeder
         $this->call(PermissionsSeeder::class);
         $this->call(FleetSeeder::class);
         $this->call(ExpenseSeeder::class);
+        $this->call(NotificatonTemplatesTableSeeder::class);
 
     }
 }

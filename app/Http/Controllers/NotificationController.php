@@ -48,6 +48,10 @@ class NotificationController extends Controller
      */
     public function sendSMS($id)
     {
+        if (! auth()->user()->can('add invoice')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $student = Student::with('User', 'Invoice')->where('id', $id)->firstOrFail();
         $balance = number_format($student->invoice->invoice_balance, 2);
         $due_date = $student->invoice->invoice_payment_due_date->format('j F, Y');
