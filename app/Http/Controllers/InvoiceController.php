@@ -16,9 +16,6 @@ use Illuminate\Support\Str;
 use Auth;
 use RealRashid\SweetAlert\Facades\Alert;
 use PDF;
-use Spatie\Searchable\Searchable;
-use Spatie\Searchable\SearchResult;
-
 
 class InvoiceController extends Controller
 {
