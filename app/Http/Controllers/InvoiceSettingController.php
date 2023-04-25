@@ -37,7 +37,7 @@ class InvoiceSettingController extends Controller
      */
     public function store(Storeinvoice_settingRequest $request)
     {
-        
+
     }
 
     /**
@@ -75,7 +75,7 @@ class InvoiceSettingController extends Controller
         $post = $request->All();
 
         $settings = Invoice_Setting::find(1);
- 
+
         $settings->invoice_due_days = $post['due'];
         $settings->year = $post['year'];
         $settings->prefix = $post['prefix'];
