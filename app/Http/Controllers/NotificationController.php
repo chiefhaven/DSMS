@@ -51,20 +51,32 @@ class NotificationController extends Controller
      */
     public function sendSMS($id)
     {
-        if (! auth()->user()->can('add invoice')) {
+        if (! $this->middleware(['role:admin'])) {
             abort(403, 'Unauthorized action.');
         }
 
         $student = Student::with('User', 'Invoice')->where('id', $id)->firstOrFail();
+        $total = number_format($student->invoice->invoice_total, 2);
+        $paid = number_format($student->invoice->invoice_amount_paid, 2);
         $balance = number_format($student->invoice->invoice_balance, 2);
         $due_date = $student->invoice->invoice_payment_due_date->format('j F, Y');
-        $sms_body = 'Dear '.$student->fname.' '.$student->sname.', you have a balance of K'.$balance.' from Daron Driving School due '.$due_date.'. Kindly pay as soon as possible. For more information Call/WhatsApp 0999532688. Best regards!';
+
+        $variables = array("first_name"=>$student->fname,"middle_name"=>$student->mname,"sir_name"=>$student->sname,"invoice_total"=>$total, "invoice_paid"=>$paid, "balance"=>$balance, "due_date"=>$due_date);
+
+        $sms_template = notification_template::where('type', 'new')->firstOrFail()->body;;
+
+        $string = $sms_template;
+
+        foreach($variables as $key => $value){
+            $string = str_replace('{'.strtoupper($key).'}', $value, $string);
+        }
+
         $destination = $student->phone;
         $source = "Daron DS";
 
         $client = new Client();
 
-        $response = $client->post('http://api.rmlconnect.net/bulksms/bulksms?username=haventechno&password=08521hav&type=0&dlr=0&destination='.$destination.'&source=Daron DS&message='.$sms_body);
+        $response = $client->post('http://api.rmlconnect.net/bulksms/bulksms?username=haventechno&password=08521hav&type=0&dlr=0&destination='.$destination.'&source='.$source.'&message='.$string);
 
         Alert::toast('SMS sent succesifully', 'success');
         return back();
