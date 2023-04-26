@@ -14,6 +14,7 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\InvoiceSettingController;
 use App\Http\Controllers\FleetController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\NotificationTemplateController;
 
 
 /*
@@ -36,8 +37,8 @@ Route::get('/', [HomeController::class,'index'])->middleware(['auth'])->name('da
 Auth::routes();
 
 Route::post('/send-notification/{id}', [NotificationController::class, 'sendSMS'])->middleware('auth')->name('notification');
-Route::get('/sms-templates', [NotificationController::class, 'createSMSTempate'])->middleware('auth')->name('sms_templates');
-Route::post('/update-sms-templates', [NotificationController::class, 'updateSMSTempates'])->middleware('auth')->name('update_sms_templates');
+Route::get('/sms-templates', [NotificationTemplateController::class, 'create'])->middleware('auth')->name('sms_templates');
+Route::post('/update-notification-templates', [NotificationTemplateController::class, 'update'])->middleware('auth')->name('update_notification_templates');
 
 
 Route::get('/students', [StudentController::class, 'index'])->middleware('auth')->name('students');
