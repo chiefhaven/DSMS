@@ -72,7 +72,7 @@
                     <input type="text" class="form-control" id="type" name="type" value="{{ $templates[0]->type }}" hidden>
 
                     <div class="col-12 form-floating mb-4">
-                        <div class="text-sm p-2">Available tags:<br> {first_name}, {middle_name}, {sir_name}</div>
+                        <div class="text-sm p-2">Available tags:<br> {FIRST_NAME}, {MIDDLE_NAME}, {SIR_NAME}</div>
                         <textarea rows="15" cols="50" style="height: 150px" class="form-control" id="body" name="body">{{ $templates[0]->body }}</textarea>
                     </div>
                     <div class="block-content block-content-full text-end bg-body">
@@ -105,7 +105,7 @@
                     <input type="text" class="form-control" id="type" name="type" value="{{ $templates[1]->type }}" hidden>
 
                     <div class="col-12 form-floating mb-4">
-                        <div class="text-sm p-2">Available tags:<br> {first_name}, {middle_name}, {sir_name}, {course}</div>
+                        <div class="text-sm p-2">Available tags:<br> {FIRST_NAME}, {MIDDLE_NAME}, {SIR_NAME}, {COURSE_ENROLLED}</div>
                         <textarea rows="15" cols="50" style="height: 150px" class="form-control" id="body" name="body">{{ $templates[1]->body }}</textarea>
                     </div>
                     <div class="block-content block-content-full text-end bg-body">
