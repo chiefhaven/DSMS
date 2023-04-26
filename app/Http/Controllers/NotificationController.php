@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use GuzzleHttp\Client;
 use RealRashid\SweetAlert\Facades\Alert;
 use App\Models\Student;
+use App\Models\notification_template;
 use App\Models\Invoice;
 use App\Models\Account;
 use App\Models\User;
@@ -13,6 +14,7 @@ use App\Models\District;
 use App\Models\Payment;
 use App\Models\Attendance;
 use App\Models\Setting;
+use SebastianBergmann\Template\Template;
 
 class NotificationController extends Controller
 {
@@ -37,6 +39,7 @@ class NotificationController extends Controller
      */
     public function createSMSTempate()
     {
+        $templates = notification_template::all();
         return view('sms_templates');
     }
 
@@ -63,7 +66,7 @@ class NotificationController extends Controller
 
         $response = $client->post('http://api.rmlconnect.net/bulksms/bulksms?username=haventechno&password=08521hav&type=0&dlr=0&destination='.$destination.'&source=Daron DS&message='.$sms_body);
 
-        Alert::toast('SMS sent succifully', 'success');
+        Alert::toast('SMS sent succesifully', 'success');
         return back();
 
     }
