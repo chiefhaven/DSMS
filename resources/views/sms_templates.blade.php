@@ -23,33 +23,29 @@
     <div class="block-content tab-content overflow-hidden">
       <div class="tab-pane fade active show" id="search-classic" role="tabpanel" aria-labelledby="search-classic-tab">
         <div class="fs-4 fw-semibold pt-2 pb-4 mb-4 border-bottom">
-          Student sms notifications
+          Student sms notifications templates
         </div>
         <div class="row">
-          <form class="mb-5" action="{{url('/update-sms-templates')}}" method="post" enctype="multipart/form-data">
-            @csrf
-            <div class="text-sm p-2">Available tags:<br> {first_name}, {middle_name}, {sir_name}</div>
             <div class="form-floating mb-4">
-              <textarea class="form-control" id="new_registration" name="new_registration" value=""></textarea>
-              <label class="form-label" for="example-school-name-input-floating">New registration</label>
+                <p><label class="form-label" for="example-school-name-input-floating">New registration</label></p>
+                <button class="btn content content-full shadow-sm p-3 mb-5 bg-white rounded" data-bs-toggle="modal" data-bs-target="#new-registration">
+                    {{ $templates[0]->body }}
+                </button>
             </div>
 
-            <div class="text-sm p-2">Available tags:<br> {first_name}, {middle_name}, {sir_name}, {course}</div>
             <div class="form-floating mb-4">
-                <textarea class="form-control" id="enrollment" name="enrollment" value=""></textarea>
-                <label class="form-label" for="example-school-name-input-floating">Enrollment</label>
+                <p><label class="form-label" for="example-school-name-input-floating">Enrollment</label></p>
+                <button class="btn content content-full shadow-sm p-3 mb-5 bg-white rounded" data-bs-toggle="modal" data-bs-target="#new-enrollment">
+                    {{ $templates[1]->body }}
+                </button>
             </div>
 
-            <div class="text-sm p-2">Available tags:<br> {first_name}, {middle_name}, {sir_name}, {invoice_total}, {total_paid}, {balance}</div>
             <div class="form-floating mb-4">
-              <textarea type="text" class="form-control" id="balance_reminder" name="balance_reminder" value=""></textarea>
-              <label class="form-label" for="example-slogan-input-floating">Balance reminder</label>
+                <p><label class="form-label" for="example-school-name-input-floating">Balance</label></p>
+                <button class="btn content content-full shadow-sm p-3 mb-5 bg-white rounded" data-bs-toggle="modal" data-bs-target="#balance">
+                    {{ $templates[2]->body }}
+                </button>
             </div>
-            <br>
-            <div class="form-group">
-                <button type="submit" class="btn btn-primary">Update</button>
-            </div>
-          </form>
         </div>
       </div>
     </div>
@@ -57,56 +53,102 @@
   </div>
   <!-- END Hero -->
 
-  <script type="text/javascript">
+<div class="modal" id="new-registration" tabindex="-1" aria-labelledby="new-registration" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="block block-rounded block-themed block-transparent mb-0">
+                <div class="block-header bg-primary-dark">
+                    <h3 class="block-title">New registration sms notification template</h3>
+                    <div class="block-options">
+                    <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="fa fa-fw fa-times"></i>
+                    </button>
+                    </div>
+                </div>
+                <div class="block-content">
+                    <form class="mb-5" action="{{url('/update-notification-templates')}}" method="post" enctype="multipart/form-data">
+                        @csrf
 
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        }
-    });
+                    <input type="text" class="form-control" id="type" name="type" value="{{ $templates[0]->type }}" hidden>
 
-    $("#invoicesettings-update").click(function(e){
+                    <div class="col-12 form-floating mb-4">
+                        <div class="text-sm p-2">Available tags:<br> {first_name}, {middle_name}, {sir_name}</div>
+                        <textarea style="height: 150px" class="form-control" id="body" name="body">{{ $templates[0]->body }}</textarea>
+                    </div>
+                    <div class="block-content block-content-full text-end bg-body">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn btn-sm btn-alt-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-        e.preventDefault();
+<div class="modal" id="new-enrollment" tabindex="-1" aria-labelledby="new-enrollment" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="block block-rounded block-themed block-transparent mb-0">
+                <div class="block-header bg-primary-dark">
+                    <h3 class="block-title">Enrollment sms notification template</h3>
+                    <div class="block-options">
+                    <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="fa fa-fw fa-times"></i>
+                    </button>
+                    </div>
+                </div>
+                <div class="block-content">
+                    <form class="mb-5" action="{{url('/update-notification-templates')}}" method="post" enctype="multipart/form-data">
+                        @csrf
 
-       var terms = $('#terms').val();
-       var header = $('#header').val();
-       var footer = $('#footer').val();
-       var year = $('#year').val();
-       var prefix = $('#prefix').val();
-       var due = $('#due').val();
-       var logo = $('#logo').val();
+                    <input type="text" class="form-control" id="type" name="type" value="{{ $templates[1]->type }}" hidden>
 
-        $.ajax({
-           type:'POST',
-           url:"{{ url('/invoicesettings-update') }}",
-           data:{
-            terms:terms,
-            header:header,
-            footer:footer,
-            year:year,
-            prefix:prefix,
-            due:due,
-            invoice_logo:logo},
-           success:function(response){
-                if(response){
-                    location.reload();
-                }else{
-                    printErrorMsg(data.error);
-                }
-           }
-        });
+                    <div class="col-12 form-floating mb-4">
+                        <div class="text-sm p-2">Available tags:<br> {first_name}, {middle_name}, {sir_name}, {course}</div>
+                        <textarea style="height: 150px" class="form-control" id="body" name="body">{{ $templates[1]->body }}</textarea>
+                    </div>
+                    <div class="block-content block-content-full text-end bg-body">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn btn-sm btn-alt-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-    });
+<div class="modal" id="balance" tabindex="-1" aria-labelledby="balance" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="block block-rounded block-themed block-transparent mb-0">
+                <div class="block-header bg-primary-dark">
+                    <h3 class="block-title">Balance sms notification template</h3>
+                    <div class="block-options">
+                    <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="fa fa-fw fa-times"></i>
+                    </button>
+                    </div>
+                </div>
+                <div class="block-content">
+                    <form class="mb-5" action="{{url('/update-notification-templates')}}" method="post" enctype="multipart/form-data">
+                        @csrf
 
-    function printErrorMsg (msg) {
-        $(".print-error-msg").find("ul").html('');
-        $(".print-error-msg").css('display','block');
-        $.each( msg, function( key, value ) {
-            $(".print-error-msg").find("ul").append('<li>'+value+'</li>');
-        });
-    }
+                    <input type="text" class="form-control" id="type" name="type" value="{{ $templates[2]->type }}" hidden>
 
-</script>
-
+                    <div class="col-12 form-floating mb-4">
+                        <div class="text-sm p-2">Available tags:<br> {first_name}, {middle_name}, {sir_name}, {invoice_total}, {total_paid}, {balance}</div>
+                        <textarea style="height: 150px" class="form-control" id="body" name="body">{{ $templates[2]->body }}</textarea>
+                    </div>
+                    <div class="block-content block-content-full text-end bg-body">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn btn-sm btn-alt-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
