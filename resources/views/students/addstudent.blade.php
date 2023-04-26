@@ -65,7 +65,7 @@
                           <option value="female" selected>Female</option>
                           <option value="other">Other</option>
                         </select>
-                        <label for="district">Gender</label>
+                        <label for="gender">Gender</label>
                     </div>
                     <div class="mb-4 form-floating">
                       <input type="number" class="form-control @error('trn') is-invalid @enderror" id="trn" name="trn" placeholder="TRN">
