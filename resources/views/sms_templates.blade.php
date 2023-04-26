@@ -73,7 +73,7 @@
 
                     <div class="col-12 form-floating mb-4">
                         <div class="text-sm p-2">Available tags:<br> {first_name}, {middle_name}, {sir_name}</div>
-                        <textarea style="height: 150px" class="form-control" id="body" name="body">{{ $templates[0]->body }}</textarea>
+                        <textarea rows="15" cols="50" style="height: 150px" class="form-control" id="body" name="body">{{ $templates[0]->body }}</textarea>
                     </div>
                     <div class="block-content block-content-full text-end bg-body">
                         <button type="submit" class="btn btn-primary">Save</button>
@@ -106,7 +106,7 @@
 
                     <div class="col-12 form-floating mb-4">
                         <div class="text-sm p-2">Available tags:<br> {first_name}, {middle_name}, {sir_name}, {course}</div>
-                        <textarea style="height: 150px" class="form-control" id="body" name="body">{{ $templates[1]->body }}</textarea>
+                        <textarea rows="15" cols="50" style="height: 150px" class="form-control" id="body" name="body">{{ $templates[1]->body }}</textarea>
                     </div>
                     <div class="block-content block-content-full text-end bg-body">
                         <button type="submit" class="btn btn-primary">Save</button>
@@ -138,8 +138,8 @@
                     <input type="text" class="form-control" id="type" name="type" value="{{ $templates[2]->type }}" hidden>
 
                     <div class="col-12 form-floating mb-4">
-                        <div class="text-sm p-2">Available tags:<br> {first_name}, {middle_name}, {sir_name}, {invoice_total}, {total_paid}, {balance}</div>
-                        <textarea style="height: 150px" class="form-control" id="body" name="body">{{ $templates[2]->body }}</textarea>
+                        <div class="text-sm p-2">Available tags:<br> {FIRST_NAME}, {MIDDLE_NAME}, {SIR_NAME}, {INVOICE_TOTAL}, {INVOICE_PAID}, {BALANCE} {DUE_DATE}</div>
+                        <textarea rows="15" cols="50" style="height: 150px" class="form-control" id="body" name="body">{{ $templates[2]->body }}</textarea>
                     </div>
                     <div class="block-content block-content-full text-end bg-body">
                         <button type="submit" class="btn btn-primary">Save</button>
