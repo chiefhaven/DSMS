@@ -23,11 +23,11 @@ class NotificationController extends Controller
         $this->middleware(['role:superAdmin'], ['role:admin']);
     }
     /**
-     * Display a listing of the resource.
+     * Update the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function updateSMSTempates()
+    public function updateSMSTemplates()
     {
 
     }
@@ -37,15 +37,15 @@ class NotificationController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function createSMSTempate()
+    public function createSMSTemplate()
     {
-        $templates = notification_template::all();
-        return view('sms_templates');
+        $templates = notification_template::get();
+        return view('sms_templates', compact('templates'));
     }
 
 
     /**
-     * Display a listing of the resource.
+     * Send the sms.
      *
      * @return \Illuminate\Http\Response
      */
