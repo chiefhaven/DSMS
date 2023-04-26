@@ -150,12 +150,14 @@
                                             <i class="nav-main-link-icon fa fa-pencil"></i>
                                             <button class="btn" type="submit">Edit</button>
                                         </form>
+                                        @role(['superAdmin'])
                                         <form class="dropdown-item nav-main-link" method="POST" action="{{ url('student-delete', $students->id) }}">
                                             {{ csrf_field() }}
                                             {{ method_field('DELETE') }}
                                             <i class="nav-main-link-icon fa fa-trash"></i>
                                             <button class="btn delete-confirm" type="submit">Delete</button>
                                         </form>
+                                        @endcan
                                         <form method="POST" class="dropdown-item nav-main-link" action="{{ url('send-notification', $students->id) }}">
                                             {{ csrf_field() }}
                                             <i class="nav-main-link-icon fa fa-paper-plane"></i>
