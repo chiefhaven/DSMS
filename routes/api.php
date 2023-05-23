@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\studentProfileController;
 
 
 /*
@@ -21,8 +22,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-//Route::post('/auth/register', [AuthController::class, 'createUser']);
-Route::post('/auth/login', [AuthController::class, 'loginUser']);
+Route::post('register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
 
 Route::apiResource('posts', PostController::class)->middleware('auth:sanctum');
 
@@ -31,3 +32,6 @@ Route::get('invoicesHome', 'App\Http\Controllers\Api\HomeController@index')->mid
 Route::get('invoices', 'App\Http\Controllers\Api\InvoiceController@index')->middleware('auth');
 
 Route::get('invoice-view/{id}', 'App\Http\Controllers\Api\InvoiceController@show')->middleware('auth');
+
+
+Route::get('/studentProfile/{id}', [studentProfileController::class, 'show'])->middleware('auth:sanctum')->name('studentProfile');

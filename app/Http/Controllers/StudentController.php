@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Http\Controllers\havenUtils;
 
 use Illuminate\Http\Request;
 use App\Models\Student;
