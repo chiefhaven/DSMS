@@ -22,8 +22,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::post('register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('register', [AuthController::class, 'register'])->name('register.api'); // Signup
+Route::post('login', [AuthController::class, 'login'])->name('login.api'); // Login
 
 Route::apiResource('posts', PostController::class)->middleware('auth:sanctum');
 
@@ -34,4 +34,4 @@ Route::get('invoices', 'App\Http\Controllers\Api\InvoiceController@index')->midd
 Route::get('invoice-view/{id}', 'App\Http\Controllers\Api\InvoiceController@show')->middleware('auth');
 
 
-Route::get('/studentProfile/{id}', [studentProfileController::class, 'show'])->middleware('auth:sanctum')->name('studentProfile');
+Route::get('/studentProfile/{id}', [studentProfileController::class, 'show'])->name('studentProfile');
