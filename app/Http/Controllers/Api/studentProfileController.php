@@ -51,7 +51,7 @@ class studentProfileController extends Controller
      */
     public function show($id)
     {
-        $student = Student::find(10);
+        $student = Student::with('User', 'Invoice', 'Course', 'Attendance')->find(10);
         return response()->json($student);
     }
 
