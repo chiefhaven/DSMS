@@ -51,7 +51,7 @@ class studentProfileController extends Controller
      */
     public function show($id)
     {
-        $student = Student::get();
+        $student = Student::take(2)->get();
         return response()->json($student);
     }
 
