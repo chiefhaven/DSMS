@@ -84,7 +84,7 @@ class studentProfileController extends Controller
     public function showAttendance()
     {
         $id = Auth::user()->student_id;
-        $student = Attendance::with('Attendance')->find($id);
+        $student = Attendance::find($id);
         return response()->json($student);
     }
 }
