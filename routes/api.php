@@ -34,4 +34,4 @@ Route::get('invoices', 'App\Http\Controllers\Api\InvoiceController@index')->midd
 Route::get('invoice-view/{id}', 'App\Http\Controllers\Api\InvoiceController@show')->middleware('auth');
 
 
-Route::get('/studentProfile/{id}', [studentProfileController::class, 'show'])->name('studentProfile');
+Route::get('/studentProfile', [studentProfileController::class, 'show'])->name('studentProfile');

@@ -49,7 +49,7 @@ class studentProfileController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show()
     {
         $student = Student::with('User', 'Invoice', 'Course', 'Attendance')->find(10);
         return response()->json($student);
