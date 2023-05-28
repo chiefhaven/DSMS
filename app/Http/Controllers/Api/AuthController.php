@@ -45,7 +45,7 @@ class AuthController extends Controller
         {
             return response(['errors'=>$validator->errors()->all()], 422);
         }
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $request->email)->whereNotNull('student_id')->first();
         if ($user) {
             if (Hash::check($request->password, $user->password)) {
                 $token = $user->createToken('auth_token');
