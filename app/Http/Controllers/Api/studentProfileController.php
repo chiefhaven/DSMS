@@ -52,7 +52,7 @@ class studentProfileController extends Controller
      */
     public function show()
     {
-        $id = Auth::user()->user_id;
+        $id = Auth::user()->student_id;
         $student = Student::with('User', 'Invoice', 'Course', 'Attendance')->find($id);
         return response()->json($student);
     }
