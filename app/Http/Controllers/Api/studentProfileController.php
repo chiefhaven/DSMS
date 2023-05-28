@@ -19,6 +19,7 @@ use Session;
 use Illuminate\Support\Str;
 use PDF;
 use RealRashid\SweetAlert\Facades\Alert;
+use Illuminate\Support\Facades\Auth;
 
 class studentProfileController extends Controller
 {
