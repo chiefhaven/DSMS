@@ -84,7 +84,15 @@ class studentProfileController extends Controller
     public function showAttendance()
     {
         $id = Auth::user()->student_id;
-        $student = Attendance::With('Lesson', 'Instructor')->get();
-        return response()->json($student);
+        $student = Attendance::Where('student_id', $id)->With('Lesson', 'Instructor')->get();
+
+        if($student->count() > 0 ){
+            return response()->json($student, 200);
+        }
+        else{
+
+            return response()->json('No attendances recoded for you so far', 403);
+        }
+        
     }
 }
