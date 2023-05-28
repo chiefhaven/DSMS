@@ -53,7 +53,7 @@ class AuthController extends Controller
                 $response = ['token' => $token->plainTextToken];
                 return response($response, 200);
             } else {
-                $response = ["message" => "Password mismatch"];
+                $response = ["message" => "Email or password are incorrect"];
                 return response($response, 422);
             }
         } else {

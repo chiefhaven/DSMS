@@ -29,7 +29,7 @@ Route::apiResource('posts', PostController::class)->middleware('auth:sanctum');
 
 Route::get('invoicesHome', 'App\Http\Controllers\Api\HomeController@index')->middleware('auth');
 
-Route::get('invoices', 'App\Http\Controllers\Api\InvoiceController@index')->middleware('auth');
+Route::get('invoices', 'App\Http\Controllers\Api\InvoiceController@index')->middleware('auth')->name('invoices');
 
 Route::get('invoice-view/{id}', 'App\Http\Controllers\Api\InvoiceController@show')->middleware('auth');
 
