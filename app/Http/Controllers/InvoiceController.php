@@ -19,12 +19,6 @@ use PDF;
 
 class InvoiceController extends Controller
 {
-    public function __construct()
-    {
-
-        $this->middleware(['role:superAdmin'], ['role:admin']);
-
-    }
 /**
      * Display a listing of the resource.
      *
