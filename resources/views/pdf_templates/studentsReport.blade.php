@@ -38,7 +38,8 @@
                         <span class = "capitalize">{{$student->sname}} {{$student->mname}} <b>{{$student->fname}}</b></span>
                     </td>
                     <td class="invoice-td text">
-                        {{$student->course->name}} <br> {{$student->course->short_description}}
+                        {{$student->course->name}}
+                        <br><div style="font-size: 8px"> {{$student->course->short_description}}</div>
                     </td>
                     <td class="invoice-td amount">
                         @if (isset($student->invoice->course_price))
