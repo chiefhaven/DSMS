@@ -1,8 +1,16 @@
 <style>
         @page {
-            
+            size: A4;
+            margin: 50 0;
         }
-        
+
+        .page-break {
+            page-break-after: always;
+        }
+        .page:last-child {
+            page-break-after: unset;
+        }
+
         p{
             line-height: 1.4 !important;
         }
@@ -11,7 +19,7 @@
             color: #000000;
             background: #FFFFFF;
             font-family : DejaVu Sans, Helvetica, sans-serif;
-            font-size: 16px;
+            font-size: 12px;
             margin-bottom: 50px;
             margin:0;
             padding:0;
@@ -55,9 +63,9 @@
         td {
             padding: 0px;
         }
-        
+
         .invoice-td {
-            padding: 5px 10px;
+            padding: 10px 10px;
         }
 
         table.alternate tr:nth-child(odd) td {
@@ -66,6 +74,10 @@
 
         th.amount, td.amount {
             text-align: right;
+        }
+
+        th.text, td.text {
+            text-align: left;
         }
 
         .info {
@@ -90,14 +102,14 @@
             background-color: rgba(0, 0, 0, 0.05);
 
         }
-    
-    
+
+
 
         .table-bordered td {
           border: 1px solid #000000;
         }
-            
-        .invoice{   
+
+        .invoice{
                 position: absolute;
                 z-index: 999;
                 margin: 1em 3em !important;
@@ -124,11 +136,11 @@
 
         #watermark p {
             position: relative;
-            top: -300px;
-            left: -300px;
+            top: -600px;
+            left: -500px;
             height: 200%;
             width: 200%;
-            font-size: 30px;
+            font-size: 20px;
             pointer-events: none;
             -webkit-transform: rotate(23deg);
             line-height: 1;
@@ -144,6 +156,15 @@
             left: -50px;
             margin:0;
             padding:0;
+        }
+
+        .capitalize {
+            text-transform: lowercase;
+            display: inline-block;
+        }
+
+        .capitalize::first-letter {
+            text-transform: uppercase
         }
 
     </style>

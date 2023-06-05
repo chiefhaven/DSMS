@@ -17,10 +17,10 @@
                 <thead>
                   <tr>
                     <th>
-                      
+
                     </th>
                     <th>
-                      
+
                     </th>
                   </tr>
                 </thead>
@@ -109,7 +109,7 @@
         <img src="{{ public_path("/media/paid.png") }}" alt="PAID" style="width: 500px; height: auto;">
       </div>
     @else
-                
+
     @endif
   <!-- END Hero -->
 </body>

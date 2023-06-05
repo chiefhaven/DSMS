@@ -13,6 +13,9 @@
                     <a href="{{ url('/addstudent') }}" class="btn btn-primary">
                         <i class="fa fa-fw fa-user-plus mr-1"></i> Add student
                     </a>
+                    <a href="{{ url('/studentsPdf') }}" class="btn btn-primary">
+                        <i class="fa fa-fw fa-user-plus mr-1"></i> Students report
+                    </a>
                 </ol>
             @endcan
         </nav>

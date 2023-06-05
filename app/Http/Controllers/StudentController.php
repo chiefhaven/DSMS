@@ -244,7 +244,7 @@ class StudentController extends Controller
         $setting = Setting::find(1);
         $date = date('j F, Y');
 
-        $pdf = PDF::loadView('pdf_templates.trafficCardReferenceLetter', compact('student', 'setting', 'date'));
+        $pdf = PDF::loadView('pdf_templates.trafficCardReferenceLetter', compact('student', 'setting', 'date'))->setOption(['dpi' => 150, 'defaultFont' => 'sans-serif'])->setPaper('a4', 'potrait');
         return $pdf->download('Daron Driving School-'.$student->fname.' '.$student->sname.' Trafic Card Reference Letter.pdf');
     }
 
@@ -254,7 +254,7 @@ class StudentController extends Controller
         $setting = Setting::find(1);
         $date = date('j F, Y');
 
-        $pdf = PDF::loadView('pdf_templates.aptitudeTestreferenceLetter', compact('student', 'setting', 'date'));
+        $pdf = PDF::loadView('pdf_templates.aptitudeTestreferenceLetter', compact('student', 'setting', 'date'))->setOption(['dpi' => 150, 'defaultFont' => 'sans-serif'])->setPaper('a4', 'potrait');
         return $pdf->download('Daron Driving School-'.$student->fname.' '.$student->sname.' Highway Code I Reference Letter.pdf');
     }
 
@@ -264,7 +264,7 @@ class StudentController extends Controller
         $setting = Setting::find(1);
         $date = date('j F, Y');
 
-        $pdf = PDF::loadView('pdf_templates.secondAptitudeTestreferenceLetter', compact('student', 'setting', 'date'));
+        $pdf = PDF::loadView('pdf_templates.secondAptitudeTestreferenceLetter', compact('student', 'setting', 'date'))->setOption(['dpi' => 150, 'defaultFont' => 'sans-serif'])->setPaper('a4', 'potrait');
         return $pdf->download('Daron Driving School-'.$student->fname.' '.$student->sname.' Highway Code II Reference Letter.pdf');
     }
 
@@ -275,7 +275,7 @@ class StudentController extends Controller
         $date = date('j F, Y');
 
         $pdf = PDF::loadView('pdf_templates.finalReferenceLetter', compact('student', 'setting', 'date'));
-        return $pdf->download('Daron Driving School-'.$student->fname.' '.$student->sname.' Final Reference Letter.pdf');
+        return $pdf->download('Daron Driving School-'.$student->fname.' '.$student->sname.' Final Reference Letter.pdf')->setOption(['dpi' => 150, 'defaultFont' => 'sans-serif'])->setPaper('a4', 'potrait');
     }
 
     public function lessonReport($id)
@@ -285,8 +285,19 @@ class StudentController extends Controller
         $setting = Setting::find(1);
         $date = date('j F, Y');
 
-        $pdf = PDF::loadView('pdf_templates.lessonReport', compact('student', 'attendance', 'setting', 'date'));
+        $pdf = PDF::loadView('pdf_templates.lessonReport', compact('student', 'attendance', 'setting', 'date'))->setOption(['dpi' => 150, 'defaultFont' => 'sans-serif'])->setPaper('a4', 'potrait');
         return $pdf->download('Daron Driving School-'.$student->fname.' '.$student->sname.' Lesson Report.pdf');
+    }
+
+    public function studentsPDF()
+    {
+        $student = Student::With('User', 'Invoice', 'Attendance')->paginate(5);
+        $date = date('j F, Y');
+
+        $html = '';
+
+        $pdf = PDF::loadView('pdf_templates.studentsReport', compact('student', 'date'))->setOption(['dpi' => 150, 'defaultFont' => 'sans-serif'])->setPaper('a4', 'potrait');
+        return $pdf->download('Daron Driving School - Students Report.pdf');
     }
 
     public function search(Request $request){
