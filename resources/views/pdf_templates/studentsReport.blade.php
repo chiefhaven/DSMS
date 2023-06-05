@@ -42,8 +42,12 @@
                         {{$student->phone}}
                     </td>
                     <td class="invoice-td text">
-                        {{$student->course->name}}
-                        <br><div style="font-size: 8px"> {{$student->course->short_description}}</div>
+                        @if (isset($student->course->name))
+                            {{$student->course->name}}
+                            <br><div style="font-size: 8px"> {{$student->course->short_description}}</div>
+                        @else
+                            -
+                        @endif
                     </td>
                     <td class="invoice-td amount">
                         @if (isset($student->invoice->course_price))
