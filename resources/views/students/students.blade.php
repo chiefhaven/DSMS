@@ -17,10 +17,10 @@
                   <div class="p-2">
                   @role(['superAdmin', 'admin'])
                         <a href="{{ url('/addstudent') }}" class="dropdown-item nav-main-link">
-                            <i class="fa fa-fw fa-user-plus mr-1"></i> Add student
+                            <i class="fa fa-fw fa-user-plus mr-1"></i>&nbsp; Add student
                         </a>
                         <a href="{{ url('/studentsPdf') }}" class="dropdown-item nav-main-link">
-                            <i class="fa fa-fw fa-user-plus mr-1"></i> Students report
+                            <i class="fas fa-download fa-spin"></i> &nbsp; Students report
                         </a>
                   @endcan
                   </div>
