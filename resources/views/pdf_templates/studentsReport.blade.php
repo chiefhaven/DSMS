@@ -51,7 +51,7 @@
                         @endif
                     </td>
                     <td class="invoice-td amount">
-                        @if (isset(null !== student->attendance->count() && isset($student->course->duration))
+                        @if (null !== student->attendance->count() && isset($student->course->duration))
                             {{number_format($student->attendance->count()/$student->course->duration*100)}}%
                             <br><div style="font-size: 8px">{{$student->attendance->count()}} of {{ $student->course->duration }} days done!</div>
                         @else
