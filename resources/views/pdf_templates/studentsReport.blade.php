@@ -17,6 +17,7 @@
         <thead style="color: #ffffff !important; background-color:#0665d0;">
             <th class="invoice-td text">#</th>
             <th class="invoice-td text">Student</th>
+            <th class="invoice-td text">Phone</th>
             <th class="invoice-td text">Course</th>
             <th class="invoice-td amount">Invoice Total</th>
             <th class="invoice-td amount">Balance</th>
@@ -36,6 +37,9 @@
                     </td>
                     <td class="invoice-td text">
                         <span class = "capitalize">{{$student->sname}} {{$student->mname}} <b>{{$student->fname}}</b></span>
+                    </td>
+                    <td class="invoice-td text">
+                        {{$student->phone}}
                     </td>
                     <td class="invoice-td text">
                         {{$student->course->name}}
