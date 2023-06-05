@@ -134,13 +134,6 @@ Route::get('/dashboard', [HomeController::class,'index'])->middleware(['auth'])-
 
 require __DIR__.'/auth.php';
 
-//PDF Routes
-
-Route::view('/1', 'pdf_templates.aptitudeTestreferenceLetter');
-Route::view('/2', 'pdf_templates.trafficCardreferenceLetter');
-Route::view('/3', 'pdf_templates.secondAptitudeTestreferenceLetter');
-Route::view('/4', 'pdf_templates.lessonReport');
-Route::view('/5', 'pdf_templates.finalReferenceLetter');
 
 Auth::routes();
 
