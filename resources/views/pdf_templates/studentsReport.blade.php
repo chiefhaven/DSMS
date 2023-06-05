@@ -23,7 +23,7 @@
         </thead>
         <tbody>
             @foreach ($student as $index => $student)
-                @if( $index % 34 == 0 )
+                @if( $index % 35 == 0 )
                     @if ($index != 0)
                         <div class="page-break"></div>
                     @endif
@@ -31,7 +31,7 @@
                 <div class="page-break"></div>
                 <tr class="py-1" style="padding-top: 0px; padding-bottom: 0px;">
                     <td class="invoice-td text">
-                        {{$index}}
+                        {{$index+1}}
                     </td>
                     <td class="invoice-td text">
                         <span class = "capitalize">{{$student->sname}} {{$student->mname}} <b>{{$student->fname}}</b></span>
