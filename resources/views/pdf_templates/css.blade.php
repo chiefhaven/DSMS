@@ -1,7 +1,8 @@
 <style>
         @page {
             size: A4;
-            margin: 50 0;
+            margin: 0;
+            padding: 30 0;
         }
 
         .page-break {

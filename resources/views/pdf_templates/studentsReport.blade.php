@@ -13,7 +13,7 @@
             <h3 style="text-align:center">STUDENTS REPORT</h3>
         </div>
     </div>
-    <table class="table table-responsive table-striped" style="font-size:12px; background-color: #ffffff;">
+    <table class="table table-responsive table-striped" style="font-size:12px; background-color: #ffffff; margin: 20px 0;">
         <thead style="color: #ffffff !important; background-color:#0665d0;">
             <th class="invoice-td text">#</th>
             <th class="invoice-td text">Student</th>
@@ -23,10 +23,9 @@
         </thead>
         <tbody>
             @foreach ($student as $index => $student)
-                @if( $index % 2 == 0 )
+                @if( $index % 34 == 0 )
                     @if ($index != 0)
                         <div class="page-break"></div>
-                        <p>&nbsp;</p> <p>&nbsp;</p><p>&nbsp;</p>
                     @endif
                 @endif
                 <div class="page-break"></div>

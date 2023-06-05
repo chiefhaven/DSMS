@@ -291,10 +291,8 @@ class StudentController extends Controller
 
     public function studentsPDF()
     {
-        $student = Student::With('User', 'Invoice', 'Attendance')->paginate(5);
+        $student = Student::With('User', 'Invoice', 'Attendance')->get();
         $date = date('j F, Y');
-
-        $html = '';
 
         $pdf = PDF::loadView('pdf_templates.studentsReport', compact('student', 'date'))->setOption(['dpi' => 150, 'defaultFont' => 'sans-serif'])->setPaper('a4', 'potrait');
         return $pdf->download('Daron Driving School - Students Report.pdf');
