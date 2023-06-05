@@ -291,7 +291,7 @@ class StudentController extends Controller
 
     public function studentsPDF()
     {
-        $student = Student::With('User', 'Invoice', 'Attendance')->get();
+        $student = Student::With('User', 'Invoice', 'Attendance')->orderBy('sname', 'DESC')->get();
         $date = date('j F, Y');
 
         $pdf = PDF::loadView('pdf_templates.studentsReport', compact('student', 'date'))->setOption(['dpi' => 150, 'defaultFont' => 'sans-serif'])->setPaper('a4', 'potrait');
