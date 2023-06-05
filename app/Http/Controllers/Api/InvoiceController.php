@@ -20,7 +20,6 @@ use PDF;
 
 class InvoiceController extends Controller
 {
-
     /**
      * Display a listing of the resource.
      *

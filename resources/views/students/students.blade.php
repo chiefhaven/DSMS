@@ -9,14 +9,23 @@
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
 
             @role(['superAdmin', 'admin'])
-                <ol class="breadcrumb">
-                    <a href="{{ url('/addstudent') }}" class="btn btn-primary">
-                        <i class="fa fa-fw fa-user-plus mr-1"></i> Add student
-                    </a>
-                    <a href="{{ url('/studentsPdf') }}" class="btn btn-primary">
-                        <i class="fa fa-fw fa-user-plus mr-1"></i> Students report
-                    </a>
-                </ol>
+            <div class="dropdown d-inline-block">
+                <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <span class="d-sm-inline-block">Action</span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end p-0">
+                  <div class="p-2">
+                  @role(['superAdmin', 'admin'])
+                        <a href="{{ url('/addstudent') }}" class="dropdown-item nav-main-link">
+                            <i class="fa fa-fw fa-user-plus mr-1"></i> Add student
+                        </a>
+                        <a href="{{ url('/studentsPdf') }}" class="dropdown-item nav-main-link">
+                            <i class="fa fa-fw fa-user-plus mr-1"></i> Students report
+                        </a>
+                  @endcan
+                  </div>
+                </div>
+              </div>
             @endcan
         </nav>
       </div>
