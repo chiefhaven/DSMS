@@ -14,16 +14,6 @@
         <div class="col-lg-12">
             <div class="p-sm-4 p-xl-7">
               <table class="table table-bordered">
-                <thead>
-                  <tr>
-                    <th>
-
-                    </th>
-                    <th>
-
-                    </th>
-                  </tr>
-                </thead>
                 <tbody>
                   <tr>
                     <td class="invoice-td" style="border: solid #ffffff00; text-align:left; width: 90%;">
