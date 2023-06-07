@@ -111,7 +111,7 @@
         .invoice{
                 position: absolute;
                 z-index: 999;
-                margin: 6em 10em !important;
+                margin: 1em 6em !important;
         }
 
         .items table{
@@ -147,8 +147,8 @@
         }
 
         .watermark{
-            height: 30.5cm;
-            width: 22cm;
+            height: 34.5cm;
+            width: 24cm;
             overflow: hidden;
             position: absolute;
             top: -50px;
