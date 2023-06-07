@@ -1,8 +1,6 @@
 <style>
         @page {
-            size: A4;
             margin: 0;
-            padding: 30 0;
         }
 
         .page-break {
@@ -113,7 +111,7 @@
         .invoice{
                 position: absolute;
                 z-index: 999;
-                margin: 1em 3em !important;
+                margin: 6em 10em !important;
         }
 
         .items table{
@@ -137,14 +135,14 @@
 
         #watermark p {
             position: relative;
-            top: -600px;
-            left: -500px;
+            top: -100px;
+            left: -550px;
             height: 200%;
             width: 200%;
             font-size: 20px;
             pointer-events: none;
             -webkit-transform: rotate(23deg);
-            line-height: 1;
+            line-height: 0.5;
             color: #999999;
         }
 
