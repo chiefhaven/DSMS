@@ -28,12 +28,29 @@
                             </div>
                             </td>
                             <td class="text-end" style="border: solid #ffffff00;" valign="top">
-                            Date:<br>
-                            Due Date:
+                                Date:<br>
+                                Due Date:
                             </td>
                             <td class="text-end" style="border: solid #ffffff00;" valign="top">
-                            {{$invoice->date_created->format('j F, Y')}}<br>
-                            {{$invoice->invoice_payment_due_date->format('j F, Y')}}
+                                {{$invoice->date_created->format('j F, Y')}}<br>
+                                {{$invoice->invoice_payment_due_date->format('j F, Y')}}<br>
+                                @if (isset($invoice->student->fleet->car_registration_number))
+                                    <p>
+                                        <div style="font-size: 10px !important">
+                                            <b>Assigned car</b><br>
+                                            {{$invoice->student->fleet->car_registration_number}}<br>
+                                            <div style="font-size: 8px;">{{$invoice->student->fleet->car_brand_model}}</div>
+                                            <b>Instructor</b><br>
+                                            {{$invoice->student->fleet->instructor->fname}}
+                                            {{$invoice->student->fleet->instructor->sname}}<br>
+                                            {{$invoice->student->fleet->instructor->phone}}
+                                        </div>
+                                    </p>
+                                @else
+                                    <p>
+                                        Not assigned to car and instructor yet!
+                                    </p>
+                                @endif
                             </td>
                         </tr>
                         </tbody>
