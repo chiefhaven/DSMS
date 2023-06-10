@@ -6,6 +6,7 @@ use App\Http\Controllers\havenUtils;
 use Illuminate\Http\Request;
 use App\Models\Invoice;
 use App\Models\Course;
+use App\Models\Fleet;
 use App\Models\Student;
 use App\Models\Payment;
 use App\Models\Attendance;
@@ -41,8 +42,9 @@ class InvoiceController extends Controller
 
         if($this->middleware(['role:superAdmin'], ['role:admin'])){
             $course = Course::get();
+            $fleet = Fleet::get();
             $student = Student::find($id);
-            return view('invoices.addinvoice', compact('course', 'student'));
+            return view('invoices.addinvoice', compact('course', 'student', 'fleet'));
         }
 
         else{
@@ -92,6 +94,7 @@ class InvoiceController extends Controller
         }
 
         $student_id = havenUtils::studentID($post['student']);
+        $fleet_id = havenUtils::fleetID($post['fleet']);
         $invoice_total = havenUtils::invoiceDiscountedPrice($post['course'], $discount);
         $invoice_balance = havenUtils::invoiceBalance($post['paid_amount'], $invoice_total);
         $courseId = havenUtils::courseID($post['course']);
@@ -140,6 +143,8 @@ class InvoiceController extends Controller
         $student = Student::where('id', $student_id)->firstOrFail();
         $student->course_id = $courseId;
 
+        $student->fleet_id = $fleet_id;
+
 
         if(Invoice::where('student_id', '=', $student_id)->count() > 0){
             Alert::toast('There is already an invoice for '.$student->fname.'. Can not be re-enrolled. You must delete the invoice first', 'warning');
@@ -170,9 +175,6 @@ class InvoiceController extends Controller
         }
 
         $student = Student::with('User', 'Course', 'Enrollment', 'Invoice', 'Payment')->find($student_id);
-        $attendancePercent = havenutils::attendancePercent($student_id);
-        $attendanceTheoryCount = Attendance::where('student_id', $student_id)->where('lesson_id', 1)->count();
-        $attendancePracticalCount = Attendance::where('student_id', $student_id)->where('lesson_id', 2)->count();
 
         return redirect()->route('viewStudent', ['id' => $student_id]);
     }
@@ -199,8 +201,9 @@ class InvoiceController extends Controller
     public function edit($id)
     {
         $course = Course::get();
+        $fleet = Fleet::get();
         $invoice = Invoice::with('User', 'Course', 'Student')->where('invoice_number', $id)->firstOrFail();
-        return view('invoices.editinvoice', [ 'invoice' => $invoice ], compact('invoice', 'course'));
+        return view('invoices.editinvoice', [ 'invoice' => $invoice ], compact('invoice', 'course', 'fleet'));
     }
 
     /**
@@ -265,6 +268,7 @@ class InvoiceController extends Controller
 
 
         $student_id = havenUtils::studentID($post['student']);
+        $fleet_id = havenUtils::fleetID($post['fleet']);
         $invoice_total = havenUtils::invoiceDiscountedPrice($post['course'], $discount);
         $courseId = havenUtils::courseID($post['course']);
         $coursePrice = havenUtils::coursePrice($post['course']);
@@ -285,6 +289,8 @@ class InvoiceController extends Controller
 
         $student = Student::where('id', $student_id)->firstOrFail();
         $student->course_id = $courseId;
+
+        $student->fleet_id = $fleet_id;
 
         $invoice->save();
         $student->save();

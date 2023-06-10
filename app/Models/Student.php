@@ -27,6 +27,11 @@ class Student extends Model
        return $this->hasOne(User::class);
     }
 
+    public function Fleet()
+    {
+       return $this->belongsTo(Fleet::class);
+    }
+
     public function Course()
     {
        return $this->belongsTo(Course::class);

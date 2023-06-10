@@ -109,7 +109,7 @@ Route::get('/fleet', [FleetController::class, 'index'])->middleware('auth')->nam
 Route::get('/viewfleet', [FleetController::class, 'show'])->middleware('auth')->name('viewfleet');
 Route::get('/addfleet', [FleetController::class, 'create'])->middleware('auth')->name('addfleet');
 Route::post('/storefleet', [FleetController::class, 'store'])->middleware('auth')->name('storefleet');
-Route::post('/editfleet/{id}', [FleetController::class, 'edit'])->middleware('auth')->name('editfleet');
+Route::get('/editfleet/{id}', [FleetController::class, 'edit'])->middleware('auth')->name('editfleet');
 Route::post('/updatefleet', [FleetController::class, 'update'])->middleware('auth')->name('updatefleet');
 Route::delete('/deletefleet/{id}', [FleetController::class, 'destroy'])->middleware('auth')->name('deletefleet');
 

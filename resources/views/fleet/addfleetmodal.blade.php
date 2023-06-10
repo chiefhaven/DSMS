@@ -12,7 +12,7 @@
           </div>
           <div class="block-content">
             <form class="mb-5" action="{{ url('/storefleet') }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
-                  @csrf 
+                  @csrf
               <div class="row">
                   <div class="col-6 form-floating mb-4">
                       <input type="text" class="form-control" id="car_brand_model" name="car_brand_model" required>

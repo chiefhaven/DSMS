@@ -137,6 +137,19 @@
                                     @endif
                                 </td>
                             </tr>
+                            <tr>
+                                <td>
+                                    Assigned car
+                                </td>
+                                <td>
+                                    @if(isset($student->fleet->car_brand_model))
+                                        {{$student->fleet->car_registration_number}}
+                                        <div style="font-size: 10px">{{$student->fleet->car_brand_model}}</div>
+                                    @else
+                                        Not assigned yet
+                                    @endif
+                                </td>
+                            </tr>
                             @endcan
                       </tbody>
                   </table>

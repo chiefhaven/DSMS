@@ -15,4 +15,9 @@ class Fleet extends Model
     {
         return $this->belongsTo(Instructor::class);
     }
+
+    public function Student()
+    {
+       return $this->hasMany(Student::class);
+    }
 }

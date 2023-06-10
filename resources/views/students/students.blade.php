@@ -128,7 +128,7 @@
                               <td class="text-center">
                                 @if(isset($students->course->duration))
                                     @if(number_format($students->attendance->count()/$students->course->duration*100) >= 100)
-                                        <span class="badge rounded-pill bg-success">Finished</span>
+                                        <span class="badge rounded-pill bg-success">Completed</span>
                                     @elseif(number_format($students->attendance->count()/$students->course->duration*100) >= 50 && number_format($students->attendance->count()/$students->course->duration*100) !== 100)
                                         <div class="push">
                                             <span class="badge rounded-pill bg-info text-light">
@@ -154,7 +154,7 @@
                                   <div class="dropdown-menu dropdown-menu-end p-0">
                                     <div class="p-2">
                                       <a class="dropdown-item nav-main-link" href="{{ url('/viewstudent', $students->id) }}">
-                                        <i class="nav-main-link-icon fa fa-user"></i>Profile
+                                        <i class="nav-main-link-icon fa fa-user"></i><div class="btn">Profile</div>
                                       </a>
                                     @role(['superAdmin', 'admin'])
                                         <form method="POST" class="dropdown-item nav-main-link" action="{{ url('/edit-student', $students->id) }}">

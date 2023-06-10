@@ -27,102 +27,43 @@
                   </ul>
               </div>
           @endif
-        <div class="block block-rounded">
-            <div class="block-content">
-              <form action="{{ url('/updateinstructor') }}" enctype="multipart/form-data" method="POST">
-                @csrf
-                <input type="text" name="instructor_id" id="instructor_id" value="{{$instructor->id}}" hidden>                              
-                <h2 class="content-heading pt-0">
-                  <i class="fa fa-fw fa-user text-muted me-1"></i> Instructor Information
-                </h2>
-                <div class="row push">
-                  <div class="col-lg-4">
-                    <p class="text-muted">
-                      Instructor details
-                    </p>
+        <div class="block block-rounded block-bordered">
+          <div class="block-content">
+            <form class="mb-5" action="{{ url('/updatefleet') }}" method="POST" enctype="multipart/form-data" onsubmit="return true;">
+                  @csrf
+                  <input type="text" class="form-control" id="id" name="id" value="{{$fleet->id}}" required hidden>
+              <div class="row">
+                  <div class="col-6 form-floating mb-4">
+                      <input type="text" class="form-control" id="car_brand_model" name="car_brand_model" value="{{$fleet->car_brand_model}}" required>
+                      <label class="px-4" for="car_brand_model">Car brand/Model</label>
                   </div>
-                  <div class="col-lg-8 col-xl-5">
-                    <div class="row">
-                      <div class="col-6 form-floating mb-4">
-                        <input type="text" class="form-control" id="first_name" name="first_name" placeholder="Instructor's first name" value="{{$instructor->fname}}">
-                        <label class="form-label" for="example-email-input-floating">First name</label>
-                      </div>
-                      <div class="col-6 form-floating mb-4">
-                        <input type="text" class="form-control" id="sir_name" name="sir_name" placeholder="Sirname" value="{{$instructor->sname}}">
-                        <label class="form-label" for="example-email-input-floating">Sirname</label>
-                      </div>
-                    </div>
-                    <div class="col-4 form-floating mb-4">
-                        <select class="form-select" id="gender" name="gender">
-                          <option value="{{$instructor->gender}}" selected>{{$instructor->gender}}</option>
-                          <option value="female">Female</option>
-                          <option value="female">Male</option>
-                          <option value="other">Other</option>
-                        </select>
-                        <label for="district">Gender</label>
-                    </div>    
-                    <div class="mb-4 form-floating">
-                      <input type="date" class="form-control @error('date_of_birth') is-invalid @enderror" id="date_of_birth" name="date_of_birth" placeholder="DDMMYY" value="{{$instructor->date_of_birth}}" formnovalidate="">
-                        <label class="form-label" for="text">Date of birth</label>
-                    </div>       
-                    <div class="mb-4 form-floating">
-                      <input type="text" class="form-control" id="phone" name="phone" placeholder="+265" value="{{$instructor->phone}}">
-                        <label class="form-label" for="example-email-input-floating">Phone</label>
-                    </div>
-                    <div class="mb-4 form-floating">
-                      <input type="text" class="form-control" id="email_address" name="email" placeholder="Instructor's email address" value="{{$instructor->user->email}}">
-                        <label class="form-label" for="example-email-input-floating">Email address</label>
-                    </div>
-                    <div class="mb-4 form-floating">
-                      <input type="text" class="form-control" id="address" name="address" placeholder="Address" value="{{$instructor->address}}">
-                        <label class="form-label" for="example-email-input-floating">Street address</label>
-                    </div>
-                    <div class="form-floating mb-4">
-                      <select class="form-select" id="district" name="district">
-                        @foreach ($district as $district)
-                           <option value="{{$district->name}}" {{ $district->id == $instructor->district_id ? 'selected' : '' }}>{{$district->name}}</option>
-                        @endforeach
-                      </select>
-                      <label for="district">Distirct</label>
-                    </div>
-                    <div class="form-floating mb-4">
-                      <select class="form-select" id="lesson" name="lesson">
-                        @foreach ($lesson as $lesson)
-                           <option value="{{$lesson->name}}">{{$lesson->name}}</option>
-                        @endforeach
-                      </select>
-                      <label for="district">Lesson to teach</label>
-                    </div>
+                  <div class="col-6 form-floating mb-4">
+                      <input type="text" class="form-control" id="reg_number" name="reg_number" value="{{$fleet->car_registration_number}}" required>
+                      <label class="px-4" for="car_registration_number">Car number plate</label>
                   </div>
-                  <div class=" content-heading"><p>&nbsp;</p></div>
-                  <div class="col-lg-4">
-                    <p class="text-muted">
-                      Login details
-                    </p>
-                  </div>
-                  <div class="col-lg-8 col-xl-5">
-                      <div class="form-floating mb-4">
-                        <input type="text" class="form-control" id="username" name="username" placeholder="Administrator's username">
-                        <label class="form-label" for="example-email-input-floating">Username</label>
-                      </div>
-                      <div class="form-floating mb-4">
-                        <input type="password" class="form-control" id="password" name="password" placeholder="password">
-                        <label class="form-label" for="example-email-input-floating">Password</label>
-                      </div>
-                  </div>
-                </div>
-                <div class="row push">
-                  <div class="col-lg-8 col-xl-5 offset-lg-4">
-                    <div class="mb-4">
-                      <button type="submit" class="btn btn-alt-primary">
-                        <i class="fa fa-check-circle opacity-50 me-1"></i> Update Instructor
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </form>
-            </div>
+              </div>
+              <div class="col-12 form-floating mb-4">
+                  <textarea class="form-control" id="car_description" name="car_description" style="height: 100px">{{$fleet->car_description}}</textarea>
+                  <label>Car description</label>
+              </div>
+              <div class="col-12 form-floating mb-4">
+                  <input type="file" class="form-control" id="fleet_image" name="fleet_image">
+                  <label>Car Image</label>
+              </div>
+              <div class="form-floating mb-4">
+                <select class="form-select" id="instructor" name="instructor">
+                  @foreach ($instructor as $instructor)
+                     <option value="{{$instructor->fname}} {{$instructor->sname}}" {{ $instructor->id == $fleet->instructor->id ? 'selected' : '' }}>{{$instructor->fname}} {{$instructor->sname}}</option>
+                  @endforeach
+                </select>
+                <label for="lesson">Lesson instructor</label>
+              </div>
+              <div class="form-floating mb-4">
+                  <button type="submit" class="btn btn-primary">Update</button>
+              </div>
+          </form>
           </div>
+        </div>
   </div>
   <!-- END Hero -->
 

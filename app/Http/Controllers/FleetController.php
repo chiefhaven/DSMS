@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Fleet;
 use App\Models\Instructor;
+use App\Models\Student;
 use App\Http\Requests\StoreFleetRequest;
 use App\Http\Requests\UpdateFleetRequest;
 use Session;
@@ -32,7 +33,8 @@ class FleetController extends Controller
     {
         $fleet = Fleet::with('Instructor')->get();
         $instructor = Instructor::get();
-        return view('fleet.fleet', compact('fleet', 'instructor'));
+        $student = Student::get();
+        return view('fleet.fleet', compact('fleet', 'instructor', 'student'));
     }
 
     /**
@@ -126,9 +128,11 @@ class FleetController extends Controller
      * @param  \App\Models\Fleet  $fleet
      * @return \Illuminate\Http\Response
      */
-    public function edit(Fleet $fleet)
+    public function edit($id)
     {
-        //
+        $fleet = Fleet::with('Instructor')->find($id);
+        $instructor = Instructor::get();
+        return view('fleet.editfleet', [ 'fleet' => $fleet ], compact('fleet', 'instructor'));
     }
 
     /**
@@ -140,7 +144,57 @@ class FleetController extends Controller
      */
     public function update(UpdateFleetRequest $request, Fleet $fleet)
     {
-        //
+        $messages = [
+            'car_brand_model.required' => 'The "car name/brand" field is required!',
+            'reg_number.required'   => 'The "car number plate" field is should be unique!',
+            'instructor.required'   => 'The "instructor" field is should be unique!',
+        ];
+
+        // Validate the request
+        $this->validate($request, [
+            'car_brand_model'  =>'required',
+            'reg_number' =>'required',
+            'instructor' =>'required'
+
+        ], $messages);
+
+        $post = $request->All();
+
+        $fleet = Fleet::where('id', $post['id'])->firstOrFail();
+
+        //car image processing
+        if($request->file('fleet_image')){
+            $carImageName = time().'-'.$request->file('fleet_image')->getClientOriginalName();
+            $request->fleet_image->move(public_path('media/fleet'), $carImageName);
+            $fleet->fleet_image = $carImageName;
+        }
+
+        if(isset($post['instructor'])){
+
+            $instructorID = havenUtils::instructorID($post['instructor']);
+
+            if(isset($instructorID)){
+
+                $fleet->instructor_id = $instructorID;
+
+            }
+            else{
+                $fleet->instructor_id = 1000000;
+            }
+        }
+
+        else{
+                $fleet->instructor_id = 1000000;
+        }
+
+
+        $fleet->car_brand_model = $post['car_brand_model'];
+        $fleet->car_registration_number = $post['reg_number'];
+        $fleet->car_description = $post['car_description'];
+
+        $fleet->save();
+
+        return redirect()->route('fleet')->with('message', 'Fleet updated');
     }
 
     /**

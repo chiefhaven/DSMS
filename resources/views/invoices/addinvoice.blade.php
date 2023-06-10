@@ -32,17 +32,17 @@
         <div class="row">
             <div class="col-lg-12 col-xl-12">
                 <form class="mb-5" action="{{ url('/store-invoice') }}" method="post" onsubmit="return true;">
-                        @csrf 
+                        @csrf
                         <input type="text" class="form-control" id="student" name="student" placeholder="Student" value="{{$student->fname}} {{$student->mname}} {{$student->sname}}" hidden>
 
                     <div class="row">
                         <div class="col-6 form-floating mb-4">
                             <input type="date" class="form-control" id="date_created" name="date_created" placeholder="Enter invoice date" value="12/07/2022">
-                            <label for="invoice_discount">Date</label>
+                            <label class="px-4" for="invoice_discount">Date</label>
                         </div>
                         <div class="col-6 form-floating mb-4">
                             <input type="date" class="form-control" id="invoice_due_date" name="invoice_due_date" placeholder="Enter invoice due date" value="12/07/2022">
-                            <label for="invoice_discount">Invoice Due Date</label>
+                            <label class="px-4" for="invoice_discount">Invoice Due Date</label>
                         </div>
                     </div>
                     <div class="col-12 form-floating mb-4">
@@ -53,21 +53,29 @@
                         </select>
                         <label for="district">Course To Enroll</label>
                     </div>
-                    <div class="col-12 form-floating mb-4">
-                        <input type="number" class="form-control" id="discount" name="discount" placeholder="Enter discount (Fixed)" value="0">
-                        <label for="invoice_discount">Discout</label>
-                    </div>
                     <div class="row">
-                        <div class="col-6 form-floating mb-4">
-                            <input type="number" class="form-control" id="paid_amount" name="paid_amount" placeholder="Enter discount (Fixed)" value="0">
-                            <label for="invoice_discount">Amount Paid</label>
+                        <div class="col-4 form-floating mb-4">
+                            <input type="number" class="form-control" id="discount" name="discount" placeholder="Enter discount (Fixed)" value="0">
+                            <label class="px-4" for="invoice_discount">Discout</label>
                         </div>
-                        <div class="col-6 form-floating mb-4">
-                            <select class="form-select" id="payment_method" name="payment_method">                              
+                        <div class="col-4 form-floating mb-4">
+                            <input type="number" class="form-control" id="paid_amount" name="paid_amount" placeholder="Enter discount (Fixed)" value="0">
+                            <label class="px-4" for="invoice_discount">Amount Paid</label>
+                        </div>
+                        <div class="col-4 form-floating mb-4">
+                            <select class="form-select" id="payment_method" name="payment_method">
                                 <option value="cash" selected>Cash</option>
                             </select>
-                            <label for="district">Payment Method</label>
+                            <label class="px-4" for="district">Payment Method</label>
                         </div>
+                    </div>
+                    <div class="col-4 form-floating mb-4">
+                        <select class="form-select" id="fleet" name="fleet">
+                          @foreach($fleet as $fleet_option)
+                            <option value="{{$fleet_option->car_registration_number}}" selected><strong>{{$fleet_option->car_registration_number}}</strong> <div class="text-muted text-small">({{$fleet_option->car_brand_model}})</div></option>
+                          @endforeach
+                        </select>
+                        <label for="district">Assign Car</label>
                     </div>
                     <div class="form-group">
                         <button type="submit" class="btn btn-primary">Save</button>

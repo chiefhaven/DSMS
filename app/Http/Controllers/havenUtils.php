@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Invoice;
 use App\Models\Course;
+use App\Models\Fleet;
 use App\Models\Student;
 use App\Models\Instructor;
 use App\Models\District;
@@ -206,6 +207,24 @@ class havenUtils extends Controller
 
         $paymentMethod = PaymentMethod::where('name', $paymentMethod)->firstOrFail()->id;
         return $paymentMethod;
+    }
+
+    static function fleetID($carRegistrationNumber){
+
+
+
+            $fleet = Fleet::where('car_registration_number', $carRegistrationNumber)->first();
+
+            if(!is_null($fleet)){
+
+                return $fleet->id;
+            }
+
+            else{
+
+                return null;
+            }
+
     }
 
 

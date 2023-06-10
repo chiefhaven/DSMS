@@ -13,3 +13,7 @@
     background-repeat: no-repeat;
     background-size: cover;
 }
+
+.text-small{
+    font-size: 8px
+}

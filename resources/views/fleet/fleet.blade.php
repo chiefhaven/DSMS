@@ -10,7 +10,7 @@
           <ol class="breadcrumb">
             <a class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-block-addfleet" href="javascript:void(0)">
               <span class="nav-main-link-name">Add Fleet</span>
-            </a>            
+            </a>
           </ol>
         </nav>
       </div>
@@ -18,7 +18,7 @@
   </div>
 
   <div class="content content-full">
-          <div class="block-content">
+    <div class="block-content">
           @if(Session::has('message'))
             <div class="alert alert-success">
               {{Session::get('message')}}
@@ -50,7 +50,8 @@
                         <div class="col-8 text-left">
                             <p class="font-size-sm text-muted mb-0" style="text-align:left">
                               <b>Reg #:</b> {{$fleet->car_registration_number}}
-                              <br><b>Assigned to:</b> {{$fleet->instructor->fname}}<br>
+                              <br><b>Instructor:</b> {{$fleet->instructor->fname}} {{$fleet->instructor->sname}}
+                              <br><b>Students assigned:</b> {{$fleet->student->count()}} <br>
                               <p>&nbsp;</p>
                               <p style="text-align:left">{{$fleet->car_description}}</p>
                             </p>
@@ -62,13 +63,13 @@
                                   </button>
                                   <div class="dropdown-menu dropdown-menu-end p-0">
                                     <div class="p-2">
-                                      <!-- <form method="POST" action="{{ url('/editfleet', $fleet->id) }}">
+                                      <form method="get" action="{{ url('/editfleet', $fleet->id) }}">
                                         {{ csrf_field() }}
                                         <button class="dropdown-item" type="submit">Edit</button>
-                                      </form> -->
+                                      </form>
                                       <form method="POST" action="{{ url('/deletefleet', $fleet->id) }}">
                                         {{ csrf_field() }}
-                                        {{ method_field('DELETE') }} 
+                                        {{ method_field('DELETE') }}
                                         <button class="dropdown-item delete-confirm" type="submit">Delete</button>
                                       </form>
                                     </div>
@@ -90,17 +91,17 @@
                     text: 'All Students and Instructors belonging to this fleet will be transfered to default fleet!',
                     icon: 'warning',
                     buttons: ["Cancel", "Yes!"],
-                }).then(function(isConfirm){        
-                        if(isConfirm){ 
+                }).then(function(isConfirm){
+                        if(isConfirm){
                                 form.submit();
-                        } 
+                        }
                 });
             });
-          
+
         </script>
         @empty
            <h1>No fleet added yet!</h1>
-        @endforelse        
+        @endforelse
       </div>
 
       </div>
