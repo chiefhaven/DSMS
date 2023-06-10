@@ -96,6 +96,22 @@
                       <label for="district">Distirct</label>
                     </div>
                   </div>
+                  <div class=" content-heading"><p>&nbsp;</p></div>
+                  <div class="col-lg-4">
+                    <p class="text-muted">
+                      Login details
+                    </p>
+                  </div>
+                  <div class="col-lg-8 col-xl-5">
+                      <div class="form-floating mb-4">
+                        <input type="text" class="form-control" id="username" name="username" placeholder="Student's username">
+                        <label class="form-label" for="example-username-input-floating">Username</label>
+                      </div>
+                      <div class="form-floating mb-4">
+                        <input type="password" class="form-control" id="password" name="password" placeholder="password" required>
+                        <label class="form-label" for="example-email-input-floating">Password</label>
+                      </div>
+                  </div>
                 </div>
                 <div class="row push">
                   <div class="col-lg-8 col-xl-5 offset-lg-4">

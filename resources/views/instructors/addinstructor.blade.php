@@ -30,7 +30,7 @@
         <div class="block block-rounded">
             <div class="block-content">
               <form action="{{ url('/storeinstructor') }}" method="POST" enctype="multipart/form-data" onsubmit="return true;">
-                @csrf      
+                @csrf
                 <h2 class="content-heading pt-0">
                   <i class="fa fa-fw fa-user text-muted me-1"></i> Instructor Information
                 </h2>
@@ -62,7 +62,7 @@
                     <div class="mb-4 form-floating">
                       <input type="date" class="form-control @error('date_of_birth') is-invalid @enderror" id="date_of_birth" name="date_of_birth" placeholder="DDMMYY" value="27-07-1999" formnovalidate="" required>
                         <label class="form-label" for="email">Date of birth</label>
-                    </div>       
+                    </div>
                     <div class="mb-4 form-floating">
                       <input type="text" class="form-control" id="phone" name="phone" placeholder="+265" value="+265" required>
                         <label class="form-label" for="example-email-input-floating">Phone</label>
@@ -101,7 +101,7 @@
                   <div class="col-lg-8 col-xl-5">
                       <div class="form-floating mb-4">
                         <input type="text" class="form-control" id="username" name="username" placeholder="Administrator's username">
-                        <label class="form-label" for="example-email-input-floating">Username</label>
+                        <label class="form-label" for="example-username-input-floating">Username</label>
                       </div>
                       <div class="form-floating mb-4">
                         <input type="password" class="form-control" id="password" name="password" placeholder="password" required>
