@@ -19,9 +19,9 @@
                         <a href="{{ url('/addstudent') }}" class="dropdown-item nav-main-link">
                             <i class="fa fa-fw fa-user-plus mr-1"></i>&nbsp; Add student
                         </a>
-                        <a href="{{ url('/studentsPdf') }}" class="dropdown-item nav-main-link">
-                            <i class="fas fa-download fa-spin"></i> &nbsp; Students report
-                        </a>
+                        <button class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#modal-block-vcenter">
+                            <i class="fas fa-download"></i> &nbsp; Students report
+                        </button>
                   @endcan
                   </div>
                 </div>
@@ -182,7 +182,6 @@
                               </td>
                           </tr>
                           @endforeach
-
                       </tbody>
                   </table>
                     {{ $student->links('pagination::bootstrap-4') }}
@@ -193,6 +192,89 @@
           </div>
       </div>
     </div>
+
+    @role(['superAdmin', 'admin'])
+    <!-- Payment Modal -->
+    <div class="modal" id="modal-block-vcenter" tabindex="-1" aria-labelledby="modal-block-vcenter" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="block block-rounded block-themed block-transparent mb-0">
+            <div class="block-header bg-primary-dark">
+                <h3 class="block-title">Filter to download report</h3>
+                <div class="block-options">
+                    <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="fa fa-fw fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="block-content">
+                <form class="mb-5" action="{{ url('/studentsPdf') }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
+                    @csrf
+                    <div class="row">
+                        <div class="col-sm-6 mb-4">
+                            <label for="invoice_discount">Date</label>
+                            <select class="btn btn-primary dropdown-toggle" id="filter" name="filter">
+                                <div class="dropdown-menu">
+                                    <option class="" value="alltime">All Time</option>
+                                    <option class="text-left" value="today">Today</option>
+                                    <option class="" value="yesterday">Yesterday</option>
+                                    <option class="" value="thisweek">This Week</option>
+                                    <option class="" value="thismonth">This Month</option>
+                                    <option class="" value="lastmonth">Last Month</option>
+                                    <option class="" value="thisyear">This Year</option>
+                                    <option class="" value="lastyear">Last Year</option>
+                                </div>
+                            </select>
+                        </div>
+                        <div class="col-sm-6 mb-4">
+                            <label for="invoice_discount">Balance</label>
+                            <select class="btn btn-primary dropdown-toggle" id="filter" name="filter">
+                                <div class="dropdown-menu">
+                                    <option class="" value="alltime">All</option>
+                                    <option class="text-left" value="today">With balance</option>
+                                    <option class="" value="yesterday">No balance</option>
+                                </div>
+                            </select>
+                        </div>
+                        <div class="col-sm-6 mb-4">
+                            <label for="invoice_discount">Car</label>
+                            <select class="btn btn-primary dropdown-toggle" id="filter" name="filter">
+                                <div class="dropdown-menu">
+                                    <option class="text-left" value="today">All</option>
+                                    <option class="" value="yesterday">Mira (KB5465)</option>
+                                    <option class="" value="thisweek">Mira (DZ4353)</option>
+                                    <option class="" value="thismonth">Vist (CZ8964)</option>
+                                </div>
+                            </select>
+                        </div>
+                        <div class="col-sm-6 mb-4">
+                            <label for="invoice_discount">Aphalbet</label>
+                            <select class="btn btn-primary dropdown-toggle" id="filter" name="filter">
+                                <div class="dropdown-menu">
+                                    <option class="" value="alltime">All</option>
+                                    <option class="text-left" value="today">A</option>
+                                    <option class="" value="yesterday">B</option>
+                                    <option class="" value="thisweek">C</option>
+                                    <option class="" value="thismonth">D</option>
+                                    <option class="" value="lastmonth">E</option>
+                                    <option class="" value="thisyear">F</option>
+                                    <option class="" value="lastyear">G</option>
+                                    <option class="" value="alltime">H</option>
+                                </div>
+                            </select>
+                        </div>
+                        <div class="block-content block-content-full text-end bg-body">
+                            <button type="submit" class="btn btn-primary">Download</button>
+                            <button type="button" class="btn btn-sm btn-alt-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        </div>
+        </div>
+    </div>
+    @endcan
   <!-- END Hero -->
 
   <script type="text/javascript">

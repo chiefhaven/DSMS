@@ -121,7 +121,7 @@
                                     @if(isset($student->invoice->created_at))
                                     K{{number_format($student->invoice->invoice_amount_paid)}}
                                     @else
-
+                                        -
                                     @endif
                                 </td>
                             </tr>
@@ -133,8 +133,8 @@
                                     @if(isset($student->invoice->created_at))
                                     K{{number_format($student->invoice->invoice_balance)}}
                                     @else
-
-                                    @endif
+                                        -
+                                    b@endif
                                 </td>
                             </tr>
                             <tr>
