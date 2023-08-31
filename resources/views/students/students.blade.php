@@ -8,7 +8,13 @@
         <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Students</h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
 
-            @role(['superAdmin', 'admin'])
+            @if(Session::has('message'))
+            <div class="alert alert-info">
+              {{Session::get('message')}}
+            </div>
+          @endif
+
+          @role(['superAdmin', 'admin'])
             <div class="dropdown d-inline-block">
                 <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                   <span class="d-sm-inline-block">Action</span>
@@ -19,8 +25,11 @@
                         <a href="{{ url('/addstudent') }}" class="dropdown-item nav-main-link">
                             <i class="fa fa-fw fa-user-plus mr-1"></i>&nbsp; Add student
                         </a>
+                        <a href="{{ url('/studentsPdf') }}" class="dropdown-item nav-main-link">
+                            <i class="fa fa-download"></i>&nbsp; Download trial
+                        </a>
                         <button class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#modal-block-vcenter">
-                            <i class="fas fa-download"></i> &nbsp; Students report
+                            <i class="fa fa-download"></i> &nbsp; Students report
                         </button>
                   @endcan
                   </div>
@@ -213,54 +222,29 @@
                     <div class="row">
                         <div class="col-sm-6 mb-4">
                             <label for="invoice_discount">Date</label>
-                            <select class="btn btn-primary dropdown-toggle" id="filter" name="filter">
+                            <select class="form-select dropdown-toggle" id="date" name="date">
                                 <div class="dropdown-menu">
-                                    <option class="" value="alltime">All Time</option>
-                                    <option class="text-left" value="today">Today</option>
-                                    <option class="" value="yesterday">Yesterday</option>
-                                    <option class="" value="thisweek">This Week</option>
-                                    <option class="" value="thismonth">This Month</option>
-                                    <option class="" value="lastmonth">Last Month</option>
-                                    <option class="" value="thisyear">This Year</option>
-                                    <option class="" value="lastyear">Last Year</option>
+                                    <option class="" value="all_time">All Time</option>
                                 </div>
                             </select>
                         </div>
                         <div class="col-sm-6 mb-4">
-                            <label for="invoice_discount">Balance</label>
-                            <select class="btn btn-primary dropdown-toggle" id="filter" name="filter">
+                            <label for="balance">Balance</label>
+                            <select class="form-control dropdown-toggle" id="balance" name="balance">
                                 <div class="dropdown-menu">
-                                    <option class="" value="alltime">All</option>
-                                    <option class="text-left" value="today">With balance</option>
-                                    <option class="" value="yesterday">No balance</option>
+                                    <option class="" value="all">All</option>
+                                    <option class="text-left" value="balance">With balance</option>
+                                    <option class="" value="no_balance">No balance</option>
                                 </div>
                             </select>
                         </div>
                         <div class="col-sm-6 mb-4">
-                            <label for="invoice_discount">Car</label>
-                            <select class="btn btn-primary dropdown-toggle" id="filter" name="filter">
-                                <div class="dropdown-menu">
-                                    <option class="text-left" value="today">All</option>
-                                    <option class="" value="yesterday">Mira (KB5465)</option>
-                                    <option class="" value="thisweek">Mira (DZ4353)</option>
-                                    <option class="" value="thismonth">Vist (CZ8964)</option>
-                                </div>
-                            </select>
-                        </div>
-                        <div class="col-sm-6 mb-4">
-                            <label for="invoice_discount">Aphalbet</label>
-                            <select class="btn btn-primary dropdown-toggle" id="filter" name="filter">
-                                <div class="dropdown-menu">
-                                    <option class="" value="alltime">All</option>
-                                    <option class="text-left" value="today">A</option>
-                                    <option class="" value="yesterday">B</option>
-                                    <option class="" value="thisweek">C</option>
-                                    <option class="" value="thismonth">D</option>
-                                    <option class="" value="lastmonth">E</option>
-                                    <option class="" value="thisyear">F</option>
-                                    <option class="" value="lastyear">G</option>
-                                    <option class="" value="alltime">H</option>
-                                </div>
+                            <label for="car">Assigned Car</label>
+                            <select class="form-select" id="fleet" name="fleet">
+                                <option class="" value="alltime" selected>All</option>
+                                @foreach($fleet as $fleet_option)
+                                  <option value="{{$fleet_option->car_registration_number}}"><strong>{{$fleet_option->car_registration_number}}</strong> <div class="text-muted text-small">({{$fleet_option->car_brand_model}})</div></option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="block-content block-content-full text-end bg-body">

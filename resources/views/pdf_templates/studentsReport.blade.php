@@ -5,12 +5,20 @@
 </head>
 <body>
 
-@include('pdf_templates.partials.header')
-
+    @include('pdf_templates.partials.header')
 <div class="container invoice">
     <div class="row">
         <div class="col-12">
             <h3 style="text-align:center">STUDENTS REPORT</h3>
+            <table class="table table-responsive">
+                <thead>
+                </thead>
+                <tbody>
+                    <tr class="">
+                        <td>Fees status: {{ $balance }}</td> <td>Car assigned: {{ $fleet->car_brand_model }} ({{ $fleet->car_registration_number }})</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
     <table class="table table-responsive table-striped" style="font-size:12px; background-color: #ffffff; margin: 20px 0;">

@@ -54,7 +54,7 @@ Route::post('/second-aptitude-test-reference-letter/{id}', [StudentController::c
 Route::post('/final-test-reference-letter/{id}', [StudentController::class, 'finalReferenceLetter'])->middleware('auth')->name('final-test-report');
 Route::post('/lesson-report/{id}', [StudentController::class, 'lessonReport'])->middleware('auth')->name('lesson-report');
 Route::get('/search-student', [StudentController::class, 'search'])->middleware('auth')->name('searchStudent');
-Route::get('/studentsPdf', [StudentController::class, 'studentsPDF'])->middleware('auth')->name('studentPDF');
+Route::post('/studentsPdf', [StudentController::class, 'studentsPDF'])->middleware('auth')->name('studentPDF');
 
 Route::get('/attendances', [AttendanceController::class, 'index'])->middleware('auth')->name('attendances');
 Route::get('/addattendance', [AttendanceController::class, 'create'])->middleware('auth')->name('addattendance');

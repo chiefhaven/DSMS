@@ -6,6 +6,7 @@
 <body>
 
 @include('pdf_templates.partials.header')
+@include('pdf_templates.partials.watermark')
 
 <div class="container invoice">
     <div class="row">

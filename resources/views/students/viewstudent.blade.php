@@ -248,74 +248,74 @@
                 <tbody>
                     <tr>
                         <td class="font-w600">
-                        @if(isset($student->invoice->created_at))
-                            {{$student->invoice->date_created->format('j F, Y')}}
-                        @else
+                            @if(isset($student->invoice->created_at))
+                                {{$student->invoice->date_created->format('j F, Y')}}
+                            @else
 
-                        @endif
+                            @endif
                         </td>
                         <td class="font-w600">
-                        @if(isset($student->invoice->created_at))
-                            {{$student->invoice->invoice_number}}
-                        @else
+                            @if(isset($student->invoice->created_at))
+                                {{$student->invoice->invoice_number}}
+                            @else
 
-                        @endif
+                            @endif
                         </td>
                         <td>
-                        @if(isset($student->invoice->created_at))
-                            K{{number_format($student->invoice->invoice_total)}}
-                        @else
+                            @if(isset($student->invoice->created_at))
+                                K{{number_format($student->invoice->invoice_total)}}
+                            @else
 
-                        @endif
+                            @endif
                         </td>
                         <td>
-                        @if(isset($student->invoice->created_at))
-                            K{{number_format($student->invoice->invoice_balance)}}
-                        @else
+                            @if(isset($student->invoice->created_at))
+                                K{{number_format($student->invoice->invoice_balance)}}
+                            @else
 
-                        @endif
+                            @endif
                         </td>
                         <td>
-                        @if(isset($student->invoice->created_at))
-                            {{$student->invoice->invoice_payment_due_date->format('j F, Y')}}
-                        @else
+                            @if(isset($student->invoice->created_at))
+                                {{$student->invoice->invoice_payment_due_date->format('j F, Y')}}
+                            @else
 
-                        @endif
+                            @endif
                         </td>
                         @if(isset($student->invoice->created_at))
-                        <td class="text-center">
-                        <div class="dropdown d-inline-block">
-                            <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="d-none d-sm-inline-block">Action</span>
-                            </button>
-                            <div class="dropdown-menu dropdown-menu-end p-0">
-                                <div class="p-2">
-                                <a class="dropdown-item" href="{{ url('/view-invoice', $student->invoice->invoice_number) }}">
-                                    View
-                                </a>
-                                <form method="POST" action="{{ url('/edit-invoice', $student->invoice->invoice_number) }}">
-                                        {{ csrf_field() }}
-                                    <button class="dropdown-item" type="submit">Edit</button>
-                                </form>
-                                <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal-block-vcenter">
-                                    Add payment
+                            <td class="text-center">
+                            <div class="dropdown d-inline-block">
+                                <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <span class="d-none d-sm-inline-block">Action</span>
                                 </button>
-                                <a class="dropdown-item" href="{{ url('/invoice-pdf', $student->invoice->invoice_number) }}">
-                                    Print Invoice
-                                </a>
-                                <form method="POST" action="{{ url('/invoice-delete', $student->invoice->id) }}">
-                                    {{ csrf_field() }}
-                                    {{ method_field('DELETE') }}
-                                    <button class="dropdown-item" onclick="return confirm('Are you sure?')" type="submit">Delete</button>
-                                </form>
-                                <form method="POST" action="{{ url('send-notification', $student->id) }}">
-                                    {{ csrf_field() }}
-                                    <button class="dropdown-item" type="submit">Send balance reminder</button>
-                                </form>
+                                <div class="dropdown-menu dropdown-menu-end p-0">
+                                    <div class="p-2">
+                                    <a class="dropdown-item" href="{{ url('/view-invoice', $student->invoice->invoice_number) }}">
+                                        View
+                                    </a>
+                                    <form method="POST" action="{{ url('/edit-invoice', $student->invoice->invoice_number) }}">
+                                            {{ csrf_field() }}
+                                        <button class="dropdown-item" type="submit">Edit</button>
+                                    </form>
+                                    <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal-block-vcenter">
+                                        Add payment
+                                    </button>
+                                    <a class="dropdown-item" href="{{ url('/invoice-pdf', $student->invoice->invoice_number) }}">
+                                        Print Invoice
+                                    </a>
+                                    <form method="POST" action="{{ url('/invoice-delete', $student->invoice->id) }}">
+                                        {{ csrf_field() }}
+                                        {{ method_field('DELETE') }}
+                                        <button class="dropdown-item" onclick="return confirm('Are you sure?')" type="submit">Delete</button>
+                                    </form>
+                                    <form method="POST" action="{{ url('send-notification', $student->id) }}">
+                                        {{ csrf_field() }}
+                                        <button class="dropdown-item" type="submit">Send balance reminder</button>
+                                    </form>
+                                    </div>
                                 </div>
-                            </div>
-                            </div>
-                        </td>
+                                </div>
+                            </td>
                         @endif
                     </tr>
                 </tbody>
@@ -381,7 +381,7 @@
             </table>
         </div>
         </div>
-    @endcan
+    @endrole
   </div>
   </div>
 </div>
@@ -442,6 +442,7 @@
         </div>
         </div>
     </div>
+    @endcan
     @endcan
 
 @endsection

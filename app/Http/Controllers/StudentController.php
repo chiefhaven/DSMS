@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 use App\Http\Controllers\havenUtils;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Validator;
 
 use Illuminate\Http\Request;
 use App\Models\Student;
@@ -13,10 +15,13 @@ use App\Models\Payment;
 use App\Models\Attendance;
 use App\Models\Setting;
 use App\Http\Requests\StoreStudentRequest;
+use App\Http\Requests\PdfStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
+use App\Models\Fleet;
 use Session;
 use Illuminate\Support\Str;
 use PDF;
+use PhpParser\Node\Stmt\Switch_;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class StudentController extends Controller
@@ -29,7 +34,8 @@ class StudentController extends Controller
     public function index()
     {
         $student = Student::with('User', 'Attendance', 'Course')->orderBy('created_at', 'DESC')->paginate(10);
-        return view('students.students', compact('student'));
+        $fleet = Fleet::get();
+        return view('students.students', compact('student', 'fleet'));
     }
 
     /**
@@ -289,13 +295,81 @@ class StudentController extends Controller
         return $pdf->download('Daron Driving School-'.$student->fname.' '.$student->sname.' Lesson Report.pdf');
     }
 
-    public function studentsPDF()
+    public function studentsPDF(PdfStudentRequest $request)
     {
-        $student = Student::With('User', 'Invoice', 'Attendance')->orderBy('sname', 'ASC')->get();
-        $date = date('j F, Y');
+         $messages = [
+            'Something is wrong!',
+         ];
 
-        $pdf = PDF::loadView('pdf_templates.studentsReport', compact('student', 'date'))->setOption(['dpi' => 150, 'defaultFont' => 'sans-serif'])->setPaper('a4', 'potrait');
-        return $pdf->download('Daron Driving School - Students Report.pdf');
+        $validator = Validator::make($request->all(), [
+            'date' => [
+                'required',
+                Rule::in(['all_time']),
+            ],
+
+            'balance' => [
+                'required',
+                Rule::in(['all', 'balance', 'no_balance']),
+            ],
+        ]);
+
+        if ($validator->fails()) {
+
+            Alert::toast($messages, 'Error');
+            return redirect()->back();
+
+         }
+
+
+
+        $balance = $request['balance'];
+        $fleet_id = havenUtils::fleetID($request['fleet']);
+        if(isset($fleet_id)){
+            $fleet = Fleet::find($fleet_id);
+            $fleet_number = $fleet->car_registration_number;
+        }
+
+        else{
+            $fleet = null;
+            $fleet_number = null;
+        }
+
+        switch($balance){
+            case('balance'):
+                if(isset($fleet_id)){
+                    $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')->whereRelation('invoice','invoice_balance','>', 0)->where('fleet_id', $fleet_id)->orderBy('sname', 'ASC')->get();
+                }
+                else{
+                    $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')->whereRelation('invoice','invoice_balance','>', 0)->orderBy('sname', 'ASC')->get();
+                }
+            break;
+
+            case('no_balance'):
+                if(isset($fleet_id)){
+                        $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')->whereRelation('invoice','invoice_balance','=', 0)->where('fleet_id', $fleet_id)->orderBy('sname', 'ASC')->get();
+                }
+                else{
+                    $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')->whereRelation('invoice','invoice_balance','=', 0)->orderBy('sname', 'ASC')->get();
+                }
+            break;
+
+            case('all'):
+                if(isset($fleet_id)){
+                        $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')->where('fleet_id', $fleet_id)->orderBy('sname', 'ASC')->get();
+                }
+                else{
+                    $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')->whereRelation('invoice','invoice_balance','=', 0)->orderBy('sname', 'ASC')->get();
+                }
+            break;
+
+            default:
+                $student = Student::With('User', 'Invoice', 'Attendance')->orderBy('sname', 'ASC')->get();
+
+        }
+
+        $date = date('j F, Y');
+        $pdf = PDF::loadView('pdf_templates.studentsReport', compact('student', 'date', 'fleet', 'balance'))->setOption(['dpi' => 150, 'defaultFont' => 'sans-serif'])->setPaper('a4', 'potrait');
+        return $pdf->download('Daron Driving School -'.$fleet_number.' Students Report.pdf');
     }
 
     public function search(Request $request){
