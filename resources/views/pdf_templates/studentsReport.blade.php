@@ -15,7 +15,14 @@
                 </thead>
                 <tbody>
                     <tr class="">
-                        <td>Fees status: {{ $balance }}</td> <td>Car assigned: {{ $fleet->car_brand_model }} ({{ $fleet->car_registration_number }})</td>
+                        <td>Fees status: {{ $balance }}</td>
+                        <td>Car assigned:
+                            @if (isset( $fleet->car_brand_model) && isset($fleet->car_registration_number))
+                                {{ $fleet->car_brand_model }} ({{ $fleet->car_registration_number }})
+                            @else
+                                All
+                            @endif
+                        </td>
                     </tr>
                 </tbody>
             </table>
