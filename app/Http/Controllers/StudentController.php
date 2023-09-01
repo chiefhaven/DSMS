@@ -375,7 +375,9 @@ class StudentController extends Controller
     public function search(Request $request){
 
 
-            $student = Student::with('User')
+        $fleet = Fleet::get();
+
+        $student = Student::with('User')
                 ->where('fname', 'like', '%' . request('search') . '%')
                 ->orWhere('mname', 'like', '%' . request('search') . '%')
                 ->orWhere('sname', 'like', '%' . request('search') . '%')
@@ -384,6 +386,6 @@ class StudentController extends Controller
                 ->orwhereHas('User', function($q){
                     $q->where('email','like', '%' . request('search') . '%');})->paginate(10);
 
-        return view('students.students', compact('student'));
+        return view('students.students', compact('student', 'fleet'));
     }
 }
