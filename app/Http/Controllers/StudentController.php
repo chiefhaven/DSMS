@@ -358,7 +358,7 @@ class StudentController extends Controller
                         $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')->where('fleet_id', $fleet_id)->orderBy('sname', 'ASC')->get();
                 }
                 else{
-                    $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')->whereRelation('invoice','invoice_balance','=', 0)->orderBy('sname', 'ASC')->get();
+                    $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')->orderBy('sname', 'ASC')->get();
                 }
             break;
 
