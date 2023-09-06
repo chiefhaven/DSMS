@@ -39,8 +39,7 @@ class InvoiceController extends Controller
     public function create($id)
     {
 
-
-        if($this->middleware(['role:superAdmin'], ['role:admin'])){
+        if(Auth::user()->hasRole('superAdmin')){
             $course = Course::get();
             $fleet = Fleet::get();
             $student = Student::find($id);
