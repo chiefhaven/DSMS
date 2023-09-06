@@ -103,11 +103,11 @@
                                   {{$students->course->short_description}}
 
                                 @else
-                                    @role(['superAdmin', 'admin'])
+                                    @role(['superAdmin'])
                                         <a href="{{ url('/addinvoice', $students->id) }}">Enroll Course</a>
                                     @else
                                         <strong>Not enrolled yet.</strong>
-                                        <br class="muted sm-text"><small>Ask administrator to enroll the student</small>
+                                        <br class="muted sm-text"><small>Ask the authorities to enroll the student</small>
                                     @endrole
                                 @endif
                               </td>
