@@ -298,7 +298,7 @@ class StudentController extends Controller
     public function studentsPDF(PdfStudentRequest $request)
     {
          $messages = [
-            'Something is wrong!',
+            'Something is wrong PDF cant download!',
          ];
 
         $validator = Validator::make($request->all(), [
@@ -310,6 +310,11 @@ class StudentController extends Controller
             'balance' => [
                 'required',
                 Rule::in(['all', 'balance', 'no_balance']),
+            ],
+
+            'status' => [
+                'required',
+                Rule::in(['allstatus', 'inprogress', 'finished']),
             ],
         ]);
 
@@ -323,6 +328,15 @@ class StudentController extends Controller
 
 
         $balance = $request['balance'];
+        $status = "";
+
+        if($request['status'] = 'allstatus'){
+            $status = '';
+        }
+        else{
+            $status = $request['status'];
+        }
+
         $fleet_id = havenUtils::fleetID($request['fleet']);
         if(isset($fleet_id)){
             $fleet = Fleet::find($fleet_id);
@@ -337,33 +351,54 @@ class StudentController extends Controller
         switch($balance){
             case('balance'):
                 if(isset($fleet_id)){
-                    $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')->whereRelation('invoice','invoice_balance','>', 0)->where('fleet_id', $fleet_id)->orderBy('sname', 'ASC')->get();
+                    $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')
+                    ->whereRelation('invoice','invoice_balance','>', 0)
+                    ->where('fleet_id', $fleet_id)
+                    ->where('status', $status)
+                    ->orderBy('sname', 'ASC')->get();
                 }
                 else{
-                    $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')->whereRelation('invoice','invoice_balance','>', 0)->orderBy('sname', 'ASC')->get();
+                    $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')
+                    ->whereRelation('invoice','invoice_balance','>', 0)
+                    ->where('status', $status)
+                    ->orderBy('sname', 'ASC')->get();
                 }
             break;
 
             case('no_balance'):
                 if(isset($fleet_id)){
-                        $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')->whereRelation('invoice','invoice_balance','=', 0)->where('fleet_id', $fleet_id)->orderBy('sname', 'ASC')->get();
+                        $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')
+                        ->whereRelation('invoice','invoice_balance','=', 0)
+                        ->where('status', $status)
+                        ->where('fleet_id', $fleet_id)->orderBy('sname', 'ASC')->get();
                 }
                 else{
-                    $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')->whereRelation('invoice','invoice_balance','=', 0)->orderBy('sname', 'ASC')->get();
+                    $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')
+                    ->whereRelation('invoice','invoice_balance','=', 0)
+                    ->where('status', $status)
+                    ->orderBy('sname', 'ASC')->get();
                 }
             break;
 
             case('all'):
                 if(isset($fleet_id)){
-                        $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')->where('fleet_id', $fleet_id)->orderBy('sname', 'ASC')->get();
+                        $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')
+                        ->where('fleet_id', $fleet_id)
+                        ->where('status', $status)
+                        ->orderBy('sname', 'ASC')
+                        ->get();
                 }
                 else{
-                    $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')->orderBy('sname', 'ASC')->get();
+                    $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')
+                    ->where('status', $status)
+                    ->orderBy('sname', 'ASC')
+                    ->get();
                 }
             break;
 
             default:
-                $student = Student::With('User', 'Invoice', 'Attendance')->orderBy('sname', 'ASC')->get();
+                $student = Student::With('User', 'Invoice', 'Attendance')
+                ->orderBy('sname', 'ASC')->get();
 
         }
 

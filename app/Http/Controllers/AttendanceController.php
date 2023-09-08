@@ -69,10 +69,16 @@ class AttendanceController extends Controller
 
         //Check course days and compare with attendance
         $courseID = Invoice::where('student_id', $student_id)->firstOrFail()->course_id;
-        $courseDuration = havenUtils::courseDuration($courseID);
-        $attendanceCount = Attendance::where('student_id', $student_id)->count();
 
-        if($attendanceCount >= $courseDuration){
+        $student = Student::find($student_id);
+
+        if(!isset($courseID)){
+            Alert::toast($student->fname.' not enrolled to any course yet!', 'warning');
+        }
+
+        $courseDuration = havenUtils::courseDuration($courseID);
+
+        if(self::attendanceCount($student_id) >= $courseDuration){
             Alert::toast('You can not enter more attendances than course duration a student enrolled!', 'warning');
             return redirect('/attendances');
         }
@@ -100,7 +106,22 @@ class AttendanceController extends Controller
 
         $attendance->save();
 
-        Alert::toast('Attendance added successifuly!', 'success');
+        if($attendance->save()){
+
+            if($courseDuration-self::attendanceCount($student_id)==0){
+                $student->status = 'Finished';
+                $message = 'This marks course completion for '.$student->fname.' '.$student->sname;
+            }
+
+            else{
+                $student->status = 'In progress';
+                $message = 'Attendance added successifuly!';
+            }
+
+            $student->save();
+        }
+
+        Alert::toast($message, 'success');
         return redirect('/attendances');
 
     }
@@ -202,5 +223,10 @@ class AttendanceController extends Controller
          }
 
         return response()->json($dataModified);
+    }
+
+    public function attendanceCount($student_id){
+        $attendanceCount = Attendance::where('student_id', $student_id)->count();
+        return $attendanceCount;
     }
 }

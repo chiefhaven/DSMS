@@ -8,7 +8,7 @@
         <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Attendances/Schedules</h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
           <ol class="breadcrumb">
-            <a href="/addattendance" class="btn btn-primary">
+            <a href="{{ url('/addattendance') }}" class="btn btn-primary">
                     <i class="fa fa-fw fa-user-plus mr-1"></i> Add attendance
             </a>
           </ol>

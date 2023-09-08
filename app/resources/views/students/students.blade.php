@@ -55,9 +55,9 @@
                                 @if(isset($student->user->email))
 
                                   {{$student->user->email}}
-    
+
                                 @else
-                                  
+
                                 @endif
                               </td>
                               <td>{{$students->trn}}</td>
@@ -90,7 +90,7 @@
                                       </form>
                                       <form method="POST" action="{{ url('student-delete', $students->id) }}">
                                         {{ csrf_field() }}
-                                        {{ method_field('DELETE') }} 
+                                        {{ method_field('DELETE') }}
                                         <button class="dropdown-item" onclick="return confirm('Are you sure you want to delete {{$students->fname}} {{$students->sname}}?')" type="submit">Delete</button>
                                       </form>
                                     </div>
@@ -99,7 +99,6 @@
                               </td>
                           </tr>
                           @endforeach
-                          
                       </tbody>
                   </table>
                   {{ $student->links('pagination::bootstrap-4') }}
@@ -108,5 +107,4 @@
       </div>
     </div>
   <!-- END Hero -->
-
 @endsection
