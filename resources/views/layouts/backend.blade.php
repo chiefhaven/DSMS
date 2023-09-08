@@ -237,7 +237,7 @@
             Supported with <i class="fa fa-heart text-danger"></i> by <a class="fw-semibold" href="https://www.havenplustechnologies.co.mw" target="_blank">HavenPlus Technologies</a>
           </div>
           <div class="col-sm-6 order-sm-1 text-center text-sm-start">
-                Mbira DSMS {{config('version.string')}}.  All rights reserved &copy;
+                Mbira DSMS {{config('version.tag')}}.  All rights reserved &copy;
             <span data-toggle="year-copy"></span>
           </div>
         </div>
