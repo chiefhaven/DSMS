@@ -29,7 +29,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
   <link rel="stylesheet" id="css-main" href="{{ asset('css/dashmix.css') }}">
   <link rel="stylesheet" id="css-main" href="{{ asset('css/haven.css') }}">
-  
+
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -44,8 +44,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.js" integrity="sha512-U2WE1ktpMTuRBPoCFDzomoIorbOyUv0sP8B+INA3EzNAhehbzED1rOJg6bCqPf/Tuposxb5ja/MAUnC8THSbLQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/basic.min.css" integrity="sha512-MeagJSJBgWB9n+Sggsr/vKMRFJWs+OUphiDV7TJiYu+TNQD9RtVJaPDYP8hA/PAjwRnkdvU+NsTncYTKlltgiw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-  
-  
+
+
   <!-- You can include a specific file from public/css/themes/ folder to alter the default color theme of the template. eg: -->
   <!-- <link rel="stylesheet" id="css-theme" href="{{ asset('css/themes/xwork.css') }}"> -->
   @yield('css_after')
@@ -133,7 +133,7 @@
             <i class="fa fa-fw fa-bars"></i>
           </button>
           <!-- END Toggle Sidebar -->
-          
+
         </div>
         <!-- END Left Section -->
 
@@ -233,10 +233,10 @@
       <div class="content py-0">
         <div class="row fs-sm">
           <div class="col-sm-6 order-sm-2 mb-1 mb-sm-0 text-center text-sm-end">
-            Supported with <i class="fa fa-heart text-danger"></i> by <a class="fw-semibold" href="https://www.havenmw.com" target="_blank">Haven</a>
+            Supported with <i class="fa fa-heart text-danger"></i> by <a class="fw-semibold" href="https://www.havenplustechnologies.co.mw" target="_blank">Haven</a>
           </div>
           <div class="col-sm-6 order-sm-1 text-center text-sm-start">
-            <a class="fw-semibold" href="#" target="_blank">All rights reserved</a> &copy;
+            <a class="fw-semibold" href="#" target="_blank">Mbira DSMS {{config('version.string')}}.  All rights reserved</a> &copy;
             <span data-toggle="year-copy"></span>
           </div>
         </div>
@@ -253,7 +253,7 @@
   <!-- <script src="{{ asset('/js/laravel.app.js') }}"></script> -->
 
   @yield('js_after')
-  
+
   @include('sweetalert::alert')
 
 </body>

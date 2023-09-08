@@ -234,10 +234,10 @@
       <div class="content py-0">
         <div class="row fs-sm">
           <div class="col-sm-6 order-sm-2 mb-1 mb-sm-0 text-center text-sm-end">
-            Supported with <i class="fa fa-heart text-danger"></i> by <a class="fw-semibold" href="https://www.havenmw.com" target="_blank">Haven</a>
+            Supported with <i class="fa fa-heart text-danger"></i> by <a class="fw-semibold" href="https://www.havenplustechnologies.co.mw" target="_blank">HavenPlus Technologies</a>
           </div>
           <div class="col-sm-6 order-sm-1 text-center text-sm-start">
-            <a class="fw-semibold" href="#" target="_blank">All rights reserved</a> &copy;
+                Mbira DSMS {{config('version.string')}}.  All rights reserved &copy;
             <span data-toggle="year-copy"></span>
           </div>
         </div>
