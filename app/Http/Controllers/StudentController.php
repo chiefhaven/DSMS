@@ -328,14 +328,14 @@ class StudentController extends Controller
 
 
         $balance = $request['balance'];
-        $status = "";
 
-        if($request['status'] = 'allstatus'){
-            $status = '';
-        }
-        else{
-            $status = $request['status'];
-        }
+            if($request['status'] = 'allstatus'){
+                $status = ['inprogress', 'finished'];
+            }
+
+            else{
+                $status = $request['status'];
+            }
 
         $fleet_id = havenUtils::fleetID($request['fleet']);
         if(isset($fleet_id)){

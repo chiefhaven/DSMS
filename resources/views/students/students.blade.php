@@ -246,10 +246,12 @@
                         </div>
                         <div class="col-sm-6 mb-4">
                             <label for="status">Student Status</label>
-                            <select class="form-select" id="status" name="status">
-                                <option class="" value="allstatus" selected>All</option>
-                                  <option value="inprogress">In progress</option>
-                                  <option value="finished">Completed</option>
+                            <select class="form-control dropdown-toggle form-select" id="status" name="status">
+                                <div class="dropdown-menu">
+                                    <option class="" value="allstatus" selected>All</option>
+                                    <option value="inprogress">In progress</option>
+                                    <option value="finished">Completed</option>
+                                </div>
                             </select>
                         </div>
                         <div class="block-content block-content-full text-end bg-body">
