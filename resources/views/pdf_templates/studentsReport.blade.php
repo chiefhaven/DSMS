@@ -46,7 +46,7 @@
                     @endif
                 @endif
                 <div class="page-break"></div>
-                <tr class="py-1" style="padding-top: 0px; padding-bottom: 0px;">
+                <tr class="py-1" style="padding: 10px;">
                     <td class="invoice-td text">
                         {{$index+1}}
                     </td>
@@ -80,6 +80,7 @@
                     </td>
                     <td class="invoice-td amount">
                         @if (null !== $student->attendance->count() && isset($student->course->duration))
+                            {{number_format($student->attendance->count()/$student->course->duration*100)}}%
                             <br><div style="font-size: 8px">{{$student->attendance->count()}} of {{ $student->course->duration }} days done!</div>
                         @else
                             -
