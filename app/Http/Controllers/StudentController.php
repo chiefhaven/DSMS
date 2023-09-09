@@ -329,13 +329,13 @@ class StudentController extends Controller
 
         $balance = $request['balance'];
 
-            if($request['status'] = 'allstatus'){
-                $status = ['inprogress', 'finished'];
-            }
+        if($request['status'] == 'allstatus'){
+            $status = ['inprogress', 'finished', 'pending', 'suspended'];
+        }
 
-            else{
-                $status = $request['status'];
-            }
+        else{
+            $status = $request['status'];
+        }
 
         $fleet_id = havenUtils::fleetID($request['fleet']);
         if(isset($fleet_id)){
@@ -370,7 +370,8 @@ class StudentController extends Controller
                         $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')
                         ->whereRelation('invoice','invoice_balance','=', 0)
                         ->where('status', $status)
-                        ->where('fleet_id', $fleet_id)->orderBy('sname', 'ASC')->get();
+                        ->where('fleet_id', $fleet_id)
+                        ->orderBy('sname', 'ASC')->get();
                 }
                 else{
                     $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')
