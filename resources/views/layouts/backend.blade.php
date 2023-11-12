@@ -74,10 +74,10 @@
           <!-- Logo -->
           <a class="fw-semibold text-white tracking-wide" href="{{ url('/') }}">
             <span class="smini-visible">
-              Daron Driving School
+                ${APP_NAME}
             </span>
             <span class="smini-hidden">
-              Daron Driving School
+                ${APP_NAME}
             </span>
             </span>
           </a>
