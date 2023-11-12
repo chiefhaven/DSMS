@@ -77,7 +77,7 @@
                 ${APP_NAME}
             </span>
             <span class="smini-hidden">
-                {{APP_NAME}}
+                env{APP_NAME}
             </span>
             </span>
           </a>
