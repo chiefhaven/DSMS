@@ -4,7 +4,7 @@
             @section('project_title', config('app.name'))
 
         <x-slot name="logo">
-                <h1 style="font-size: 2.7em; text-align:center; color:aliceblue"><strong>Daron Driving School</strong></h1>
+                <h1 style="font-size: 2.7em; text-align:center; color:aliceblue"><strong>{{ env('APP_NAME')}}</strong></h1>
         </x-slot>
 
         <!-- Session Status -->
