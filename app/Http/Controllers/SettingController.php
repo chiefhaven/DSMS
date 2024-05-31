@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Setting;
-use App\Models\Invoice_Setting;
+use App\Models\InvoiceSetting;
 use Illuminate\Http\Request;
 use App\Models\District;
 use RealRashid\SweetAlert\Facades\Alert;
@@ -67,7 +67,7 @@ class SettingController extends Controller
     public function edit(Setting $setting)
     {
         $setting = Setting::find(1);
-        $invoice_setting = Invoice_Setting::find(1);
+        $invoice_setting = InvoiceSetting::find(1);
         $district = district::get();
         return view('settings', compact('setting', 'district', 'invoice_setting'));
     }
