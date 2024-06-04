@@ -1,7 +1,7 @@
 <div class="row" id="app">
     <div class="row items-push block">
         <div class="col-md-12 mb-3">
-            <div class="col-md-12 block-rounded block-bordered p-4 dropdown d-inline-block p-0">
+            <div class="col-md-12 block-rounded block-bordered p-4 dropdown d-inline-block">
                 <form action="{{ url('/') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     Filter
@@ -90,8 +90,8 @@
         </div>
     </div>
 
-    <div class="row items-push p-0 mt-4">
-        <div class="col-sm-6 col-md-6 p-0">
+    <div class="row items-push mt-4">
+        <div class="col-sm-6 col-md-6 p-0 p-1">
             <div class="block block-rounded block-bordered block-mode-loading-refresh h-100 mb-0">
               <div class="block-header border-bottom">
                 <h3 class="block-title">Students</h3>
@@ -167,7 +167,7 @@
         </div>
 
         <!-- Invoices snipest -->
-        <div class="col-sm-6 col-md-6 p-0" id="invoices">
+        <div class="col-sm-6 col-md-6 p-0 p-1" id="invoices">
             <div class="block block-rounded block-bordered block-mode-loading-refresh h-100 mb-0">
               <div class="block-header border-bottom">
                 <h3 class="block-title">Invoices</h3>
