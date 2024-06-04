@@ -39,15 +39,6 @@
   </div>
 
   <div class="content content-full">
-    <script>
-      @if($message = session('succes_message'))
-      Swal.fire(
-        'Good job!',
-        '{{ $message }}',
-        'success'
-      )
-      @endif
-    </script>
     <div class="block block-rounded block-bordered">
           <div class="block-content">
             <div class="col-md-12 mb-1">
