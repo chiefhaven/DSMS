@@ -5,9 +5,18 @@ namespace App\Http\Controllers;
 use App\Models\Lesson;
 use App\Http\Requests\StoreLessonRequest;
 use App\Http\Requests\UpdateLessonRequest;
+use App\Models\Attendance;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class LessonController extends Controller
 {
+    public function __construct()
+    {
+
+        $this->middleware(['role:superAdmin'], ['role:admin']);
+
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -15,7 +24,8 @@ class LessonController extends Controller
      */
     public function index()
     {
-        //
+        $lessons = Lesson::get();
+        return view('lessons.lessons', compact('lessons'));
     }
 
     /**
@@ -25,7 +35,7 @@ class LessonController extends Controller
      */
     public function create()
     {
-        //
+        return view('lessons.addlesson');
     }
 
     /**
@@ -36,7 +46,31 @@ class LessonController extends Controller
      */
     public function store(StoreLessonRequest $request)
     {
-        //
+        $messages = [
+            'lesson_name.required' => 'Lesson name is required!',
+            'lesson_name.unique' => 'Lesson '.$request['lesson_name'].' already exist, choose another name!',
+            'lesson_description.required'   => 'Lesson description is required'
+        ];
+
+        // Validate the request
+        $this->validate($request, [
+            'lesson_name'  =>'required',
+            'lesson_name' => 'unique:lessons,name',
+            'lesson_description' =>'required'
+
+        ], $messages);
+
+        $post = $request->All();
+
+        $lesson = new Lesson();
+
+        $lesson->name = $post['lesson_name'];
+        $lesson->description = $post['lesson_description'];
+
+        $lesson->save();
+
+        Alert::toast('New lesson added successifully', 'success');
+        return redirect('/lessons');
     }
 
     /**
@@ -47,7 +81,7 @@ class LessonController extends Controller
      */
     public function show(Lesson $lesson)
     {
-        //
+
     }
 
     /**
@@ -56,9 +90,10 @@ class LessonController extends Controller
      * @param  \App\Models\Lesson  $lesson
      * @return \Illuminate\Http\Response
      */
-    public function edit(Lesson $lesson)
+    public function edit($id)
     {
-        //
+        $lesson = Lesson::find($id);
+        return view('lessons.editlesson', compact('lesson'));
     }
 
     /**
@@ -70,7 +105,29 @@ class LessonController extends Controller
      */
     public function update(UpdateLessonRequest $request, Lesson $lesson)
     {
-        //
+        $messages = [
+            'lesson_name.required' => 'Lesson name is required!',
+            'lesson_description.required'   => 'Lesson description is required'
+        ];
+
+        // Validate the request
+        $this->validate($request, [
+            'lesson_name'  =>'required',
+            'lesson_description' =>'required'
+
+        ], $messages);
+
+        $post = $request->All();
+
+        $lesson = Lesson::find($post['lesson_id']);
+
+        $lesson->name = $post['lesson_name'];
+        $lesson->description = $post['lesson_description'];
+
+        $lesson->save();
+
+        Alert::toast('Lesson updated successifully', 'success');
+        return redirect('/lessons');
     }
 
     /**
@@ -79,8 +136,22 @@ class LessonController extends Controller
      * @param  \App\Models\Lesson  $lesson
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Lesson $lesson)
+    public function destroy($id)
     {
-        //
+        $attendanceCount = Attendance::where('lesson_id', $id)->count();
+
+        if($attendanceCount >= 1){
+
+            $message ="There are attendances related to this course, lesson can not be deleted";
+        }
+
+        else{
+
+            Lesson::find($id)->delete();
+            $message ="Lesson deleted";
+        }
+
+        Alert::toast($message, 'warning');
+        return redirect()->back();
     }
 }
