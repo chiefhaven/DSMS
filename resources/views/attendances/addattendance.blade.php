@@ -36,13 +36,11 @@
           <div class="row">
           <form class="mb-5" action="{{ url('/storeattendance') }}" method="post" onsubmit="return true;">
             @csrf
+            <h2>Adding attendance for<br>
+            {{$student->fname}} {{$student->mname}} {{$student->sname}}</h2>
             <div class="form-floating mb-4">
-              <input type="datetime-local" class="date form-control" id="date" name="date">
+              <input type="datetime-local" class="date form-control" id="date" name="date" value="{{ $date }}">
               <label class="form-label" for="example-school-name-input-floating">Date</label>
-            </div>
-            <div class="form-floating mb-4">
-              <input class="form-control" id="student" name="student" type="text" value="">
-              <label for="student">Student</label>
             </div>
             <div class="form-floating mb-4">
               <select class="form-select" id="lesson" name="lesson">
@@ -51,14 +49,6 @@
                 @endforeach
               </select>
               <label for="lesson">Lesson attended</label>
-            </div>
-            <div class="form-floating mb-4">
-              <select class="form-select" id="instructor" name="instructor">
-                @foreach ($instructor as $instructor)
-                   <option value="{{$instructor->fname}} {{$instructor->sname}}">{{$instructor->fname}} {{$instructor->sname}}</option>
-                @endforeach
-              </select>
-              <label for="lesson">Instructor Assigned</label>
             </div>
             <br>
             <div class="form-group">

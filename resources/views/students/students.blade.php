@@ -63,13 +63,13 @@
                 <div class="table-responsive">
                 @if( !$student->isEmpty())
                   <table class="table table-bordered table-striped table-vcenter">
-                      <thead>
+                      <thead class="thead-dark">
                           <tr>
                               <th>Name</th>
                               <th>Phone</th>
                               <th>Email</th>
                               <th>TRN</th>
-                              <th>Course Enrolled</th>
+                              <th style="min-width: 15rem;">Course Enrolled</th>
                               @role('superAdmin')
                                 <th>Balance</th>
                                 @endrole
@@ -99,15 +99,15 @@
                               <td>
                                 @if(isset($students->course->name))
 
-                                  {{$students->course->name}}<br>
+                                <strong>{{$students->course->name}}</strong><br>
                                   {{$students->course->short_description}}
 
                                 @else
                                     @role(['superAdmin'])
                                         <a href="{{ url('/addinvoice', $students->id) }}">Enroll Course</a>
                                     @else
-                                        <strong>Not enrolled yet.</strong>
-                                        <br class="muted sm-text"><small>Ask the authorities to enroll the student</small>
+                                        <strong class="text-danger">Not enrolled yet.</strong>
+                                        <br><small class="muted sm-text text-warning">Ask the authorities to enroll the student</small>
                                     @endrole
                                 @endif
                               </td>
@@ -162,6 +162,13 @@
                                       <a class="dropdown-item nav-main-link" href="{{ url('/viewstudent', $students->id) }}">
                                         <i class="nav-main-link-icon fa fa-user"></i><div class="btn">Profile</div>
                                       </a>
+                                    @role(['instructor'])
+                                        <form class="dropdown-item nav-main-link" method="POST" action="{{ url('addattendance', $students->id) }}">
+                                            {{ csrf_field() }}
+                                            <i class="nav-main-link-icon fa fa-clock"></i>
+                                            <button class="btn" type="submit">Enter Attendance</button>
+                                        </form>
+                                    @endcan
                                     @role(['superAdmin', 'admin'])
                                         <form method="POST" class="dropdown-item nav-main-link" action="{{ url('/edit-student', $students->id) }}">
                                             {{ csrf_field() }}

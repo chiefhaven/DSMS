@@ -10,6 +10,7 @@ use App\Models\Instructor;
 use App\Http\Requests\StoreAttendanceRequest;
 use App\Http\Requests\UpdateAttendanceRequest;
 use Auth;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use RealRashid\SweetAlert\Facades\Alert;
 
@@ -31,12 +32,13 @@ class AttendanceController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create($token)
     {
         $lesson = Lesson::get();
-        $student = Student::get();
-        $instructor = Instructor::get();
-        return view('attendances.addattendance', compact('student','lesson', 'instructor'));
+        $student = Student::find($token);
+        $instructor = Auth::user();
+        $date = Carbon::now()->timezone('Africa/Blantyre');
+        return view('attendances.addattendance', compact('student','lesson', 'instructor', 'date'));
     }
 
     /**

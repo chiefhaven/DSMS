@@ -57,7 +57,7 @@ Route::get('/search-student', [StudentController::class, 'search'])->middleware(
 Route::post('/studentsPdf', [StudentController::class, 'studentsPDF'])->middleware('auth')->name('studentPDF');
 
 Route::get('/attendances', [AttendanceController::class, 'index'])->middleware('auth')->name('attendances');
-Route::get('/addattendance', [AttendanceController::class, 'create'])->middleware('auth')->name('addattendance');
+Route::post('/addattendance/{token}', [AttendanceController::class, 'create'])->middleware('auth')->name('addattendance');
 Route::post('/storeattendance', [AttendanceController::class, 'store'])->middleware('auth')->name('storeattendance');
 Route::post('/editattendance/{id}', [AttendanceController::class, 'edit'])->middleware('auth')->name('editattendance');
 Route::post('/updateattendance', [AttendanceController::class, 'update'])->middleware('auth')->name('updateattendance');
