@@ -7,7 +7,6 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\AdministratorController;
 use App\Http\Controllers\AttendanceController;
@@ -15,6 +14,8 @@ use App\Http\Controllers\InvoiceSettingController;
 use App\Http\Controllers\FleetController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationTemplateController;
+use App\Http\Controllers\LessonController;
+use App\Http\Controllers\ExpenseController;
 
 
 /*
@@ -72,6 +73,14 @@ Route::post('/edit-course/{id}', [CourseController::class, 'edit'])->middleware(
 Route::delete('/delete-course/{id}', [CourseController::class, 'destroy'])->middleware('auth')->name('courses');
 Route::post('/updatecourse', [CourseController::class, 'update'])->middleware('auth')->name('courses');
 
+Route::get('/lessons', [LessonController::class, 'index'])->middleware('auth')->name('lessons');
+Route::get('/view-lesson/{id}', [LessonController::class, 'show'])->middleware('auth')->name('viewlessons');
+Route::get('/addlesson', [LessonController::class, 'create'])->middleware('auth')->name('addlessons');
+Route::post('/storelesson', [LessonController::class, 'store'])->middleware('auth')->name('editlessons');
+Route::post('/edit-lesson/{id}', [LessonController::class, 'edit'])->middleware('auth')->name('edit_lessons');
+Route::delete('/delete-lesson/{id}', [LessonController::class, 'destroy'])->middleware('auth')->name('delete_lessons');
+Route::post('/updatelesson', [LessonController::class, 'update'])->middleware('auth')->name('updatelesson');
+
 Route::get('/invoices', [InvoiceController::class, 'index'])->middleware('auth')->name('invoices');
 Route::get('/view-invoice/{id}', [InvoiceController::class, 'show'])->middleware('auth')->name('view-invoice');
 Route::get('/invoice-pdf/{id}', [InvoiceController::class, 'invoicePDF'])->middleware('auth')->name('invoice-pdf');
@@ -118,8 +127,6 @@ Route::post('/settings-update', [SettingController::class, 'update'])->middlewar
 Route::post('/invoicesettings-update', [InvoiceSettingController::class, 'update'])->middleware('auth')->name('settings');
 
 Route::get('/super-admin-profile', [InstructorController::class, 'show-super-admin'])->middleware('auth')->name('super-admin-profile');
-Route::get('/instructor-profile', [Controller::class, 'show-profile'])->middleware('auth')->name('instructor-profile');
-Route::get('/admin-profile', [AdminController::class, 'show'])->middleware('auth')->name('admin-profile');
 
 Route::get('/expenses', [ExpenseController::class, 'index'])->middleware('auth')->name('expenses');
 Route::get('/viewexpense', [ExpenseController::class, 'show'])->middleware('auth')->name('viewexpense');
