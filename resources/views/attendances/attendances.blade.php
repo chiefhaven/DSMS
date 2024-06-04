@@ -18,10 +18,20 @@
   </div>
 
   <div class="content content-full">
+    @if ($errors->any())
+        <script>
+            swal.fire({
+                title: "{{ __('Success!') }}",
+                text: "{{ session('toast_success') }}",
+                type: "success"
+            });
+        </script>
+    @endif
+
     @if(Session::has('message'))
-    <div class="alert alert-success">
-      {{Session::get('message')}}
-    </div>
+        <div class="alert alert-success">
+        {{Session::get('message')}}
+        </div>
     @endif
 
     @if ($errors->any())
@@ -41,7 +51,7 @@
                           <tr>
                               <th>Date</th>
                               <th>Student</th>
-                              <th style="width: 20%;">Class</th>
+                              <th style="width: 20%;">Lesson</th>
                               <th class="text-center" style="width: 100px;">Actions</th>
                           </tr>
                       </thead>
@@ -87,5 +97,4 @@
       </div>
     </div>
 <!-- END Hero -->
-
 @endsection
