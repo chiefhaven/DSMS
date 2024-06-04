@@ -8,9 +8,7 @@
         <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Attendances/Schedules</h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
           <ol class="breadcrumb">
-            <a href="{{ url('/addattendance') }}" class="btn btn-primary">
-                    <i class="fa fa-fw fa-user-plus mr-1"></i> Add attendance
-            </a>
+
           </ol>
         </nav>
       </div>
@@ -49,25 +47,16 @@
                   <table class="table table-bordered table-striped table-vcenter">
                       <thead>
                           <tr>
-                              <th>Date</th>
-                              <th>Student</th>
-                              <th style="width: 20%;">Lesson</th>
-                              <th class="text-center" style="width: 100px;">Actions</th>
+                            <th class="text-center" style="width: 100px;">Actions</th>
+                            <th>Date</th>
+                            <th>Student</th>
+                            <th style="width: 20%;">Lesson</th>
                           </tr>
                       </thead>
                       <tbody>
                         @foreach ($attendance as $attend)
                           <tr>
-                              <td class="font-w600">
-                                  {{$attend->attendance_date->format('j F, Y')}}
-                              </td>
-                              <td>
-                                  {{$attend->student->fname}} {{$attend->student->sname}}
-                              </td>
-                              <td>
-                                  {{$attend->lesson->name}}
-                              </td>
-                              <td class="text-center">
+                            <td class="text-center">
                                 <div class="dropdown d-inline-block">
                                   <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <span class="d-none d-sm-inline-block">Action</span>
@@ -86,6 +75,15 @@
                                     </div>
                                   </div>
                                 </div>
+                              </td>
+                              <td class="font-w600">
+                                  {{$attend->attendance_date->format('j F, Y, H:i:s' )}}
+                              </td>
+                              <td>
+                                  {{$attend->student->fname}} {{$attend->student->sname}}
+                              </td>
+                              <td>
+                                  {{$attend->lesson->name}}
                               </td>
                           </tr>
                           @endforeach
