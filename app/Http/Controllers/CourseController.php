@@ -82,7 +82,7 @@ class CourseController extends Controller
         $course->theory = $post['course_theory'];
 
         $course->save();
-
+        Alert::toast('New course added successifully', 'success');
         return redirect('/courses')->with('message', 'New course added!');
     }
 
