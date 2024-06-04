@@ -96,7 +96,7 @@ class AttendanceController extends Controller
             $attendance->student_id = $student_id;
         }
 
-        $attendance->attendance_date = Carbon::now()->timezone('Africa/Blantyre');
+        $attendance->attendance_date = Carbon::now()->timezone('Africa/Blantyre')->toDate();
         $attendance->lesson_id = $lesson_id;
         $attendance->instructor_id = Auth::user()->instructor_id;
 
