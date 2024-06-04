@@ -23,7 +23,7 @@ class AttendanceController extends Controller
      */
     public function index()
     {
-        $attendance = Attendance::with('Student', 'Lesson')->orderBy('attendance_date', 'DESC')->paginate(10);
+        $attendance = Attendance::with('Student', 'Lesson')->where('instructor_id', Auth::user()->instructor_id)->orderBy('attendance_date', 'DESC')->paginate(10);
         return view('attendances.attendances', compact('attendance'));
     }
 
@@ -50,18 +50,14 @@ class AttendanceController extends Controller
     public function store(StoreAttendanceRequest $request)
     {
         $messages = [
-            'date.required' => 'Date is required!',
             'student.required'   => 'Student is required!',
             'lesson.required' => 'Lesson is required!',
-            'instructor.required' => 'Instructor is required!',
         ];
 
         // Validate the request
         $this->validate($request, [
-            'date'  =>'required',
             'student' =>'required',
             'lesson'   =>'required',
-            'instructor'   =>'required'
 
 
         ], $messages);
@@ -85,7 +81,6 @@ class AttendanceController extends Controller
             return redirect('/attendances');
         }
 
-        $instructor_id = havenUtils::instructorID($post['instructor']);
         $lesson_id = havenUtils::lessonID($post['lesson']);
 
         $attendance = new Attendance;
@@ -101,10 +96,9 @@ class AttendanceController extends Controller
             $attendance->student_id = $student_id;
         }
 
-        $attendance->attendance_date = $post['date'];
+        $attendance->attendance_date = Carbon::now()->timezone('Africa/Blantyre');
         $attendance->lesson_id = $lesson_id;
-        $attendance->instructor_id = $instructor_id;
-        $attendance->entered_by = Auth::user()->name;
+        $attendance->instructor_id = Auth::user()->instructor_id;
 
         $attendance->save();
 
