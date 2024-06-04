@@ -8,7 +8,7 @@
         <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Add Attendance</h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
           <ol class="breadcrumb">
-
+                <div class="flex-grow-1 fs-3 my-2 my-sm-3"  id="time" name="date" value="{{ $date }}" disabled></div>
           </ol>
         </nav>
       </div>
@@ -31,17 +31,15 @@
             </ul>
         </div>
     @endif
-    <div class="block block-rounded block-bordered">
+    <div class="block block-rounded block-bordered p-2">
           <div class="block-content">
           <div class="row">
           <form class="mb-5" action="{{ url('/storeattendance') }}" method="post" onsubmit="return true;">
             @csrf
-            <h2>Adding attendance for<br>
-            {{$student->fname}} {{$student->mname}} {{$student->sname}}</h2>
-            <div class="form-floating mb-4">
-              <input type="datetime-local" class="date form-control" id="date" name="date" value="{{ $date }}">
-              <label class="form-label" for="example-school-name-input-floating">Date</label>
-            </div>
+            <p class="text-center">
+                Adding attendance for
+                <h2 class="text-center">{{$student->fname}} {{$student->mname}} {{$student->sname}}</h2>
+            </p>
             <div class="form-floating mb-4">
               <select class="form-select" id="lesson" name="lesson">
                 @foreach ($lesson as $lesson)
@@ -71,5 +69,25 @@
           }
       });
   </script>
+
+<div id="time"></div>
+
+<script type="text/javascript">
+  function showTime() {
+    var date = new Date(),
+        utc = new Date(Date.UTC(
+          date.getFullYear(),
+          date.getMonth(),
+          date.getDate(),
+          date.getUTCHours(),
+          date.getMinutes(),
+          date.getSeconds()
+        ));
+
+    document.getElementById('time').innerHTML = utc.toLocaleString();
+  }
+
+  setInterval(showTime, 1000);
+</script>
 
 @endsection
