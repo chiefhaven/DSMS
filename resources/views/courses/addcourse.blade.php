@@ -48,7 +48,7 @@
                             <input type="number" class="form-control" id="course_practicals" name="course_practicals">
                             <label for="example-ltf-password">Number of days for practicals</label>
                         </div>
-                        <div class="form-group mb-4">                            
+                        <div class="form-group mb-4">
                             <label for="example-ltf-password">Course Image</label>
                             <input type="file" class="form-control" id="example-ltf-password" name="example-ltf-password" value="">
                         </div>
