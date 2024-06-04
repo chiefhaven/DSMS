@@ -9,7 +9,7 @@
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
           <ol class="breadcrumb">
             <a href="/addcourse" class="btn btn-primary">
-                    <i class="fa fa-fw fa-user-plus mr-1"></i> Add Course
+                    <i class="fa fa-fw fa-plus mr-1"></i> Add Course
             </a>
           </ol>
         </nav>
