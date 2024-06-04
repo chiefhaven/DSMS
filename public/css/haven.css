@@ -17,3 +17,7 @@
 .text-small{
     font-size: 8px
 }
+
+.nav-main-link {
+    padding: 1rem .625rem !important;
+}
