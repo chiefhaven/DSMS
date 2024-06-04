@@ -41,32 +41,25 @@
                       </a>
                     </li>
                 </ul>
-                <ul class="nav-main-submenu">
-                  <li class="nav-main-item">
-                      <a class="nav-main-link" href="{{ url('/addattendance') }}">
-                        <span class="nav-main-link-name">Add attendance</span>
-                      </a>
-                    </li>
-                </ul>
             </li>
 
             @role(['superAdmin', 'admin'])
                 <li class="nav-main-item">
                     <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="">
                     <i class="nav-main-link-icon fa fa-bar-chart"></i>
-                    <span class="nav-main-link-name">Courses</span>
+                    <span class="nav-main-link-name">School</span>
                     </a>
                     <ul class="nav-main-submenu">
-                    <li class="nav-main-item">
-                        <a class="nav-main-link" href="{{ url('/courses') }}">
-                            <span class="nav-main-link-name">All courses</span>
-                        </a>
-                        </li>
-                    </ul>
+                        <li class="nav-main-item">
+                            <a class="nav-main-link" href="{{ url('/courses') }}">
+                                <span class="nav-main-link-name">Courses</span>
+                            </a>
+                            </li>
+                        </ul>
                     <ul class="nav-main-submenu">
                     <li class="nav-main-item">
-                        <a class="nav-main-link" href="{{ url('/addcourse') }}">
-                            <span class="nav-main-link-name">Add course</span>
+                        <a class="nav-main-link" href="{{ url('/lessons') }}">
+                            <span class="nav-main-link-name">Lessons</span>
                         </a>
                         </li>
                     </ul>
