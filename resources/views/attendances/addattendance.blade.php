@@ -34,12 +34,13 @@
     <div class="block block-rounded block-bordered p-2">
           <div class="block-content">
           <div class="row">
-          <form class="mb-5" action="{{ url('/storeattendance') }}" method="post" onsubmit="return true;">
-            @csrf
             <p class="text-center">
                 Adding attendance for
                 <h2 class="text-center">{{$student->fname}} {{$student->mname}} {{$student->sname}}</h2>
             </p>
+          <form class="mb-5" action="{{ url('/storeattendance') }}" method="post" onsubmit="return true;">
+            @csrf
+            <input class="" name="student" value="{{$student->fname}} {{$student->mname}} {{$student->sname}}" hidden>
             <div class="form-floating mb-4">
               <select class="form-select" id="lesson" name="lesson">
                 @foreach ($lesson as $lesson)
