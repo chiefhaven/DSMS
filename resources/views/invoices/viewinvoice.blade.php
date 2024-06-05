@@ -20,7 +20,7 @@
             <div class="row block">
                 <div class="col-lg-12">
                     <div class="p-sm-4 p-xl-7">
-                        <div class="row mb-5">                          
+                        <div class="row mb-5">
                           <div class="col-6">
                             <p>Invoice No. {{$invoice->invoice_number}}</p>
                             <div class="h3">Student</div>
@@ -99,7 +99,7 @@
             </div>
         </div>
   </div>
-  <script type="text/javascript">    
+  <script type="text/javascript">
     function printDiv(divName) {
      var printContents = document.getElementById(divName).innerHTML;
      var originalContents = document.body.innerHTML;
