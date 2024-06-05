@@ -21,3 +21,7 @@
 .nav-main-link {
     padding: 1rem .625rem !important;
 }
+
+.btn{
+    border-radius: 0px !important;
+}
