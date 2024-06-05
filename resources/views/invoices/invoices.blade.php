@@ -32,15 +32,15 @@
               <table class="table table-bordered table-striped table-vcenter">
                   <thead>
                       <tr>
-                          <th>Date</th>
-                          <th>Invoice No</th>
-                          <th>Student</th>
+                          <th style="min-width: 10rem">Date</th>
+                          <th style="min-width: 15rem">Invoice No</th>
+                          <th style="min-width: 15rem">Student</th>
                           <th>Course Price</th>
                           <th>Discount</th>
                           <th>Total</th>
                           <th>Paid</th>
                           <th>Balance</th>
-                          <th>Due</th>
+                          <th style="min-width: 10rem">Due</th>
                           <th class="text-center">Actions</th>
                       </tr>
                   </thead>
