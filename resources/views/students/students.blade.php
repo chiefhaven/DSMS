@@ -44,54 +44,101 @@
             <div class="col-md-12 mb-1">
                 <form action="{{ url('/search-student') }}" method="GET" enctype="multipart/form-data">
                     @csrf
-                        <input type="text" class="col-md-5 block block-rounded block-bordered p-2" id="search" name="search" placeholder="Search student" required>
-                        <button type="submit" class="block-rounded  p-2 btn btn-alt-primary">
+                        <input type="text" class="col-md-5 block block-bordered p-2" id="search" name="search" placeholder="Search student" required>
+                        <button type="submit" class="p-2 btn btn-alt-primary">
                             <i class="fa fa-search opacity-50 me-1"></i> Search
                         </button>
                 </form>
             </div>
             </div>
-                <div class="table-responsive">
+                <div class="m-4 table-responsive">
                 @if( !$student->isEmpty())
                   <table class="table table-bordered table-striped table-vcenter">
                       <thead class="thead-dark">
                           <tr>
-                              <th>Name</th>
-                              <th>Phone</th>
-                              <th>Email</th>
-                              <th>TRN</th>
-                              <th style="min-width: 15rem;">Course Enrolled</th>
-                              @role('superAdmin')
-                                <th>Balance</th>
-                                @endrole
-                              <th>Status</th>
-                              <th class="text-center" style="width: 100px;">Actions</th>
+
+                            <th class="text-center" style="width: 100px;">Actions</th>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Email</th>
+                            <th>TRN</th>
+                            <th style="min-width: 10rem;">Registered on</th>
+                            <th style="min-width: 15rem;">Course Enrolled</th>
+                            @role(['superAdmin','admin'])
+                                <th style="min-width: 10rem;">Car assigned</th>
+                            @endrole
+                            @role('superAdmin')
+                            <th>Balance</th>
+                            @endrole
+                            <th>Status</th>
                           </tr>
                       </thead>
                       <tbody>
                         @foreach ($student as $students)
-                          <tr>
-                              <td class="font-w600">
-                                  {{$students->fname}} {{$students->mname}} {{$students->sname}}
-                              </td>
-                              <td>
-                                  {{$students->phone}}
-                              </td>
-                              <td>
+                            <tr>
+                                <td class="text-center">
+                                    <div class="dropdown d-inline-block">
+                                        <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <span class="d-sm-inline-block">Action</span>
+                                        </button>
+                                        <div class="dropdown-menu dropdown-menu-end p-0">
+                                        <div class="p-2">
+                                            <a class="dropdown-item nav-main-link" href="{{ url('/viewstudent', $students->id) }}">
+                                            <i class="nav-main-link-icon fa fa-user"></i><div class="btn">Profile</div>
+                                            </a>
+                                        @role(['instructor'])
+                                            <form class="dropdown-item nav-main-link" method="POST" action="{{ url('addattendance', $students->id) }}">
+                                                {{ csrf_field() }}
+                                                <i class="nav-main-link-icon fa fa-clock"></i>
+                                                <button class="btn" type="submit">Enter Attendance</button>
+                                            </form>
+                                        @endcan
+                                        @role(['superAdmin', 'admin'])
+                                            <form method="POST" class="dropdown-item nav-main-link" action="{{ url('/edit-student', $students->id) }}">
+                                                {{ csrf_field() }}
+                                                <i class="nav-main-link-icon fa fa-pencil"></i>
+                                                <button class="btn" type="submit">Edit</button>
+                                            </form>
+                                            @role(['superAdmin'])
+                                            <form class="dropdown-item nav-main-link" method="POST" action="{{ url('student-delete', $students->id) }}">
+                                                {{ csrf_field() }}
+                                                {{ method_field('DELETE') }}
+                                                <i class="nav-main-link-icon fa fa-trash"></i>
+                                                <button class="btn delete-confirm" type="submit">Delete</button>
+                                            </form>
+                                            @endcan
+                                            <form method="POST" class="dropdown-item nav-main-link" action="{{ url('send-notification', $students->id) }}">
+                                                {{ csrf_field() }}
+                                                <i class="nav-main-link-icon fa fa-paper-plane"></i>
+                                                <button class="btn" type="submit">Send balance reminder</button>
+                                            </form>
+                                        @endcan
+                                        </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="font-w600">
+                                    {{$students->fname}} {{$students->mname}} {{$students->sname}}
+                                </td>
+                                <td>
+                                    {{$students->phone}}
+                                </td>
+                                <td>
                                 @if(isset($students->user->email))
 
-                                  {{$students->user->email}}
+                                    {{$students->user->email}}
 
                                 @else
 
                                 @endif
-                              </td>
-                              <td>{{$students->trn}}</td>
-                              <td>
+                                </td>
+                                <td>{{$students->trn}}</td>
+                                <td>{{$students->created_at->format('j F, Y')}}</td>
+                                <td>
                                 @if(isset($students->course->name))
 
                                 <strong>{{$students->course->name}}</strong><br>
-                                  {{$students->course->short_description}}
+                                    {{$students->course->short_description}}
 
                                 @else
                                     @role(['superAdmin'])
@@ -101,8 +148,14 @@
                                         <br><small class="muted sm-text text-warning">Ask the authorities to enroll the student</small>
                                     @endrole
                                 @endif
-                              </td>
-                              @role('superAdmin')
+                                </td>
+                                @role(['superAdmin'])
+                                    <td>
+                                        {{$students->fleet->car_brand_model}} - <small>{{$students->fleet->car_registration_number}}</small>
+
+                                    </td>
+                                @endrole
+                                @role('superAdmin')
                                 <td>
                                     <strong>
                                     @if(isset($students->invoice->invoice_balance))
@@ -122,7 +175,7 @@
                                     </strong>
                                 </td>
                                 @endrole
-                              <td class="text-center">
+                                <td class="text-center">
                                 @if(isset($students->course->duration))
                                     @if(number_format($students->attendance->count()/$students->course->duration*100) >= 100)
                                         <span class="badge rounded-pill bg-success">Completed</span>
@@ -142,50 +195,9 @@
                                         0%
                                     </span>
                                 @endif
-                              </td>
-                              <td class="text-center">
-                                <div class="dropdown d-inline-block">
-                                  <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <span class="d-sm-inline-block">Action</span>
-                                  </button>
-                                  <div class="dropdown-menu dropdown-menu-end p-0">
-                                    <div class="p-2">
-                                      <a class="dropdown-item nav-main-link" href="{{ url('/viewstudent', $students->id) }}">
-                                        <i class="nav-main-link-icon fa fa-user"></i><div class="btn">Profile</div>
-                                      </a>
-                                    @role(['instructor'])
-                                        <form class="dropdown-item nav-main-link" method="POST" action="{{ url('addattendance', $students->id) }}">
-                                            {{ csrf_field() }}
-                                            <i class="nav-main-link-icon fa fa-clock"></i>
-                                            <button class="btn" type="submit">Enter Attendance</button>
-                                        </form>
-                                    @endcan
-                                    @role(['superAdmin', 'admin'])
-                                        <form method="POST" class="dropdown-item nav-main-link" action="{{ url('/edit-student', $students->id) }}">
-                                            {{ csrf_field() }}
-                                            <i class="nav-main-link-icon fa fa-pencil"></i>
-                                            <button class="btn" type="submit">Edit</button>
-                                        </form>
-                                        @role(['superAdmin'])
-                                        <form class="dropdown-item nav-main-link" method="POST" action="{{ url('student-delete', $students->id) }}">
-                                            {{ csrf_field() }}
-                                            {{ method_field('DELETE') }}
-                                            <i class="nav-main-link-icon fa fa-trash"></i>
-                                            <button class="btn delete-confirm" type="submit">Delete</button>
-                                        </form>
-                                        @endcan
-                                        <form method="POST" class="dropdown-item nav-main-link" action="{{ url('send-notification', $students->id) }}">
-                                            {{ csrf_field() }}
-                                            <i class="nav-main-link-icon fa fa-paper-plane"></i>
-                                            <button class="btn" type="submit">Send balance reminder</button>
-                                        </form>
-                                    @endcan
-                                    </div>
-                                  </div>
-                                </div>
-                              </td>
-                          </tr>
-                          @endforeach
+                                </td>
+                            </tr>
+                        @endforeach
                       </tbody>
                   </table>
                     {{ $student->links('pagination::bootstrap-4') }}
