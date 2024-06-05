@@ -8,21 +8,18 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use App\Models\Student;
 use App\Models\Invoice;
-use App\Models\Account;
 use App\Models\User;
 use App\Models\District;
-use App\Models\Payment;
 use App\Models\Attendance;
 use App\Models\Setting;
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\PdfStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
 use App\Models\Fleet;
-use Session;
 use Illuminate\Support\Str;
 use PDF;
-use PhpParser\Node\Stmt\Switch_;
 use RealRashid\SweetAlert\Facades\Alert;
+use Auth;
 
 class StudentController extends Controller
 {
@@ -33,7 +30,13 @@ class StudentController extends Controller
      */
     public function index()
     {
-        $student = Student::with('User', 'Attendance', 'Course')->orderBy('created_at', 'DESC')->paginate(10);
+        if(Auth::user()->hasRole('instructor')){
+            $fleet = Fleet::where('instructor_id', Auth::user()->instructor_id)->firstOrFail()->id;
+            $student = Student::where('fleet_id', $fleet)->with('User', 'Attendance', 'Course')->orderBy('created_at', 'DESC')->paginate(10);
+        }
+        else{
+            $student = Student::with('User', 'Attendance', 'Course')->orderBy('created_at', 'DESC')->paginate(10);
+        }
         $fleet = Fleet::get();
         return view('students.students', compact('student', 'fleet'));
     }
@@ -411,16 +414,31 @@ class StudentController extends Controller
     public function search(Request $request){
 
 
-        $fleet = Fleet::get();
-
-        $student = Student::with('User')
+        if(Auth::user()->hasRole('instructor')){
+            $fleet_id = Fleet::where('instructor_id', Auth::user()->instructor_id)->firstOrFail()->id;
+            $fleet = Fleet::where('instructor_id', Auth::user()->instructor_id)->get();
+            $student = Student::with('User')
+            ->where('fleet_id', $fleet_id)
+            ->where('fname', 'like', '%' . request('search') . '%')
+            ->orWhere('mname', 'like', '%' . request('search') . '%')
+            ->orWhere('sname', 'like', '%' . request('search') . '%')
+            ->orWhere('phone', 'like', '%' . request('search') . '%')
+            ->orWhere('trn', 'like', '%' . request('search') . '%')
+            ->orwhereHas('User', function($q){
+                $q->where('email','like', '%' . request('search') . '%');})->orderBy('fname', 'ASC')->paginate(10);
+        }
+        else{
+            $fleet = Fleet::get();
+            $student = Student::with('User')
                 ->where('fname', 'like', '%' . request('search') . '%')
                 ->orWhere('mname', 'like', '%' . request('search') . '%')
                 ->orWhere('sname', 'like', '%' . request('search') . '%')
                 ->orWhere('phone', 'like', '%' . request('search') . '%')
                 ->orWhere('trn', 'like', '%' . request('search') . '%')
                 ->orwhereHas('User', function($q){
-                    $q->where('email','like', '%' . request('search') . '%');})->paginate(10);
+                    $q->where('email','like', '%' . request('search') . '%');})->orderBy('fname', 'ASC')->paginate(10);
+        }
+
 
         return view('students.students', compact('student', 'fleet'));
     }
