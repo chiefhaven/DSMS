@@ -20,6 +20,7 @@ use PDF;
 
 class InvoiceController extends Controller
 {
+
 /**
      * Display a listing of the resource.
      *
@@ -27,8 +28,15 @@ class InvoiceController extends Controller
      */
     public function index()
     {
-        $invoices = Invoice::with('Student', 'User')->paginate(10);
-        return view('invoices.invoices', compact('invoices'));
+        if(Auth::user()->hasRole('superAdmin')){
+            $invoices = Invoice::with('Student', 'User')->orderBy('created_at', 'DESC')->paginate(10);
+            return view('invoices.invoices', compact('invoices'));
+        }
+
+        else{
+            Alert::toast('You don\'t have permission to access this page', 'warning');
+            return redirect('/');
+        }
     }
 
     /**
