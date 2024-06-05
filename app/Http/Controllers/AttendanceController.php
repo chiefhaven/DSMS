@@ -23,7 +23,16 @@ class AttendanceController extends Controller
      */
     public function index()
     {
-        $attendance = Attendance::with('Student', 'Lesson')->where('instructor_id', Auth::user()->instructor_id)->orderBy('attendance_date', 'DESC')->paginate(10);
+        if(Auth::user()->hasRole('instructor')){
+            $attendance = Attendance::with('Student', 'Lesson')
+            ->where('instructor_id', Auth::user()->instructor_id)
+            ->orderBy('attendance_date', 'DESC')->paginate(10);
+        }
+        else{
+            $attendance = Attendance::with('Student', 'Lesson')
+            ->orderBy('attendance_date', 'DESC')->paginate(10);
+        }
+
         return view('attendances.attendances', compact('attendance'));
     }
 
@@ -180,7 +189,6 @@ class AttendanceController extends Controller
         $attendance->student_id = $student_id;
         $attendance->attendance_date = $post['date'];
         $attendance->lesson_id = $lesson_id;
-        $attendance->entered_by = Auth::user()->name;
 
         $attendance->save();
 
