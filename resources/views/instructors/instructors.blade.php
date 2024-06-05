@@ -40,15 +40,40 @@
         <div class="col-md-6 col-xl-4">
             <div class="block block-rounded block-link-shadow text-center" href="javascript:void(0)">
                 <div class="block-content block-content-full">
-                    <img class="img-avatar" src="media/avatars/avatar6.jpg" alt="">
-                </div>
-                <div class="block-content block-content-full block-content-sm bg-body-light">
-                    <p class="font-w600 mb-0">{{$instructor->fname}} {{$instructor->sname}}</p>
-                </div>
-                <div class="block-content block-content-full" style="overflow-x: inherit;">
                     <div class="row">
-                        <div class="col-8 text-left">
-                            <p class="font-size-sm text-muted mb-0">
+                        <div class="col-md-8">
+                            <img class="img-avatar" src="media/avatars/avatar6.jpg" alt="">
+                        </div>
+                        <div class="col-4">
+                            <div class="dropdown d-inline-block">
+                                <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <span class="d-sm-inline-block">Action</span>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end p-0">
+                                    <div class="p-2">
+                                    <form method="POST" action="{{ url('/editinstructor', $instructor->id) }}">
+                                        {{ csrf_field() }}
+                                        <button class="dropdown-item" type="submit">Edit</button>
+                                    </form>
+                                    <form method="POST" action="{{ url('/deleteinstructor', $instructor->id) }}">
+                                        {{ csrf_field() }}
+                                        {{ method_field('DELETE') }}
+                                        <button class="dropdown-item delete-confirm" type="submit">Delete</button>
+                                    </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="block-content block-content-full block-content-sm bg-body-light">
+                    <h3 class="font-w600 mb-0">{{$instructor->fname}} {{$instructor->sname}}</h3>
+                </div>
+                <div class="block-content block-content-full">
+                    <div class="row">
+                        <div class="col-12">
+                            <p class="small text-muted mb-0" style="font-size: 11px;">
                                 Phone: {{$instructor->phone}}<br>
                                 Email: @if(isset($instructor->user->email))
 
@@ -64,26 +89,6 @@
                                             {{$lesson->name}}
                                           @endforeach
                             </p>
-                        </div>
-                        <div class="col-4 text-right">
-                            <div class="dropdown d-inline-block">
-                                  <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <span class="d-sm-inline-block">Action</span>
-                                  </button>
-                                  <div class="dropdown-menu dropdown-menu-end p-0">
-                                    <div class="p-2">
-                                      <form method="POST" action="{{ url('/editinstructor', $instructor->id) }}">
-                                        {{ csrf_field() }}
-                                        <button class="dropdown-item" type="submit">Edit</button>
-                                      </form>
-                                      <form method="POST" action="{{ url('/deleteinstructor', $instructor->id) }}">
-                                        {{ csrf_field() }}
-                                        {{ method_field('DELETE') }}
-                                        <button class="dropdown-item delete-confirm" type="submit">Delete</button>
-                                      </form>
-                                    </div>
-                                  </div>
-                            </div>
                         </div>
                     </div>
                 </div>
