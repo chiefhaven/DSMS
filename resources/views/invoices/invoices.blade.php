@@ -32,24 +32,55 @@
               <table class="table table-bordered table-striped table-vcenter">
                   <thead>
                       <tr>
-                          <th style="min-width: 10rem">Date</th>
-                          <th style="min-width: 15rem">Invoice No</th>
-                          <th style="min-width: 15rem">Student</th>
-                          <th>Course Price</th>
-                          <th>Discount</th>
-                          <th>Total</th>
-                          <th>Paid</th>
-                          <th>Balance</th>
-                          <th style="min-width: 10rem">Due</th>
-                          <th class="text-center">Actions</th>
+                        <th class="text-center">Actions</th>
+                        <th style="min-width: 15rem">Invoice No</th>
+                        <th style="min-width: 15rem">Student</th>
+                        <th>Course Price</th>
+                        <th>Discount</th>
+                        <th>Total</th>
+                        <th>Paid</th>
+                        <th>Balance</th>
+                        <th style="min-width: 10rem">Date</th>
+                        <th style="min-width: 10rem">Due</th>
                       </tr>
                   </thead>
                   <tbody>
                     @foreach ($invoices as $invoice)
                       <tr>
-                          <td class="font-w600">
-                              {{$invoice->date_created->format('j F, Y')}}
-                          </td>
+                        <td class="text-center">
+                            <div class="dropdown d-inline-block">
+                                <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="d-sm-inline-block">Action</span>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end p-0">
+                                    <div class="p-2">
+                                        <a class="dropdown-item" href="{{ url('/view-invoice', $invoice->invoice_number) }}">
+                                        View
+                                        </a>
+                                        <form method="POST" action="{{ url('/edit-invoice', $invoice->invoice_number) }}">
+                                            {{ csrf_field() }}
+                                            <button class="dropdown-item" type="submit"><i class="si si-edit-name"></i> Edit</button>
+                                            </form>
+                                        <a class="dropdown-item" href="javascript:void(0)">
+                                        Add payment
+                                        </a>
+                                        <a class="dropdown-item" href="{{ url('/invoice-pdf', $invoice->invoice_number) }}">
+                                            <i class="si si-printer me-1"></i> Print Invoice
+                                        </a>
+                                        <form method="POST" action="{{ url('/invoice-delete', $invoice->id) }}">
+                                            {{ csrf_field() }}
+                                            {{ method_field('DELETE') }}
+                                                <button class="dropdown-item delete-confirm" type="submit">
+                                                <i class="si si-trash me-1"></i> Delete</button>
+                                        </form>
+                                        <form method="POST" action="{{ url('send-notification', $invoice->student->id) }}">
+                                            {{ csrf_field() }}
+                                            <button class="dropdown-item" type="submit"><i class="si si-envelope me-1"></i> Send balance reminder</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
                           <td class="font-w600">
                               <a href="{{ url('/view-invoice', $invoice->invoice_number) }}">{{$invoice->invoice_number}}</a>
                           </td>
@@ -71,42 +102,12 @@
                           <td>
                               K{{number_format($invoice->invoice_balance, 2)}}
                           </td>
+                          <td class="font-w600">
+                            {{$invoice->date_created->format('j F, Y')}}
+                          </td>
                           <td>
                               {{$invoice->invoice_payment_due_date->format('j F, Y')}}
                           </td>
-                          <td class="text-center">
-                            <div class="dropdown d-inline-block">
-                            <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                              <span class="d-sm-inline-block">Action</span>
-                            </button>
-                            <div class="dropdown-menu dropdown-menu-end p-0">
-                              <div class="p-2">
-                                <a class="dropdown-item" href="{{ url('/view-invoice', $invoice->invoice_number) }}">
-                                  View
-                                </a>
-                                <form method="POST" action="{{ url('/edit-invoice', $invoice->invoice_number) }}">
-                                      {{ csrf_field() }}
-                                      <button class="dropdown-item" type="submit">Edit</button>
-                                    </form>
-                                <a class="dropdown-item" href="javascript:void(0)">
-                                  Add payment
-                                </a>
-                                <a class="dropdown-item" href="javascript:void(0)">
-                                  Print Invoice
-                                </a>
-                                <form method="POST" action="{{ url('/invoice-delete', $invoice->id) }}">
-                                      {{ csrf_field() }}
-                                      {{ method_field('DELETE') }}
-                                      <button class="dropdown-item delete-confirm" type="submit">Delete</button>
-                                </form>
-                                <form method="POST" action="{{ url('send-notification', $invoice->student->id) }}">
-                                    {{ csrf_field() }}
-                                    <button class="dropdown-item" type="submit">Send balance reminder</button>
-                                  </form>
-                              </div>
-                            </div>
-                          </div>
-                        </td>
                       </tr>
                       @endforeach
                   </tbody>
