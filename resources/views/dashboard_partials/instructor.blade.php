@@ -11,5 +11,4 @@
             {!! \Illuminate\Foundation\Inspiring::quote() !!}
         </div>
     </div>
-
 </div>
