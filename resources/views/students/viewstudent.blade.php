@@ -29,6 +29,7 @@
       </div>
     </div>
   </div>
+  {{ SimpleSoftwareIO\QrCode\Facades\QrCode::size(300)->generate('https://www.dsms.darondrivingschool.com') }}
 <div class="content content-full">
     <div class="block block-rounded">
       <ul class="nav nav-tabs nav-tabs-block" role="tablist">
