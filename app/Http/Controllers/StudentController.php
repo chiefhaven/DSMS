@@ -253,7 +253,7 @@ class StudentController extends Controller
         $student = Student::find($id);
         $setting = Setting::find(1);
         $date = date('j F, Y');
-        $qrCode = QrCode::size(120)->backgroundColor(255, 0, 0)->generate('https://www.binaryboxtuts.com/');
+        $qrCode = base64_encode(QrCode::format('png')->size(256)->generate('https://google.com'));
 
         $pdf = PDF::loadView('pdf_templates.trafficCardReferenceLetter', compact('student', 'setting', 'date', 'qrCode'));
         return $pdf->download('Daron Driving School-'.$student->fname.' '.$student->sname.' Trafic Card Reference Letter.pdf');
