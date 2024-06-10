@@ -37,7 +37,6 @@
         "nwidart/laravel-modules": "^9.0",
         "openai-php/laravel": "^0.3.1",
         "pusher/pusher-php-server": "^5.0",
-        "rachidlaasri/laravel-installer": "^4.1",
         "razorpay/razorpay": "2.*",
         "realrashid/sweet-alert": "^7.1",
         "simplesoftwareio/simple-qrcode": "^4.2",
