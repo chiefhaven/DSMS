@@ -29,7 +29,6 @@
       </div>
     </div>
   </div>
-
 <div class="content content-full">
     <div class="block block-rounded">
       <ul class="nav nav-tabs nav-tabs-block" role="tablist">
