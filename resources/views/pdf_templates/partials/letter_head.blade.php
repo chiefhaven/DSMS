@@ -2,7 +2,7 @@
     <img src="{{ public_path("media/mboma.jpg") }}" alt="Sign here" style="width: 100%; height: auto;">
 </div>
 <div class="" style="position:absolute; bottom:15%; right:0%; height: 150px; width:200px;;">
-    {!! QrCode::size(300)->generate('https://www.dsms.darondrivingschool.com') !!}
+    {{ SimpleSoftwareIO\QrCode\Facades\QrCode::size(300)->generate('https://www.dsms.darondrivingschool.com') }}
 </div>
 <div class="row" style="margin: 0 !important">
     <div class="col-12" style="margin: 0 !important">
