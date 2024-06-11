@@ -14,6 +14,7 @@ use App\Models\Attendance;
 use App\Models\PaymentMethod;
 use App\Models\Invoice_Setting;
 use Carbon\Carbon;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class havenUtils extends Controller
 {
@@ -225,6 +226,11 @@ class havenUtils extends Controller
                 return null;
             }
 
+    }
+
+    public function qrCode($link){
+        $qrCode = base64_encode(QrCode::format('svg')->size(120)->errorCorrection('H')->generate($link));
+        return $qrCode;
     }
 
 
