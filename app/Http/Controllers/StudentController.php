@@ -20,7 +20,6 @@ use Illuminate\Support\Str;
 use PDF;
 use RealRashid\SweetAlert\Facades\Alert;
 use Auth;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class StudentController extends Controller
 {
@@ -267,7 +266,9 @@ class StudentController extends Controller
         $student = Student::find($id);
         $setting = Setting::find(1);
         $date = date('j F, Y');
-        $qrCode = base64_encode(QrCode::format('svg')->size(120)->errorCorrection('H')->generate('https://darondrivingschool.com/'));
+
+        $qrCode = new havenUtils;
+        $qrCode->qrCode('https://www.darondrivingschool.com/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/$id');
 
         $pdf = PDF::loadView('pdf_templates.trafficCardReferenceLetter', compact('student', 'setting', 'date', 'qrCode'));
         return $pdf->download('Daron Driving School-'.$student->fname.' '.$student->sname.' Trafic Card Reference Letter.pdf');
