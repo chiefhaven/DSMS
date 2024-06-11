@@ -8,7 +8,7 @@
 @include('pdf_templates.partials.header')
 @include('pdf_templates.partials.watermark')
 
-<div class="container">
+<div class="container pl-5 pr-5">
     <div class="row">
     <div class="col-12">
         <h1 style="text-transform: uppercase;"><img src="{{ public_path("media/{$setting->logo}") }}" alt="Sign here" style="width: 100%; height: auto;"></h1>
