@@ -3,7 +3,7 @@
 </div>
 
 <div class="" style="position:absolute; bottom:15%; left:0%; height: 150px; width:200px;;">
-    <img src="data:image/png;base64, $qrCode" alt="Sign here" style="width: 100%; height: auto;">
+    <img src="$qrCode" alt="Sign here" width: 100%; height: auto;>
 </div>
 <div class="row" style="margin: 0 !important">
     <div class="col-12" style="margin: 0 !important">
