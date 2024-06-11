@@ -11,12 +11,12 @@
 <div class="container">
     <div class="row">
         <div class="container">
-            <div class="col-12">
+            <div class="col-lg-12">
                 <h1 style="text-transform: uppercase;"><img src="{{ public_path("media/{$setting->logo}") }}" alt="Sign here" style="width: 100%; height: auto;"></h1>
                 <h3 style="text-align:center">LESSONS ATTENDANCE REPORT</h3>
             </div>
             <div class="row">
-                <div class="col-12">
+                <div class="col-lg-12">
                 <table class="table">
                     <thead>
                         <th style="width:70%;"></th>
