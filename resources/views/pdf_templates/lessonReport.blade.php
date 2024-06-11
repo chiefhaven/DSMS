@@ -8,7 +8,7 @@
 @include('pdf_templates.partials.header')
 @include('pdf_templates.partials.watermark')
 
-<div class="container" style="padding: 0 60px 0 30px">
+<div class="container" style="padding: 70px">
     <div class="row">
         <div class="container">
             <div class="col-lg-12">
