@@ -228,7 +228,7 @@ class havenUtils extends Controller
 
     }
 
-    public function qrCode($link){
+    static function qrCode($link){
         $qrCode = base64_encode(QrCode::format('svg')->size(120)->errorCorrection('H')->generate($link));
         return $qrCode;
     }
