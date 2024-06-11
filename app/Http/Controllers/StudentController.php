@@ -135,7 +135,19 @@ class StudentController extends Controller
      */
     public function show($id)
     {
-        $student = Student::with('User', 'Course', 'Enrollment', 'Invoice', 'Payment')->find($id);
+
+        $student = Student::With('User', 'Course', 'Enrollment', 'Invoice', 'Payment')->find($id);
+
+        if(Auth::user()->hasRole('instructor')){
+            $instructor_fleet_id = Fleet::Where('instructor_id', Auth::user()->instructor_id)->firstOrFail()->id;
+            $student_fleet =  Student::find($id)->fleet_id;
+            if(!$instructor_fleet_id == $student_fleet){
+                Alert::toast('No such student belongs to you', 'warning');
+                return redirect()->route('home');
+            }
+        }
+
+        $student = Student::With('User', 'Course', 'Enrollment', 'Invoice', 'Payment')->find($id);
         $attendancePercent = havenUtils::attendancePercent($id);
         $attendanceTheoryCount = Attendance::where('student_id', $id)->where('lesson_id', 1)->count();
         $attendancePracticalCount = Attendance::where('student_id', $id)->where('lesson_id', 2)->count();
@@ -253,7 +265,7 @@ class StudentController extends Controller
         $student = Student::find($id);
         $setting = Setting::find(1);
         $date = date('j F, Y');
-        $qrCode = base64_encode(QrCode::format('svg')->size(200)->errorCorrection('H')->generate('https://darondrivingschool.com/'));
+        $qrCode = base64_encode(QrCode::format('svg')->size(120)->errorCorrection('H')->generate('https://darondrivingschool.com/'));
 
         $pdf = PDF::loadView('pdf_templates.trafficCardReferenceLetter', compact('student', 'setting', 'date', 'qrCode'));
         return $pdf->download('Daron Driving School-'.$student->fname.' '.$student->sname.' Trafic Card Reference Letter.pdf');
