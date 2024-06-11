@@ -267,8 +267,7 @@ class StudentController extends Controller
         $setting = Setting::find(1);
         $date = date('j F, Y');
 
-        $qrCode = new havenUtils;
-        $qrCode->qrCode('https://www.darondrivingschool.com/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/$id');
+        $qrCode = havenUtils::qrCode('https://www.darondrivingschool.com/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/$id');
 
         $pdf = PDF::loadView('pdf_templates.trafficCardReferenceLetter', compact('student', 'setting', 'date', 'qrCode'));
         return $pdf->download('Daron Driving School-'.$student->fname.' '.$student->sname.' Trafic Card Reference Letter.pdf');
