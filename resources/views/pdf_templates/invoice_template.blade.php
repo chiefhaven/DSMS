@@ -8,6 +8,7 @@
     <h3 style="text-align:center;">Cash Receipt #: {{$invoice->invoice_number}}</h3>
     @include('pdf_templates.partials.header')
     @include('pdf_templates.partials.watermark')
+    @include('pdf_templates.partials.qrcode')
     <div class="invoice">
         <div class="row">
             <div class="col-8">
