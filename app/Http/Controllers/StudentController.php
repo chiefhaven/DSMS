@@ -32,8 +32,8 @@ class StudentController extends Controller
     public function index()
     {
         if(Auth::user()->hasRole('instructor')){
-            $fleet = Fleet::where('instructor_id', Auth::user()->instructor_id)->firstOrFail()->id;
-            $student = Student::where('fleet_id', $fleet)->with('User', 'Attendance', 'Course')->orderBy('created_at', 'DESC')->paginate(10);
+            $fleet_id = Fleet::Where('instructor_id', Auth::user()->instructor_id)->firstOrFail()->id;
+            $student = Student::Where('fleet_id', $fleet_id)->with('User', 'Attendance', 'Course')->orderBy('created_at', 'DESC')->paginate(10);
         }
         else{
             $student = Student::with('User', 'Attendance', 'Course')->orderBy('created_at', 'DESC')->paginate(10);
@@ -135,19 +135,21 @@ class StudentController extends Controller
      */
     public function show($id)
     {
-
         $student = Student::With('User', 'Course', 'Enrollment', 'Invoice', 'Payment')->find($id);
+
+        if(!isset($student)){
+            abort(404);
+        }
 
         if(Auth::user()->hasRole('instructor')){
             $instructor_fleet_id = Fleet::Where('instructor_id', Auth::user()->instructor_id)->firstOrFail()->id;
             $student_fleet =  Student::find($id)->fleet_id;
-            if(!$instructor_fleet_id == $student_fleet){
+            if($instructor_fleet_id !== $student_fleet){
                 Alert::toast('No such student belongs to you', 'warning');
                 return redirect()->route('home');
             }
         }
 
-        $student = Student::With('User', 'Course', 'Enrollment', 'Invoice', 'Payment')->find($id);
         $attendancePercent = havenUtils::attendancePercent($id);
         $attendanceTheoryCount = Attendance::where('student_id', $id)->where('lesson_id', 1)->count();
         $attendancePracticalCount = Attendance::where('student_id', $id)->where('lesson_id', 2)->count();
@@ -369,9 +371,9 @@ class StudentController extends Controller
             case('balance'):
                 if(isset($fleet_id)){
                     $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')
-                    ->whereRelation('invoice','invoice_balance','>', 0)
-                    ->where('fleet_id', $fleet_id)
-                    ->where('status', $status)
+                    ->WhereRelation('invoice','invoice_balance','>', 0)
+                    ->Where('fleet_id', $fleet_id)
+                    ->Where('status', $status)
                     ->orderBy('sname', 'ASC')->get();
                 }
                 else{
@@ -385,15 +387,15 @@ class StudentController extends Controller
             case('no_balance'):
                 if(isset($fleet_id)){
                         $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')
-                        ->whereRelation('invoice','invoice_balance','=', 0)
-                        ->where('status', $status)
-                        ->where('fleet_id', $fleet_id)
+                        ->WhereRelation('invoice','invoice_balance','=', 0)
+                        ->Where('status', $status)
+                        ->Where('fleet_id', $fleet_id)
                         ->orderBy('sname', 'ASC')->get();
                 }
                 else{
                     $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')
-                    ->whereRelation('invoice','invoice_balance','=', 0)
-                    ->where('status', $status)
+                    ->WhereRelation('invoice','invoice_balance','=', 0)
+                    ->Where('status', $status)
                     ->orderBy('sname', 'ASC')->get();
                 }
             break;
@@ -401,14 +403,14 @@ class StudentController extends Controller
             case('all'):
                 if(isset($fleet_id)){
                         $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')
-                        ->where('fleet_id', $fleet_id)
-                        ->where('status', $status)
+                        ->Where('fleet_id', $fleet_id)
+                        ->Where('status', $status)
                         ->orderBy('sname', 'ASC')
                         ->get();
                 }
                 else{
                     $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')
-                    ->where('status', $status)
+                    ->Where('status', $status)
                     ->orderBy('sname', 'ASC')
                     ->get();
                 }
@@ -429,17 +431,18 @@ class StudentController extends Controller
 
 
         if(Auth::user()->hasRole('instructor')){
-            $fleet_id = Fleet::where('instructor_id', Auth::user()->instructor_id)->firstOrFail()->id;
-            $fleet = Fleet::where('instructor_id', Auth::user()->instructor_id)->get();
+            $fleet_id = Fleet::Where('instructor_id', Auth::user()->instructor_id)->firstOrFail()->id;
+            $fleet = Fleet::Where('instructor_id', Auth::user()->instructor_id)->get();
             $student = Student::with('User')
-            ->where('fleet_id', $fleet_id)
-            ->where('fname', 'like', '%' . request('search') . '%')
-            ->orWhere('mname', 'like', '%' . request('search') . '%')
-            ->orWhere('sname', 'like', '%' . request('search') . '%')
-            ->orWhere('phone', 'like', '%' . request('search') . '%')
-            ->orWhere('trn', 'like', '%' . request('search') . '%')
-            ->orwhereHas('User', function($q){
-                $q->where('email','like', '%' . request('search') . '%');})->orderBy('fname', 'ASC')->paginate(10);
+            ->Where('fleet_id', $fleet_id)
+            ->where(function ($query) {$query
+                ->Where('fname', 'like', '%' . request('search') . '%')
+                ->orWhere('mname', 'like', '%' . request('search') . '%')
+                ->orWhere('sname', 'like', '%' . request('search') . '%')
+                ->orWhere('phone', 'like', '%' . request('search') . '%')
+                ->orWhere('trn', 'like', '%' . request('search') . '%')
+                ->orwhereHas('User', function($q){$q->where('email','like', '%' . request('search') . '%');})->orderBy('fname', 'ASC');}
+            )->paginate(10);
         }
         else{
             $fleet = Fleet::get();
