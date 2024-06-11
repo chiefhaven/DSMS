@@ -6,6 +6,7 @@
 <body>
 
 @include('pdf_templates.partials.header')
+@include('pdf_templates.partials.watermark')
 @include('pdf_templates.partials.pdf_template_style')
 @include('pdf_templates.partials.letter_head')
 
