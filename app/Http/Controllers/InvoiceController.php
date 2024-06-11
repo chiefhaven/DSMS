@@ -338,7 +338,9 @@ class InvoiceController extends Controller
         $setting = Setting::find(1);
         $invoice = Invoice::with('User', 'Course', 'Student')->where('invoice_number',$id)->firstOrFail();
 
-        $pdf = PDF::loadView('pdf_templates.invoice_template', compact('setting', 'invoice', 'date', 'setting'));
+        $qrCode = havenUtils::qrCode('https://www.darondrivingschool.com/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/'.$id);
+
+        $pdf = PDF::loadView('pdf_templates.invoice_template', compact('setting', 'invoice', 'date', 'setting', 'qrCode'));
         return $pdf->download('Daron Driving School-'.$invoice->student->fname.' '.$invoice->student->sname.' Cash Receipt.pdf');
     }
 
