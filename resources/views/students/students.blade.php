@@ -59,18 +59,18 @@
 
                             <th class="text-center" style="width: 100px;">Actions</th>
                             <th>Name</th>
-                            <th>Phone</th>
-                            <th>Email</th>
-                            <th>TRN</th>
-                            <th style="min-width: 10rem;">Registered on</th>
                             <th style="min-width: 15rem;">Course Enrolled</th>
+                            @role('superAdmin')
+                                <th>Balance</th>
+                            @endrole
+                            <th style="min-width: 10rem;">Registered on</th>
                             @role(['superAdmin','admin'])
                                 <th style="min-width: 10rem;">Car assigned</th>
                             @endrole
-                            @role('superAdmin')
-                            <th>Balance</th>
-                            @endrole
                             <th>Status</th>
+                            <th>Phone</th>
+                            <th>Email</th>
+                            <th>TRN</th>
                           </tr>
                       </thead>
                       <tbody>
@@ -117,44 +117,24 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td class="font-w600">
+                                <td class="font-w600 text-uppercase">
                                     {{$students->fname}} {{$students->mname}} {{$students->sname}}
                                 </td>
                                 <td>
-                                    {{$students->phone}}
-                                </td>
-                                <td>
-                                @if(isset($students->user->email))
+                                    @if(isset($students->course->name))
 
-                                    {{$students->user->email}}
+                                    <strong>{{$students->course->name}}</strong><br>
+                                        {{$students->course->short_description}}
 
-                                @else
-
-                                @endif
-                                </td>
-                                <td>{{$students->trn}}</td>
-                                <td>{{$students->created_at->format('j F, Y')}}</td>
-                                <td>
-                                @if(isset($students->course->name))
-
-                                <strong>{{$students->course->name}}</strong><br>
-                                    {{$students->course->short_description}}
-
-                                @else
-                                    @role(['superAdmin'])
-                                        <a href="{{ url('/addinvoice', $students->id) }}">Enroll Course</a>
                                     @else
-                                        <strong class="text-danger">Not enrolled yet.</strong>
-                                        <br><small class="muted sm-text text-warning">Ask the authorities to enroll the student</small>
-                                    @endrole
-                                @endif
+                                        @role(['superAdmin'])
+                                            <a href="{{ url('/addinvoice', $students->id) }}">Enroll Course</a>
+                                        @else
+                                            <strong class="text-danger">Not enrolled yet.</strong>
+                                            <br><small class="muted sm-text text-warning">Ask the authorities to enroll the student</small>
+                                        @endrole
+                                    @endif
                                 </td>
-                                @role(['superAdmin'])
-                                    <td>
-                                        {{$students->fleet->car_brand_model}} - <small>{{$students->fleet->car_registration_number}}</small>
-
-                                    </td>
-                                @endrole
                                 @role('superAdmin')
                                 <td>
                                     <strong>
@@ -174,6 +154,13 @@
                                     @endif
                                     </strong>
                                 </td>
+                                @endrole
+                                <td>{{$students->created_at->format('j F, Y')}}</td>
+                                @role(['superAdmin'])
+                                    <td>
+                                        {{$students->fleet->car_brand_model}} - <small>{{$students->fleet->car_registration_number}}</small>
+
+                                    </td>
                                 @endrole
                                 <td class="text-center">
                                 @if(isset($students->course->duration))
@@ -196,6 +183,20 @@
                                     </span>
                                 @endif
                                 </td>
+
+                                <td>
+                                    {{$students->phone}}
+                                </td>
+                                <td>
+                                @if(isset($students->user->email))
+
+                                    {{$students->user->email}}
+
+                                @else
+
+                                @endif
+                                </td>
+                                <td>{{$students->trn}}</td>
                             </tr>
                         @endforeach
                       </tbody>

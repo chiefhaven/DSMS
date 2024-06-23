@@ -21,7 +21,7 @@ class StudentsTableSeeder extends Seeder
             'mname' =>'',
             'sname' => 'Chikumba',
             'signature' => 'student-signature.png',
-            'trn' => Str::random(10),            
+            'trn' => Str::random(10),
             'gender' => 'Male',
             'date_of_birth' => mt_rand(10,100000),
             'phone' => '+265'.rand(10,100000),

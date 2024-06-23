@@ -79,10 +79,10 @@
                                 </td>
                                 <td>
                                     @if(isset($student->invoice->created_at))
-                                    {{$student->invoice->created_at->format('j F, Y')}}
+                                        {{$student->invoice->created_at->format('j F, Y')}}
 
                                     @else
-                                    <a href="{{ url('/addinvoice', $student->id) }}">Enroll Course</a>
+                                        <a href="{{ url('/addinvoice', $student->id) }}">Enroll Course</a>
                                     @endif
                                 </td>
                             </tr>

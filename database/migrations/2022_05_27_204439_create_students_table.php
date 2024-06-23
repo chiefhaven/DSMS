@@ -14,16 +14,16 @@ return new class extends Migration
     public function up()
     {
         Schema::create('students', function (Blueprint $table) {
-            $table->increments('id')->default(NULL);
+            $table->uuid('id')->primary()->default(DB::raw('(UUID())'));
             $table->string('fname');
-            $table->string('sname');            
+            $table->string('sname');
             $table->string('signature')->nullable();
             $table->string('mname')->nullable();
             $table->string('trn')->nullable();
             $table->enum('gender', ['Male', 'Female', 'Other']);
             $table->string('date_of_birth')->nullable();
             $table->string('phone')->unique;
-            $table->string('address');            
+            $table->string('address');
             $table->string('district_id');
             $table->string('avatar')->nullable();
             $table->string('_token')->nullable();
