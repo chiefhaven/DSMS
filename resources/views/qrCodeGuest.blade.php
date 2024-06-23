@@ -3,7 +3,7 @@
     <div class="content">
         <div class="text-uppercase">
             @if(isset($student))
-                This is a valid document for {{ $student->fname }} {{ $student->mname }} {{ $student->sname }}!
+                This is a valid document from Daron Driving School for {{ $student->fname }} {{ $student->mname }} {{ $student->sname }}!
             @else
                 Document or url not valid!
             @endif
