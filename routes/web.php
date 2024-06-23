@@ -146,7 +146,7 @@ Auth::routes();
 
 Route::get('/dashboard', [App\Http\Controllers\HomeController::class, 'index'])->middleware(['auth'])->name('home');
 
-Route::get('/migrate', function(){
-    Artisan::call('migrate',['--force' => true]);
-     dd('migrated!');
- });
+// Route::get('/migrate', function(){
+//     Artisan::call('migrate',['--force' => true]);
+//      dd('migrated!');
+//  });
