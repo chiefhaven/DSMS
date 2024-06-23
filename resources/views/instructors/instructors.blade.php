@@ -73,21 +73,23 @@
                 <div class="block-content block-content-full">
                     <div class="row">
                         <div class="col-12">
-                            <p class="small text-muted mb-0" style="font-size: 11px;">
+                            <p class="text-muted mb-0" style="font-size: 10px;">
                                 Phone: {{$instructor->phone}}<br>
                                 Email: @if(isset($instructor->user->email))
-
-                                  {{$instructor->user->email}}
-
+                                    {{$instructor->user->email}}
                                 @else
-
                                 @endif
                                 <br>
                             </p>
-                            <p class="font-size-sm text-muted mb-0 text-left">
-                                Lessons: @foreach ($instructor->lesson as $lesson)
-                                            {{$lesson->name}}
-                                          @endforeach
+                            <p class="text-muted mb-0" style="font-size: 11px;">
+                                <b>Car assigned</b><br>
+                                @if(isset($instructor->fleet->car_registration_number))
+                                    {{$instructor->fleet->car_registration_number}} -
+                                    {{$instructor->fleet->car_brand_model}}
+
+                                @else
+                                    -
+                                @endif
                             </p>
                         </div>
                     </div>
