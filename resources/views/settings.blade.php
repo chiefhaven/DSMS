@@ -64,7 +64,7 @@
                 <label for="example-ltf-password">Favicon</label>
                 <input type="file" class="form-control @error('favicon') is-invalid @enderror" id="favicon" name="favicon" placeholder="Favicon" accept=".jpg,.jpeg,.png">
                 {{$setting->favicon}}
-            </div>            
+            </div>
             <div class="mb-4 form-floating">
               <input type="file" name="authorization_signature" id="authorization_signature" class="form-control @error('dir_signature') is-invalid @enderror" accept=".jpg,.jpeg,.png">
               {{$setting->authorization_signature}}
@@ -171,19 +171,19 @@
   </div>
   </div>
   <!-- END Hero -->
-  
+
   <script type="text/javascript">
-      
+
     $.ajaxSetup({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         }
     });
-  
+
     $("#invoicesettings-update").click(function(e){
-    
+
         e.preventDefault();
-     
+
        var terms = $('#terms').val();
        var header = $('#header').val();
        var footer = $('#footer').val();
@@ -191,7 +191,7 @@
        var prefix = $('#prefix').val();
        var due = $('#due').val();
        var logo = $('#logo').val();
-     
+
         $.ajax({
            type:'POST',
            url:"{{ url('/invoicesettings-update') }}",
@@ -211,9 +211,9 @@
                 }
            }
         });
-    
+
     });
-  
+
     function printErrorMsg (msg) {
         $(".print-error-msg").find("ul").html('');
         $(".print-error-msg").css('display','block');
@@ -221,7 +221,7 @@
             $(".print-error-msg").find("ul").append('<li>'+value+'</li>');
         });
     }
-  
+
 </script>
 
 @endsection
