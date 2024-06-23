@@ -16,7 +16,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationTemplateController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\ExpenseController;
-
+use App\Http\Controllers\QrCodeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -150,3 +150,7 @@ Route::get('/dashboard', [App\Http\Controllers\HomeController::class, 'index'])-
 //     Artisan::call('migrate',['--force' => true]);
 //      dd('migrated!');
 //  });
+
+//qrCode routes
+//Route::get('/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/{id}', [QrCodeController::class,'show'])->name('qrCode');
+Route::get('/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/{id}', [AttendanceController::class,'create'])->name('qrCode');
