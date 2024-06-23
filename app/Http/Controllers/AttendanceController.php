@@ -60,7 +60,8 @@ class AttendanceController extends Controller
         }
 
         else{
-            return view('qrCodeGuest');
+            $student = havenUtils::invoiceQrCode($token);
+            return view('qrCodeGuest', compact('student'));
         }
     }
 
