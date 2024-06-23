@@ -32,7 +32,7 @@ class InstructorController extends Controller
      */
     public function index()
     {
-        $instructor = Instructor::with('User', 'Lesson')->get();
+        $instructor = Instructor::with('User', 'Lesson', 'Fleet')->get();
         return view('instructors.instructors', compact('instructor'));
     }
 
