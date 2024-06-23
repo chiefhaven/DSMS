@@ -48,8 +48,13 @@ class StudentController extends Controller
      */
     public function create()
     {
-        $district = district::get();
-        return view('students.addstudent', compact('district'));
+        if(!Auth::user()->hasRole('instructor')){
+            $district = district::get();
+            return view('students.addstudent', compact('district'));
+        }
+
+        abort(403);
+
     }
 
     /**
@@ -140,14 +145,7 @@ class StudentController extends Controller
             abort(404);
         }
 
-        if(Auth::user()->hasRole('instructor')){
-            $instructor_fleet_id = Fleet::Where('instructor_id', Auth::user()->instructor_id)->firstOrFail()->id;
-            $student_fleet =  Student::find($id)->fleet_id;
-            if($instructor_fleet_id !== $student_fleet){
-                Alert::toast('No such student belongs to you', 'warning');
-                return redirect()->route('home');
-            }
-        }
+        havenUtils::checkStudentInstructor($id);
 
         $attendancePercent = havenUtils::attendancePercent($id);
         $attendanceTheoryCount = Attendance::where('student_id', $id)->where('lesson_id', 1)->count();
