@@ -247,5 +247,14 @@ class havenUtils extends Controller
         }
     }
 
+    static function invoiceQrCode($id){
+        $student = Student::find($id);
+        if(!isset($student)){
+            abort(404);
+        }
+        return $student;
+    }
+
+
 
 }
