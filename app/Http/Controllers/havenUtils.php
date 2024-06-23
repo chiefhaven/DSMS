@@ -15,6 +15,9 @@ use App\Models\PaymentMethod;
 use App\Models\Invoice_Setting;
 use Carbon\Carbon;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Auth;
+
+use RealRashid\SweetAlert\Facades\Alert;
 
 class havenUtils extends Controller
 {
@@ -231,6 +234,17 @@ class havenUtils extends Controller
     static function qrCode($link){
         $qrCode = base64_encode(QrCode::format('svg')->size(120)->errorCorrection('H')->generate($link));
         return $qrCode;
+    }
+
+    static function checkStudentInstructor($id){
+        if(Auth::user()->hasRole('instructor')){
+            $instructor_fleet_id = Fleet::Where('instructor_id', Auth::user()->instructor_id)->firstOrFail()->id;
+            $student_fleet =  Student::find($id)->fleet_id;
+            if($instructor_fleet_id !== $student_fleet){
+                Alert::toast('No such student belongs to you', 'warning');
+                return redirect()->route('home');
+            }
+        }
     }
 
 
