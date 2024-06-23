@@ -146,11 +146,11 @@ Auth::routes();
 
 Route::get('/dashboard', [App\Http\Controllers\HomeController::class, 'index'])->middleware(['auth'])->name('home');
 
+//qrCode routes
+Route::get('/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/{id}', [AttendanceController::class,'create'])->name('attendanceQrCode');
+Route::get('/e8704ed2-d90e-41ca-9143/{id}', [InvoiceController::class,'invoiceQrCode'])->name('invoiceQrCode');
+
 // Route::get('/migrate', function(){
 //     Artisan::call('migrate',['--force' => true]);
 //      dd('migrated!');
 //  });
-
-//qrCode routes
-//Route::get('/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/{id}', [QrCodeController::class,'show'])->name('qrCode');
-Route::get('/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/{id}', [AttendanceController::class,'create'])->name('qrCode');
