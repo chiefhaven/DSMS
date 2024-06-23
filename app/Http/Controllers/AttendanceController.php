@@ -43,13 +43,15 @@ class AttendanceController extends Controller
      */
     public function create($token)
     {
-        if(Auth::user()){
+        if(Auth::user() && Auth::user()->hasRole('instructor')){
             $lesson = Lesson::get();
             $student = Student::find($token);
-
             if(!isset($student)){
-                abort(401);
+                Alert::toast('Student not found, choose from the list below else contact the admin', 'warning');
+                return redirect()->route('students');
             }
+
+            havenUtils::checkStudentInstructor($token);
 
             $instructor = Auth::user();
             $date = Carbon::now()->timezone('Africa/Blantyre');
