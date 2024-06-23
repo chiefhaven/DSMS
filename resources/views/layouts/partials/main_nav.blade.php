@@ -7,8 +7,7 @@
                 <span class="nav-main-link-name">Dashboard</span>
               </a>
             </li>
-            @role(['superAdmin', 'admin', 'instructor'])
-                <li class="nav-main-item">
+            <li class="nav-main-item">
                     <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="">
                         <i class="nav-main-link-icon fa fa-user-graduate"></i>
                         <span class="nav-main-link-name">Students</span>
@@ -20,15 +19,16 @@
                         </a>
                         </li>
                     </ul>
-                    <ul class="nav-main-submenu">
-                    <li class="nav-main-item">
-                        <a class="nav-main-link" href="{{ url('/addstudent') }}">
-                            <span class="nav-main-link-name">Add student</span>
-                        </a>
-                        </li>
-                    </ul>
-                </li>
-            @endcan
+                    @role(['superAdmin', 'admin'])
+                        <ul class="nav-main-submenu">
+                        <li class="nav-main-item">
+                            <a class="nav-main-link" href="{{ url('/addstudent') }}">
+                                <span class="nav-main-link-name">Add student</span>
+                            </a>
+                            </li>
+                        </ul>
+                    @endcan
+            </li>
             <li class="nav-main-item">
                 <a class="nav-main-link" href="{{ url('/attendances') }}">
                     <i class="nav-main-link-icon fa fa-user-clock"></i>
