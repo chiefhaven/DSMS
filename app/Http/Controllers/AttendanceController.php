@@ -43,11 +43,23 @@ class AttendanceController extends Controller
      */
     public function create($token)
     {
-        $lesson = Lesson::get();
-        $student = Student::find($token);
-        $instructor = Auth::user();
-        $date = Carbon::now()->timezone('Africa/Blantyre');
-        return view('attendances.addattendance', compact('student','lesson', 'instructor', 'date'));
+        if(Auth::user()){
+            $lesson = Lesson::get();
+            $student = Student::find($token);
+
+            if(!isset($student)){
+                abort(401);
+            }
+
+            $instructor = Auth::user();
+            $date = Carbon::now()->timezone('Africa/Blantyre');
+            return view('attendances.addattendance', compact('student','lesson', 'instructor', 'date'));
+
+        }
+
+        else{
+            return view('qrCodeGuest');
+        }
     }
 
     /**
