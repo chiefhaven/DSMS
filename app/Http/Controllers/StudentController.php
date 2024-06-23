@@ -267,7 +267,7 @@ class StudentController extends Controller
         $setting = Setting::find(1);
         $date = date('j F, Y');
 
-        $qrCode = havenUtils::qrCode('https://www.darondrivingschool.com/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/'.$id);
+        $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/'.$id);
 
         $pdf = PDF::loadView('pdf_templates.trafficCardReferenceLetter', compact('student', 'setting', 'date', 'qrCode'));
         return $pdf->download('Daron Driving School-'.$student->fname.' '.$student->sname.' Trafic Card Reference Letter.pdf');
@@ -279,7 +279,7 @@ class StudentController extends Controller
         $setting = Setting::find(1);
         $date = date('j F, Y');
 
-        $qrCode = havenUtils::qrCode('https://www.darondrivingschool.com/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/'.$id);
+        $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/'.$id);
 
         $pdf = PDF::loadView('pdf_templates.aptitudeTestreferenceLetter', compact('student', 'setting', 'date', 'qrCode'));
         return $pdf->download('Daron Driving School-'.$student->fname.' '.$student->sname.' Highway Code I Reference Letter.pdf');
@@ -291,7 +291,7 @@ class StudentController extends Controller
         $setting = Setting::find(1);
         $date = date('j F, Y');
 
-        $qrCode = havenUtils::qrCode('https://www.darondrivingschool.com/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/'.$id);
+        $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/'.$id);
 
         $pdf = PDF::loadView('pdf_templates.secondAptitudeTestreferenceLetter', compact('student', 'setting', 'date', 'qrCode'));
         return $pdf->download('Daron Driving School-'.$student->fname.' '.$student->sname.' Highway Code II Reference Letter.pdf');
@@ -303,7 +303,7 @@ class StudentController extends Controller
         $setting = Setting::find(1);
         $date = date('j F, Y');
 
-        $qrCode = havenUtils::qrCode('https://www.darondrivingschool.com/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/'.$id);
+        $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/'.$id);
 
         $pdf = PDF::loadView('pdf_templates.finalReferenceLetter', compact('student', 'setting', 'date', 'qrCode'));
         return $pdf->download('Daron Driving School-'.$student->fname.' '.$student->sname.' Final Reference Letter.pdf');
@@ -316,7 +316,7 @@ class StudentController extends Controller
         $setting = Setting::find(1);
         $date = date('j F, Y');
 
-        $qrCode = havenUtils::qrCode('https://www.darondrivingschool.com/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/'.$id);
+        $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/'.$id);
 
         $pdf = PDF::loadView('pdf_templates.lessonReport', compact('student', 'attendance', 'setting', 'date', 'qrCode'));
         return $pdf->download('Daron Driving School-'.$student->fname.' '.$student->sname.' Lesson Report.pdf');
