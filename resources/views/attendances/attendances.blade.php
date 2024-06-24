@@ -47,8 +47,10 @@
                   <table class="table table-bordered table-striped table-vcenter">
                       <thead>
                           <tr>
-                            <th class="text-center" style="width: 100px;">Actions</th>
-                            <th>Date</th>
+                            @role(['superAdmin', 'admin'])
+                                <th class="text-center" >Actions</th>
+                            @endcan
+                            <th style="min-width: 100px;">Date</th>
                             <th>Student</th>
                             <th style="width: 20%;">Lesson</th>
                           </tr>
@@ -56,26 +58,28 @@
                       <tbody>
                         @foreach ($attendance as $attend)
                           <tr>
+                            @role(['superAdmin', 'admin'])
                             <td class="text-center">
                                 <div class="dropdown d-inline-block">
-                                  <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <span class="d-none d-sm-inline-block">Action</span>
-                                  </button>
-                                  <div class="dropdown-menu dropdown-menu-end p-0">
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-end p-0">
                                     <div class="p-2">
-                                      <form method="POST" action="{{ url('/editattendance', $attend->id) }}">
+                                        <form method="POST" action="{{ url('/editattendance', $attend->id) }}">
                                         {{ csrf_field() }}
                                         <button class="dropdown-item" type="submit">Edit</button>
-                                      </form>
-                                      <form method="POST" action="{{ url('/deleteattendance', $attend->id) }}">
+                                        </form>
+                                        <form method="POST" action="{{ url('/deleteattendance', $attend->id) }}">
                                         {{ csrf_field() }}
                                         {{ method_field('DELETE') }}
                                         <button class="dropdown-item" onclick="return confirm('Are you sure you want to delete attendance?')" type="submit">Delete</button>
-                                      </form>
+                                        </form>
                                     </div>
-                                  </div>
+                                    </div>
                                 </div>
-                              </td>
+                            </td>
+                            @endcan
                               <td class="font-w600">
                                   {{$attend->attendance_date->format('j F, Y, H:i:s' )}}
                               </td>
