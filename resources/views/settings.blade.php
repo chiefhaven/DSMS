@@ -25,12 +25,12 @@
         </button>
       </li>
       <li class="nav-item">
-        <button class="nav-link" id="search-customers-tab" data-bs-toggle="tab" data-bs-target="#search-customers" role="tab" aria-controls="search-customers" aria-selected="false">
+        <button class="nav-link" id="system-tab" data-bs-toggle="tab" data-bs-target="#system" role="tab" aria-controls="system" aria-selected="false">
           System
         </button>
       </li>
       <li class="nav-item">
-        <button class="nav-link" id="search-projects-tab" data-bs-toggle="tab" data-bs-target="#search-projects" role="tab" aria-controls="search-projects" aria-selected="false">
+        <button class="nav-link" id="backup-tab" data-bs-toggle="tab" data-bs-target="#backup" role="tab" aria-controls="backup" aria-selected="false">
           Backup
         </button>
       </li>
@@ -161,18 +161,43 @@
           </form>
         </div>
       </div>
-      <div class="tab-pane fade" id="search-customers" role="tabpanel" aria-labelledby="search-customers-tab">
+      <div class="tab-pane fade" id="system" role="tabpanel" aria-labelledby="system-tab">
+        <div class="fs-3 fw-semibold pt-2 pb-4 mb-4 border-bottom">
+            System settings
+          </div>
+          <div class="row">
+            <form class="mb-5 form-inline" action="{{url('/attendance-time-update')}}" method="post" enctype="multipart/form-data">
+              @csrf
+              <div class="form-group row">
+                <div class="col-md-12"><p>Attendance allowable entry period</p></div>
+                <div class="mb-4 col-md-6">
+                    <input type="time" class="form-control" id="timestart" name="timestart" value="{{$setting->attendance_time_start}}">
+                    <label class="form-label" for="example-school-name-input-floating">Time start</label>
+                </div>
+                <div class="mb-4 col-md-6">
+                    <input type="time" class="form-control" id="timestop" name="timestop" value="{{$setting->attendance_time_stop}}">
+                    <label class="form-label" for="example-school-name-input-floating">Time stop</label>
+                </div>
+              </div>
+              <br>
+              <div class="form-group">
+                  <button type="submit" class="btn btn-primary">Update</button>
+              </div>
+            </form>
+          </div>
+      </div>
+      <div class="tab-pane fade" id="backup" role="tabpanel" aria-labelledby="backup-tab">
         <div class="fs-3 fw-semibold pt-2 pb-4 mb-4 text-center border-bottom">
           Coming soon
         </div>
-        <p>Email, SMS gateway settings.</p>
+        <p>System Backup</p>
       </div>
     </div>
   </div>
   </div>
   <!-- END Hero -->
 
-  <script type="text/javascript">
+<script type="text/javascript">
 
     $.ajaxSetup({
         headers: {
