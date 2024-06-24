@@ -9,6 +9,11 @@ class Setting extends Model
 {
     use HasFactory;
 
+    protected $casts = [
+        'attendance_time_stop' => 'datetime',
+        'attendance_time_start' => 'datetime'
+    ];
+
     public function District()
     {
        return $this->belongsTo(District::class);
