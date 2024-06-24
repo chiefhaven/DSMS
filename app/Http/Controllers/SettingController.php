@@ -149,6 +149,34 @@ class SettingController extends Controller
         return redirect('/settings')->with('message', 'Settings updated!');
     }
 
+    public function attendanceTimeUpdate(Request $request)
+    {
+        $messages = [
+            'timestart.required' => 'The "Start time" field is required!',
+            'timestop.required'   => 'The "Stop time" field is required',
+        ];
+
+        //Validate the request
+        $this->validate($request, [
+            'timestart'  =>'required',
+            'timestop' =>'required',
+
+        ], $messages);
+
+
+        $post = $request->All();
+
+        $settings = Setting::find(1);
+
+        $settings->attendance_time_start = $post['timestart'];
+        $settings->attendance_time_stop = $post['timestop'];
+
+        $settings->save();
+        Alert::toast('Attendance settings updated successifully', 'success');
+
+        return redirect('/settings');
+    }
+
     /**
      * Remove the specified resource from storage.
      *
