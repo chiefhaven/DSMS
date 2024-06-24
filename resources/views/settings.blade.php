@@ -45,15 +45,15 @@
           <form class="mb-5" action="{{url('/settings-update')}}" method="post" enctype="multipart/form-data">
             @csrf
             <div class="form-floating mb-4">
-              <input type="text" class="form-control" id="school_name" name="school_name" value="{{$setting->school_name}}">
+              <input type="text" class="form-control @error('school_name') is-invalid @enderror" id="school_name" name="school_name" value="{{$setting->school_name}}">
               <label class="form-label" for="example-school-name-input-floating">School name</label>
             </div>
             <div class="form-floating mb-4">
-              <input type="text" class="form-control" id="slogan" name="slogan" value="{{$setting->slogan}}">
+              <input type="text" class="form-control @error('slogan') is-invalid @enderror" id="slogan" name="slogan" value="{{$setting->slogan}}">
               <label class="form-label" for="example-slogan-input-floating">Slogan</label>
             </div>
             <div class="form-floating mb-4">
-              <textarea class="form-control" id="company_description" name="company_description" style="height: 200px" value="" placeholder="Description here">{{$setting->company_description}}</textarea>
+              <textarea class="form-control @error('company_description') is-invalid @enderror" id="company_description" name="company_description" style="height: 200px" value="" placeholder="Description here">{{$setting->company_description}}</textarea>
               <label class="form-label" for="example-textarea-floating">Company description</label>
             </div>
             <div class="form-group mb-4">
@@ -72,7 +72,7 @@
               <label class="form-label" for="signature">Authorization Signature</label>
             </div>
             <div class="form-floating mb-4">
-              <select class="form-select" id="district" name="district">
+              <select class="form-select @error('district') is-invalid @enderror" id="district" name="district">
                 @foreach ($district as $district)
                    <option value="{{$district->name}}" {{ $district->id == $setting->district_id ? 'selected' : '' }}>{{$district->name}}</option>
                 @endforeach
@@ -80,34 +80,34 @@
               <label for="district">Distirct</label>
             </div>
             <div class="form-floating mb-4">
-              <textarea class="form-control" id="address" name="address" style="height: 200px" placeholder="School location">{{$setting->address}}</textarea>
+              <textarea class="form-control @error('address') is-invalid @enderror" id="address" name="address" style="height: 200px" placeholder="School location">{{$setting->address}}</textarea>
               <label class="form-label" for="example-textarea-floating">Physical Address</label>
             </div>
             <div class="form-floating mb-4">
-              <input type="tel" class="form-control" id="postal" name="postal" placeholder="Postal" value="{{$setting->postal}}">
+              <input type="tel" class="form-control @error('postal') is-invalid @enderror" id="postal" name="postal" placeholder="Postal" value="{{$setting->postal}}">
               <label class="form-label" for="example-email-input-floating">Postal Address</label>
             </div>
             <div class="form-floating mb-4">
-              <input type="tel" class="form-control" id="phone_1" name="phone_1" placeholder="phone_1" value="{{$setting->phone_1}}">
+              <input type="tel" class="form-control @error('phone_1') is-invalid @enderror" id="phone_1" name="phone_1" placeholder="phone_1" value="{{$setting->phone_1}}">
               <label class="form-label" for="example-email-input-floating">Phone number</label>
             </div>
             <div class="form-floating mb-4">
-              <input type="tel" class="form-control" id="phone_2" name="phone_2" placeholder="+2659999888999" value="{{$setting->phone_2}}">
+              <input type="tel" class="form-control @error('phone_2') is-invalid @enderror" id="phone_2" name="phone_2" placeholder="+2659999888999" value="{{$setting->phone_2}}">
               <label class="form-label" for="example-email-input-floating">Alt phone number</label>
             </div>
             <div class="form-floating mb-4">
-              <input type="email" class="form-control" id="email" name="email" placeholder="john.doe@example.com" value="{{$setting->email}}">
+              <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" placeholder="john.doe@example.com" value="{{$setting->email}}">
               <label class="form-label" for="example-email-input-floating">Email address</label>
             </div>
             <div class="form-group mb-4">
                 <label for="example-ltf-password">Currency</label>
-                <select class="form-select" id="currency" name="currency">
+                <select class="form-select @error('currency') is-invalid @enderror" id="currency" name="currency">
                     <option selected value="1">Malawi Kwacha</option>
                   </select>
             </div>
             <div class="form-group mb-4">
                 <label for="example-ltf-password">Time Zone</label>
-                <select class="form-select" id="time_zone" name="time_zone">
+                <select class="form-select @error('time_zone') is-invalid @enderror" id="time_zone" name="time_zone">
                     <option selected value="1">Africal/Blantyre</option>
                 </select>
             </div>
@@ -124,19 +124,19 @@
             <div class="row g-sm push">
               <div class="container">
                 <div class="form-floating mb-4">
-                    <textarea class="form-control" id="header" name="header" style="height: 200px" value="" placeholder="Description here">{{$invoice_setting->header}}</textarea>
+                    <textarea class="form-control @error('header') is-invalid @enderror" id="header" name="header" style="height: 200px" value="" placeholder="Description here">{{$invoice_setting->header}}</textarea>
                     <label class="form-label" for="example-textarea-floating">Header text</label>
                 </div>
                 <div class="form-group mb-4">
                     <label for="example-ltf-password">Logo</label>
-                    <input type="file" class="form-control" id="invoice_logo" name="invoice_logo" placeholder="logo">
+                    <input type="file" class="form-control @error('invoice_logo') is-invalid @enderror" id="invoice_logo" name="invoice_logo" placeholder="logo">
                 </div>
                 <div class="form-floating mb-4">
-                    <input type="text" class="form-control" id="due" name="due" placeholder="due" value="{{$invoice_setting->invoice_due_days}}">
+                    <input type="text" class="form-control @error('due') is-invalid @enderror" id="due" name="due" placeholder="due" value="{{$invoice_setting->invoice_due_days}}">
                     <label class="form-label" for="example-email-input-floating">Default invoice due (days)</label>
                 </div>
                 <div class="form-floating mb-4">
-                    <input type="text" class="form-control" id="prefix" name="prefix" placeholder="prefix" value="{{$invoice_setting->prefix}}">
+                    <input type="text" class="form-control @error('prefix') is-invalid @enderror" id="prefix" name="prefix" placeholder="prefix" value="{{$invoice_setting->prefix}}">
                     <label class="form-label" for="example-email-input-floating">Invoice number prefix</label>
                 </div>
               </div>
@@ -147,11 +147,11 @@
                 </div>
               </div>
               <div class="form-floating mb-4">
-                  <textarea class="form-control" id="terms" name="terms" style="height: 200px" value="" placeholder="Description here">{{$invoice_setting->terms}}</textarea>
+                  <textarea class="form-control @error('terms') is-invalid @enderror" id="terms" name="terms" style="height: 200px" value="" placeholder="Description here">{{$invoice_setting->terms}}</textarea>
                   <label class="form-label" for="example-textarea-floating">Invoice terms</label>
               </div>
               <div class="form-floating mb-4">
-                  <textarea class="form-control" id="footer" name="footer" style="height: 200px" value="" placeholder="Description here">{{$invoice_setting->footer}}</textarea>
+                  <textarea class="form-control @error('footer') is-invalid @enderror" id="footer" name="footer" style="height: 200px" value="" placeholder="Description here">{{$invoice_setting->footer}}</textarea>
                   <label class="form-label" for="example-textarea-floating">Footer text</label>
               </div>
             </div>
@@ -172,11 +172,11 @@
               <div class="form-group row">
                 <div class="col-md-12"><p>Attendance allowable entry period</p></div>
                 <div class="mb-4 col-md-6">
-                    <input type="time" class="form-control @error('timestart') is-invalid @enderror" id="timestart" name="timestart" value="{{$setting->attendance_time_start}}">
+                    <input type="time" class="form-control @error('timestart') is-invalid @enderror" id="timestart" name="timestart" value="{{$setting->attendance_time_start->format('H:i')}}">
                     <label class="form-label" for="example-school-name-input-floating">Time start</label>
                 </div>
                 <div class="mb-4 col-md-6">
-                    <input type="time" class="form-control @error('timestop') is-invalid @enderror" id="timestop" name="timestop" value="{{$setting->attendance_time_stop}}">
+                    <input type="time" class="form-control @error('timestop') is-invalid @enderror" id="timestop" name="timestop" value="{{$setting->attendance_time_stop->format('H:i')}}">
                     <label class="form-label" for="example-school-name-input-floating">Time stop</label>
                 </div>
               </div>
