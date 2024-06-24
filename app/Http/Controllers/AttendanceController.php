@@ -271,13 +271,11 @@ class AttendanceController extends Controller
             return true;
         }
 
-        $latestAttendance = Carbon::parse($attendance->attendance_date, 'Africa/Blantyre');
-
-        $now = Carbon::parse($now, 'Africa/Blantyre');
+        $latestAttendance = $attendance->attendance_date;
 
         $timeDifference = $now->diffInMinutes($latestAttendance);
 
-        if($timeDifference < Setting::find(1)->time_between_attendances){
+        if($timeDifference > Setting::find(1)->time_between_attendances){
             return true;
         }
 
