@@ -277,7 +277,7 @@ class AttendanceController extends Controller
 
         $timeDifference = $now->diffInMinutes($latestAttendance);
 
-        if($timeDifference > 15){
+        if($timeDifference < Setting::find(1)->time_between_attendances){
             return true;
         }
 
