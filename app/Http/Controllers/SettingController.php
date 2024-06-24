@@ -151,15 +151,22 @@ class SettingController extends Controller
 
     public function attendanceTimeUpdate(Request $request)
     {
+        dd($request['timestart']);
+
         $messages = [
-            'timestart.required' => 'The "Start time" field is required!',
-            'timestop.required'   => 'The "Stop time" field is required',
+            'timestart.required' => 'The "Start time" is required.',
+            'timestart.date_format' => 'The "Start time" must be of fomart Hours and Minutes.',
+            'timestop.required'   => 'The "Stop time" is required.',
+            'timestop.date_format'   => 'The "Stop time" must be of fomart Hours and Minutes.',
+            'time_between_attendances.required'   => 'The "Time between attendances" is required.',
+            'time_between_attendances.between'   => 'The "Time between attendances" must be between 0 and 59 minutes.',
         ];
 
         //Validate the request
         $this->validate($request, [
-            'timestart'  =>'required',
-            'timestop' =>'required',
+            'timestart'  =>'required|date_format:H:i',
+            'timestop' =>'required|date_format:H:i',
+            'time_between_attendances' => 'required|integer|between:0,59',
 
         ], $messages);
 
