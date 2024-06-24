@@ -123,8 +123,9 @@ Route::post('/updatefleet', [FleetController::class, 'update'])->middleware('aut
 Route::delete('/deletefleet/{id}', [FleetController::class, 'destroy'])->middleware('auth')->name('deletefleet');
 
 Route::get('/settings', [SettingController::class, 'edit'])->middleware('auth')->name('settings');
-Route::post('/settings-update', [SettingController::class, 'update'])->middleware('auth')->name('settings');
-Route::post('/invoicesettings-update', [InvoiceSettingController::class, 'update'])->middleware('auth')->name('settings');
+Route::post('/settings-update', [SettingController::class, 'update'])->middleware('auth')->name('settings-update');
+Route::post('/attendance-time-update', [SettingController::class, 'attendanceTimeUpdate'])->middleware('auth')->name('attendance-time-update');
+Route::post('/invoicesettings-update', [InvoiceSettingController::class, 'update'])->middleware('auth')->name('invoicesettings-update');
 
 Route::get('/super-admin-profile', [InstructorController::class, 'show-super-admin'])->middleware('auth')->name('super-admin-profile');
 
