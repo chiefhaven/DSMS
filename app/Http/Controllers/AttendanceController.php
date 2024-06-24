@@ -43,6 +43,15 @@ class AttendanceController extends Controller
      */
     public function create($token)
     {
+        $now = Carbon::now();
+        $start = Carbon::createFromTimeString('05:30');
+        $end = Carbon::createFromTimeString('17:30')->addDay();
+
+        if (!$now->between($start, $end)) {
+            Alert::toast('Attendances can only be entered from 5:30AM to 5:30PM', 'warning');
+            return back();
+        }
+
         if(Auth::user() && Auth::user()->hasRole('instructor')){
             $lesson = Lesson::get();
             $student = Student::find($token);
@@ -165,10 +174,8 @@ class AttendanceController extends Controller
      */
     public function edit($id)
     {
-        $student = Student::with('User')->find($id);
-        $lesson = Lesson::get();
-        $attendance = Attendance::find($id);
-        return view('attendances.editattendance', compact('student', 'lesson', 'attendance'));
+        abort(404);
+
     }
 
     /**
