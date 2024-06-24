@@ -46,7 +46,7 @@ class AttendanceController extends Controller
     {
         $timeStart = Setting::find(1)->attendance_time_start;
         $timeStop = Setting::find(1)->attendance_time_stop;
-        $now = Carbon::now();
+        $now = Carbon::now()->tz('Africa/Blantyre');
         $start = Carbon::createFromTimeString($timeStart);
         $end = Carbon::createFromTimeString($timeStop)->addDay();
 
@@ -62,6 +62,11 @@ class AttendanceController extends Controller
                 Alert::toast('Student not found, choose from the list below else contact the admin', 'warning');
                 return redirect()->route('students');
             }
+
+            if($this->attendanceLatest($token, $now) == false){
+                Alert::toast('Wait for __ minutes to enter another attendance for this student','warning');
+                return back();
+            };
 
             havenUtils::checkStudentInstructor($token);
 
@@ -132,7 +137,7 @@ class AttendanceController extends Controller
             $attendance->student_id = $student_id;
         }
 
-        $attendance->attendance_date = Carbon::now()->timezone('Africa/Blantyre')->toDate();
+        $attendance->attendance_date = Carbon::now()->tz('Africa/Blantyre');
         $attendance->lesson_id = $lesson_id;
         $attendance->instructor_id = Auth::user()->instructor_id;
 
@@ -257,5 +262,25 @@ class AttendanceController extends Controller
     public function attendanceCount($student_id){
         $attendanceCount = Attendance::where('student_id', $student_id)->count();
         return $attendanceCount;
+    }
+
+    public function attendanceLatest($student_token, $now){
+        $attendance = Attendance::where('student_id', $student_token)->orderBy('attendance_date', 'desc')->first();
+
+        if(is_null($attendance)){
+            return true;
+        }
+
+        $latestAttendance = Carbon::parse($attendance->attendance_date, 'Africa/Blantyre');
+
+        $now = Carbon::parse($now, 'Africa/Blantyre');
+
+        $timeDifference = $now->diffInMinutes($latestAttendance);
+
+        if($timeDifference > 15){
+            return true;
+        }
+
+        return false;
     }
 }
