@@ -9,6 +9,7 @@ use App\Models\Student;
 use App\Models\Instructor;
 use App\Http\Requests\StoreAttendanceRequest;
 use App\Http\Requests\UpdateAttendanceRequest;
+use App\Models\Setting;
 use Auth;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -43,12 +44,14 @@ class AttendanceController extends Controller
      */
     public function create($token)
     {
+        $timeStart = Setting::find(1)->attendance_time_start;
+        $timeStop = Setting::find(1)->attendance_time_stop;
         $now = Carbon::now();
-        $start = Carbon::createFromTimeString('05:30');
-        $end = Carbon::createFromTimeString('17:30')->addDay();
+        $start = Carbon::createFromTimeString($timeStart);
+        $end = Carbon::createFromTimeString($timeStop)->addDay();
 
         if (!$now->between($start, $end)) {
-            Alert::toast('Attendances can only be entered from 5:30AM to 5:30PM', 'warning');
+            Alert::toast('Attendances can only be entered from '.$timeStart.' to '.$timeStop.'', 'warning');
             return back();
         }
 
