@@ -12,6 +12,7 @@
   </div>
 
   <div class="content content-full">
+    @include('components.alert')
     <div class="block block-rounded">
     <ul class="nav nav-tabs nav-tabs-block" role="tablist">
       <li class="nav-item">
@@ -171,14 +172,18 @@
               <div class="form-group row">
                 <div class="col-md-12"><p>Attendance allowable entry period</p></div>
                 <div class="mb-4 col-md-6">
-                    <input type="time" class="form-control" id="timestart" name="timestart" value="{{$setting->attendance_time_start}}">
+                    <input type="time" class="form-control @error('timestart') is-invalid @enderror" id="timestart" name="timestart" value="{{$setting->attendance_time_start}}">
                     <label class="form-label" for="example-school-name-input-floating">Time start</label>
                 </div>
                 <div class="mb-4 col-md-6">
-                    <input type="time" class="form-control" id="timestop" name="timestop" value="{{$setting->attendance_time_stop}}">
+                    <input type="time" class="form-control @error('timestop') is-invalid @enderror" id="timestop" name="timestop" value="{{$setting->attendance_time_stop}}">
                     <label class="form-label" for="example-school-name-input-floating">Time stop</label>
                 </div>
               </div>
+                <div class="mb-4 col-md-4">
+                    <input type="number" class="form-control @error('time_between_attendances') is-invalid @enderror" id="time_between_attendances" name="time_between_attendances" value="{{$setting->time_between_attendances}}">
+                    <label class="form-label" for="example-school-name-input-floating">Time in minutes between attendances for a student</label>
+                </div>
               <br>
               <div class="form-group">
                   <button type="submit" class="btn btn-primary">Update</button>
