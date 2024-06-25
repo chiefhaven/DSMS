@@ -50,7 +50,7 @@ class AttendanceController extends Controller
         $start = Carbon::createFromTimeString($timeStart);
         $end = Carbon::createFromTimeString($timeStop);
         if (!$now->between($start, $end)) {
-            Alert::toast('Attendances can only be entered from '.$timeStart->format('H:i').' to '.$timeStop->format('H:i').'', 'warning');
+            Alert::toast('Attendances can only be entered from '.$timeStart->format('h:i').'AM to '.$timeStop->format('h:i').'PM', 'warning');
             return back();
         }
 
