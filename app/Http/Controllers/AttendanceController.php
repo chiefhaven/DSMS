@@ -46,12 +46,11 @@ class AttendanceController extends Controller
     {
         $timeStart = Setting::find(1)->attendance_time_start;
         $timeStop = Setting::find(1)->attendance_time_stop;
-        $now = Carbon::now()->tz('Africa/Blantyre');
+        $now = Carbon::now();
         $start = Carbon::createFromTimeString($timeStart);
-        $end = Carbon::createFromTimeString($timeStop)->addDay();
-
+        $end = Carbon::createFromTimeString($timeStop);
         if (!$now->between($start, $end)) {
-            Alert::toast('Attendances can only be entered from '.$timeStart.' to '.$timeStop.'', 'warning');
+            Alert::toast('Attendances can only be entered from '.$timeStart->format('H:i').' to '.$timeStop->format('H:i').'', 'warning');
             return back();
         }
 
