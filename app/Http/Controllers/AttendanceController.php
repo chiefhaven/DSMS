@@ -64,7 +64,7 @@ class AttendanceController extends Controller
             }
 
             if($this->attendanceLatest($token, $now) == false){
-                Alert::toast('Wait for __ minutes to enter another attendance for this student','warning');
+                Alert::toast('Wait for '.Setting::find(1)->time_between_attendances.' minutes to enter another attendance for this student, but you can continue with other students!','warning');
                 return back();
             };
 
