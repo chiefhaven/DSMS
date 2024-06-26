@@ -242,7 +242,7 @@ class StudentController extends Controller
 
         if($invoiceCount >= 1){
 
-            Alert::toast('There are invoices associated with the student, delete them first', 'warning');
+            Alert()->error('Student not deleted','There are invoices associated with the student, delete them first');
         }
 
         else{
