@@ -11,9 +11,12 @@ use RealRashid\SweetAlert\Facades\Alert;
 
 class SettingController extends Controller
 {
+    protected $setting;
+
     public function __construct()
     {
         $this->middleware(['role:superAdmin'], ['role:admin']);
+        $this->setting = Setting::find(1);
     }
 
     /**
@@ -66,7 +69,7 @@ class SettingController extends Controller
      */
     public function edit(Setting $setting)
     {
-        $setting = Setting::find(1);
+        $setting = $this->setting;
         $invoice_setting = InvoiceSetting::find(1);
         $district = district::get();
         return view('settings', compact('setting', 'district', 'invoice_setting'));
@@ -108,7 +111,7 @@ class SettingController extends Controller
 
         $post = $request->All();
 
-        $settings = Setting::find(1);
+        $settings = $this->setting;
         $district = havenUtils::selectDistrict($post['district']);
 
         //signature processing
@@ -172,10 +175,11 @@ class SettingController extends Controller
 
         $post = $request->All();
 
-        $settings = Setting::find(1);
+        $settings = $this->setting;
 
         $settings->attendance_time_start = $post['timestart'];
         $settings->attendance_time_stop = $post['timestop'];
+        $settings->time_between_attendances = $post['time_between_attendances'];
 
         $settings->save();
         Alert::toast('Attendance settings updated successifully', 'success');
