@@ -60,7 +60,7 @@ class AttendanceController extends Controller
         $start = Carbon::createFromTimeString($timeStart);
         $end = Carbon::createFromTimeString($timeStop);
         if (!$now->between($start, $end)) {
-            Alert()->error('Attendance not entered','Attendances can only be entered from '.$timeStart->format('h:i A').' to '.$timeStop->format('h:i A'));
+            Alert()->error('Attendance can not entered','Attendances can only be entered from '.$timeStart->format('h:i A').' to '.$timeStop->format('h:i A'));
             return back();
         }
 
@@ -121,13 +121,13 @@ class AttendanceController extends Controller
         $student = Student::find($student_id);
 
         if(!isset($courseID)){
-            Alert()->error($student->fname.' not enrolled to any course yet!');
+            Alert()->error('Attendance can not be entered', $student->fname.' not enrolled to any course yet!');
         }
 
         $courseDuration = havenUtils::courseDuration($courseID);
 
         if(self::attendanceCount($student_id) >= $courseDuration){
-            Alert()->error('You can not enter more attendances than course duration a student enrolled!');
+            Alert()->error('Attendance not entered','You can not enter more attendances than course duration a student enrolled!');
             return redirect('/attendances');
         }
 
