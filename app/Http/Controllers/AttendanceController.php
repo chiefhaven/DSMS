@@ -17,6 +17,15 @@ use RealRashid\SweetAlert\Facades\Alert;
 
 class AttendanceController extends Controller
 {
+    protected $setting;
+
+    protected $user;
+
+    public function __construct()
+    {
+        // Fetch the Site Settings object
+        $this->setting = Setting::find(1);
+    }
     /**
      * Display a listing of the resource.
      *
@@ -44,13 +53,14 @@ class AttendanceController extends Controller
      */
     public function create($token)
     {
-        $timeStart = Setting::find(1)->attendance_time_start;
-        $timeStop = Setting::find(1)->attendance_time_stop;
+        $instructor = Auth::user();
+        $timeStart = $this->setting->attendance_time_start;
+        $timeStop = $this->setting->attendance_time_stop;
         $now = Carbon::now();
         $start = Carbon::createFromTimeString($timeStart);
         $end = Carbon::createFromTimeString($timeStop);
         if (!$now->between($start, $end)) {
-            Alert::toast('Attendances can only be entered from '.$timeStart->format('h:i').'AM to '.$timeStop->format('h:i').'PM', 'warning');
+            Alert()->error('Attendance not entered','Attendances can only be entered from '.$timeStart->format('h:i A').' to '.$timeStop->format('h:i A'));
             return back();
         }
 
@@ -58,12 +68,12 @@ class AttendanceController extends Controller
             $lesson = Lesson::get();
             $student = Student::find($token);
             if(!isset($student)){
-                Alert::toast('Student not found, choose from the list below else contact the admin', 'warning');
+                Alert()->error('Student not found, choose from the list below else contact the admin');
                 return redirect()->route('students');
             }
 
-            if($this->attendanceLatest($token, $now) == false){
-                Alert::toast('Wait for '.Setting::find(1)->time_between_attendances.' minutes to enter another attendance for this student, but you can continue with other students!','warning');
+            if($this->attendanceLatest($instructor->instructor_id, $now) == false){
+                Alert()->error('Attendance can not entered','You can only enter attendances every '.$this->setting->time_between_attendances.' minutes, for more information contact the admin!');
                 return back();
             };
 
@@ -111,17 +121,25 @@ class AttendanceController extends Controller
         $student = Student::find($student_id);
 
         if(!isset($courseID)){
-            Alert::toast($student->fname.' not enrolled to any course yet!', 'warning');
+            Alert()->error($student->fname.' not enrolled to any course yet!');
         }
 
         $courseDuration = havenUtils::courseDuration($courseID);
 
         if(self::attendanceCount($student_id) >= $courseDuration){
-            Alert::toast('You can not enter more attendances than course duration a student enrolled!', 'warning');
+            Alert()->error('You can not enter more attendances than course duration a student enrolled!');
             return redirect('/attendances');
         }
 
         $lesson_id = havenUtils::lessonID($post['lesson']);
+
+        if($post['lesson'] == 'Theory'){
+           $attendanceCount = Attendance::Where('lesson_id', $lesson_id)->Where('student_id', $student_id)->count();
+            if($attendanceCount == 10){
+                Alert()->error('Attendance not entered!','You can not enter more than 10 attendances for Theory lessons for a student.');
+                return redirect('/students');
+            }
+        }
 
         $attendance = new Attendance;
 
@@ -263,8 +281,8 @@ class AttendanceController extends Controller
         return $attendanceCount;
     }
 
-    public function attendanceLatest($student_token, $now){
-        $attendance = Attendance::where('student_id', $student_token)->orderBy('attendance_date', 'desc')->first();
+    public function attendanceLatest($instructor_token, $now){
+        $attendance = Attendance::where('instructor_id', $instructor_token)->orderBy('attendance_date', 'desc')->first();
 
         if(is_null($attendance)){
             return true;
@@ -274,7 +292,7 @@ class AttendanceController extends Controller
 
         $timeDifference = $now->diffInMinutes($latestAttendance);
 
-        if($timeDifference > Setting::find(1)->time_between_attendances){
+        if($timeDifference > $this->setting->time_between_attendances){
             return true;
         }
 
