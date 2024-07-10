@@ -161,7 +161,12 @@ class StudentController extends Controller
      */
     public function edit($id)
     {
-        $student = Student::with('User')->find($id);
+        $student = Student::with('User')->find(54);
+
+        if(!isset($student) || !Auth::user()->hasRole('superAdmin')){
+            abort(404);
+        }
+
         $district = district::get();
         return view('students.editstudent', [ 'student' => $student ], compact('student', 'district'));
     }
