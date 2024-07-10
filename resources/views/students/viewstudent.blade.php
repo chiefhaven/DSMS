@@ -8,22 +8,24 @@
         <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">{{$student->fname}} {{$student->mname}} {{$student->sname}}</h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
           <ol class="breadcrumb">
-            <div class="dropdown d-inline-block">
-              <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <span class="d-none d-sm-inline-block">Action</span>
-              </button>
-              <div class="dropdown-menu dropdown-menu-end p-0">
-                <div class="p-2">
-                  <form method="POST" action="/edit-student/{{$student->id}}">
-                    {{ csrf_field() }}
-                    <button class="dropdown-item" type="submit">Edit profile</button>
-                  </form>
-                  <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal-block-vcenter">
-                      Add payment
-                  </button>
+            @role(['superAdmin'])
+                <div class="dropdown d-inline-block">
+                <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span class="d-none d-sm-inline-block">Action</span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end p-0">
+                    <div class="p-2">
+                    <form method="POST" action="/edit-student/{{$student->id}}">
+                        {{ csrf_field() }}
+                        <button class="dropdown-item" type="submit">Edit profile</button>
+                    </form>
+                    <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal-block-vcenter">
+                        Add payment
+                    </button>
+                    </div>
                 </div>
-              </div>
-            </div>
+                </div>
+            @endcan
           </ol>
         </nav>
       </div>
