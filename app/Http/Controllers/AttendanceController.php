@@ -60,7 +60,7 @@ class AttendanceController extends Controller
         $start = Carbon::createFromTimeString($timeStart);
         $end = Carbon::createFromTimeString($timeStop);
         if (!$now->between($start, $end)) {
-            Alert()->error('Attendance can not entered','Attendances can only be entered from '.$timeStart->format('h:i A').' to '.$timeStop->format('h:i A'));
+            Alert()->error('Attendance can not be entered','Attendances can only be entered from '.$timeStart->format('h:i A').' to '.$timeStop->format('h:i A'));
             return back();
         }
 
@@ -73,7 +73,7 @@ class AttendanceController extends Controller
             }
 
             if($this->attendanceLatest($instructor->instructor_id, $now) == false){
-                Alert()->error('Attendance can not entered','You can only enter attendances every '.$this->setting->time_between_attendances.' minutes, for more information contact the admin!');
+                Alert()->error('Attendance can not be entered','You can only enter attendances every '.$this->setting->time_between_attendances.' minutes, for more information contact the admin!');
                 return back();
             };
 
