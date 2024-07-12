@@ -17,8 +17,10 @@
   </div>
 
   <div class="content content-full">
-        <video id="webcam-preview"></video>
+    <div class="block-content">
+        <video class="form-control" id="webcam-preview"></video>
         <p id="result"></p>
+    </div>
   </div>
   <!-- END Hero -->
 
