@@ -28,8 +28,12 @@
 
     codeReader.decodeFromVideoDevice(null, 'webcam-preview', (result, err) => {
         if (result) {
+        codeReader.scannerEnabled = false
         url = result.text
-        document.getElementById('result').textContent = 'Checking student'
+        Swal.fire(
+            'Scan complete!',
+            'Checking student'
+        )
         var ret = url.replace('https://www.dsms.darondrivingschool.com','')
         window.location.replace(ret)
 
