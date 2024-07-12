@@ -78,7 +78,7 @@ class AttendanceController extends Controller
             };
 
             $checkStudentInstructor = havenUtils::checkStudentInstructor($token);
-
+dd($checkStudentInstructor);
             if($checkStudentInstructor == false){
                 Alert::toast('No such student belongs to you', 'warning');
                 return back();
