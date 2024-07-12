@@ -32,7 +32,7 @@
         url = result.text
         Swal.fire(
             'Scan complete!',
-            'Checking student'
+            'Checking student and redirecting...'
         )
         var ret = url.replace('https://www.dsms.darondrivingschool.com','')
         window.location.replace(ret)
