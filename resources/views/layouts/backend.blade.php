@@ -57,6 +57,7 @@
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
   <script src="https://unpkg.com/vuejs-paginate-next@latest/dist/vuejs-paginate-next.umd.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest"></script>
 
 
   <script>
@@ -227,6 +228,12 @@
       @yield('content')
     </main>
     <!-- END Main Container -->
+
+    <div class="qrCodeScanner">
+        <qrcode-stream></qrcode-stream>
+        <qrcode-drop-zone></qrcode-drop-zone>
+        <qrcode-capture></qrcode-capture>
+    </div>
 
     <!-- Footer -->
     <footer id="page-footer" class="bg-body-light">
