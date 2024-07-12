@@ -77,7 +77,12 @@ class AttendanceController extends Controller
                 return back();
             };
 
-            havenUtils::checkStudentInstructor($token);
+            $checkStudentInstructor = havenUtils::checkStudentInstructor($token);
+
+            if($checkStudentInstructor == false){
+                Alert::toast('No such student belongs to you', 'warning');
+                return back();
+            }
 
             $instructor = Auth::user();
             $date = Carbon::now()->timezone('Africa/Blantyre');
