@@ -153,7 +153,7 @@
 
             @role(['instructor'])
                 <li>
-                    <a class="nav-main-link" href="{{ url('#') }}">
+                    <a class="nav-main-link" href="{{ url('/scanqrcode') }}">
                         <i class="nav-main-link-icon fa fa-qrcode"></i>
                         <span class="nav-main-link-name">Scan for attendance</span>
                     </a>
