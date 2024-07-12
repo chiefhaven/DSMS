@@ -241,8 +241,7 @@ class havenUtils extends Controller
             $instructor_fleet_id = Fleet::Where('instructor_id', Auth::user()->instructor_id)->firstOrFail()->id;
             $student_fleet =  Student::find($id)->fleet_id;
             if($instructor_fleet_id !== $student_fleet){
-                Alert::toast('No such student belongs to you', 'warning');
-                return redirect()->route('home');
+                return false;
             }
         }
     }
