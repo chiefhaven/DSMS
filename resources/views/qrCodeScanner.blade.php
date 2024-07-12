@@ -29,7 +29,8 @@
     codeReader.decodeFromVideoDevice(null, 'webcam-preview', (result, err) => {
         if (result) {
         url = result.text
-        document.getElementById('result').textContent = result.text
+        document.getElementById('result').textContent = 'Checking student'
+        window.location.replace(url)
 
         }
 
