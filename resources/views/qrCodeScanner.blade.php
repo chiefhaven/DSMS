@@ -30,7 +30,8 @@
         if (result) {
         url = result.text
         document.getElementById('result').textContent = 'Checking student'
-        window.location.replace(url)
+        var ret = url.replace('https://www.dsms.darondrivingschool.com','')
+        window.location.replace(ret)
 
         }
 
