@@ -30,14 +30,25 @@
 
     codeReader.decodeFromVideoDevice(null, 'webcam-preview', (result, err) => {
         if (result) {
-        codeReader.scannerEnabled = false
-        url = result.text
-        Swal.fire(
-            'Scan complete!',
-            'Checking student and redirecting...'
+            codeReader.scannerEnabled = false
+            url = result.text
+            Swal.fire(
+                'Scan complete!',
+                'Checking student and redirecting...'
         )
-        var ret = url.replace('https://www.dsms.darondrivingschool.com','')
-        window.location.replace(ret)
+
+        if(url.includes('https://www.dsms.darondrivingschool.com')){
+            var ret = url.replace('https://www.dsms.darondrivingschool.com','')
+            window.location.replace(ret)
+        }
+
+        else{
+            Swal.fire(
+                'Invalid QR code',
+                'QR code doesn\'t belong to Darons documents...'
+            )
+        }
+
 
         }
 
