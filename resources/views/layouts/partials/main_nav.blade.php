@@ -36,55 +36,74 @@
                 </a>
             </li>
 
-            @role(['superAdmin', 'admin'])
-                <li class="nav-main-item">
-                    <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="">
-                    <i class="nav-main-link-icon fa fa-bar-chart"></i>
-                    <span class="nav-main-link-name">School</span>
-                    </a>
-                    <ul class="nav-main-submenu">
-                        <li class="nav-main-item">
-                            <a class="nav-main-link" href="{{ url('/courses') }}">
-                                <span class="nav-main-link-name">Courses</span>
-                            </a>
-                            </li>
-                        </ul>
-                    <ul class="nav-main-submenu">
-                    <li class="nav-main-item">
-                        <a class="nav-main-link" href="{{ url('/lessons') }}">
-                            <span class="nav-main-link-name">Lessons</span>
-                        </a>
-                        </li>
-                    </ul>
-                </li>
-                <li>
-                <a class="nav-main-link" href="{{ url('/invoices') }}">
-                    <i class="nav-main-link-icon fa fa-file-invoice-dollar"></i>
-                    <span class="nav-main-link-name">Invoices</span>
+        @role(['superAdmin', 'admin'])
+            <li class="nav-main-item">
+                <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="">
+                <i class="nav-main-link-icon fa fa-bar-chart"></i>
+                <span class="nav-main-link-name">School</span>
                 </a>
-                </li>
+                <ul class="nav-main-submenu">
+                    <li class="nav-main-item">
+                        <a class="nav-main-link" href="{{ url('/courses') }}">
+                            <span class="nav-main-link-name">Courses</span>
+                        </a>
+                        </li>
+                    </ul>
+                <ul class="nav-main-submenu">
                 <li class="nav-main-item">
-                    <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="">
-                        <i class="nav-main-link-icon fa fa-users"></i>
-                        <span class="nav-main-link-name">Instructors</span>
+                    <a class="nav-main-link" href="{{ url('/lessons') }}">
+                        <span class="nav-main-link-name">Lessons</span>
                     </a>
-                    <ul class="nav-main-submenu">
+                    </li>
+                </ul>
+            </li>
+            <li class="nav-main-item">
+                <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="">
+                <i class="nav-main-link-icon fa fa-file-invoice-dollar"></i>
+                <span class="nav-main-link-name">Expenses</span>
+                </a>
+                <ul class="nav-main-submenu">
                     <li class="nav-main-item">
-                        <a class="nav-main-link" href="{{ url('/instructors') }}">
-                            <span class="nav-main-link-name">All instructors</span>
+                        <a class="nav-main-link" href="{{ url('#') }}">
+                            <span class="nav-main-link-name">All expenses</span>
                         </a>
                         </li>
                     </ul>
-                    <ul class="nav-main-submenu">
-                    <li class="nav-main-item">
-                        <a class="nav-main-link" href="{{ url('/addinstructor') }}">
-                            <span class="nav-main-link-name">Add instructor</span>
-                        </a>
-                        </li>
-                    </ul>
-                </li>
-                @endcan
-
+                <ul class="nav-main-submenu">
+                <li class="nav-main-item">
+                    <a class="nav-main-link" href="{{ url('#') }}">
+                        <span class="nav-main-link-name">Add expense</span>
+                    </a>
+                    </li>
+                </ul>
+            </li>
+            <li>
+            <a class="nav-main-link" href="{{ url('/invoices') }}">
+                <i class="nav-main-link-icon fa fa-file-invoice-dollar"></i>
+                <span class="nav-main-link-name">Invoices</span>
+            </a>
+            </li>
+            <li class="nav-main-item">
+                <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="">
+                    <i class="nav-main-link-icon fa fa-users"></i>
+                    <span class="nav-main-link-name">Instructors</span>
+                </a>
+                <ul class="nav-main-submenu">
+                <li class="nav-main-item">
+                    <a class="nav-main-link" href="{{ url('/instructors') }}">
+                        <span class="nav-main-link-name">All instructors</span>
+                    </a>
+                    </li>
+                </ul>
+                <ul class="nav-main-submenu">
+                <li class="nav-main-item">
+                    <a class="nav-main-link" href="{{ url('/addinstructor') }}">
+                        <span class="nav-main-link-name">Add instructor</span>
+                    </a>
+                    </li>
+                </ul>
+            </li>
+            @endcan
             @role(['superAdmin'])
                 <li class="nav-main-item">
                     <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="">
