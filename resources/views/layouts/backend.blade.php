@@ -229,13 +229,6 @@
       @yield('content')
     </main>
     <!-- END Main Container -->
-
-    <div class="qrCodeScanner">
-        <qrcode-stream></qrcode-stream>
-        <qrcode-drop-zone></qrcode-drop-zone>
-        <qrcode-capture></qrcode-capture>
-    </div>
-
     <!-- Footer -->
     <footer id="page-footer" class="bg-body-light">
       <div class="content py-0">
