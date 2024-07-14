@@ -44,8 +44,8 @@
 
         else{
             Swal.fire(
-                'Invalid QR code',
-                'QR code doesn\'t belong to Darons documents...'
+                'Invalid Document',
+                'QR code doesn\'t belong to Daron\'s documents...'
             )
         }
 
