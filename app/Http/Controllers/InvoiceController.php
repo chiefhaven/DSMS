@@ -149,7 +149,6 @@ class InvoiceController extends Controller
 
         $student = Student::where('id', $student_id)->firstOrFail();
         $student->course_id = $courseId;
-
         $student->fleet_id = $fleet_id;
 
 
