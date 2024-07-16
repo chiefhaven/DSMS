@@ -125,15 +125,14 @@
     $('.delete-confirm').on('click', function (e) {
         e.preventDefault();
         var form = $(this).parents('form');
-        swal({
-            title: 'Are you sure you want to delete invoice',
-            text: 'This will un-enroll the student from Daron!',
-            icon: 'warning',
-            buttons: ["Cancel", "Yes!"],
-        }).then(function(isConfirm){
-                if(isConfirm){
-                        form.submit();
-                }
+        Swal.fire({
+            title: 'Delete Invoice',
+            text: 'This will un-enroll the student from the course, continue?',
+            icon: 'error',
+            confirmButtonText: 'Delete'
+        }).then((result) => {
+            if (result.isConfirmed)
+                form.submit();
         });
     });
 
