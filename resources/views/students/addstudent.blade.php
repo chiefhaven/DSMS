@@ -35,15 +35,15 @@
                   <i class="fa fa-fw fa-user-graduate text-muted me-1"></i> Student Information
                 </h2>
                 <div class="row push">
-                  <div class="col-lg-4">
+                  <div class="col-lg-3">
                     <p class="text-muted">
                       Student details
                     </p>
                   </div>
-                  <div class="col-lg-8 col-xl-5">
+                  <div class="col-lg-8 col-xl-8">
                     <div class="row">
                       <div class="col-4 form-floating mb-4">
-                        <input type="text" class="form-control @error('fname') is-invalid @enderror" id="fname" name="fname" placeholder="Firt name">
+                        <input type="text" class="form-control @error('fname') is-invalid @enderror" id="fname" name="fname" placeholder="Firt name" required>
                         <label class="form-label" for="fname">First name</label>
                       </div>
                       <div class="col-4 form-floating mb-4">
@@ -52,7 +52,7 @@
                       </div>
                       <div class="col-4 form-floating mb-4">
                         <input type="text" class="form-control @error('sname') is-invalid @enderror" id="sname" name="sname" placeholder="Sirname" required>
-                        <label class="form-label" for="sname">Sir name</label>
+                        <label class="form-label" for="sname">Last name</label>
                       </div>
                     </div>
                     <div class="mb-4 form-floating">
