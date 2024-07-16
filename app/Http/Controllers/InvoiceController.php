@@ -319,10 +319,10 @@ class InvoiceController extends Controller
 
         try{
             $student->course_id = Null;
+            $student->fleet_id = Null;
             Invoice::find($id)->delete();
             $student->save();
             Alert::toast('Invoice deleted', 'success');
-            $queryStatus ="Success";
         }
 
         catch(Exception $e){
