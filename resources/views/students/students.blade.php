@@ -157,8 +157,12 @@
                                 <td>{{$students->created_at->format('j F, Y')}}</td>
                                 @role(['superAdmin'])
                                     <td>
-                                        {{$students->fleet->car_brand_model}} - <small>{{$students->fleet->car_registration_number}}</small>
-
+                                        @if(isset($student->fleet->car_brand_model))
+                                            {{$student->fleet->car_registration_number}}
+                                        <div style="font-size: 10px">{{$student->fleet->car_brand_model}}</div>
+                                        @else
+                                            Not assigned yet
+                                        @endif
                                     </td>
                                 @endrole
                                 <td class="text-center">
