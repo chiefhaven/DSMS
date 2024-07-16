@@ -56,7 +56,6 @@
                   <table class="table table-bordered table-striped table-vcenter">
                       <thead class="thead-dark">
                           <tr>
-
                             <th class="text-center" style="width: 100px;">Actions</th>
                             <th>Name</th>
                             <th style="min-width: 15rem;">Course Enrolled</th>
@@ -283,15 +282,14 @@
         $('.delete-confirm').on('click', function (e) {
             e.preventDefault();
             var form = $(this).parents('form');
-            swal({
-                title: 'Delete student',
-                text: 'Are you sure you want to delete student',
-                icon: 'warning',
-                buttons: ["Cancel", "Yes!"],
-            }).then(function(isConfirm){
-                    if(isConfirm){
-                            form.submit();
-                    }
+            Swal.fire({
+                title: 'Delete Student',
+                text: 'Do you want to delete this student?',
+                icon: 'error',
+                confirmButtonText: 'Yes'
+            }).then((result) => {
+                if (result.isConfirmed)
+                    form.submit();
             });
         });
 
