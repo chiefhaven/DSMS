@@ -157,9 +157,9 @@
                                 <td>{{$students->created_at->format('j F, Y')}}</td>
                                 @role(['superAdmin'])
                                     <td>
-                                        @if(isset($student->fleet->car_brand_model))
-                                            {{$student->fleet->car_registration_number}}
-                                        <div style="font-size: 10px">{{$student->fleet->car_brand_model}}</div>
+                                        @if(isset($students->fleet->car_brand_model))
+                                            {{$students->fleet->car_registration_number}}
+                                        <div style="font-size: 10px">{{$students->fleet->car_brand_model}}</div>
                                         @else
                                             Not assigned yet
                                         @endif
