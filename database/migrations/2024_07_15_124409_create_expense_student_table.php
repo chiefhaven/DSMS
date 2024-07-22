@@ -15,8 +15,8 @@ return new class extends Migration
     {
         Schema::create('expense_student', function (Blueprint $table) {
             $table->id();
-            $table->uuid('expense_id', 255);
-            $table->uuid('student_id', 255);
+            $table->uuid('expense_id');
+            $table->uuid('student_id');
             $table->enum('expense_type', ['TRN', 'Highway Code I', 'Highway Code II','Road Test']);
 
             $table->foreign('expense_id')->references('id')
