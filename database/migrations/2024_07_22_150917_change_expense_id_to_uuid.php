@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('expense', function (Blueprint $table) {
+        Schema::table('expenses', function (Blueprint $table) {
             $table->uuid('id')->primary();
         });
     }
@@ -25,7 +25,7 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('expense', function (Blueprint $table) {
+        Schema::table('expenses', function (Blueprint $table) {
             //
         });
     }
