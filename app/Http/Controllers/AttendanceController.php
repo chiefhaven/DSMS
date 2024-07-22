@@ -118,7 +118,7 @@ class AttendanceController extends Controller
         ], $messages);
 
         $post = $request->All();
-        $student_id = havenUtils::studentID($post['student']);
+        $student_id = havenUtils::student($post['student'])->id;
 
         //Check course days and compare with attendance
         $courseID = Invoice::where('student_id', $student_id)->firstOrFail()->course_id;
@@ -233,7 +233,7 @@ class AttendanceController extends Controller
 
         $post = $request->All();
 
-        $student_id = havenUtils::studentID($post['student']);
+        $student_id = havenUtils::student($post['student'])->id;
         $lesson_id = havenUtils::lessonID($post['lesson']);
 
         $attendance = Attendance::find($post['attendance_id']);

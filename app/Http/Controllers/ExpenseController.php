@@ -5,17 +5,29 @@ namespace App\Http\Controllers;
 use App\Models\expense;
 use App\Http\Requests\StoreexpenseRequest;
 use App\Http\Requests\UpdateexpenseRequest;
+use App\Models\Setting;
+use Auth;
+use PDF;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class ExpenseController extends Controller
 {
-    /**
+    protected $setting;
+
+    public function __construct()
+    {
+        $this->middleware(['role:superAdmin'], ['role:admin']);
+        $this->setting = Setting::find(1);
+    }/**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
     public function index()
     {
-        //
+        $expenses = Expense::with('Student')->orderBy('created_at', 'DESC')->paginate(10);
+
+        return view('expenses.expenses', compact('expenses'));
     }
 
     /**
@@ -25,7 +37,7 @@ class ExpenseController extends Controller
      */
     public function create()
     {
-        //
+        return view('expenses.addexpense');
     }
 
     /**
@@ -36,7 +48,46 @@ class ExpenseController extends Controller
      */
     public function store(StoreexpenseRequest $request)
     {
-        //
+        $messages = [
+            'expenseGroupName.required' => 'Expense Group Name is required',
+            'expenseAmount.required'   => 'Expense amount is required',
+            'paymentMethod.required' => 'Payment method is required',
+        ];
+
+        // Validate the request
+        $this->validate($request, [
+            'expenseGroupName'  =>'required',
+            'expenseAmount'   =>'required',
+            'paymentMethod'  =>'required',
+
+        ], $messages);
+        
+        $post = $request->all();
+
+        $students = $post['students'];
+
+        $expense = new expense();
+        $expense->group = $post['expenseGroupName'];
+        $expense->group_type = $post['expenseGroupType'];
+        $expense->description = $post['expenseDescription'];
+        $expense->amount = $post['expenseAmount'];
+        $expense->payment_method_id = $post['paymentMethod'];
+        $expense->added_by = Auth::user()->administrator_id;
+
+        $expense->save();
+        //Get student id
+        foreach ($students as $data) {
+            $expenseId = Expense::orderBy('created_at', 'desc')->first()->id;
+            $student = havenUtils::student($data['studentName']);
+            $student->expense()->attach($expenseId, ['expense_type' => $data['expenseType']]);
+        }
+
+        if(!$expense->save()){
+            return false;
+        }
+
+        $data = ['message' => 'Expense added successifully'];
+        return response()->json([$data], 200);
     }
 
     /**
@@ -81,6 +132,18 @@ class ExpenseController extends Controller
      */
     public function destroy(expense $expense)
     {
-        //
+        $expense->delete();
+        Alert::toast('Expense deleted', 'success');
+        return redirect('/expenses');
+    }
+
+    public function download(expense $expense){
+
+        $setting = $this->setting;
+        $date = date('j F, Y');
+        $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/e8704ed2-d90e-41ca-9143-8ytf6/'.$expense);
+
+        $pdf = PDF::loadView('pdf_templates.expense', compact('expense', 'qrCode','setting', 'date'));
+        return $pdf->download('Daron Driving School-'.$expense->group.' Expense.pdf');
     }
 }

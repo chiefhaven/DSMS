@@ -64,4 +64,19 @@ class Student extends Model
     {
         return $this->belongsToMany(Expense::class);
     }
+
+    //Delete relationships!
+    protected static function booted () {
+        static::deleting(function(Student $student) {
+             $student->attendance()->delete();
+        });
+    }
+
+    public function scopeInvoice($query, $invoice)
+    {
+        if ($invoice) {
+           return $query->whereInvoice($invoice);
+        }
+        return $query;
+    }
 }

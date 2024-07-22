@@ -21,7 +21,7 @@ use RealRashid\SweetAlert\Facades\Alert;
 
 class havenUtils extends Controller
 {
-    static function studentID($studentName){
+    static function student($studentName){
 
         $student_name = explode(" ", $studentName);
         $studentnameCount = count($student_name);
@@ -32,7 +32,7 @@ class havenUtils extends Controller
 
             if(!is_null($student)){
 
-                return $student->id;
+                return $student;
             }
 
             else{
@@ -47,7 +47,7 @@ class havenUtils extends Controller
 
             if(!is_null($student)){
 
-                return $student->id;
+                return $student;
             }
 
             else{

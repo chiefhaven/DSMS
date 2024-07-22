@@ -240,9 +240,9 @@ class StudentController extends Controller
      * @param  \App\Models\Student  $student
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(student $student)
     {
-        $invoicelist = Invoice::where('student_id', $id)->get();
+        $invoicelist = Invoice::where('student_id', $student->id)->get();
         $invoiceCount = $invoicelist->count();
 
         if($invoiceCount >= 1){
@@ -252,15 +252,13 @@ class StudentController extends Controller
 
         else{
 
-            Student::find($id)->delete();
-            User::where('student_id', $id)->delete();
-            Attendance::where('student_id', $id)->delete();
+            $student->delete();
 
             Alert::toast('Student deleted', 'success');
         }
 
 
-        return redirect('/students');
+        return back();
     }
 
 

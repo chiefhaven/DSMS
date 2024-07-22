@@ -100,7 +100,7 @@ class InvoiceController extends Controller
             $discount = 0;
         }
 
-        $student_id = havenUtils::studentID($post['student']);
+        $student_id = havenUtils::student($post['student'])->id;
         $fleet_id = havenUtils::fleetID($post['fleet']);
         $invoice_total = havenUtils::invoiceDiscountedPrice($post['course'], $discount);
         $invoice_balance = havenUtils::invoiceBalance($post['paid_amount'], $invoice_total);
@@ -273,7 +273,7 @@ class InvoiceController extends Controller
         }
 
 
-        $student_id = havenUtils::studentID($post['student']);
+        $student_id = havenUtils::student($post['student'])->id;
         $fleet_id = havenUtils::fleetID($post['fleet']);
         $invoice_total = havenUtils::invoiceDiscountedPrice($post['course'], $discount);
         $courseId = havenUtils::courseID($post['course']);
@@ -310,16 +310,16 @@ class InvoiceController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Invoice $Invoice)
     {
-        $student_id = Invoice::find($id)->student_id;
+        $student_id = $Invoice->student_id;
         $student = Student::where('id', $student_id)->firstOrFail();
         Payment::destroy('student_id', $student_id);
 
         try{
             $student->course_id = Null;
             $student->fleet_id = Null;
-            Invoice::find($id)->delete();
+            $Invoice->delete();
             $student->save();
             Alert::toast('Invoice deleted', 'success');
         }
@@ -327,7 +327,7 @@ class InvoiceController extends Controller
         catch(Exception $e){
             Alert::toast('Invoice not deleted, somethingwent wrong', 'danger');
         }
-        return redirect('/invoices');
+        return back();
     }
 
     public function invoicePDF($id)

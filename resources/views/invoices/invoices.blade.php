@@ -67,7 +67,7 @@
                                         <a class="dropdown-item" href="{{ url('/invoice-pdf', $invoice->invoice_number) }}">
                                             <i class="si si-printer me-1"></i> Print Invoice
                                         </a>
-                                        <form method="POST" action="{{ url('/invoice-delete', $invoice->id) }}">
+                                        <form method="POST" action="{{ url('/invoice-delete', $invoice) }}">
                                             {{ csrf_field() }}
                                             {{ method_field('DELETE') }}
                                                 <button class="dropdown-item delete-confirm" type="submit">
@@ -84,7 +84,7 @@
                           <td class="font-w600">
                               <a href="{{ url('/view-invoice', $invoice->invoice_number) }}">{{$invoice->invoice_number}}</a>
                           </td>
-                          <td class="text-capitalize">
+                          <td class="text-uppercase">
                             {{$invoice->student->fname}} <b>{{$invoice->student->sname}}</b>
                           </td>
                           <td>

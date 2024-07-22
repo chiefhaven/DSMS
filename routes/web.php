@@ -87,7 +87,7 @@ Route::get('/invoice-pdf/{id}', [InvoiceController::class, 'invoicePDF'])->middl
 Route::get('/addinvoice/{id}', [InvoiceController::class, 'create'])->middleware('auth')->name('addinvoices');
 Route::post('/store-invoice', [InvoiceController::class, 'store'])->middleware('auth')->name('store-invoice');
 Route::post('/edit-invoice/{id}', [InvoiceController::class, 'edit'])->middleware('auth')->name('edit-invoices');
-Route::delete('/invoice-delete/{id}', [InvoiceController::class, 'destroy'])->middleware('auth')->name('invoice-delete');
+Route::delete('/invoice-delete/{invoice}', [InvoiceController::class, 'destroy'])->middleware('auth')->name('invoice-delete');
 Route::post('/invoice-update', [InvoiceController::class, 'update'])->middleware('auth')->name('invoice-update');
 Route::get('/search-invoice', [InvoiceController::class, 'search'])->middleware('auth')->name('searchInvoice');
 
@@ -135,7 +135,10 @@ Route::get('/addexpense', [ExpenseController::class, 'create'])->middleware('aut
 Route::post('/storeexpense', [ExpenseController::class, 'store'])->middleware('auth')->name('storeexpense');
 Route::post('/editexpense/{id}', [ExpenseController::class, 'edit'])->middleware('auth')->name('editexpense');
 Route::post('/updateexpense', [ExpenseController::class, 'update'])->middleware('auth')->name('updateexpense');
-Route::delete('/deleteexpense/{id}', [ExpenseController::class, 'destroy'])->middleware('auth')->name('deleteexpense');
+Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->middleware('auth')->name('delete-expense');
+Route::get('/expensedownload/{expense}', [ExpenseController::class, 'download'])->middleware('auth')->name('downloadexpense');
+Route::get('/search-expense', [ExpenseController::class, 'searchExpense'])->name('searchExpense');
+
 
 
 Route::get('/dashboard', [HomeController::class,'index'])->middleware(['auth'])->name('dashboard');

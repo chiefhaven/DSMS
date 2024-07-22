@@ -64,14 +64,14 @@
                 </a>
                 <ul class="nav-main-submenu">
                     <li class="nav-main-item">
-                        <a class="nav-main-link" href="{{ url('#') }}">
+                        <a class="nav-main-link" href="{{ url('/expenses') }}">
                             <span class="nav-main-link-name">All expenses</span>
                         </a>
                         </li>
                     </ul>
                 <ul class="nav-main-submenu">
                 <li class="nav-main-item">
-                    <a class="nav-main-link" href="{{ url('#') }}">
+                    <a class="nav-main-link" href="{{ url('/addexpense') }}">
                         <span class="nav-main-link-name">Add expense</span>
                     </a>
                     </li>

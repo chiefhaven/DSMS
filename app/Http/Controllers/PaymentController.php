@@ -79,7 +79,7 @@ class PaymentController extends Controller
             $payment->transaction_id = Str::random(14);
             $payment->student_id = $student_id;
             $payment->entered_by = Auth::user()->name;
-            
+
 
             $invoice = Invoice::where('invoice_number', $post['invoice_number'])->firstOrFail();
             $invoice->invoice_amount_paid = $invoice_amount_paid;
@@ -137,7 +137,7 @@ class PaymentController extends Controller
      */
     public function destroy($id)
     {
-     
+
         $studentPayment = Payment::find($id);
         $invoice = Invoice::where('student_id', $studentPayment->student_id)->first();
 
