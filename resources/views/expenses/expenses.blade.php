@@ -40,15 +40,17 @@
             </div>
             </div>
                 <div class="m-4 table-responsive">
-                @if( !$expenses->isEmpty())
+                @if(!$expenses->isEmpty())
                   <table class="table table-bordered table-striped table-vcenter">
                       <thead class="thead-dark">
                           <tr>
-
                             <th class="text-center" style="width: 100px;">Actions</th>
-                            <th style="min-width: 6rem;">Group</th>
+                            <th style="min-width: 14rem;">Group</th>
+                            <th style="min-width: 7rem;">Type</th>
                             <th style="min-width: 10rem;">Description</th>
                             <th>Amount</th>
+                            <th style="min-width: 10rem;">Added by</th>
+                            <th style="min-width: 10rem;">Approved by</th>
                             <th style="min-width: 10rem;">Date Paid</th>
                             <th style="min-width: 10rem;">Payment method</th>
                           </tr>
@@ -86,9 +88,12 @@
                                 </td>
                                 <td>
                                     {{$expense->group}}<br>
-                                <div class="sm-text">
-                                    {{$expense->student->count()}} Students paid for!
-                                </div>
+                                    <div class="sm-text" style="font-size: 12px">
+                                        {{$expense->student->count()}} Students paid for!
+                                    </div>
+                                </td>
+                                <td>
+                                    {{$expense->group_type}}
                                 </td>
                                 <td>
                                     {{$expense->description}}
@@ -97,10 +102,16 @@
                                     K{{number_format($expense->amount)}}
                                 </td>
                                 <td>
-                                    {{$expense->created_at->format('j F, Y')}}
+                                    -
                                 </td>
                                 <td>
                                     {{$expense->payment_method_id}}
+                                </td>
+                                <td>
+                                    {{$expense->created_at->format('j F, Y')}}
+                                </td>
+                                <td>
+                                    Not yet approved
                                 </td>
                             </tr>
                         @endforeach
