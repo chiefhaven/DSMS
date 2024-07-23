@@ -99,7 +99,7 @@
                                                 <button class="btn" type="submit">Edit</button>
                                             </form>
                                             @role(['superAdmin'])
-                                            <form class="dropdown-item nav-main-link" method="POST" action="{{ url('student-delete', $students->id) }}">
+                                            <form class="dropdown-item nav-main-link" method="POST" action="{{ url('student-delete', $students) }}">
                                                 {{ csrf_field() }}
                                                 {{ method_field('DELETE') }}
                                                 <i class="nav-main-link-icon fa fa-trash"></i>

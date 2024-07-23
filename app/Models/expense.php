@@ -16,6 +16,11 @@ class expense extends Model
         return $this->belongsToMany(Student::class);
     }
 
+    public function Administrator()
+    {
+        return $this->belongsTo(Administrator::class, 'added_by');
+    }
+
     //delete relationships!
     protected static function booted () {
         static::deleting(function(Expense $expense) {

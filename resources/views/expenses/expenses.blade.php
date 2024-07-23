@@ -49,7 +49,7 @@
                             <th style="min-width: 7rem;">Type</th>
                             <th style="min-width: 10rem;">Description</th>
                             <th>Amount</th>
-                            <th style="min-width: 10rem;">Added by</th>
+                            <th style="min-width: 10rem;">Posted by</th>
                             <th style="min-width: 10rem;">Approved by</th>
                             <th style="min-width: 10rem;">Date Paid</th>
                             <th style="min-width: 10rem;">Payment method</th>
@@ -102,7 +102,7 @@
                                     K{{number_format($expense->amount)}}
                                 </td>
                                 <td>
-                                    -
+                                    {{$expense->administrator->fname}} {{$expense->administrator->sname}}
                                 </td>
                                 <td>
                                     {{$expense->payment_method_id}}

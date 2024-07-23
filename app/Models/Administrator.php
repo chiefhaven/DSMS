@@ -15,4 +15,9 @@ class Administrator extends Model
     {
        return $this->hasOne(User::class);
     }
+
+    public function Expense()
+    {
+       return $this->hasMany(Expense::class);
+    }
 }

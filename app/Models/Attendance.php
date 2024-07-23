@@ -30,4 +30,12 @@ class Attendance extends Model
     {
         return $this->belongsTo(Instructor::class);
     }
+
+    public function scopeStudent($query, $student)
+    {
+        if ($student) {
+           return $query->whereNotNull('course_id');
+        }
+        return $query;
+    }
 }

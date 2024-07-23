@@ -47,7 +47,7 @@ Route::get('/viewstudent/{id}', [StudentController::class, 'show'])->middleware(
 Route::get('/addstudent', [StudentController::class, 'create'])->middleware('auth')->name('addstudent');
 Route::post('/storestudent', [StudentController::class, 'store'])->middleware('auth')->name('storestudents');
 Route::post('/edit-student/{id}', [StudentController::class, 'edit'])->middleware('auth')->name('editstudent');
-Route::delete('/student-delete/{id}', [StudentController::class, 'destroy'])->middleware('auth')->name('students_delete');
+Route::delete('/student-delete/{student}', [StudentController::class, 'destroy'])->middleware('auth')->name('students-delete');
 Route::post('/student-update', [StudentController::class, 'update'])->middleware('auth')->name('editstudent');
 Route::post('/trafic-card-reference-letter/{id}', [StudentController::class, 'trafficCardReferenceLetter'])->middleware('auth')->name('student_traffic_card');
 Route::post('/aptitude-test-reference-letter/{id}', [StudentController::class, 'aptitudeTestReferenceLetter'])->middleware('auth')->name('student_aptitude_test');
