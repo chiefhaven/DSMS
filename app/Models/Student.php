@@ -72,10 +72,10 @@ class Student extends Model
         });
     }
 
-    public function scopeInvoice($query, $invoice)
+    public function scopeCourse($query, $course)
     {
-        if ($invoice) {
-           return $query->whereInvoice($invoice);
+        if ($course) {
+           return $query->whereInvoice($course);
         }
         return $query;
     }
