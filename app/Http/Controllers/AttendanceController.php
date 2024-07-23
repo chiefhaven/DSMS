@@ -6,7 +6,6 @@ use App\Models\Attendance;
 use App\Models\Invoice;
 use App\Models\Lesson;
 use App\Models\Student;
-use App\Models\Instructor;
 use App\Http\Requests\StoreAttendanceRequest;
 use App\Http\Requests\UpdateAttendanceRequest;
 use App\Models\Setting;
