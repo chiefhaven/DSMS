@@ -138,6 +138,7 @@ Route::post('/updateexpense', [ExpenseController::class, 'update'])->middleware(
 Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->middleware('auth')->name('delete-expense');
 Route::get('/expensedownload/{expense}', [ExpenseController::class, 'download'])->middleware('auth')->name('downloadexpense');
 Route::get('/search-expense', [ExpenseController::class, 'searchExpense'])->name('searchExpense');
+Route::get('/expense-student-search', [ExpenseController::class, 'autocompletestudentSearch'])->name('expense-student-search');
 
 
 
