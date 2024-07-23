@@ -211,7 +211,7 @@
          }
 
         function studentSearch() {
-            var path = "{{ route('attendance-student-search') }}";
+            var path = "{{ route('expense-student-search') }}";
             $('#student').typeahead({
                 source:  function (query, process) {
                 return $.get(path, { query: query }, function (data) {
