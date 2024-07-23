@@ -48,7 +48,6 @@
             color: ;
             white-space: nowrap;
             font-weight: normal;
-            text-align: center;
         }
 
         tbody {
@@ -56,11 +55,12 @@
             color: #000000;
             white-space: nowrap;
             font-weight: normal;
-            text-align: center;
+            text-align: left;
         }
 
         td {
             padding: 0px;
+            text-align: left;
         }
 
         .invoice-td {
