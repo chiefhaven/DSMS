@@ -51,27 +51,26 @@ class ExpenseController extends Controller
         $messages = [
             'expenseGroupName.required' => 'Expense Group Name is required',
             'expenseAmount.required'   => 'Expense amount is required',
-            'paymentMethod.required' => 'Payment method is required',
         ];
 
         // Validate the request
         $this->validate($request, [
             'expenseGroupName'  =>'required',
             'expenseAmount'   =>'required',
-            'paymentMethod'  =>'required',
 
         ], $messages);
-        
+
         $post = $request->all();
 
         $students = $post['students'];
+
+        $studentsCount = count($students);
 
         $expense = new expense();
         $expense->group = $post['expenseGroupName'];
         $expense->group_type = $post['expenseGroupType'];
         $expense->description = $post['expenseDescription'];
-        $expense->amount = $post['expenseAmount'];
-        $expense->payment_method_id = $post['paymentMethod'];
+        $expense->amount = $studentsCount * $post['expenseAmount'];
         $expense->added_by = Auth::user()->administrator_id;
 
         $expense->save();
@@ -86,7 +85,7 @@ class ExpenseController extends Controller
             return false;
         }
 
-        $data = ['message' => 'Expense added successifully'];
+        $data = ['message' => 'Expense added successifuly'];
         return response()->json([$data], 200);
     }
 
@@ -141,9 +140,15 @@ class ExpenseController extends Controller
 
         $setting = $this->setting;
         $date = date('j F, Y');
-        $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/e8704ed2-d90e-41ca-9143-8ytf6/'.$expense);
+        $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/e8704ed2-d90e-41ca-9143-8ytf6/'.$expense->id);
 
-        $pdf = PDF::loadView('pdf_templates.expense', compact('expense', 'qrCode','setting', 'date'));
-        return $pdf->download('Daron Driving School-'.$expense->group.' Expense.pdf');
+        $template = 'pdf_templates.theoryExpense';
+
+        if($expense->group_type == 'Road Test'){
+            $template = 'pdf_templates.roadTestExpense';
+        }
+
+        $pdf = PDF::loadView($template, compact('expense', 'qrCode','setting', 'date'));
+        return $pdf->download('Daron Driving School-'.$expense->group.'-'.$expense->group_type.' Expense.pdf');
     }
 }
