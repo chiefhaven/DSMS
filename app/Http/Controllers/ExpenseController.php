@@ -6,7 +6,9 @@ use App\Models\expense;
 use App\Http\Requests\StoreexpenseRequest;
 use App\Http\Requests\UpdateexpenseRequest;
 use App\Models\Setting;
+use App\Models\Student;
 use Auth;
+use Illuminate\Http\Request;
 use PDF;
 use RealRashid\SweetAlert\Facades\Alert;
 
@@ -150,5 +152,26 @@ class ExpenseController extends Controller
 
         $pdf = PDF::loadView($template, compact('expense', 'qrCode','setting', 'date'));
         return $pdf->download('Daron Driving School-'.$expense->group.'-'.$expense->group_type.' Expense.pdf');
+    }
+
+    public function autocompletestudentSearch(Request $request)
+    {
+        $datas = \DB::table('students')
+            ->where('course_id', '!=', '')
+            ->whereNotNull('course_id')
+            ->where(function($query) use ($request) {
+            $query->where('fname', 'LIKE', "%{$request->student}%")
+                  ->orWhere('mname', 'LIKE', "%{$request->student}%")
+                  ->orWhere('sname', 'LIKE', "%{$request->student}%");
+        })
+        ->get();
+
+        $dataModified = array();
+
+        foreach ($datas as $data){
+           $dataModified[] = $data->fname.' '.$data->mname.' '.$data->sname;
+         }
+
+        return response()->json($dataModified);
     }
 }
