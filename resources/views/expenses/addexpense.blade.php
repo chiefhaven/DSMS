@@ -43,16 +43,16 @@
                     </div>
                     <div class="col-12 form-floating mb-4">
                         <input type="number" class="form-control" id="amount" name="amount" v-model="state.amount" value="">
-                        <label for="amount">Amount</label>
+                        <label for="amount">Amount per student</label>
                     </div>
-                    <div class="col-12 form-floating mb-4">
+                    {{--  <div class="col-12 form-floating mb-4">
                         <select class="form-select" id="payment_method" name="payment_method" v-model="state.paymentMethod">
                             <option v-for="option in paymentMethodOptions" :value="option.value">
                                 @{{ option.text }}
                             </option>
                         </select>
                         <label for="payment_method">Payment Method</label>
-                    </div>
+                    </div>  --}}
             </form>
             </div>
         </div>
@@ -188,7 +188,7 @@
                 return false
             }
 
-            axios.post('/storeexpense', {students:state.value.selectedStudents, expenseGroupName:state.value.expenseGroupName, expenseDescription:state.value.expenseDescription, expenseGroupType:state.value.expenseGroupType, expenseAmount: state.value.amount, paymentMethod: state.value.paymentMethod}).then(response => {
+            axios.post('/storeexpense', {students:state.value.selectedStudents, expenseGroupName:state.value.expenseGroupName, expenseDescription:state.value.expenseDescription, expenseGroupType:state.value.expenseGroupType, expenseAmount: state.value.amount}).then(response => {
                 //console.log(response.data)
                 if(response.status==200){
                     notification('Expense added succesifully','success')
