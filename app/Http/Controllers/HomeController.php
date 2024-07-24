@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\expense;
 use Illuminate\Http\Request;
 use App\Models\Invoice;
 use App\Models\Student;
@@ -39,6 +40,7 @@ class HomeController extends Controller
             $earningsTotal = Invoice::whereDate('created_at', Carbon::today())->sum('invoice_total');
             $invoiceBalances = Invoice::whereDate('created_at', Carbon::today())->sum('invoice_balance');
             $earningsTotal = Invoice::whereDate('created_at', Carbon::today())->sum('invoice_total');
+            $expensesTotal = Expense::whereDate('created_at', Carbon::today())->sum('amount');
             $time = "today";
         }
 
@@ -48,6 +50,7 @@ class HomeController extends Controller
             $earningsTotal = Invoice::whereMonth('created_at', Carbon::now()->subDay()->day)->sum('invoice_total');
             $invoiceBalances = Invoice::whereMonth('created_at', Carbon::now()->subDay()->day)->sum('invoice_balance');
             $earningsTotal = Invoice::whereMonth('created_at', Carbon::now()->subDay()->day)->sum('invoice_total');
+            $expensesTotal = Expense::whereMonth('created_at', Carbon::now()->subDay()->day)->sum('amount');
             $time = "yesterday";
         }
 
@@ -57,6 +60,7 @@ class HomeController extends Controller
             $earningsTotal = Invoice::whereMonth('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->sum('invoice_total');
             $invoiceBalances = Invoice::whereMonth('created_at',[Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->sum('invoice_balance');
             $earningsTotal = Invoice::whereMonth('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->sum('invoice_total');
+            $expensesTotal = Expense::whereMonth('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->sum('amount');
             $time = "thisweek";
         }
 
@@ -66,6 +70,7 @@ class HomeController extends Controller
             $earningsTotal = Invoice::whereMonth('created_at', Carbon::now()->month)->sum('invoice_total');
             $invoiceBalances = Invoice::whereMonth('created_at', Carbon::now()->month)->sum('invoice_balance');
             $earningsTotal = Invoice::whereMonth('created_at', Carbon::now()->month)->sum('invoice_total');
+            $expensesTotal = Expense::whereMonth('created_at', Carbon::now()->month)->sum('amount');
             $time = "thismonth";
         }
 
@@ -110,6 +115,7 @@ class HomeController extends Controller
             $earningsTotal = Invoice::whereDate('created_at', Carbon::today())->sum('invoice_total');
             $invoiceBalances = Invoice::whereDate('created_at', Carbon::today())->sum('invoice_balance');
             $earningsTotal = Invoice::whereDate('created_at', Carbon::today())->sum('invoice_total');
+            $expensesTotal = Expense::whereDate('created_at', Carbon::today())->sum('amount');
             $time = "today";
         }
 
@@ -119,6 +125,6 @@ class HomeController extends Controller
         $student = Student::with('Invoice','User')->orderBy('created_at', 'DESC')->take(15)->get();
         $invoiceCount = $invoice->count();
 
-        return view::make('dashboard', compact(['invoice', 'student', 'invoiceBalances', 'studentCount', 'earningsTotal', 'time']));
+        return view::make('dashboard', compact(['expensesTotal','invoice', 'student', 'invoiceBalances', 'studentCount', 'earningsTotal', 'time']));
     }
 }
