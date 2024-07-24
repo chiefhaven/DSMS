@@ -19,7 +19,7 @@
             <th class="invoice-td" style="text-align:left !important">Student name</th>
             <th class="invoice-td" style="text-align:left !important">Class</th>
             <th class="invoice-td">Highway code I</th>
-            <th class="invoice-td">Highway code I</th>
+            <th class="invoice-td">Highway code II</th>
         </thead>
         <tbody>
             @foreach ($expense->students as $student)
