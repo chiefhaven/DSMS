@@ -93,7 +93,7 @@
                                             </form>
                                         @endcan
                                         @role(['superAdmin', 'admin'])
-                                            <form method="POST" class="dropdown-item nav-main-link" action="{{ url('/edit-student', $students->id) }}">
+                                            <form method="POST" class="dropdown-item nav-main-link" action="{{ url('/edit-student', $students) }}">
                                                 {{ csrf_field() }}
                                                 <i class="nav-main-link-icon fa fa-pencil"></i>
                                                 <button class="btn" type="submit">Edit</button>

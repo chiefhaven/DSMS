@@ -159,9 +159,9 @@ class StudentController extends Controller
      * @param  \App\Models\Student  $student
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(student $student)
     {
-        $student = Student::with('User')->find(54);
+        $student = Student::with('User')->find($student->id);
 
         if(!isset($student) || !Auth::user()->hasRole('superAdmin')){
             abort(404);
