@@ -71,6 +71,7 @@
                 </div>
             </div>
         </div>
+        <a href="/expenses">
         <div class="col-md-4 col-xl-4">
             <div class="block block-rounded block-link-shadow bg-warning">
                 <div class="block-content block-content-full d-flex align-items-center justify-content-between">
@@ -79,7 +80,7 @@
                     </div>
                     <div class="mr-3">
                         <p class="text-white font-size-h3 font-w300 mb-0">
-                            Coming soon
+                            K{{number_format($expensesTotal, 2)}}
                         </p>
                         <p class="text-white-75 mb-0">
                             Expenses
@@ -88,6 +89,7 @@
                 </div>
             </div>
         </div>
+        </a>
     </div>
 
     <div class="row items-push mt-4">
