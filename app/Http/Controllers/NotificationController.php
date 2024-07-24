@@ -49,13 +49,13 @@ class NotificationController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function sendSMS($id)
+    public function sendSMS(student $student)
     {
         if (! $this->middleware(['role:admin'])) {
             abort(403, 'Unauthorized action.');
         }
 
-        $student = Student::with('User', 'Invoice')->where('id', $id)->firstOrFail();
+        $student = Student::with('User', 'Invoice')->find($student->id);
         $total = number_format($student->invoice->invoice_total, 2);
         $paid = number_format($student->invoice->invoice_amount_paid, 2);
         $balance = number_format($student->invoice->invoice_balance, 2);
