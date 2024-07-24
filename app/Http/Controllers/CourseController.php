@@ -8,6 +8,8 @@ use App\Models\Student;
 use App\Models\Invoice;
 use Illuminate\Http\Request;
 use RealRashid\SweetAlert\Facades\Alert;
+use App\Enums\ServerStatus;
+use Illuminate\Validation\Rule;
 
 class CourseController extends Controller
 {
@@ -58,6 +60,7 @@ class CourseController extends Controller
             'course_practicals.numeric' => 'Practicals number of days must be a number',
             'course_theory.numeric' => 'Theory number of days must be a number',
             'course_theory.required'   => 'Theory number of days is required',
+            'course_code.required'   => 'Course Code is required',
         ];
 
         // Validate the request
@@ -66,7 +69,8 @@ class CourseController extends Controller
             'course_description' =>'required',
             'course_price'   =>'required | numeric|min:0',
             'course_practicals' =>'required | numeric|min:0',
-            'course_theory' =>'required | numeric|min:0'
+            'course_theory' =>'required | numeric|min:0',
+            'course_code' =>'required', [Rule::enum('B','C1')]
 
         ], $messages);
 
@@ -75,6 +79,7 @@ class CourseController extends Controller
         $course = new Course;
 
         $course->name = $post['course_name'];
+        $course->class = $post['course_code'];
         $course->short_description = $post['course_description'];
         $course->price = $post['course_price'];
         $course->duration = $post['course_practicals'] + $post['course_theory'];
@@ -144,6 +149,7 @@ class CourseController extends Controller
         $course = Course::find($post['course_id']);
 
         $course->name = $post['course_name'];
+        $course->class = $post['course_code'];
         $course->short_description = $post['course_description'];
         $course->price = $post['course_price'];
         $course->duration = $post['course_practicals'] + $post['course_theory'];
