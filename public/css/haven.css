@@ -34,3 +34,16 @@
     font-size: 12em;
     line-height: 1em;
 }
+
+.fa-check:before {
+    content: "\f00c";
+  }
+
+.fa {
+    display: inline-block;
+    font: normal normal normal 14px/1 FontAwesome;
+    font-size: inherit;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
