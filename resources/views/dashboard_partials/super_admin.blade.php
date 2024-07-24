@@ -38,10 +38,10 @@
             </div>
         </div>
         <div class="col-md-4 col-xl-4">
-            <div class="block block-rounded block-link-shadow bg-danger">
+            <div class="block block-rounded block-link-shadow bg-warning">
                 <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                     <div>
-                        <i class="fa fa-2x fa-arrow-alt-circle-up text-primary-lighter"></i>
+                        <i class="fa fa-2x fa-arrow-alt-circle-up text-success-light"></i>
                     </div>
                     <div class="ml-3 text-right">
                         <p class="text-white font-size-h3 font-w300 mb-0">
@@ -72,7 +72,7 @@
             </div>
         </div>
         <a href="/expenses" class="col-md-4 col-xl-4">
-            <div class="block block-rounded block-link-shadow bg-warning">
+            <div class="block block-rounded block-link-shadow bg-danger">
                 <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                     <div>
                         <i class="fa fa-2x fa-chart-line text-black-50"></i>
