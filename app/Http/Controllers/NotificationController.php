@@ -65,18 +65,31 @@ class NotificationController extends Controller
 
         $sms_template = notification_template::where('type', 'new')->firstOrFail()->body;;
 
-        $string = $sms_template;
+        $sms = $sms_template;
 
         foreach($variables as $key => $value){
-            $string = str_replace('{'.strtoupper($key).'}', $value, $string);
+            $sms = str_replace('{'.strtoupper($key).'}', $value, $sms);
         }
 
         $destination = $student->phone;
         $source = "Daron DS";
 
-        $client = new Client();
+        $client = new Client([
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+                'Authorization' => 'Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI0MTEiLCJvaWQiOjQxMSwidWlkIjoiMWNhNGE3YmYtYjA0Yy00NzgwLWJiZTMtYzI0N2IxNTA5MDhiIiwiYXBpZCI6MTY3LCJpYXQiOjE2NjkwMTM4NzUsImV4cCI6MjAwOTAxMzg3NX0.6CGWIPBH5Daa8BpWig_B1xVoHOmn4PPYRWpMe2KkZVn9Akhjh1mxfN3suWuOO1RW3MKmu6SE1i896fM1ugQpRg'
+                 ]
+        ]);
 
-        $response = $client->post('http://api.rmlconnect.net/bulksms/bulksms?username=haventechno&password=08521hav&type=0&dlr=0&destination='.$destination.'&source='.$source.'&message='.$string);
+        $response = $client->post('https://clicksmsgateway.com',
+            ['body' => json_encode(
+                [
+                    'from' => $source,
+                    'to' => $destination,
+                    'message' => $sms
+                ]
+            )]);
 
         Alert::toast('SMS sent succesifully', 'success');
         return back();
