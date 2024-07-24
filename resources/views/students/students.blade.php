@@ -106,11 +106,13 @@
                                                 <button class="btn delete-confirm" type="submit">Delete</button>
                                             </form>
                                             @endcan
-                                            <form method="POST" class="dropdown-item nav-main-link" action="{{ url('send-notification', $students->id) }}">
-                                                {{ csrf_field() }}
-                                                <i class="nav-main-link-icon fa fa-paper-plane"></i>
-                                                <button class="btn" type="submit">Send balance reminder</button>
-                                            </form>
+                                            @if(!$students->invoice->invoice_balance == 0)
+                                                <form method="POST" class="dropdown-item nav-main-link" action="{{ url('send-notification', $students->id) }}">
+                                                    {{ csrf_field() }}
+                                                    <i class="nav-main-link-icon fa fa-paper-plane"></i>
+                                                    <button class="btn" type="submit">Send balance reminder</button>
+                                                </form>
+                                            @endif
                                         @endcan
                                         </div>
                                         </div>
