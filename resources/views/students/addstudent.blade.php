@@ -41,7 +41,7 @@
                     </p>
                   </div>
                   <div class="col-lg-8 col-xl-8">
-                    <div class="row">
+                    <div class="row haven-floating">
                       <div class="col-4 form-floating mb-4">
                         <input type="text" class="form-control @error('fname') is-invalid @enderror" id="fname" name="fname" placeholder="Firt name" required>
                         <label class="form-label" for="fname">First name</label>

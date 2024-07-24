@@ -19,29 +19,35 @@
                     <form action="{{ url('/updatecourse') }}" method="POST">
                         @csrf
                         <input type="text" name="course_id" id="course_id" value="{{$course->id}}" hidden>
+
                         <div class="form-floating mb-4">
-                            <input type="text" class="form-control" id="course_name" name="course_name" value="{{$course->name}}">
-                            <label for="example-ltf-email">Course name</label>
+                            <input type="text" class="form-control @error('course_name') is-invalid @enderror" id="course_name" name="course_name" placeholder="Course name" value="{{$course->name}}">
+                            <label for="course_name">Course name</label>
                         </div>
                         <div class="form-floating mb-4">
-                            <textarea type="text" class="form-control" id="course_description" name="course_description" style="height: 150px">{{$course->short_description}}</textarea>
-                            <label for="example-ltf-password">Description</label>
+                            <select type="text" class="form-control @error('course_code') is-invalid @enderror" id="course_code" name="course_code" placeholder="Course code" value="{{$course->class}}">
+                                <option {{ $course->class == 'B' ? 'selected' : '' }}>B</option>
+                                <option {{ $course->class == 'C1' ? 'selected' : '' }}>C1</option>
+                            </select>
+                            <label for="course_code">Course Class</label>
                         </div>
                         <div class="form-floating mb-4">
-                            <input type="number" class="form-control" id="course_price" name="course_price" value="{{$course->price}}">
-                            <label for="example-ltf-password">Price</label>
+                            <textarea type="text" class="form-control @error('course_description') is-invalid @enderror" id="course_description" name="course_description" style="height: 100px" placeholder="Course description">
+                                {{$course->short_description}}
+                            </textarea>
+                            <label for="course_description">Description</label>
                         </div>
                         <div class="form-floating mb-4">
-                            <input type="number" class="form-control" id="course_theory" name="course_theory" value="{{$course->theory}}">
-                            <label for="example-ltf-password">Number of days for theory</label>
+                            <input type="number" class="form-control @error('course_price') is-invalid @enderror" id="course_price" name="course_price" placeholder="Course price" value="{{$course->price}}">
+                            <label for="course_price">Price</label>
                         </div>
                         <div class="form-floating mb-4">
-                            <input type="number" class="form-control" id="course_practicals" name="course_practicals" value="{{$course->practicals}}">
-                            <label for="example-ltf-password">Number of days for practicals</label>
+                            <input type="number" class="form-control @error('course_theory') is-invalid @enderror" id="course_theory" name="course_theory" placeholder="Theory days" value="{{$course->theory}}">
+                            <label for="course_theory">Number of days for theory</label>
                         </div>
-                        <div class="form-group mb-4">                            
-                            <label for="example-ltf-password">Course Image</label>
-                            <input type="file" class="form-control" id="example-ltf-password" name="example-ltf-password" value="course.png">
+                        <div class="form-floating mb-4">
+                            <input type="number" class="form-control @error('course_practicals') is-invalid @enderror" id="course_practicals" name="course_practicals" placeholder="Practicals number" value="{{$course->practicals}}">
+                            <label for="course_practicals">Number of days for practicals</label>
                         </div>
                         <br>
                         <div class="form-group mb-4">

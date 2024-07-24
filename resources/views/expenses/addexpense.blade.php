@@ -60,10 +60,10 @@
     <div class="col-md-7 block block-rounded block-bordered">
         <h2 class="flex-grow-1 fs-4 fw-semibold my-2 my-sm-3">Add student to the group</h1>
             <div v-if="state">
-                <div class="row">
-                    <div class="col-6 form-floating mb-4">
+                <div class="row haven-floating">
+                    <div class="col-6 form-floating mb-4 text-uppercase">
                         <input class="form-control" id="student" name="student" v-model="state.studentName" @input="studentSearch()" @blur="onStudentChange($event)" placeholder="Select student" required>
-                        <label for="student">Select student</label>
+                        <label for="student" class="text-capitalize">Select student</label>
                     </div>
                     <div class="col-6 form-floating mb-4">
                         <select class="form-control" v-if="state.expenseGroupType === 'TRN'" id="expenseType" name="expenseType" v-model="state.expenseType" placeholder="Select expense Type" required>
@@ -82,7 +82,7 @@
                     </div>
                 </div>
                 <div class="block-content block-content-full text-end">
-                    <button type="submit" @click="addStudentToGroup()" class="btn btn-primary">Add</button>
+                    <button type="submit" @click="addStudentToGroup()" class="btn btn-primary">Add to list</button>
                 </div>
                 <h2 class="flex-grow-1 fs-5 fw-semibold my-2 my-sm-3 border-lg mb-5">Select students</h2>
                     <hr>
