@@ -10,6 +10,7 @@ use App\Models\Student;
 use Auth;
 use Illuminate\Http\Request;
 use PDF;
+use DB;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class ExpenseController extends Controller
@@ -27,7 +28,7 @@ class ExpenseController extends Controller
      */
     public function index()
     {
-        $expenses = Expense::with('Student')->orderBy('created_at', 'DESC')->paginate(10);
+        $expenses = Expense::with('Students')->orderBy('created_at', 'DESC')->paginate(10);
 
         return view('expenses.expenses', compact('expenses'));
     }
