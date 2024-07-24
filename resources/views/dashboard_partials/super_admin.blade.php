@@ -71,8 +71,7 @@
                 </div>
             </div>
         </div>
-        <a href="/expenses">
-        <div class="col-md-4 col-xl-4">
+        <a href="/expenses" class="col-md-4 col-xl-4">
             <div class="block block-rounded block-link-shadow bg-warning">
                 <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                     <div>
@@ -88,7 +87,6 @@
                     </div>
                 </div>
             </div>
-        </div>
         </a>
     </div>
 
