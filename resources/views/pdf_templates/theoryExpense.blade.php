@@ -16,12 +16,13 @@
     <P>I write to seek your assistance for the following students to take their road test.</P>
     <table class="table table-striped table-responsive" style="font-size:12px; background-color: #ffffff">
         <thead style="color: #ffffff !important; background-color:#0665d0; text-align:left !important;">
-            <th class="invoice-td">Student name</th>
-            <th class="invoice-td">Class</th>
-            <th class="invoice-td">Veihcle Reg Number</th>
+            <th class="invoice-td" style="text-align:left !important">Student name</th>
+            <th class="invoice-td" style="text-align:left !important">Class</th>
+            <th class="invoice-td" style="text-align:left !important">Highway code I</th>
+            <th class="invoice-td" style="text-align:left !important">Highway code I</th>
         </thead>
         <tbody>
-            @foreach ($expense->student as $student)
+            @foreach ($expense->students as $student)
                 <tr class="py-1" style="padding-top: 0px; padding-bottom: 0px; ">
                     <td class="invoice-td">
                         {{$student->fname}} {{$student->mname}} {{$student->sname}}
@@ -34,7 +35,14 @@
                             @endif
                     </td>
                     <td class="invoice-td">
-                        {{$student->fleet->car_registration_number}}
+                        @if ($student->pivot->expense_type == 'Highway Code I')
+                            {{ $student->pivot->expense_type }} Yes
+                        @endif
+                    </td>
+                    <td class="invoice-td">
+                        @if ($student->pivot->expense_type == 'Highway Code II')
+                            Yes
+                        @endif
                     </td>
                 </tr>
                 @endforeach
