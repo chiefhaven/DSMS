@@ -86,7 +86,7 @@ class NotificationController extends Controller
             'body' => json_encode([
                             'from' => $source,
                             'to' => $destination,
-                            'message' => $sms
+                            'message' => 'hghsdhg'
                         ])
                     ]);
 
