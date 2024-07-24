@@ -107,6 +107,11 @@
                                     K{{number_format($expense->amount)}}
                                 </td>
                                 <td>
+                                    @if ($expense->administrator)
+                                        {{$expense->administrator->fname}} {{$expense->administrator->sname}}
+                                    @else
+                                        -
+                                    @endif
                                     {{$expense->administrator->fname}} {{$expense->administrator->sname}}
                                 </td>
                                 <td>
