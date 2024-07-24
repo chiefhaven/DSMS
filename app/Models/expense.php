@@ -28,7 +28,7 @@ class expense extends Model
     //delete relationships!
     protected static function booted () {
         static::deleting(function(Expense $expense) {
-             $expense->student()->detach();
+             $expense->students()->detach();
         });
     }
 }
