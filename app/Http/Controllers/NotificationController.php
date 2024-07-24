@@ -71,7 +71,7 @@ class NotificationController extends Controller
             $sms = str_replace('{'.strtoupper($key).'}', $value, $sms);
         }
 
-        $destination = '0996884869';
+        $destination = $student->phone;
         $source = "Daron DS";
 
         $client = new Client();
@@ -86,7 +86,7 @@ class NotificationController extends Controller
             'body' => json_encode([
                             'from' => $source,
                             'to' => $destination,
-                            'message' => 'hghsdhg'
+                            'message' => $sms
                         ])
                     ]);
 
@@ -98,7 +98,7 @@ class NotificationController extends Controller
             $responseMessage = $e->getMessage();
         }
 
-            Alert::toast($responseMessage, 'success');
+            Alert::toast($responseMessage->message, 'success');
         return back();
 
     }
