@@ -81,7 +81,7 @@ class ExpenseController extends Controller
         foreach ($students as $data) {
             $expenseId = Expense::orderBy('created_at', 'desc')->first()->id;
             $student = havenUtils::student($data['studentName']);
-            $student->expense()->attach($expenseId, ['expense_type' => $data['expenseType']]);
+            $student->expenses()->attach($expenseId, ['expense_type' => $data['expenseType']]);
         }
 
         if(!$expense->save()){
