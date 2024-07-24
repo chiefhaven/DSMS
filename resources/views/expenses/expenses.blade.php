@@ -112,7 +112,6 @@
                                     @else
                                         -
                                     @endif
-                                    {{$expense->administrator->fname}} {{$expense->administrator->sname}}
                                 </td>
                                 <td>
                                     {{$expense->payment_method_id}}
