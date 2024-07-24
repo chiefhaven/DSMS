@@ -94,7 +94,7 @@
                                 <td>
                                     {{$expense->group}}<br>
                                     <div class="sm-text" style="font-size: 12px">
-                                        {{$expense->student->count()}} Students paid for!
+                                        {{$expense->students->count()}} Students paid for!
                                     </div>
                                 </td>
                                 <td>
