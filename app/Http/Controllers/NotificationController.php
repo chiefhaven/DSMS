@@ -91,14 +91,14 @@ class NotificationController extends Controller
                     ]);
 
             $statusCode = $response->getStatusCode();
-            $responseMessage = $response->getBody();
+            $responseMessage = 'SMS sent';//$response->getBody();
             // Process the response as needed
         } catch (\Exception $e) {
             // Handle the exception
-            $responseMessage = $e->getMessage();
+            $responseMessage = 'SMS not sent, something happened';
         }
 
-            Alert::toast('SMS sent succesifully', 'success');
+        Alert::toast($responseMessage, 'success');
         return back();
 
     }
