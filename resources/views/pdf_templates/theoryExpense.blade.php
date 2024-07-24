@@ -18,8 +18,8 @@
         <thead style="color: #ffffff !important; background-color:#0665d0; text-align:left !important;">
             <th class="invoice-td" style="text-align:left !important">Student name</th>
             <th class="invoice-td" style="text-align:left !important">Class</th>
-            <th class="invoice-td" style="text-align:left !important">Highway code I</th>
-            <th class="invoice-td" style="text-align:left !important">Highway code I</th>
+            <th class="invoice-td">Highway code I</th>
+            <th class="invoice-td">Highway code I</th>
         </thead>
         <tbody>
             @foreach ($expense->students as $student)
@@ -34,14 +34,14 @@
                                 {{$student->course->class}}
                             @endif
                     </td>
-                    <td class="invoice-td">
+                    <td class="invoice-td" style="text-align:center !important">
                         @if ($student->pivot->expense_type == 'Highway Code I')
-                            {{ $student->pivot->expense_type }} Yes
+                            <div style="font-family: DejaVu Sans, sans-serif;">✔</div>
                         @endif
                     </td>
-                    <td class="invoice-td">
+                    <td class="invoice-td" style="text-align:center !important">
                         @if ($student->pivot->expense_type == 'Highway Code II')
-                            Yes
+                            <div style="font-family: DejaVu Sans, sans-serif;">✔</div>
                         @endif
                     </td>
                 </tr>
