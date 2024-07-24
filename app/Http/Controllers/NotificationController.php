@@ -98,7 +98,7 @@ class NotificationController extends Controller
             $responseMessage = $e->getMessage();
         }
 
-            Alert::toast($responseMessage->message, 'success');
+            Alert::toast('SMS sent succesifully', 'success');
         return back();
 
     }
