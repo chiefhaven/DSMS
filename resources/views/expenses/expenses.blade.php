@@ -66,12 +66,17 @@
                                         <div class="dropdown-menu dropdown-menu-end p-0">
                                         <div class="p-2">
                                         @role(['superAdmin', 'admin'])
+
                                             @role(['superAdmin'])
-                                                <form class="dropdown-item nav-main-link" method="get" action="{{ url('expensedownload', $expense) }}">
-                                                    {{ csrf_field() }}
-                                                    <i class="nav-main-link-icon fa fa-download"></i>
-                                                    <button class="btn download-confirm" type="submit">Download</button>
-                                                </form>
+                                                @if($expense->group_type != 'TRN')
+                                                    <form class="dropdown-item nav-main-link" method="get" action="{{ url('expensedownload', $expense) }}">
+                                                        {{ csrf_field() }}
+                                                        <i class="nav-main-link-icon fa fa-download"></i>
+                                                        <button class="btn download-confirm" type="submit">Download</button>
+                                                    </form>
+                                                @else
+                                                    <p class="text-danger">Go to individual student profile to downlaod TRN reference</p>
+                                                @endif
                                             @endcan
                                             @role(['superAdmin'])
                                                 <form class="dropdown-item nav-main-link btn-danger" method="POST" action="{{ url('expenses', $expense) }}">
