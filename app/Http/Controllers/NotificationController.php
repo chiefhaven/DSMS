@@ -71,7 +71,7 @@ class NotificationController extends Controller
             $sms = str_replace('{'.strtoupper($key).'}', $value, $sms);
         }
 
-        $destination = $student->phone;
+        $destination = '0996884869';
         $source = "Daron DS";
 
         $client = new Client();
