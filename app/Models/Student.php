@@ -5,12 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
-
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Student extends Model
 {
     use HasUuids;
     use HasFactory;
     protected $keyType = 'string';
+    public $incrementing = false;
 
     protected $fillable = ['_token', 'fname', 'sname', 'trn', 'date_of_birth', 'phone', 'gender', 'address', 'district'];
 
@@ -60,9 +61,9 @@ class Student extends Model
        return $this->hasMany(Payment::class);
     }
 
-    public function expense()
+    public function expenses()
     {
-        return $this->belongsToMany(Expense::class);
+        return $this->belongsToMany(Expense::class)->withPivot('expense_type');
     }
 
     //Delete relationships!
@@ -70,13 +71,5 @@ class Student extends Model
         static::deleting(function(Student $student) {
              $student->attendance()->delete();
         });
-    }
-
-    public function scopeStudent($query, $student)
-    {
-        if ($student) {
-           return $query->where('course_id', !null);
-        }
-        return $query;
     }
 }
