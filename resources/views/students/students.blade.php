@@ -106,7 +106,7 @@
                                                 <button class="btn delete-confirm" type="submit">Delete</button>
                                             </form>
                                             @endcan
-                                            @if(!$students->invoice->invoice_balance == 0)
+                                            @if(isset($students->invoice->invoice_balance) && !$students->invoice->invoice_balance == 0)
                                                 <form method="POST" class="dropdown-item nav-main-link" action="{{ url('send-notification', $students->id) }}">
                                                     {{ csrf_field() }}
                                                     <i class="nav-main-link-icon fa fa-paper-plane"></i>
