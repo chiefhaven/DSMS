@@ -81,7 +81,7 @@ class NotificationController extends Controller
                 'headers' => [
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
-                'Authorization' => 'Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI0MTEiLCJvaWQiOjQxMSwidWlkIjoiMWNhNGE3YmYtYjA0Yy00NzgwLWJiZTMtYzI0N2IxNTA5MDhiIiwiYXBpZCI6MTY3LCJpYXQiOjE2NjkwMTM4NzUsImV4cCI6MjAwOTAxMzg3NX0.6CGWIPBH5Daa8BpWig_B1xVoHOmn4PPYRWpMe2KkZVn9Akhjh1mxfN3suWuOO1RW3MKmu6SE1i896fM1ugQpRg'
+                'Authorization' => 'Bearer ' . env('SMS_AUTH_KEY')
             ],
             'body' => json_encode([
                             'from' => $source,
