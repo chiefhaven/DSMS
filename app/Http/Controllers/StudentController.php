@@ -159,9 +159,9 @@ class StudentController extends Controller
      * @param  \App\Models\Student  $student
      * @return \Illuminate\Http\Response
      */
-    public function edit(student $student)
+    public function edit($id)
     {
-        $student = Student::with('User')->find($student->id);
+        $student = Student::with('User')->find($id);
 
         if(!isset($student) || !Auth::user()->hasRole('superAdmin')){
             abort(404);
@@ -240,8 +240,9 @@ class StudentController extends Controller
      * @param  \App\Models\Student  $student
      * @return \Illuminate\Http\Response
      */
-    public function destroy(student $student)
+    public function destroy($id)
     {
+        $student = Student::find($id);
         $invoicelist = Invoice::where('student_id', $student->id)->get();
         $invoiceCount = $invoicelist->count();
 

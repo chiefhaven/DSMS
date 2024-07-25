@@ -85,7 +85,7 @@
                                             <a class="dropdown-item nav-main-link" href="{{ url('/viewstudent', $students->id) }}">
                                             <i class="nav-main-link-icon fa fa-user"></i><div class="btn">Profile</div>
                                             </a>
-                                        @role(['instructor'])
+                                        @role(['sds'])
                                             <form class="dropdown-item nav-main-link" method="POST" action="{{ url('addattendance', $students->id) }}">
                                                 {{ csrf_field() }}
                                                 <i class="nav-main-link-icon fa fa-clock"></i>
@@ -93,13 +93,13 @@
                                             </form>
                                         @endcan
                                         @role(['superAdmin', 'admin'])
-                                            <form method="POST" class="dropdown-item nav-main-link" action="{{ url('/edit-student', $students) }}">
+                                            <form method="POST" class="dropdown-item nav-main-link" action="{{ url('/edit-student', $students->id) }}">
                                                 {{ csrf_field() }}
                                                 <i class="nav-main-link-icon fa fa-pencil"></i>
                                                 <button class="btn" type="submit">Edit</button>
                                             </form>
                                             @role(['superAdmin'])
-                                            <form class="dropdown-item nav-main-link" method="POST" action="{{ url('student-delete', $students) }}">
+                                            <form class="dropdown-item nav-main-link" method="POST" action="{{ url('student-delete', $students->id) }}">
                                                 {{ csrf_field() }}
                                                 {{ method_field('DELETE') }}
                                                 <i class="nav-main-link-icon fa fa-trash"></i>
