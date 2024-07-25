@@ -72,12 +72,12 @@ class NotificationController extends Controller
         }
 
         $destination = $student->phone;
-        $source = "Daron DS";
+        $source = env('SMS_SENDER_ID');
 
         $client = new Client();
 
         try {
-            $response = $client->post('https://clicksmsgateway.com', [
+            $response = $client->post(env('SMS_URL'), [
                 'headers' => [
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
