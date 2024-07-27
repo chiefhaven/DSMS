@@ -42,7 +42,7 @@
                         <label for="invoice_discount">Expense notes</label>
                     </div>
                     <div class="col-12 form-floating mb-4">
-                        <input type="number" class="form-control" id="amount" name="amount" v-model="state.amount" value="">
+                        <input type="number" class="form-control" id="amount" name="amount" v-model="state.amount">
                         <label for="amount">Amount per student</label>
                     </div>
                     {{--  <div class="col-12 form-floating mb-4">
@@ -104,10 +104,16 @@
 </div>
 </div>
 <!-- END Hero -->
-<script type="module">
+<script setup>
     const { createApp, ref, reactive } = Vue
-    const { useVeevalidateValidationProvider, extend } = VeeValidate
-    const { required, email } = VeeValidate
+    const { defineRule, configure, useForm, useField, ErrorMessage } = VeeValidate
+    const { object, string } = Yup
+
+    // Define Yup schema
+    const schema = object({
+        email: string().required('Email is required').email('Email must be a valid email address'),
+        password: string().required('Password is required')
+      });
 
 
     const app = createApp({
