@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateexpenseRequest;
 use App\Models\Setting;
 use App\Models\Student;
 use Auth;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use PDF;
 use DB;
@@ -73,7 +74,8 @@ class ExpenseController extends Controller
         $expense->group = $post['expenseGroupName'];
         $expense->group_type = $post['expenseGroupType'];
         $expense->description = $post['expenseDescription'];
-        $expense->amount = $studentsCount * $post['expenseAmount'];
+        // $expense->amount = $studentsCount * $post['expenseAmount'];
+        $expense->amount = $post['expenseAmount'];
         $expense->added_by = Auth::user()->administrator_id;
 
         $expense->save();
@@ -88,7 +90,7 @@ class ExpenseController extends Controller
             return false;
         }
 
-        $data = ['message' => 'Expense added successifuly'];
+        $data = ['message' => 'Expense added successfuly'];
         return response()->json([$data], 200);
     }
 
@@ -101,6 +103,33 @@ class ExpenseController extends Controller
     public function show(expense $expense)
     {
         //
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  \App\Models\expense  $expense
+     * @return \Illuminate\Http\Response
+     */
+    public function reviewExpense(expense $expense)
+    {
+        return view('expenses.reviewExpense', compact('expense'));
+    }
+
+    public function reviewExpenseData(expense $expense)
+    {
+        $expenseId = $expense->id;
+        $expenseStudents = Student::with('invoice', 'attendance')->whereHas('expenses', function($q) use ($expenseId) {
+            $q->where('expense_student.expense_id', $expenseId);
+        })->get();;
+
+        $dataModified = array();
+
+        foreach ($expenseStudents as $data){
+           $dataModified[] = $data->fname.' '.$data->mname.' '.$data->sname;
+         }
+
+        return response()->json($expenseStudents);
     }
 
     /**
@@ -123,7 +152,32 @@ class ExpenseController extends Controller
      */
     public function update(UpdateexpenseRequest $request, expense $expense)
     {
-        //
+        $messages = [
+            'expenseGroupName.required' => 'Expense Group Name is required',
+            'expenseAmount.required'   => 'Expense amount is required',
+        ];
+
+        // Validate the request
+        $this->validate($request, [
+            'expenseGroupName'  =>'required',
+            'expenseAmount'   =>'required',
+
+        ], $messages);
+
+        $post = $request->all();
+        $students = $post['students'];
+
+        $expense = new expense();
+        $expense->approved_by = Auth::user()->administrator_id;
+
+        $expense->save();
+
+        if(!$expense->save()){
+            return false;
+        }
+
+        $data = ['message' => 'Expense approved successfully'];
+        return response()->json([$data], 200);
     }
 
     /**
@@ -139,6 +193,30 @@ class ExpenseController extends Controller
         return redirect('/expenses');
     }
 
+    public function removeStudent(StoreexpenseRequest $request)
+    {
+        $post = $request->all();
+
+        DB::table('expense_student')->where('student_id', $request['student'])->where('expense_id', $request['expenseId'])->delete();
+
+        return response()->json([$post], 200);
+    }
+
+    public function approveList(StoreexpenseRequest $request)
+    {
+        $post = $request->all();
+
+        $expense = Expense::find($post['expenseId']);
+        $expense->approved_by = Auth::user()->administrator_id;
+        $expense->approved_amount = $post['approvedAmount'];
+        $expense->approved = !$expense->approved;
+        $expense->date_approved = Carbon::now();
+
+        $expense->save();
+
+        return response()->json($expense, 200);
+    }
+
     public function download(expense $expense){
 
         $setting = $this->setting;
@@ -148,8 +226,7 @@ class ExpenseController extends Controller
         $template = 'pdf_templates.theoryExpense';
 
         if($expense->group_type == 'Road Test'){
-            $template = 'pdf_templates.roadTestExpense';
-        }
+            $template = 'pdf_templates.roadTestExpense';        }
 
         $pdf = PDF::loadView($template, compact('expense', 'qrCode','setting', 'date'));
         return $pdf->download('Daron Driving School-'.$expense->group.'-'.$expense->group_type.' Expense.pdf');

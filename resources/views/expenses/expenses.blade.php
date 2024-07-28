@@ -48,10 +48,12 @@
                             <th style="min-width: 14rem;">Group</th>
                             <th style="min-width: 7rem;">Type</th>
                             <th style="min-width: 10rem;">Description</th>
-                            <th>Amount</th>
+                            <th style="min-width: 10rem;">Amount per student</th>
+                            <th style="min-width: 10em;">Total Amount</th>
                             <th style="min-width: 10rem;">Posted by</th>
+                            <th style="min-width: 10rem;">Status</th>
                             <th style="min-width: 10rem;">Approved by</th>
-                            <th style="min-width: 10rem;">Date Paid</th>
+                            <th style="min-width: 10rem;">Date Approved</th>
                             <th style="min-width: 10rem;">Payment method</th>
                           </tr>
                       </thead>
@@ -79,11 +81,16 @@
                                                 @endif
                                             @endcan
                                             @role(['superAdmin'])
-                                                <form class="dropdown-item nav-main-link btn-danger" method="POST" action="{{ url('expenses', $expense) }}">
+                                                <a class="dropdown-item nav-main-link" href="{{ url('review-expense', $expense) }}">
                                                     {{ csrf_field() }}
-                                                    {{ method_field('DELETE') }}
-                                                    <i class="nav-main-link-icon fa fa-trash"></i>
-                                                    <button class="btn delete-confirm" type="submit">Delete</button>
+                                                    <i class="nav-main-link-icon fa fa-magnifying-glass"></i>
+                                                    <div class="btn">Review</div>
+                                                </a>
+                                                <form class="dropdown-item nav-main-link" method="POST" action="{{ url('expenses', $expense) }}">
+                                                        {{ csrf_field() }}
+                                                        {{ method_field('DELETE') }}
+                                                        <i class="nav-main-link-icon text-danger fa fa-trash"></i>
+                                                        <button class="btn delete-confirm text-danger" type="submit">Delete</button>
                                                 </form>
                                             @endcan
                                         @endcan
@@ -107,6 +114,9 @@
                                     K{{number_format($expense->amount)}}
                                 </td>
                                 <td>
+                                    K{{number_format($expense->approved_amount)}}
+                                </td>
+                                <td>
                                     @if ($expense->administrator)
                                         {{$expense->administrator->fname}} {{$expense->administrator->sname}}
                                     @else
@@ -114,13 +124,21 @@
                                     @endif
                                 </td>
                                 <td>
-                                    {{$expense->payment_method_id}}
+                                    @if ($expense->approved == '1')
+                                        Approved
+                                    @else
+                                        Not yet approved
+                                    @endif
                                 </td>
                                 <td>
-                                    {{$expense->created_at->format('j F, Y')}}
+                                    {{App\Models\Administrator::find($expense->approved_by)->fname}}
+                                    {{App\Models\Administrator::find($expense->approved_by)->sname}}
                                 </td>
                                 <td>
-                                    Not yet approved
+                                    {{$expense->date_approved->format('j F, Y')}}
+                                </td>
+                                <td>
+                                    Cash
                                 </td>
                             </tr>
                         @endforeach
@@ -133,7 +151,7 @@
                 </div>
           </div>
       </div>
-      <script type="text/javascript">
+    <script type="text/javascript">
         $('.delete-confirm').on('click', function (e) {
             e.preventDefault();
             var form = $(this).parents('form');

@@ -133,12 +133,16 @@ Route::get('/expenses', [ExpenseController::class, 'index'])->middleware('auth')
 Route::get('/viewexpense', [ExpenseController::class, 'show'])->middleware('auth')->name('viewexpense');
 Route::get('/addexpense', [ExpenseController::class, 'create'])->middleware('auth')->name('addexpense');
 Route::post('/storeexpense', [ExpenseController::class, 'store'])->middleware('auth')->name('storeexpense');
+Route::post('/updateExpense', [ExpenseController::class, 'update'])->middleware('auth')->name('updateExpense');
 Route::post('/editexpense/{id}', [ExpenseController::class, 'edit'])->middleware('auth')->name('editexpense');
-Route::post('/updateexpense', [ExpenseController::class, 'update'])->middleware('auth')->name('updateexpense');
 Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->middleware('auth')->name('delete-expense');
 Route::get('/expensedownload/{expense}', [ExpenseController::class, 'download'])->middleware('auth')->name('downloadexpense');
-Route::get('/search-expense', [ExpenseController::class, 'searchExpense'])->name('searchExpense');
-Route::get('/expense-student-search', [ExpenseController::class, 'autocompletestudentSearch'])->name('expense-student-search');
+Route::get('/search-expense', [ExpenseController::class, 'searchExpense'])->middleware('auth')->name('searchExpense');
+Route::get('/expense-student-search', [ExpenseController::class, 'autocompletestudentSearch'])->middleware('auth')->name('expense-student-search');
+Route::get('/review-expense/{expense}', [ExpenseController::class, 'reviewExpense'])->middleware('auth')->name('reviewExpense');
+Route::get('/reviewExpenseData/{expense}', [ExpenseController::class, 'reviewExpenseData'])->middleware('auth')->name('reviewExpenseData');
+Route::post('/removeStudent', [ExpenseController::class, 'removeStudent'])->middleware('auth')->name('removeStudent');
+Route::post('/approveList', [ExpenseController::class, 'approveList'])->middleware('auth')->name('removeStudent');
 
 
 

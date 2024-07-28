@@ -45,14 +45,6 @@
                         <input type="number" class="form-control" id="amount" name="amount" v-model="state.amount">
                         <label for="amount">Amount per student</label>
                     </div>
-                    {{--  <div class="col-12 form-floating mb-4">
-                        <select class="form-select" id="payment_method" name="payment_method" v-model="state.paymentMethod">
-                            <option v-for="option in paymentMethodOptions" :value="option.value">
-                                @{{ option.text }}
-                            </option>
-                        </select>
-                        <label for="payment_method">Payment Method</label>
-                    </div>  --}}
             </form>
             </div>
         </div>
@@ -62,7 +54,7 @@
             <div v-if="state">
                 <div class="row haven-floating">
                     <div class="col-6 form-floating mb-4 text-uppercase">
-                        <input class="form-control" id="student" name="student" v-model="state.studentName" @input="studentSearch()" @blur="onStudentChange($event)" placeholder="Select student" required>
+                        <input class="form-control" id="student" name="student" :rules="isRequired" v-model="state.studentName" @input="studentSearch()" @blur="onStudentChange($event)" placeholder="Select student" required>
                         <label for="student" class="text-capitalize">Select student</label>
                     </div>
                     <div class="col-6 form-floating mb-4">
@@ -107,13 +99,13 @@
 <script setup>
     const { createApp, ref, reactive } = Vue
     const { defineRule, configure, useForm, useField, ErrorMessage } = VeeValidate
-    const { object, string } = Yup
 
-    // Define Yup schema
-    const schema = object({
-        email: string().required('Email is required').email('Email must be a valid email address'),
-        password: string().required('Password is required')
-      });
+    function isRequired(value) {
+        if (value && value.trim()) {
+          return true;
+        }
+        return 'This is required';
+      }
 
 
     const app = createApp({
@@ -170,7 +162,6 @@
             if(!state.value.selectedStudents.some(item => item.studentName === state.value.studentName)){
                     state.value.selectedStudents.push({studentName:state.value.studentName, expenseType:state.value.expenseType})
                     state.value.studentName =''
-                    hasError.value = false
                 }else{
                     notification('Student already in list', 'error')
                     hasError.value = true
@@ -197,12 +188,12 @@
             axios.post('/storeexpense', {students:state.value.selectedStudents, expenseGroupName:state.value.expenseGroupName, expenseDescription:state.value.expenseDescription, expenseGroupType:state.value.expenseGroupType, expenseAmount: state.value.amount}).then(response => {
                 //console.log(response.data)
                 if(response.status==200){
-                    notification('Expense added succesifully','success')
+                    notification('Expense added successfully','success')
                     window.location.replace('/expenses')
                 }
                 else if(error.response.data.errors){
                     notification('error.response.data.errors.message','error')
-                    console.log(error.response.data.errors)
+                    //console.log(error.response.data.errors)
                 }
                 else{
                     return false
@@ -254,6 +245,7 @@
             paymentMethodOptions,
             groupExpenseTypeOptions,
             groupExpenseTypeChange,
+            isRequired,
         }
       }
     })

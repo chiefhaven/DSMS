@@ -15,6 +15,10 @@ class expense extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
+    protected $casts = [
+        'date_approved' => 'datetime'
+    ];
+
     public function Students()
     {
         return $this->belongsToMany(Student::class)->withPivot('expense_type');
