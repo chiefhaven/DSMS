@@ -177,7 +177,9 @@ class ExpenseController extends Controller
         foreach ($students as $data) {
             $expenseId = Expense::orderBy('updated_at', 'desc')->first()->id;
             $student = havenUtils::student($data['fname'].' '.$data['mname'].' '.$data['sname']);
-            $student->expenses()->sync($expenseId, ['expense_type' => $data['expenses'][0]['pivot']['expense_type']]);
+            $student->expenses()->sync([
+                $expenseId => ['expense_type' => $data['expenses'][0]['pivot']['expense_type']]
+            ]);
         }
 
         if(!$expenseUpdate->save()){
