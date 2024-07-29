@@ -23,11 +23,11 @@
     <div class="col-md-4 block-rounded block-bordered">
         <div class="block block-rounded block-themed block-transparent mb-0" style="background-color:#ffffff">
             <div class="block-content pb-4">
-                <div class=""><b>Booking date:</b> @{{ state.expenseGroupName }}</div>
-                <div class=""><b>Description:</b> @{{ state.expenseDescription }}</div>
-                <div class=""><b>Amount per student:</b> @{{ formatter.format(state.amount) }}</div>
-                <div class=""><b>Description:</b> @{{ state.expenseDescription }}</div>
-                <div class=""><b>Requested by:</b> {{ $expense->administrator->fname }} {{ $expense->administrator->mname }} {{ $expense->administrator->sname }}</div>
+                <div class="mb-1"><b>Booking date:</b> @{{ state.expenseGroupName }}</div>
+                <div class="mb-1"><b>Description:</b> @{{ state.expenseDescription }}</div>
+                <div class="mb-1"><b>Amount per student:</b> @{{ formatter.format(state.amount) }}</div>
+                <div class="mb-1"><b>Description:</b> @{{ state.expenseDescription }}</div>
+                <div class="mb-1"><b>Requested by:</b> {{ $expense->administrator->fname }} {{ $expense->administrator->mname }} {{ $expense->administrator->sname }}</div>
             </div>
         </div>
     </div>
