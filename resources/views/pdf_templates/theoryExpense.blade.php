@@ -11,7 +11,7 @@
 @include('pdf_templates.partials.letter_head')
 
 
-    <h3 style="text-transform: uppercase;"><u>APPLICATION FOR Highway Code Test</u></h3>
+    <h3 style="text-transform: uppercase;"><u>APPLICATION FOR STUDENT’S APTITUDE TEST</u></h3>
 
     <P>I write to seek your assistance for the following students to take their road test.</P>
     <table class="table table-striped table-responsive" style="font-size:12px; background-color: #ffffff">
