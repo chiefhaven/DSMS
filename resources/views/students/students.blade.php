@@ -85,13 +85,6 @@
                                             <a class="dropdown-item nav-main-link" href="{{ url('/viewstudent', $students->id) }}">
                                             <i class="nav-main-link-icon fa fa-user"></i><div class="btn">Profile</div>
                                             </a>
-                                        @role(['sds'])
-                                            <form class="dropdown-item nav-main-link" method="POST" action="{{ url('addattendance', $students->id) }}">
-                                                {{ csrf_field() }}
-                                                <i class="nav-main-link-icon fa fa-clock"></i>
-                                                <button class="btn" type="submit">Enter Attendance</button>
-                                            </form>
-                                        @endcan
                                         @role(['superAdmin', 'admin'])
                                             <form method="POST" class="dropdown-item nav-main-link" action="{{ url('/edit-student', $students->id) }}">
                                                 {{ csrf_field() }}
