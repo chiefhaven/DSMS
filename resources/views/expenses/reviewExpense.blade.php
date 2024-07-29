@@ -35,17 +35,17 @@
             <div v-if="state">
                 <div>
                     <div class="row p-2 mb-4 bg-info text-white">
-                        <div class="col-sm-3">Student</div>
+                        <div class="col-sm-4">Student</div>
                         <div class="col-sm-2">Fees balance</div>
-                        <div class="col-sm-2">Class</div>
+                        <div class="col-sm-2 text-center">Class</div>
                         <div class="col-sm-2">Expense type</div>
                         <div class="col-sm-2">Action</div>
                     </div>
                     <div v-for="(student, index) in state.selectedStudents" :key="student.index">
                         <div class="row mb-2">
-                            <div class="col-sm-3 text-uppercase">@{{ student.fname }} @{{ student.mname }} <b>@{{ student.sname }}</b></div>
+                            <div class="col-sm-4 text-uppercase">@{{ student.fname }} @{{ student.mname }} <b>@{{ student.sname }}</b></div>
                             <div class="col-sm-2">@{{ formatter.format(student.invoice.invoice_balance) }}</div>
-                            <div class="col-sm-2">@{{ student.course.class}}</div>
+                            <div class="col-sm-2 text-center">@{{ student.course.class}}</div>
                             <div class="col-sm-2">@{{ student.expenses[0].pivot.expense_type }}</div>
                             <div class="col-sm-2">
                                 <button :disabled="state.expenseStatus !== 0" class="btn btn-danger btn-sm delete-confirm" @click="removeStudentFromList(student.id, index)">Remove</button>
