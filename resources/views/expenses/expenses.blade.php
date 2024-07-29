@@ -46,12 +46,12 @@
                           <tr>
                             <th class="text-center" style="width: 100px;">Actions</th>
                             <th style="min-width: 14rem;">Group</th>
+                            <th style="min-width: 10rem;">Status</th>
                             <th style="min-width: 7rem;">Type</th>
                             <th style="min-width: 10rem;">Description</th>
                             <th style="min-width: 10rem;">Amount per student</th>
-                            <th style="min-width: 10em;">Total Amount</th>
+                            <th style="min-width: 10em;">Approved Amount</th>
                             <th style="min-width: 10rem;">Posted by</th>
-                            <th style="min-width: 10rem;">Status</th>
                             <th style="min-width: 10rem;">Approved by</th>
                             <th style="min-width: 10rem;">Date Approved</th>
                             <th style="min-width: 10rem;">Payment method</th>
@@ -68,18 +68,24 @@
                                         <div class="dropdown-menu dropdown-menu-end p-0">
                                         <div class="p-2">
                                         @role(['superAdmin', 'admin'])
-
-                                            @role(['superAdmin'])
-                                                @if($expense->group_type != 'TRN')
+                                            @if($expense->group_type != 'TRN')
+                                                @if($expense->approved == true)
                                                     <form class="dropdown-item nav-main-link" method="get" action="{{ url('expensedownload', $expense) }}">
                                                         {{ csrf_field() }}
                                                         <i class="nav-main-link-icon fa fa-download"></i>
                                                         <button class="btn download-confirm" type="submit">Download</button>
                                                     </form>
                                                 @else
-                                                    <p class="text-danger">Go to individual student profile to downlaod TRN reference</p>
+                                                    <p class="text-danger">Downlod not available, list not approved yet</p>
                                                 @endif
-                                            @endcan
+                                            @else
+                                                <p class="text-danger">Go to individual student profile to downlaod TRN reference</p>
+                                            @endif
+                                            <a class="dropdown-item nav-main-link" href="{{ url('editexpense', $expense) }}">
+                                                {{ csrf_field() }}
+                                                <i class="nav-main-link-icon fa fa-pen"></i>
+                                                <div class="btn">Edit</div>
+                                            </a>
                                             @role(['superAdmin'])
                                                 <a class="dropdown-item nav-main-link" href="{{ url('review-expense', $expense) }}">
                                                     {{ csrf_field() }}
@@ -105,6 +111,13 @@
                                     </div>
                                 </td>
                                 <td>
+                                    @if ($expense->approved == '1')
+                                        <div class="text-center p-2 bg-success text-white">Approved</div>
+                                    @else
+                                        <div class="text-center p-2 bg-danger text-white">Unapproved</div>
+                                    @endif
+                                </td>
+                                <td>
                                     {{$expense->group_type}}
                                 </td>
                                 <td>
@@ -124,18 +137,15 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @if ($expense->approved == '1')
-                                        Approved
-                                    @else
-                                        Not yet approved
+                                    @if ($expense->approved==true)
+                                        {{App\Models\Administrator::find($expense->approved_by)->fname}}
+                                        {{App\Models\Administrator::find($expense->approved_by)->sname}}
                                     @endif
                                 </td>
                                 <td>
-                                    {{App\Models\Administrator::find($expense->approved_by)->fname}}
-                                    {{App\Models\Administrator::find($expense->approved_by)->sname}}
-                                </td>
-                                <td>
-                                    {{$expense->date_approved->format('j F, Y')}}
+                                    @if ($expense->approved==true)
+                                        {{$expense->date_approved->format('j F, Y')}}
+                                    @endif
                                 </td>
                                 <td>
                                     Cash

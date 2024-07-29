@@ -5,7 +5,7 @@
   <div class="bg-body-light">
     <div class="content content-full">
       <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
-        <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Approve expense</h1>
+        <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Review expense</h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
 
             @if(Session::has('message'))
@@ -25,22 +25,25 @@
             <div class="block-content pb-4">
                 <div class=""><b>Booking date:</b> @{{ state.expenseGroupName }}</div>
                 <div class=""><b>Description:</b> @{{ state.expenseDescription }}</div>
-                <div class=""><b>Amount per student:</b> MWK@{{ state.amount }}</div>
-                <div class=""><b>Total requested amount:</b> MWK@{{ state.totalAmount }}</div>
+                <div class=""><b>Amount per student:</b> @{{ formatter.format(state.amount) }}</div>
+                <div class=""><b>Description:</b> @{{ state.expenseDescription }}</div>
+                <div class=""><b>Requested by:</b> {{ $expense->administrator->fname }} {{ $expense->administrator->mname }} {{ $expense->administrator->sname }}</div>
             </div>
         </div>
     </div>
     <div class="col-md-7 block block-rounded block-bordered">
             <div v-if="state">
-                <h2 class="flex-grow-1 fs-5 fw-semibold my-2 my-sm-3 border-lg mb-5">Select students</h2>
-                    <hr>
                 <div>
+                    <div class="row p-2 mb-4 bg-info text-white">
+                        <div class="col-sm-5">Student</div>
+                        <div class="col-sm-3">Fees balance</div>
+                    </div>
                     <div v-for="(student, index) in state.selectedStudents" :key="student.index">
                         <div class="row mb-2">
                             <div class="col-sm-5 text-uppercase">@{{ student.fname }} @{{ student.mname }} <b>@{{ student.sname }}</b></div>
-                            <div class="col-sm-3">MWK @{{ student.invoice.invoice_balance }}</div>
+                            <div class="col-sm-3">@{{ formatter.format(student.invoice.invoice_balance) }}</div>
                             <div class="col-sm-2">@{{ student.course}}</div>
-                            <div class="col-sm-2 text-end" v-if="state.expenseStatus === 0"><span><button class="btn btn-danger btn-sm delete-confirm" @click="removeStudentFromList(student.id, index)">Remove</button></span></div>
+                            <div class="col-sm-2 text-end"><span><button :disabled="state.expenseStatus !== 0" class="btn btn-danger btn-sm delete-confirm" @click="removeStudentFromList(student.id, index)">Remove</button></span></div>
                         </div>
                         <hr>
                     </div>
@@ -69,6 +72,11 @@
         return 'This is required';
       }
 
+    const formatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'MMK',
+    });
+
 
     const app = createApp({
       setup() {
@@ -82,7 +90,7 @@
             selectedStudents: [],       // Array of selected students (possibly for group payments or expenses)
             paymentMethod: 'Cash',
             expenseId: '{{ $expense->id }}',
-            totalAmount: '00.00',
+            totalAmount: 00,
             expenseStatus: {{ $expense->approved }},
             errors: []                  // Array to store any validation or error messages
         })
@@ -209,6 +217,7 @@
             isRequired,
             removeStudentFromList,
             approveList,
+            formatter
         }
       }
     })

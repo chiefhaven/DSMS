@@ -134,7 +134,7 @@ Route::get('/viewexpense', [ExpenseController::class, 'show'])->middleware('auth
 Route::get('/addexpense', [ExpenseController::class, 'create'])->middleware('auth')->name('addexpense');
 Route::post('/storeexpense', [ExpenseController::class, 'store'])->middleware('auth')->name('storeexpense');
 Route::post('/updateExpense', [ExpenseController::class, 'update'])->middleware('auth')->name('updateExpense');
-Route::post('/editexpense/{id}', [ExpenseController::class, 'edit'])->middleware('auth')->name('editexpense');
+Route::get('/editexpense/{expense}', [ExpenseController::class, 'edit'])->middleware('auth')->name('editexpense');
 Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->middleware('auth')->name('delete-expense');
 Route::get('/expensedownload/{expense}', [ExpenseController::class, 'download'])->middleware('auth')->name('downloadexpense');
 Route::get('/search-expense', [ExpenseController::class, 'searchExpense'])->middleware('auth')->name('searchExpense');

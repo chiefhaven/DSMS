@@ -51,53 +51,62 @@
     </div>
     <div class="col-md-7 block block-rounded block-bordered">
         <h2 class="flex-grow-1 fs-4 fw-semibold my-2 my-sm-3">Add student to the group</h1>
-            <div v-if="state">
-                <div class="row haven-floating">
-                    <div class="col-6 form-floating mb-4 text-uppercase">
-                        <input class="form-control" id="student" name="student" :rules="isRequired" v-model="state.studentName" @input="studentSearch()" @blur="onStudentChange($event)" placeholder="Select student" required>
-                        <label for="student" class="text-capitalize">Select student</label>
-                    </div>
-                    <div class="col-6 form-floating mb-4">
-                        <select class="form-control" v-if="state.expenseGroupType === 'TRN'" id="expenseType" name="expenseType" v-model="state.expenseType" placeholder="Select expense Type" required>
-                            <option>TRN</option>
-                        </select>
-                        <select class="form-control" v-else-if="state.expenseGroupType === 'Road Test'" id="expenseType" name="expenseType" v-model="state.expenseType" placeholder="Select expense Type" required>
-                            <option selected>
-                                Road Test
-                            </option>
-                        </select>
-                        <select class="form-control" v-else id="expenseType" name="expenseType" v-model="state.expenseType" placeholder="Select expense Type" required>
-                            <option>Highway Code I</option>
-                            <option>Highway Code II</option>
-                        </select>
-                        <label for="expenseType">Expense Type</label>
-                    </div>
+        <div v-if="state">
+            <div class="row haven-floating">
+                <div class="col-6 form-floating mb-4 text-uppercase">
+                    <input class="form-control" id="student" name="student" :rules="isRequired" v-model="state.studentName" @input="studentSearch()" @blur="onStudentChange($event)" placeholder="Select student" required>
+                    <label for="student" class="text-capitalize">Select student</label>
                 </div>
-                <div class="block-content block-content-full text-end">
-                    <button type="submit" @click="addStudentToGroup()" class="btn btn-primary">Add to list</button>
-                </div>
-                <h2 class="flex-grow-1 fs-5 fw-semibold my-2 my-sm-3 border-lg mb-5">Select students</h2>
-                    <hr>
-                <div>
-                    <div v-for="(student, index) in state.selectedStudents" :key="student.index">
-                        <div class="row mb-2">
-                            <div class="col-sm-4">@{{ student.studentName }}</div>
-                            <div class="col-sm-4">@{{ student.expenseType }}</div>
-                            <div class="col-sm-4 text-end"><span><button class="btn btn-danger btn-sm" @click="removeStudentFromGroup(index)">Remove</button></span></div>
-                        </div>
-                        <hr>
-                    </div>
+                <div class="col-6 form-floating mb-4">
+                    <select class="form-control" v-if="state.expenseGroupType === 'TRN'" id="expenseType" name="expenseType" v-model="state.expenseType" placeholder="Select expense Type" required>
+                        <option>TRN</option>
+                    </select>
+                    <select class="form-control" v-else-if="state.expenseGroupType === 'Road Test'" id="expenseType" name="expenseType" v-model="state.expenseType" placeholder="Select expense Type" required>
+                        <option selected>
+                            Road Test
+                        </option>
+                    </select>
+                    <select class="form-control" v-else id="expenseType" name="expenseType" v-model="state.expenseType" placeholder="Select expense Type" required>
+                        <option>Highway Code I</option>
+                        <option>Highway Code II</option>
+                    </select>
+                    <label for="expenseType">Expense Type</label>
                 </div>
             </div>
+            <div class="block-content block-content-full text-end">
+                <button type="submit" @click="addStudentToGroup()" class="btn btn-primary">Add to list</button>
+            </div>
+            <h2 class="flex-grow-1 fs-5 fw-semibold my-2 my-sm-3 border-lg mb-5">Select students</h2>
+                <hr>
+            <div>
+                <div v-for="(student, index) in state.selectedStudents" :key="student.index">
+                    <div class="row mb-2">
+                        <div class="col-sm-6 text-uppercase">@{{ student.fname }} @{{ student.mname }} @{{ student.sname }}</div>
+                        <div class="col-sm-4">
+                            <div v-if="student.expenses && student.expenses.length">
+                                <div v-for="expense in student.expenses" :key="expense.id">
+                                  <!-- Assuming pivot is part of each expense object -->
+                                  <div v-if="expense.pivot">
+                                    @{{ expense.pivot.expense_type }}
+                                  </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-2 text-end"><span><button class="btn btn-danger btn-sm" @click="removeStudentFromGroup(index)">Remove</button></span></div>
+                    </div>
+                    <hr>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="block-content block-content-full text-end">
-        <button type="submit" @click="saveExpense()" class="btn btn-primary">Submit</button>
+        <button type="submit" @click="updateExpense()" class="btn btn-primary">Update</button>
     </div>
 </div>
 </div>
 <!-- END Hero -->
 <script setup>
-    const { createApp, ref, reactive } = Vue
+    const { createApp, ref, reactive, onMounted } = Vue
     const { defineRule, configure, useForm, useField, ErrorMessage } = VeeValidate
 
     function isRequired(value) {
@@ -107,28 +116,29 @@
         return 'This is required';
       }
 
-
     const app = createApp({
       setup() {
         const currentDate = new Date();
         const options = { day: 'numeric', month: 'long', year: 'numeric'};
         const state = ref({
-            amount: 0,                 // Represents the amount an expense
-            expenseGroupName: currentDate.toLocaleDateString(options),       // Name of the expense group or category
-            expenseGroupType: '',
-            expenseDescription: '',       // Name of the expense group or category
+            amount: {{ $expense->amount }},                 // Represents the amount an expense
+            expenseGroupName: '{{ $expense->group }}',       // Name of the expense group or category
+            expenseGroupType: '{{ $expense->group_type }}',
+            expenseDescription: '{{ $expense->description }}',       // Name of the expense group or category
             studentName: '', // Name of the student'
+            fname: '', // Name of the student'
+            sname: '', // Name of the student'
+            mname: '', // Name of the student'
+            expenseId: '{{ $expense->id }}',
             expenseType: '',            // Type of expense
             selectedStudents: [],       // Array of selected students (possibly for group payments or expenses)
-            paymentMethod: 'Cash', // Preferred payment method (defaulting to 'Airtel Money')
             errors: []                  // Array to store any validation or error messages
         })
 
-        const paymentMethodOptions = ref([
-            { text: 'Cash', value: 'Cash' },
-            { text: 'Bank', value: 'Bank' },
-            { text: 'AirtelMoney', value: 'AirtelMoney' }
-        ])
+        onMounted(async () => {
+            const res = await axios.get("/reviewExpenseData/{{ $expense->id }}")
+            state.value.selectedStudents = res.data
+          })
 
         const groupExpenseTypeOptions = ref([
             { text: 'TRN', value: 'TRN' },
@@ -160,7 +170,15 @@
             }
 
             if(!state.value.selectedStudents.some(item => item.studentName === state.value.studentName)){
-                    state.value.selectedStudents.push({studentName:state.value.studentName, expenseType:state.value.expenseType})
+                    var student = state.value.studentName.split(" ")
+                    console.log(state.value.selectedStudents);
+                    state.value.selectedStudents.push({fname:student[0], mname:student[1], sname:student[2],
+                        expenses: [{
+                            pivot: {
+                                expense_type: state.value.expenseType
+                              }
+                      }]
+                    })
                     state.value.studentName =''
                 }else{
                     notification('Student already in list', 'error')
@@ -173,22 +191,22 @@
             state.value.selectedStudents.splice(index, 1)
         }
 
-        function saveExpense(){
+        function updateExpense(){
 
             if(Object.keys( state.value.selectedStudents ).length == 0){
                 notification('Student list must not be empty', 'error')
                 return false
             }
 
-            if( !state.value.expenseGroupName || !state.value.paymentMethod){
+            if( !state.value.expenseGroupName){
                 notification('Expense Group Name, Payment Method and Amount must be filled and Amount must be greater than 0', 'error')
                 return false
             }
 
-            axios.post('/storeexpense', {students:state.value.selectedStudents, expenseGroupName:state.value.expenseGroupName, expenseDescription:state.value.expenseDescription, expenseGroupType:state.value.expenseGroupType, expenseAmount: state.value.amount}).then(response => {
+            axios.post('/updateExpense', {expenseId:state.value.expenseId, students:state.value.selectedStudents, expenseGroupName:state.value.expenseGroupName, expenseDescription:state.value.expenseDescription, expenseGroupType:state.value.expenseGroupType, expenseAmount: state.value.amount}).then(response => {
                 //console.log(response.data)
                 if(response.status==200){
-                    notification('Expense added successfully','success')
+                    notification('Expense updated successfully','success')
                     window.location.replace('/expenses')
                 }
                 else if(error.response.data.errors){
@@ -237,12 +255,11 @@
         return {
             addStudentToGroup,
             removeStudentFromGroup,
-            saveExpense,
+            updateExpense,
             studentSearch,
             onStudentChange,
             state,
             hasError,
-            paymentMethodOptions,
             groupExpenseTypeOptions,
             groupExpenseTypeChange,
             isRequired,

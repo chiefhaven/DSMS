@@ -119,15 +119,9 @@ class ExpenseController extends Controller
     public function reviewExpenseData(expense $expense)
     {
         $expenseId = $expense->id;
-        $expenseStudents = Student::with('invoice', 'attendance')->whereHas('expenses', function($q) use ($expenseId) {
+        $expenseStudents = Student::with('invoice', 'attendance', 'expenses')->whereHas('expenses', function($q) use ($expenseId) {
             $q->where('expense_student.expense_id', $expenseId);
-        })->get();;
-
-        $dataModified = array();
-
-        foreach ($expenseStudents as $data){
-           $dataModified[] = $data->fname.' '.$data->mname.' '.$data->sname;
-         }
+        })->get();
 
         return response()->json($expenseStudents);
     }
@@ -140,7 +134,7 @@ class ExpenseController extends Controller
      */
     public function edit(expense $expense)
     {
-        //
+        return view('expenses.editExpense', compact('expense'));
     }
 
     /**
@@ -150,7 +144,7 @@ class ExpenseController extends Controller
      * @param  \App\Models\expense  $expense
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateexpenseRequest $request, expense $expense)
+    public function update(UpdateexpenseRequest $request)
     {
         $messages = [
             'expenseGroupName.required' => 'Expense Group Name is required',
@@ -165,18 +159,33 @@ class ExpenseController extends Controller
         ], $messages);
 
         $post = $request->all();
+
         $students = $post['students'];
 
-        $expense = new expense();
-        $expense->approved_by = Auth::user()->administrator_id;
+        $expenseUpdate = Expense::find($post['expenseId']);
 
-        $expense->save();
+        $expenseUpdate->group = $post['expenseGroupName'];
+        $expenseUpdate->group_type = $post['expenseGroupType'];
+        $expenseUpdate->description = $post['expenseDescription'];
+        // $expense->amount = $studentsCount * $post['expenseAmount'];
+        $expenseUpdate->amount = $post['expenseAmount'];
+        $expenseUpdate->added_by = Auth::user()->administrator_id;
 
-        if(!$expense->save()){
+        $expenseUpdate->save();
+
+        //Get student id
+        foreach ($students as $data) {
+            $expense_type = $data['expenses'][0];
+            $expenseId = Expense::orderBy('updated_at', 'desc')->first()->id;
+            $student = havenUtils::student($data['fname'].' '.$data['mname'].' '.$data['sname']);
+            $student->expenses()->sync($expenseId, ['expense_type' => $data['expenses'][0]['pivot']['expense_type']]);
+        }
+
+        if(!$expenseUpdate->save()){
             return false;
         }
 
-        $data = ['message' => 'Expense approved successfully'];
+        $data = ['message' => 'Expense added successfuly'];
         return response()->json([$data], 200);
     }
 
