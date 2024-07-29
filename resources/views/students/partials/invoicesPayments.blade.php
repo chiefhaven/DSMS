@@ -64,9 +64,11 @@
                                             {{ csrf_field() }}
                                         <button class="dropdown-item" type="submit">Edit</button>
                                     </form>
-                                    <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal-block-vcenter">
-                                        Add payment
-                                    </button>
+                                    @role(['superAdmin'])
+                                        <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal-block-vcenter">
+                                            Add payment
+                                        </button>
+                                    @endcan
                                     <a class="dropdown-item" href="{{ url('/invoice-pdf', $student->invoice->invoice_number) }}">
                                         Print Invoice
                                     </a>
