@@ -175,7 +175,6 @@ class ExpenseController extends Controller
 
         //Get student id
         foreach ($students as $data) {
-            $expense_type = $data['expenses'][0];
             $expenseId = Expense::orderBy('updated_at', 'desc')->first()->id;
             $student = havenUtils::student($data['fname'].' '.$data['mname'].' '.$data['sname']);
             $student->expenses()->sync($expenseId, ['expense_type' => $data['expenses'][0]['pivot']['expense_type']]);
