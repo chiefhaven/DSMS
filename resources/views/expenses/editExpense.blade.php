@@ -206,8 +206,9 @@
             axios.post('/updateExpense', {expenseId:state.value.expenseId, students:state.value.selectedStudents, expenseGroupName:state.value.expenseGroupName, expenseDescription:state.value.expenseDescription, expenseGroupType:state.value.expenseGroupType, expenseAmount: state.value.amount}).then(response => {
                 //console.log(response.data)
                 if(response.status==200){
+                    console.log(response.data)
                     notification('Expense updated successfully','success')
-                    window.location.replace('/expenses')
+                    //window.location.replace('/expenses')
                 }
                 else if(error.response.data.errors){
                     notification('error.response.data.errors.message','error')
