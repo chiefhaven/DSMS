@@ -56,6 +56,8 @@ Route::post('/final-test-reference-letter/{id}', [StudentController::class, 'fin
 Route::post('/lesson-report/{id}', [StudentController::class, 'lessonReport'])->middleware('auth')->name('lesson-report');
 Route::get('/search-student', [StudentController::class, 'search'])->middleware('auth')->name('searchStudent');
 Route::post('/studentsPdf', [StudentController::class, 'studentsPDF'])->middleware('auth')->name('studentPDF');
+Route::post('/assignCar', [StudentController::class, 'assignCar'])->middleware('auth')->name('assignCar');
+Route::post('/unAssign', [StudentController::class, 'unAssign'])->middleware('auth')->name('unAssign');
 
 Route::get('/attendances', [AttendanceController::class, 'index'])->middleware('auth')->name('attendances');
 Route::post('/addattendance/{token}', [AttendanceController::class, 'create'])->middleware('auth')->name('addattendance');
@@ -115,6 +117,7 @@ Route::post('/updateadministrator', [AdministratorController::class, 'update'])-
 Route::delete('/deleteadministrator/{id}', [AdministratorController::class, 'destroy'])->middleware('auth')->name('deleteadministrator');
 
 Route::get('/fleet', [FleetController::class, 'index'])->middleware('auth')->name('fleet');
+Route::get('/getFleet', [FleetController::class, 'getFleet'])->middleware('auth')->name('getFleet');
 Route::get('/viewfleet', [FleetController::class, 'show'])->middleware('auth')->name('viewfleet');
 Route::get('/addfleet', [FleetController::class, 'create'])->middleware('auth')->name('addfleet');
 Route::post('/storefleet', [FleetController::class, 'store'])->middleware('auth')->name('storefleet');

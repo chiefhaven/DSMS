@@ -469,4 +469,19 @@ class StudentController extends Controller
 
         return view('students.students', compact('student', 'fleet'));
     }
+
+    public function assignCar(Request $request, student $student)
+    {
+        $fleet_id = havenUtils::fleetID($request['fleet']);
+        $student = Student::find($request['student']);
+        $student->fleet_id = $fleet_id;
+        $student->save();
+
+        if(!$student->save()){
+            return response()->json('Something wrong happened', 403);
+        }
+
+        return response()->json('Success, student assigned car', 200);
+
+    }
 }

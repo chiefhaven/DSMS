@@ -73,8 +73,8 @@
       }
 
     const formatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'MMK',
+        style: 'currency',
+        currency: 'MMK',
     });
 
 

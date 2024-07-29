@@ -20,7 +20,7 @@ class NotificationController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['role:superAdmin'], ['role:admin']);
+        $this->middleware(['role:superAdmin|admin']);
     }
     /**
      * Update the resource.
@@ -51,7 +51,7 @@ class NotificationController extends Controller
      */
     public function sendSMS(student $student)
     {
-        if (! $this->middleware(['role:admin'])) {
+        if (! $this->middleware(['role:superAdmin|admin'])) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -63,12 +63,10 @@ class NotificationController extends Controller
 
         $variables = array("first_name"=>$student->fname,"middle_name"=>$student->mname,"sir_name"=>$student->sname,"invoice_total"=>$total, "invoice_paid"=>$paid, "balance"=>$balance, "due_date"=>$due_date);
 
-        $sms_template = notification_template::where('type', 'new')->firstOrFail()->body;;
-
-        $sms = $sms_template;
+        $sms_template = notification_template::where('type', 'new')->firstOrFail()->body;
 
         foreach($variables as $key => $value){
-            $sms = str_replace('{'.strtoupper($key).'}', $value, $sms);
+            $sms_template = str_replace('{'.strtoupper($key).'}', $value, $sms_template);
         }
 
         $destination = $student->phone;
@@ -86,7 +84,7 @@ class NotificationController extends Controller
             'body' => json_encode([
                             'from' => $source,
                             'to' => $destination,
-                            'message' => $sms
+                            'message' => $sms_template
                         ])
                     ]);
 

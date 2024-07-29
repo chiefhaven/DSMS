@@ -51,8 +51,10 @@
                             <th style="min-width: 10rem;">Description</th>
                             <th style="min-width: 10rem;">Amount per student</th>
                             <th style="min-width: 10em;">Approved Amount</th>
-                            <th style="min-width: 10rem;">Posted by</th>
-                            <th style="min-width: 10rem;">Approved by</th>
+                            @role(['superAdmin'])
+                                <th style="min-width: 10rem;">Posted by</th>
+                                <th style="min-width: 10rem;">Approved by</th>
+                            @endcan
                             <th style="min-width: 10rem;">Date Approved</th>
                             <th style="min-width: 10rem;">Payment method</th>
                           </tr>
@@ -67,7 +69,7 @@
                                         </button>
                                         <div class="dropdown-menu dropdown-menu-end p-0">
                                         <div class="p-2">
-                                        @role(['superAdmin', 'admin'])
+                                        @role(['superAdmin|admin'])
                                             @if($expense->group_type != 'TRN')
                                                 @if($expense->approved == true)
                                                     <form class="dropdown-item nav-main-link" method="get" action="{{ url('expensedownload', $expense) }}">
@@ -81,23 +83,27 @@
                                             @else
                                                 <p class="text-danger">Go to individual student profile to downlaod TRN reference</p>
                                             @endif
-                                            <a class="dropdown-item nav-main-link" href="{{ url('editexpense', $expense) }}">
-                                                {{ csrf_field() }}
-                                                <i class="nav-main-link-icon fa fa-pen"></i>
-                                                <div class="btn">Edit</div>
-                                            </a>
+                                            @if ($expense->approved == '0')
+                                                <a class="dropdown-item nav-main-link" href="{{ url('editexpense', $expense) }}">
+                                                    {{ csrf_field() }}
+                                                    <i class="nav-main-link-icon fa fa-pen"></i>
+                                                    <div class="btn">Edit</div>
+                                                </a>
+                                            @endcan
                                             @role(['superAdmin'])
                                                 <a class="dropdown-item nav-main-link" href="{{ url('review-expense', $expense) }}">
                                                     {{ csrf_field() }}
                                                     <i class="nav-main-link-icon fa fa-magnifying-glass"></i>
                                                     <div class="btn">Review</div>
                                                 </a>
-                                                <form class="dropdown-item nav-main-link" method="POST" action="{{ url('expenses', $expense) }}">
-                                                        {{ csrf_field() }}
-                                                        {{ method_field('DELETE') }}
-                                                        <i class="nav-main-link-icon text-danger fa fa-trash"></i>
-                                                        <button class="btn delete-confirm text-danger" type="submit">Delete</button>
-                                                </form>
+                                                @if ($expense->approved == '0')
+                                                    <form class="dropdown-item nav-main-link" method="POST" action="{{ url('expenses', $expense) }}">
+                                                            {{ csrf_field() }}
+                                                            {{ method_field('DELETE') }}
+                                                            <i class="nav-main-link-icon text-danger fa fa-trash"></i>
+                                                            <button class="btn delete-confirm text-danger" type="submit">Delete</button>
+                                                    </form>
+                                                @endcan
                                             @endcan
                                         @endcan
                                         </div>
@@ -112,9 +118,9 @@
                                 </td>
                                 <td>
                                     @if ($expense->approved == '1')
-                                        <div class="text-center p-2 bg-success text-white">Approved</div>
+                                        <div class="text-center p-1 btn-sm bg-success text-white">Approved</div>
                                     @else
-                                        <div class="text-center p-2 bg-danger text-white">Unapproved</div>
+                                        <div class="text-center p-1 btn-sm bg-danger text-white">Unapproved</div>
                                     @endif
                                 </td>
                                 <td>
@@ -129,19 +135,21 @@
                                 <td>
                                     K{{number_format($expense->approved_amount)}}
                                 </td>
-                                <td>
-                                    @if ($expense->administrator)
-                                        {{$expense->administrator->fname}} {{$expense->administrator->sname}}
-                                    @else
-                                        -
-                                    @endif
-                                </td>
-                                <td>
-                                    @if ($expense->approved==true)
-                                        {{App\Models\Administrator::find($expense->approved_by)->fname}}
-                                        {{App\Models\Administrator::find($expense->approved_by)->sname}}
-                                    @endif
-                                </td>
+                                @role(['superAdmin'])
+                                    <td>
+                                        @if ($expense->administrator)
+                                            {{$expense->administrator->fname}} {{$expense->administrator->sname}}
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if ($expense->approved==true)
+                                            {{App\Models\Administrator::find($expense->approved_by)->fname}}
+                                            {{App\Models\Administrator::find($expense->approved_by)->sname}}
+                                        @endif
+                                    </td>
+                                @endcan
                                 <td>
                                     @if ($expense->approved==true)
                                         {{$expense->date_approved->format('j F, Y')}}

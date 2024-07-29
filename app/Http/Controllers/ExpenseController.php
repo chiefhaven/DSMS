@@ -20,7 +20,7 @@ class ExpenseController extends Controller
 
     public function __construct()
     {
-        $this->middleware(['role:superAdmin'], ['role:admin']);
+        $this->middleware(['role:superAdmin|admin']);
         $this->setting = Setting::find(1);
     }/**
      * Display a listing of the resource.
@@ -29,8 +29,12 @@ class ExpenseController extends Controller
      */
     public function index()
     {
-        $expenses = Expense::with('Students')->orderBy('created_at', 'DESC')->paginate(10);
-
+        if(Auth::user()->hasRole('admin')){
+            $expenses = Expense::where('added_by', Auth::user()->administrator_id)->with('Students')->orderBy('created_at', 'DESC')->paginate(10);
+        }
+        else{
+            $expenses = Expense::with('Students')->orderBy('created_at', 'DESC')->paginate(10);
+        }
         return view('expenses.expenses', compact('expenses'));
     }
 

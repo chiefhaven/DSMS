@@ -24,7 +24,7 @@ class AdministratorController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['role:superAdmin'], ['role:admin']);
+        $this->middleware(['role:superAdmin|admin']);
     }
     /**
      * Display a listing of the resource.

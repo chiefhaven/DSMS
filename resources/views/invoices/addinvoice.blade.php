@@ -69,14 +69,6 @@
                             <label class="px-4" for="district">Payment Method</label>
                         </div>
                     </div>
-                    <div class="col-4 form-floating mb-4">
-                        <select class="form-select" id="fleet" name="fleet">
-                          @foreach($fleet as $fleet_option)
-                            <option value="{{$fleet_option->car_registration_number}}" selected><strong>{{$fleet_option->car_registration_number}}</strong> <div class="text-muted text-small">({{$fleet_option->car_brand_model}})</div></option>
-                          @endforeach
-                        </select>
-                        <label for="district">Assign Car</label>
-                    </div>
                     <div class="form-group">
                         <button type="submit" class="btn btn-primary">Save</button>
                     </div>

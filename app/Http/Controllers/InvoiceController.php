@@ -101,7 +101,7 @@ class InvoiceController extends Controller
         }
 
         $student_id = havenUtils::student($post['student'])->id;
-        $fleet_id = havenUtils::fleetID($post['fleet']);
+        //$fleet_id = havenUtils::fleetID($post['fleet']);
         $invoice_total = havenUtils::invoiceDiscountedPrice($post['course'], $discount);
         $invoice_balance = havenUtils::invoiceBalance($post['paid_amount'], $invoice_total);
         $courseId = havenUtils::courseID($post['course']);
@@ -149,7 +149,7 @@ class InvoiceController extends Controller
 
         $student = Student::where('id', $student_id)->firstOrFail();
         $student->course_id = $courseId;
-        $student->fleet_id = $fleet_id;
+        //$student->fleet_id = $fleet_id;
 
 
         if(Invoice::where('student_id', '=', $student_id)->count() > 0){
@@ -274,7 +274,7 @@ class InvoiceController extends Controller
 
 
         $student_id = havenUtils::student($post['student'])->id;
-        $fleet_id = havenUtils::fleetID($post['fleet']);
+        //$fleet_id = havenUtils::fleetID($post['fleet']);
         $invoice_total = havenUtils::invoiceDiscountedPrice($post['course'], $discount);
         $courseId = havenUtils::courseID($post['course']);
         $coursePrice = havenUtils::coursePrice($post['course']);
@@ -296,7 +296,7 @@ class InvoiceController extends Controller
         $student = Student::where('id', $student_id)->firstOrFail();
         $student->course_id = $courseId;
 
-        $student->fleet_id = $fleet_id;
+        //$student->fleet_id = $fleet_id;
 
         $invoice->save();
         $student->save();

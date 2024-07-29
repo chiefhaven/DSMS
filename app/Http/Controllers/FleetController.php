@@ -21,7 +21,7 @@ class FleetController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['role:superAdmin'], ['role:admin']);
+        $this->middleware(['role:superAdmin|admin']);
     }
 
     /**
@@ -35,6 +35,12 @@ class FleetController extends Controller
         $instructor = Instructor::get();
         $student = Student::get();
         return view('fleet.fleet', compact('fleet', 'instructor', 'student'));
+    }
+
+    public function getFleet()
+    {
+        $fleet = Fleet::with('Instructor')->get();
+        return response()->json($fleet, 200);
     }
 
     /**
