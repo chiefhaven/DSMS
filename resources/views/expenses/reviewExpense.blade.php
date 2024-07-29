@@ -20,7 +20,7 @@
 
 <div class="content content-full" id="expense">
 <div class="row">
-    <div class="col-md-5 block-rounded block-bordered">
+    <div class="col-md-4 block-rounded block-bordered">
         <div class="block block-rounded block-themed block-transparent mb-0" style="background-color:#ffffff">
             <div class="block-content pb-4">
                 <div class=""><b>Booking date:</b> @{{ state.expenseGroupName }}</div>
@@ -31,19 +31,25 @@
             </div>
         </div>
     </div>
-    <div class="col-md-7 block block-rounded block-bordered">
+    <div class="col-md-8 block block-rounded block-bordered">
             <div v-if="state">
                 <div>
                     <div class="row p-2 mb-4 bg-info text-white">
-                        <div class="col-sm-5">Student</div>
-                        <div class="col-sm-3">Fees balance</div>
+                        <div class="col-sm-4">Student</div>
+                        <div class="col-sm-2">Fees balance</div>
+                        <div class="col-sm-2">Class</div>
+                        <div class="col-sm-2">Expense type</div>
+                        <div class="col-sm-2">Action</div>
                     </div>
                     <div v-for="(student, index) in state.selectedStudents" :key="student.index">
                         <div class="row mb-2">
-                            <div class="col-sm-5 text-uppercase">@{{ student.fname }} @{{ student.mname }} <b>@{{ student.sname }}</b></div>
-                            <div class="col-sm-3">@{{ formatter.format(student.invoice.invoice_balance) }}</div>
-                            <div class="col-sm-2">@{{ student.course}}</div>
-                            <div class="col-sm-2 text-end"><span><button :disabled="state.expenseStatus !== 0" class="btn btn-danger btn-sm delete-confirm" @click="removeStudentFromList(student.id, index)">Remove</button></span></div>
+                            <div class="col-sm-4 text-uppercase">@{{ student.fname }} @{{ student.mname }} <b>@{{ student.sname }}</b></div>
+                            <div class="col-sm-2">@{{ formatter.format(student.invoice.invoice_balance) }}</div>
+                            <div class="col-sm-2">@{{ student.course.class}}</div>
+                            <div class="col-sm-2">@{{ student.expenses[0].pivot.expense_type }}</div>
+                            <div class="col-sm-2">
+                                <button :disabled="state.expenseStatus !== 0" class="btn btn-danger btn-sm delete-confirm" @click="removeStudentFromList(student.id, index)">Remove</button>
+                            </div>
                         </div>
                         <hr>
                     </div>
@@ -98,7 +104,6 @@
         onMounted(async () => {
             const res = await axios.get("/reviewExpenseData/{{ $expense->id }}")
             state.value.selectedStudents = res.data
-            console.log(state.value.expenseStatus)
             totalAmount()
           })
 
