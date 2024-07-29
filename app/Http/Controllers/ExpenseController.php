@@ -123,7 +123,7 @@ class ExpenseController extends Controller
     public function reviewExpenseData(expense $expense)
     {
         $expenseId = $expense->id;
-        $expenseStudents = Student::with('invoice', 'attendance', 'expenses')->whereHas('expenses', function($q) use ($expenseId) {
+        $expenseStudents = Student::with('invoice', 'attendance', 'expenses', 'course')->whereHas('expenses', function($q) use ($expenseId) {
             $q->where('expense_student.expense_id', $expenseId);
         })->get();
 
