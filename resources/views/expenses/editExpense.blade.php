@@ -42,8 +42,11 @@
                         <label for="invoice_discount">Expense notes</label>
                     </div>
                     <div class="col-12 form-floating mb-4">
-                        <input type="number" class="form-control" id="amount" name="amount" v-model="state.amount">
+                        <input type="number" class="form-control" id="amount" @input="totalAmount()" name="amount" v-model="state.amount">
                         <label for="amount">Amount per student</label>
+                    </div>
+                    <div class="col-12 form-floating mb-4">
+                        Total Amount: @{{ formatter.format(state.totalAmount) }}
                     </div>
             </form>
             </div>
@@ -92,7 +95,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-sm-2 text-end"><span><button class="btn btn-danger btn-sm" @click="removeStudentFromGroup(index)">Remove</button></span></div>
+                        <div class="col-sm-2 text-end"><span><button class="btn btn-danger btn-sm" @click="removeStudentFromList(student.id, index)">Remove</button></span></div>
                     </div>
                     <hr>
                 </div>
@@ -121,7 +124,8 @@
         const currentDate = new Date();
         const options = { day: 'numeric', month: 'long', year: 'numeric'};
         const state = ref({
-            amount: {{ $expense->amount }},                 // Represents the amount an expense
+            amount: {{ $expense->amount }},
+            totalAmount:0,
             expenseGroupName: '{{ $expense->group }}',       // Name of the expense group or category
             expenseGroupType: '{{ $expense->group_type }}',
             expenseDescription: '{{ $expense->description }}',       // Name of the expense group or category
@@ -138,7 +142,13 @@
         onMounted(async () => {
             const res = await axios.get("/reviewExpenseData/{{ $expense->id }}")
             state.value.selectedStudents = res.data
+            totalAmount()
           })
+
+        const formatter = new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'MMK',
+        });
 
         const groupExpenseTypeOptions = ref([
             { text: 'TRN', value: 'TRN' },
@@ -180,6 +190,7 @@
                       }]
                     })
                     state.value.studentName =''
+                    totalAmount()
                 }else{
                     notification('Student already in list', 'error')
                     hasError.value = true
@@ -189,6 +200,7 @@
 
         function removeStudentFromGroup(index) {
             state.value.selectedStudents.splice(index, 1)
+            totalAmount()
         }
 
         function updateExpense(){
@@ -225,6 +237,26 @@
         function onStudentChange(event){
             state.value.studentName = event.target.value;  // Now you should have access to your selected option.
          }
+
+        function totalAmount(){
+            state.value.totalAmount = Object.keys( state.value.selectedStudents ).length*state.value.amount
+        }
+
+        function removeStudentFromList(studentId, index) {
+            axios.post('/removeStudent', {student:studentId, expenseId: state.value.expenseId}).then(response => {
+                if(response.status==200){
+                    removeStudentFromGroup(index)
+                    totalAmount()
+                    notification('Student removed successfully','success')
+                }
+                else if(error.response.data.errors){
+                    notification('error.response.data.errors.message','error')
+                }
+                else{
+                    return false
+                }
+            });
+        }
 
         function studentSearch() {
             var path = "{{ route('expense-student-search') }}";
@@ -264,6 +296,10 @@
             groupExpenseTypeOptions,
             groupExpenseTypeChange,
             isRequired,
+            removeStudentFromList,
+            formatter,
+            totalAmount
+
         }
       }
     })
