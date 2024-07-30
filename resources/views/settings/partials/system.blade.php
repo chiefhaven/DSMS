@@ -1,4 +1,4 @@
-<div class="tab-pane fade" id="system" role="tabpanel" aria-labelledby="system-tab">
+<div class="tab-pane fade active show" id="system" role="tabpanel" aria-labelledby="system-tab">
     <div class="fs-3 fw-semibold pt-2 pb-4 mb-4 border-bottom">
         System settings
       </div>
