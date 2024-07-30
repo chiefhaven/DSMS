@@ -15,19 +15,19 @@
     @include('components.alert')
     <div class="block block-rounded">
     <ul class="nav nav-tabs nav-tabs-block" role="tablist">
+        <li class="nav-item">
+          <button class="nav-link active" id="system_tab" data-bs-toggle="tab" data-bs-target="#system" role="tab" aria-controls="system" aria-selected="true">
+            System
+          </button>
+        </li>
       <li class="nav-item">
-        <button class="nav-link active" id="school_details" data-bs-toggle="tab" data-bs-target="#search-classic" role="tab" aria-controls="search-classic" aria-selected="true">
+        <button class="nav-link" id="school_details" data-bs-toggle="tab" data-bs-target="#school-details" role="tab" aria-selected="false">
           School Details
         </button>
       </li>
       <li class="nav-item">
-        <button class="nav-link" id="search-photos-tab" data-bs-toggle="tab" data-bs-target="#search-photos" role="tab" aria-controls="search-photos" aria-selected="false">
+        <button class="nav-link" id="search-photos-tab" data-bs-toggle="tab" data-bs-target="#search-photos" role="tab" aria-selected="false">
           Invoice
-        </button>
-      </li>
-      <li class="nav-item">
-        <button class="nav-link" id="system-tab" data-bs-toggle="tab" data-bs-target="#system" role="tab" aria-controls="system" aria-selected="false">
-          System
         </button>
       </li>
       <li class="nav-item">
@@ -37,7 +37,7 @@
       </li>
     </ul>
     <div class="block-content tab-content overflow-hidden">
-      <div class="tab-pane fade active show" id="search-classic" role="tabpanel" aria-labelledby="search-classic-tab">
+      <div class="tab-pane fade" id="school-details" role="tabpanel" aria-labelledby="search-classic-tab">
         <div class="fs-3 fw-semibold pt-2 pb-4 mb-4 text-center border-bottom">
           Make changes to school details
         </div>
