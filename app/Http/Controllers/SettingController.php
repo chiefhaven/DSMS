@@ -72,7 +72,7 @@ class SettingController extends Controller
         $setting = $this->setting;
         $invoice_setting = InvoiceSetting::find(1);
         $district = district::get();
-        return view('settings', compact('setting', 'district', 'invoice_setting'));
+        return view('settings.settings', compact('setting', 'district', 'invoice_setting'));
     }
 
     /**
@@ -147,7 +147,9 @@ class SettingController extends Controller
         $settings->address = $post['address'];
 
         $settings->save();
-        Alert::toast('School settings updated successifully', 'success');
+        if($settings->save()){
+            Alert::toast('School settings updated successifully', 'success');
+        }
 
         return redirect('/settings')->with('message', 'Settings updated!');
     }
@@ -162,6 +164,8 @@ class SettingController extends Controller
             'time_between_attendances.required'   => 'The "Time between attendances" is required.',
             'time_between_attendances.between'   => 'The "Time between attendances" must be between 0 and 59 (in minutes).',
             'time_between_attendances.integer'   => 'The "Time between attendances" must be a number.',
+            'lesson_threshold'   => 'Fees threshold must be a number from 0 to 100',
+            'fees_threshold'   => 'Lesson threshold must be a number from 0 to 100',
         ];
 
         //Validate the request
@@ -169,6 +173,8 @@ class SettingController extends Controller
             'timestart'  =>'required|date_format:H:i',
             'timestop' =>'required|date_format:H:i',
             'time_between_attendances' => 'required|integer|between:0,59',
+            'fees_threshold' =>'required|integer|between:0,100',
+            'lesson_threshold' =>'required|integer|between:0,100',
 
         ], $messages);
 
@@ -180,11 +186,19 @@ class SettingController extends Controller
         $settings->attendance_time_start = $post['timestart'];
         $settings->attendance_time_stop = $post['timestop'];
         $settings->time_between_attendances = $post['time_between_attendances'];
+        $settings->fees_balance_threshold = $post['fees_threshold'];
+        $settings->attendance_threshold = $post['lesson_threshold'];
 
         $settings->save();
-        Alert::toast('Attendance settings updated successifully', 'success');
+        if($settings->save()){
+            Alert::toast('System settings updated successifully', 'success');
+            return redirect('/settings');
+        }
 
-        return redirect('/settings');
+        Alert()->error('System settings update not successfull');
+        return back();
+
+
     }
 
     /**

@@ -164,7 +164,7 @@ Route::get('/e8704ed2-d90e-41ca-9143/{id}', [InvoiceController::class,'invoiceQr
 
 Route::get("/scanqrcode", function(){
     return view("qrCodeScanner");
- });
+ })->middleware('auth');
 
 Route::get('/migrate', function(){
       Artisan::call('migrate',['--force' => true]);

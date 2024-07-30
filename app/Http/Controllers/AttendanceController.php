@@ -78,8 +78,13 @@ class AttendanceController extends Controller
 
             $checkStudentInstructor = havenUtils::checkStudentInstructor($token);
 
-            if($checkStudentInstructor == false){
-                Alert()->error('Student not found', 'Student belongs to another car, scan another document or contact administrator');
+             if($checkStudentInstructor == true){
+                 Alert()->error('Student not found', 'Student belongs to another car, scan another document or contact administrator');
+                 return back();
+             }
+
+            if($student->attendance->count()/$student->course->duration*100 >= $this->setting->attendance_threshold && $student->invoice->invoice_balance/$student->invoice->course_price*100 < $this->setting->fees_balance_threshold){
+                Alert()->error('Fees balance', 'Attendance can not be entered, student has fees balance that must be paid...');
                 return back();
             }
 
@@ -141,7 +146,7 @@ class AttendanceController extends Controller
            $attendanceCount = Attendance::Where('lesson_id', $lesson_id)->Where('student_id', $student_id)->count();
             if($attendanceCount == 10){
                 Alert()->error('Attendance not entered!','You can not enter more than 10 attendances for Theory lessons for a student.');
-                return redirect('/students');
+                return back();
             }
         }
 
