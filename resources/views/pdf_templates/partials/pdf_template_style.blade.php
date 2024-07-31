@@ -1,4 +1,4 @@
-<div class="reference_letters page_break">
+<div class="reference_letters page-break">
     <div class="row">
         <div class="col-8">
             <img src="{{ public_path("media/{$setting->logo}") }}" alt="Logo" style="width: 100%; height: auto;">
