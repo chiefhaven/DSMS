@@ -224,6 +224,16 @@ class ExpenseController extends Controller
 
         $expenseType = $post['expenseType'];
 
+        $expenseTypeCount = DB::table('expense_student')->where('student_id', $student->id)->where('expense_type', $request['expenseType'])->count();
+
+        if($expenseTypeCount > 0){
+            $data = [
+                'feedback'=>'error',
+                'message' => $post['student'].' was already selected for '.$post['expenseType'].' expenses'
+            ];
+            return response()->json($data, 200);
+        }
+
         switch ($expenseType) {
             case "Road Test":
                 if(($student->Invoice->invoice_balance / $student->Invoice->course_price) * 100 < $this->setting->fees_road_threshold){
