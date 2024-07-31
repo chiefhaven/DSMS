@@ -115,7 +115,7 @@
         const state = ref({
             amount: 0,                 // Represents the amount an expense
             expenseGroupName: currentDate.toLocaleDateString(options),       // Name of the expense group or category
-            expenseGroupType: '',
+            expenseGroupType: 'Theory',
             expenseDescription: '',       // Name of the expense group or category
             studentName: '', // Name of the student'
             expenseType: '',            // Type of expense
@@ -160,13 +160,22 @@
             }
 
             if(!state.value.selectedStudents.some(item => item.studentName === state.value.studentName)){
-                    state.value.selectedStudents.push({studentName:state.value.studentName, expenseType:state.value.expenseType})
-                    state.value.studentName =''
-                }else{
-                    notification('Student already in list', 'error')
-                    hasError.value = true
-                    return hasError
-                }
+                axios.post('/checkStudent', {student:state.value.studentName, expenseType: state.value.expenseType}).then(response => {
+                    if(response.data.feedback == "success"){
+                        state.value.selectedStudents.push({studentName:state.value.studentName, expenseType:state.value.expenseType})
+                        state.value.studentName =''
+                        notification(response.data.message, 'success')
+                    }
+                    else{
+                        notification(response.data.message, 'error')
+                    }
+                })
+            }
+            else{
+                notification('Student already in list', 'error')
+                hasError.value = true
+                return hasError
+            }
         }
 
         function removeStudentFromGroup(index) {
@@ -186,14 +195,12 @@
             }
 
             axios.post('/storeexpense', {students:state.value.selectedStudents, expenseGroupName:state.value.expenseGroupName, expenseDescription:state.value.expenseDescription, expenseGroupType:state.value.expenseGroupType, expenseAmount: state.value.amount}).then(response => {
-                //console.log(response.data)
                 if(response.status==200){
                     notification('Expense added successfully','success')
                     window.location.replace('/expenses')
                 }
                 else if(error.response.data.errors){
                     notification('error.response.data.errors.message','error')
-                    //console.log(error.response.data.errors)
                 }
                 else{
                     return false
