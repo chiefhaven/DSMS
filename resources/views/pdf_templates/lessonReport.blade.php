@@ -54,7 +54,9 @@
                                     {{$attendance->lesson->name}}
                                 </td>
                                 <td class="invoice-td">
-                                    {{$attendance->instructor->fname}} {{$attendance->instructor->sname}}
+                                    @if($attendance->instructor)
+                                        {{$attendance->instructor->fname}} {{$attendance->instructor->sname}}
+                                    @endif
                                 </td>
                                 <td class="invoice-td">
                                     <!-- <img src="{{ public_path("media/signatures/{$setting->authorization_signature}") }}" alt="" style="width: auto; height: 20px;"></p>-->
