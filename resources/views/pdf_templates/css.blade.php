@@ -236,4 +236,16 @@
             z-index: 999;
             background: blue;
         }
+
+        .text-start {
+            text-align: left !important;
+        }
+
+        .text-end {
+            text-align: right !important;
+        }
+
+        .text-center {
+            text-align: center !important;
+        }
     </style>
