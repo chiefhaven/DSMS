@@ -179,8 +179,8 @@
                 return hasError
             }
 
-            if(!state.value.selectedStudents.some(item => item.studentName === state.value.studentName)){
-                    var student = state.value.studentName.split(" ")
+            var student = state.value.studentName.split(" ")
+            if(!state.value.selectedStudents.some(item => item.fname === student[0] && item => item.mname === student[1] && item => item.sname === student[2])){
                     axios.post('/checkStudent', {student:state.value.studentName, expenseType: state.value.expenseType}).then(response => {
                         if(response.data.feedback == "success"){
                             state.value.selectedStudents.push({fname:student[0], mname:student[1], sname:student[2],
@@ -197,7 +197,8 @@
                             notification(response.data.message, 'error')
                         }
                     })
-                }else{
+                }
+                else{
                     notification('Student already in list', 'error')
                     hasError.value = true
                     return hasError
