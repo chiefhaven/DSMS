@@ -118,9 +118,13 @@
                                 </td>
                                 <td>
                                     @if ($expense->approved == '1')
-                                        <div class="text-center p-1 btn-sm bg-success text-white">Approved</div>
+                                        <div class="text-center p-1 text-success">
+                                            <i class="fa fa-check" aria-hidden="true"></i> Approved
+                                        </div>
                                     @else
-                                        <div class="text-center p-1 btn-sm bg-danger text-white">Unapproved</div>
+                                        <div class="text-center p-1 text-danger">
+                                            <i class="fa fa-times" aria-hidden="true"></i> Unapproved
+                                        </div>
                                     @endif
                                 </td>
                                 <td>
