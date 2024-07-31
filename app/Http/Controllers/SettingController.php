@@ -166,6 +166,9 @@ class SettingController extends Controller
             'time_between_attendances.integer'   => 'The "Time between attendances" must be a number.',
             'lesson_threshold'   => 'Fees threshold must be a number from 0 to 100',
             'fees_threshold'   => 'Lesson threshold must be a number from 0 to 100',
+            'fees_code_i_threshold'   => 'Fees highway code I threshold must be a number from 0 to 100',
+            'fees_code_ii_threshold'   => 'Fees highway code II must be a number from 0 to 100',
+            'fees_road_test_threshold'   => 'Fees road test must be a number from 0 to 100',
         ];
 
         //Validate the request
@@ -175,6 +178,9 @@ class SettingController extends Controller
             'time_between_attendances' => 'required|integer|between:0,59',
             'fees_threshold' =>'required|integer|between:0,100',
             'lesson_threshold' =>'required|integer|between:0,100',
+            'fees_road_test_threshold' => 'required|integer|between:0,100',
+            'fees_code_i_threshold'=> 'required|integer|between:0,100',
+            'fees_code_ii_threshold' => 'required|integer|between:0,100',
 
         ], $messages);
 
@@ -188,6 +194,9 @@ class SettingController extends Controller
         $settings->time_between_attendances = $post['time_between_attendances'];
         $settings->fees_balance_threshold = $post['fees_threshold'];
         $settings->attendance_threshold = $post['lesson_threshold'];
+        $settings->fees_code_i_threshold =$post['fees_code_i_threshold'];
+        $settings->fees_code_ii_threshold =$post['fees_code_ii_threshold'];
+        $settings->fees_road_threshold = $post['fees_road_test_threshold'];
 
         $settings->save();
         if($settings->save()){
