@@ -1,13 +1,13 @@
 <style>
         @page {
-            margin: 0;
+            margin: 50px 0 0 0;
         }
 
         .page-break {
             page-break-after: always;
         }
         .page:last-child {
-            page-break-after: unset;
+            page-break-after: never;
         }
 
         p{
@@ -196,14 +196,44 @@
             page-break-inside: avoid; /* Prevent row breaks */
         }
         .text-lowercase {
-        text-transform: lowercase !important;
+            text-transform: lowercase !important;
         }
 
         .text-uppercase {
-        text-transform: uppercase !important;
+            text-transform: uppercase !important;
         }
 
         .text-capitalize {
-        text-transform: capitalize !important;
+            text-transform: capitalize !important;
+        }
+
+        .blue-line-left{
+            height: 300%;
+            width: 5px;
+            position:absolute;
+            top:-90px;
+            left: 30px;
+            z-index: 999;
+            background: blue;
+        }
+
+        .black-line{
+            height: 300%;
+            width: 2px;
+            position:absolute;
+            top:-90px;
+            left: 35px;
+            z-index: 999;
+            background: black;
+        }
+
+        .blue-line-right{
+            height: 300%;
+            width: 3px;
+            position:absolute;
+            top:-90px;
+            left: 37px;
+            z-index: 999;
+            background: blue;
         }
     </style>
