@@ -26,7 +26,7 @@
                 <div class="mb-2"><b>Booking date:</b> @{{ state.expenseGroupName }}</div>
                 <div class="mb-2"><b>Description:</b> @{{ state.expenseDescription }}</div>
                 <div class="mb-2"><b>Amount/student:</b> @{{ formatter.format(state.amount) }}</div>
-                <div class="mb-2"><b>Description:</b> @{{ state.expenseDescription }}</div>
+                <div class="mb-2"><b>Total students:</b> {{ $expense->Students->count() }}</div>
                 <div class="mb-2"><b>Requested by:</b> {{ $expense->administrator->fname }} {{ $expense->administrator->mname }} {{ $expense->administrator->sname }}</div>
             </div>
         </div>
@@ -35,7 +35,8 @@
             <div v-if="state">
                 <div>
                     <div class="row p-2 mb-4 bg-info text-white">
-                        <div class="col-sm-4">Student</div>
+                        <div class="col-sm-1">No.</div>
+                        <div class="col-sm-3">Student</div>
                         <div class="col-sm-2">Fees balance</div>
                         <div class="col-sm-2 text-center">Class</div>
                         <div class="col-sm-2">Expense type</div>
@@ -43,7 +44,8 @@
                     </div>
                     <div v-for="(student, index) in state.selectedStudents" :key="student.index">
                         <div class="row mb-2">
-                            <div class="col-sm-4 text-uppercase">@{{ student.fname }} @{{ student.mname }} <b>@{{ student.sname }}</b></div>
+                            <div class="col-sm-1 text-black">@{{ ++index }}</b></div>
+                            <div class="col-sm-3 text-uppercase">@{{ student.fname }} @{{ student.mname }} <b>@{{ student.sname }}</b></div>
                             <div class="col-sm-2">@{{ formatter.format(student.invoice.invoice_balance) }}</div>
                             <div class="col-sm-2 text-center">@{{ student.course.class}}</div>
                             <div class="col-sm-2">@{{ student.expenses[0].pivot.expense_type }}</div>
