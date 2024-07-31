@@ -207,7 +207,7 @@
             text-transform: capitalize !important;
         }
 
-        .blue-line-left{
+        blue-line-left{
             height: 300%;
             width: 5px;
             position:absolute;
@@ -217,7 +217,7 @@
             background: blue;
         }
 
-        .black-line{
+        black-line{
             height: 300%;
             width: 2px;
             position:absolute;
@@ -227,7 +227,7 @@
             background: black;
         }
 
-        .blue-line-right{
+        blue-line-right{
             height: 300%;
             width: 3px;
             position:absolute;
