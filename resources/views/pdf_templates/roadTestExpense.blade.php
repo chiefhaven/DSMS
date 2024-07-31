@@ -21,7 +21,7 @@
             <th class="invoice-td" style="text-align:left !important">Veihcle Reg Number</th>
         </thead>
         <tbody>
-            @foreach ($expense->student as $student)
+            @foreach ($expense->students as $student)
                 <tr class="py-1" style="padding-top: 0px; padding-bottom: 0px; ">
                     <td class="invoice-td">
                         {{$student->fname}} {{$student->mname}} {{$student->sname}}
