@@ -216,6 +216,58 @@ class ExpenseController extends Controller
         return response()->json([$post], 200);
     }
 
+    public function checkStudent(StoreexpenseRequest $request)
+    {
+        $post = $request->all();
+
+        $student = havenUtils::student($post['student']);
+
+        $expenseType = $post['expenseType'];
+
+        switch ($expenseType) {
+            case "Road Test":
+                if(($student->Invoice->invoice_balance / $student->Invoice->course_price) * 100 < $this->setting->fees_road_threshold){
+                    $data = [
+                        'feedback'=>'error',
+                        'message' => $post['student'].' can not be selected for road test, There are balances that must be paid'
+                    ];
+                    return response()->json($data, 200);
+                }
+                break;
+            case "Highway Code I":
+                if(($student->Invoice->invoice_balance / $student->Invoice->course_price) * 100 < $this->setting->fees_code_i_threshold){
+                    $data = [
+                        'feedback'=>'error',
+                        'message' => $post['student'].' can not be selected for Highway code I, There are balances that must be paid'
+                    ];
+                    return response()->json($data, 200);
+                }
+                break;
+            case "Highway Code II":
+                if(($student->Invoice->invoice_balance / $student->Invoice->course_price) * 100 < $this->setting->fees_code_ii_threshold){
+                    $data = [
+                        'feedback'=>'error',
+                        'message' => $post['student'].' can not be selected for Highway code II, There are balances that must be paid'
+                    ];
+                    return response()->json($data, 200);
+                }
+                break;
+            default:
+                $data = [
+                    'feedback'=>'error',
+                    'message' => 'Something wrong happened!'
+                ];
+                return response()->json($data, 200);
+        }
+
+        $data = [
+            'feedback'=>'success',
+            'message' => 'Student added to list remember to click submit after selecting all students'
+        ];
+        return response()->json($data, 200);
+
+    }
+
     public function approveList(StoreexpenseRequest $request)
     {
         $post = $request->all();
