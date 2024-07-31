@@ -180,7 +180,7 @@
             }
 
             var student = state.value.studentName.split(" ")
-            if(!state.value.selectedStudents.some(item => item.fname === student[0] )){
+            if (!state.value.selectedStudents.some(item => item.fname === student[0] && item.mname === student[1] || item.sname === student[2])) {
                     axios.post('/checkStudent', {student:state.value.studentName, expenseType: state.value.expenseType}).then(response => {
                         if(response.data.feedback == "success"){
                             state.value.selectedStudents.push({fname:student[0], mname:student[1], sname:student[2],
