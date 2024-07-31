@@ -240,7 +240,8 @@ class ExpenseController extends Controller
         $template = 'pdf_templates.theoryExpense';
 
         if($expense->group_type == 'Road Test'){
-            $template = 'pdf_templates.roadTestExpense';        }
+            $template = 'pdf_templates.roadTestExpense';
+        }
 
         $pdf = PDF::loadView($template, compact('expense', 'qrCode','setting', 'date'));
         return $pdf->download('Daron Driving School-'.$expense->group.'-'.$expense->group_type.' Expense.pdf');
