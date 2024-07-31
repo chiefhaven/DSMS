@@ -5,7 +5,7 @@
   <div class="bg-body-light">
     <div class="content content-full">
       <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
-        <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Add expense</h1>
+        <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Edit expense</h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
 
             @if(Session::has('message'))
@@ -180,7 +180,7 @@
             }
 
             var student = state.value.studentName.split(" ")
-            if(!state.value.selectedStudents.some(item => item.fname === student[0] && item => item.mname === student[1] && item => item.sname === student[2])){
+            if(!state.value.selectedStudents.some(item => item.fname === student[0] )){
                     axios.post('/checkStudent', {student:state.value.studentName, expenseType: state.value.expenseType}).then(response => {
                         if(response.data.feedback == "success"){
                             state.value.selectedStudents.push({fname:student[0], mname:student[1], sname:student[2],
