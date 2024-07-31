@@ -39,3 +39,5 @@
  color: pink;
  background-color: purple;
 }
+
+.page_break { page-break-before: always; }
