@@ -18,8 +18,8 @@
         <table class="table table-striped table-responsive" style="font-size:12px;">
             <thead style="color: #ffffff !important; background-color:#0665d0; text-align:left !important">
                 <th class="invoice-td" style="text-align:left !important">Student</th>
-                <th class="invoice-td" style="text-align:left !important">Class</th>
-                <th class="invoice-td" style="text-align:left !important">Veihcle Reg Number</th>
+                <th class="invoice-td">Class</th>
+                <th class="invoice-td">Veihcle Reg Number</th>
             </thead>
             <tbody>
                 @foreach ($expense->students as $student)
@@ -27,10 +27,10 @@
                         <td class="invoice-td text-uppercase">
                             {{$student->fname}} {{$student->mname}} {{$student->sname}}
                         </td>
-                        <td class="invoice-td">
+                        <td class="invoice-td text-center">
                             {{$student->course->class}}
                         </td>
-                        <td class="invoice-td">
+                        <td class="invoice-td text-center">
                             {{$student->fleet->car_registration_number}}
                         </td>
                     </tr>
