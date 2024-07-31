@@ -22,6 +22,7 @@
             margin-bottom: 50px;
             margin:0;
             padding:0;
+            overflow: visible;
         }
 
         a {
@@ -41,6 +42,7 @@
             width: 100%;
             border-spacing: 0;
             margin-bottom: 20px;
+            overflow: visible;
         }
 
         th, .section-header {
@@ -56,6 +58,7 @@
             white-space: nowrap;
             font-weight: normal;
             text-align: left;
+            overflow: visible;
         }
 
         td {
@@ -115,7 +118,7 @@
         }
 
         .reference_letters{
-                position: absolute;
+                //position: absolute; //commented for it table dont overflow to second pages...
                 z-index: 999;
                 margin: 4em 7em !important;
         }
@@ -172,4 +175,35 @@
             text-transform: uppercase
         }
 
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .student-list{
+            page-break-after:always;
+        }
+
+        thead {
+            display: table-header-group; /* Ensure header is repeated on each page */
+        }
+
+        tbody {
+            display: table-row-group;
+        }
+
+        tr {
+            page-break-inside: avoid; /* Prevent row breaks */
+        }
+        .text-lowercase {
+        text-transform: lowercase !important;
+        }
+
+        .text-uppercase {
+        text-transform: uppercase !important;
+        }
+
+        .text-capitalize {
+        text-transform: capitalize !important;
+        }
     </style>
