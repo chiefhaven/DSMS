@@ -98,11 +98,11 @@ class NotificationController extends Controller
 
         $destination = $student->phone;
         $student = Student::with('User', 'Invoice')->find($student->id);
-        $course = $student->course;
-        $total = number_format($student->invoice->invoice_total, 2);
-        $paid = number_format($student->invoice->invoice_amount_paid, 2);
-        $balance = number_format($student->invoice->invoice_balance, 2);
-        $due_date = $student->invoice->invoice_payment_due_date->format('j F, Y');
+        $course = $student->course ? $student->course: '';
+        $total = $student->invoice ? number_format($student->invoice->invoice_total, 2, '.', '') : '';
+        $paid = $student->invoice ? number_format($student->invoice->invoice_amount_paid, 2, '.', '') : '';
+        $balance = $student->invoice ? number_format($student->invoice->invoice_balance, 2, '.', '') : '';
+        $due_date =  $student->invoice ? $student->invoice->invoice_payment_due_date->format('j F, Y'): '';
         //$type = $student['type'];
 
         $variables = array(
@@ -113,7 +113,7 @@ class NotificationController extends Controller
             "invoice_paid"=>$paid,
             "balance"=>$balance,
             "due_date"=>$due_date,
-            "course_name"=> $course->name,
+            "course_name"=> $student->course ? $course->name : '',
         );
 
         $sms_template = notification_template::where('type', $type)->firstOrFail()->body;
