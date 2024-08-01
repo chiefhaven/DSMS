@@ -88,6 +88,23 @@
                 </div>
             </div>
         </a>
+        <div class="col-md-4 col-xl-4">
+            <div class="block block-rounded block-link-shadow bg-info">
+                <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                    <div>
+                        <i class="far fa-2x fa-clock text-success-light"></i>
+                    </div>
+                    <div class="ml-3 text-right">
+                        <p class="text-white font-size-h3 font-w300 mb-0">
+                            {{ $attendanceCount }}
+                        </p>
+                        <p class="text-white-75 mb-0">
+                            Attendanes
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="row items-push mt-4">
