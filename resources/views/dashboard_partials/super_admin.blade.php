@@ -113,8 +113,8 @@
         </div>
     </div>
 
-    <div class="row items-push mt-4">
-        <div class="col-sm-6 col-md-6 p-0 p-1">
+    <div class="row mt-2 p-0">
+        <div class="col-sm-6 col-md-6 p-0">
             <div class="block block-rounded block-bordered block-mode-loading-refresh mb-0">
               <div class="block-header border-bottom">
                 <h3 class="block-title">Students</h3>
@@ -190,7 +190,7 @@
         </div>
 
         <!-- Invoices snipest -->
-        <div class="col-sm-6 col-md-6 p-0 p-1" id="invoices">
+        <div class="col-sm-6 col-md-6 p-0" id="invoices">
             <div class="block block-rounded block-bordered block-mode-loading-refresh h-100 mb-0">
               <div class="block-header border-bottom">
                 <h3 class="block-title">Invoices</h3>
@@ -219,7 +219,7 @@
                                     <tr v-for="item in info" :key="item.id">
                                         <td><a :href="'view-invoice/' + item.invoice_number">@{{ item.invoice_number }}</td>
                                         <td>@{{timeCreated(item.date_created)}}</td>
-                                        <td>@{{ item.student.fname }} @{{ item.student.mname }} @{{ item.student.sname }}</td>
+                                        <td class="text-uppercase">@{{ item.student.fname }} @{{ item.student.mname }} @{{ item.student.sname }}</td>
                                         <td>K@{{ formatPrice(item.invoice_balance) }}</td>
                                     </tr>
                                 </ul>
