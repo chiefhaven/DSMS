@@ -248,4 +248,13 @@
         .text-center {
             text-align: center !important;
         }
+
+        havenCrredit {
+            display: inline-block; /* or use display: block; if you need a block element */
+            transform: rotate(90deg);
+            transform-origin: left bottom;
+            left: 5px;
+            position: absolute;
+            font-size: 8px;
+        }
     </style>

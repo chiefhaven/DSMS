@@ -5,3 +5,6 @@
 </black-line>
 <blue-line-right>
 </blue-line-right>
+<havenCrredit>
+    Powered by <b>HavenPlus Technologies</b>
+</havenCrredit>
