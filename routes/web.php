@@ -37,9 +37,9 @@ Route::get('/', [HomeController::class,'index'])->middleware(['auth'])->name('da
 
 Auth::routes();
 
-Route::post('/send-notification/{student}', [NotificationController::class, 'sendSMS'])->middleware('auth')->name('send-notification');
+Route::post('/send-balance-sms/{student}/{type}', [NotificationController::class, 'balanceSMS'])->middleware('auth')->name('send-balance-sms');
 Route::get('/sms-templates', [NotificationTemplateController::class, 'create'])->middleware('auth')->name('sms_templates');
-Route::post('/update-notification-templates', [NotificationTemplateController::class, 'update'])->middleware('auth')->name('update_notification_templates');
+Route::post('/update-notification-templates/{template}', [NotificationTemplateController::class, 'update'])->middleware('auth')->name('update_notification_templates');
 
 
 Route::get('/students', [StudentController::class, 'index'])->middleware('auth')->name('students');

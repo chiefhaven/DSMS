@@ -28,22 +28,36 @@
         <div class="row">
             <div class="form-floating mb-4">
                 <p><label class="form-label" for="example-school-name-input-floating">New registration</label></p>
-                <button class="btn content content-full shadow-sm p-3 mb-5 bg-white rounded" data-bs-toggle="modal" data-bs-target="#new-registration">
-                    {{ $templates[0]->body }}
+                <button class="btn content content-full shadow-sm p-3 mb-5 bg-white rounded small" data-bs-toggle="modal" data-bs-target="#New-registration">
+                    <small>{{ $templates[0]->body }}</small>
                 </button>
             </div>
 
             <div class="form-floating mb-4">
                 <p><label class="form-label" for="example-school-name-input-floating">Enrollment</label></p>
-                <button class="btn content content-full shadow-sm p-3 mb-5 bg-white rounded" data-bs-toggle="modal" data-bs-target="#new-enrollment">
-                    {{ $templates[1]->body }}
+                <button class="btn content content-full shadow-sm p-3 mb-5 bg-white rounded small" data-bs-toggle="modal" data-bs-target="#Enrollment">
+                    <small>{{ $templates[1]->body }}</small>
                 </button>
             </div>
 
             <div class="form-floating mb-4">
                 <p><label class="form-label" for="example-school-name-input-floating">Balance</label></p>
-                <button class="btn content content-full shadow-sm p-3 mb-5 bg-white rounded" data-bs-toggle="modal" data-bs-target="#balance">
-                    {{ $templates[2]->body }}
+                <button class="btn content content-full shadow-sm p-3 mb-5 bg-white rounded small" data-bs-toggle="modal" data-bs-target="#Balance">
+                    <small>{{ $templates[2]->body }}</small>
+                </button>
+            </div>
+
+            <div class="form-floating mb-4">
+                <p><label class="form-label" for="example-school-name-input-floating">Payment recieved</label></p>
+                <button class="btn content content-full shadow-sm p-3 mb-5 bg-white rounded small" data-bs-toggle="modal" data-bs-target="#Payment">
+                    <small>{{ $templates[4]->body }}</small>
+                </button>
+            </div>
+
+            <div class="form-floating mb-4">
+                <p><label class="form-label" for="example-school-name-input-floating font-weight-bold">Attendance</label></p>
+                <button class="btn content content-full shadow-sm p-3 mb-5 bg-white rounded small" data-bs-toggle="modal" data-bs-target="#Attendance">
+                    <small>{{ $templates[3]->body }}</small>
                 </button>
             </div>
         </div>
@@ -52,8 +66,39 @@
   </div>
   </div>
   <!-- END Hero -->
+  @foreach ($templates as $template)
+    <div class="modal" id="{{ $template->type }}" tabindex="-1" aria-labelledby="new-registration" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="block block-rounded block-themed block-transparent mb-0">
+                    <div class="block-header bg-primary-dark">
+                        <h3 class="block-title">{{ $template->type }}</h3>
+                        <div class="block-options">
+                        <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
+                            <i class="fa fa-fw fa-times"></i>
+                        </button>
+                        </div>
+                    </div>
+                    <div class="block-content">
+                        <form class="mb-5" action="{{url('/update-notification-templates', $template)}}" method="post" enctype="multipart/form-data">
+                            @csrf
 
-<div class="modal" id="new-registration" tabindex="-1" aria-labelledby="new-registration" style="display: none;" aria-hidden="true">
+                        <div class="col-12 form-floating mb-4">
+                            <div class="text-sm p-2"><strong>Available tags:</strong><br> <small>{{ $template->available_tags }}</small></div>
+                            <textarea rows="15" cols="50" style="height: 150px" class="form-control small" id="body" name="body">{{ $template->body }}</textarea>
+                        </div>
+                        <div class="block-content block-content-full text-end bg-body">
+                            <button type="submit" class="btn btn-primary">Save</button>
+                            <button type="button" class="btn btn-alt-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  @endforeach
+{{--  <div class="modal" id="new-registration" tabindex="-1" aria-labelledby="new-registration" style="display: none;" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="block block-rounded block-themed block-transparent mb-0">
@@ -151,4 +196,70 @@
         </div>
     </div>
 </div>
+
+<div class="modal" id="attendance" tabindex="-1" aria-labelledby="attendance" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="block block-rounded block-themed block-transparent mb-0">
+                <div class="block-header bg-primary-dark">
+                    <h3 class="block-title">Attendance sms notification template</h3>
+                    <div class="block-options">
+                    <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="fa fa-fw fa-times"></i>
+                    </button>
+                    </div>
+                </div>
+                <div class="block-content">
+                    <form class="mb-5" action="{{url('/update-notification-templates')}}" method="post" enctype="multipart/form-data">
+                        @csrf
+
+                    <input type="text" class="form-control" id="type" name="type" value="{{ $templates[3]->type }}" hidden>
+
+                    <div class="col-12 form-floating mb-4">
+                        <div class="p-2">Available tags:<br> {FIRST_NAME}, {MIDDLE_NAME}, {SIR_NAME}, {TOTAL_ATTENDANCE_ENTERED}, {ATTENDANCE_BALANCE}, {TOTAL_REQUIRED_ATTENDANCE}</div>
+                        <textarea rows="15" cols="50" style="height: 150px" class="form-control" id="body" name="body"><em>{{ $templates[3]->body }}</em></textarea>
+                    </div>
+                    <div class="block-content block-content-full text-end bg-body">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn btn-sm btn-alt-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="paymentRecieved" tabindex="-1" aria-labelledby="paymentRecieved" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="block block-rounded block-themed block-transparent mb-0">
+                <div class="block-header bg-primary-dark">
+                    <h3 class="block-title">Payment recieved</h3>
+                    <div class="block-options">
+                    <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="fa fa-fw fa-times"></i>
+                    </button>
+                    </div>
+                </div>
+                <div class="block-content">
+                    <form class="mb-5" action="{{url('/update-notification-templates', $templates[4])}}" method="post" enctype="multipart/form-data">
+                        @csrf
+
+                    <input type="text" class="form-control" id="type" name="type" value="{{ $templates[4]->type }}" hidden>
+
+                    <div class="col-12 form-floating mb-4">
+                        <div class="p-2">Available tags:<br> {FIRST_NAME}, {MIDDLE_NAME}, {SIR_NAME}, {TOTAL_ATTENDANCE_ENTERED}, {ATTENDANCE_BALANCE}, {TOTAL_REQUIRED_ATTENDANCE}</div>
+                        <textarea rows="15" cols="50" style="height: 150px" class="form-control" id="body" name="body"><em>{{ $templates[3]->body }}</em></textarea>
+                    </div>
+                    <div class="block-content block-content-full text-end bg-body">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn btn-sm btn-alt-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> --}}
 @endsection

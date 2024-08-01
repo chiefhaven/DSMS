@@ -181,6 +181,9 @@ class AttendanceController extends Controller
                 $message = 'Attendance added successifuly!';
             }
 
+            $sms = new NotificationController;
+            $sms->attendanceSMS($student);
+
             $student->save();
         }
 

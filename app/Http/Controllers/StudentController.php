@@ -126,6 +126,9 @@ class StudentController extends Controller
 
         $user->save();
 
+        $sms = new NotificationController;
+        $sms->balanceSMS($student, 'Registration');
+
         $studentLastID = Student::max('id');
         Alert::toast('Student'.' '.$student->fname.' '.'added successifully', 'success');
         return redirect()->route('viewStudent', ['id' => $studentLastID]);

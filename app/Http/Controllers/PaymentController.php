@@ -60,7 +60,7 @@ class PaymentController extends Controller
 
             $payment = new Payment;
 
-            $student_id = havenUtils::studentID_InvoiceNumber($post['invoice_number']);
+            $student = havenUtils::studentID_InvoiceNumber($post['invoice_number']);
             $invoice_amount_paid = havenUtils::invoicePaid($post['invoice_number'], $post['paid_amount']);
             $invoice_balance = Invoice::where('invoice_number', $post['invoice_number'])->first()->invoice_total - $invoice_amount_paid;
 
@@ -77,7 +77,7 @@ class PaymentController extends Controller
             $payment->amount_paid = $post['paid_amount'];
             $payment->payment_method_id = $paymentMethod;
             $payment->transaction_id = Str::random(14);
-            $payment->student_id = $student_id;
+            $payment->student_id = $student->id;
             $payment->entered_by = Auth::user()->name;
 
 
@@ -88,9 +88,12 @@ class PaymentController extends Controller
             $payment->save();
             $invoice->save();
 
+            $sms = new NotificationController;
+            $sms->balanceSMS($student, 'Payment');
+
         }
 
-        Alert::toast('Payment added successifuly', 'success');
+            Alert::toast('Payment added successifuly', 'success');
         return back();
 
     }

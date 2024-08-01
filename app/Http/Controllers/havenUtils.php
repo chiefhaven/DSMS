@@ -66,8 +66,8 @@ class havenUtils extends Controller
 
     static function studentID_InvoiceNumber($invoiceNumber){
 
-            $student_id = Invoice::where('invoice_number', $invoiceNumber)->first()->student_id;
-            return $student_id;
+            $student = Invoice::where('invoice_number', $invoiceNumber)->first();
+            return $student;
 
     }
 

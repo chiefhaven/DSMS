@@ -100,7 +100,7 @@
                                             </form>
                                             @endcan
                                             @if(isset($students->invoice->invoice_balance) && !$students->invoice->invoice_balance == 0)
-                                                <form method="POST" class="dropdown-item nav-main-link" action="{{ url('send-notification', $students->id) }}">
+                                                <form method="POST" class="dropdown-item nav-main-link" action="{{ url('send-balance-sms', [$students,'Balance']) }}">
                                                     {{ csrf_field() }}
                                                     <i class="nav-main-link-icon fa fa-paper-plane"></i>
                                                     <button class="btn" type="submit">Send balance reminder</button>
@@ -125,7 +125,7 @@
                                             <a href="{{ url('/addinvoice', $students->id) }}">Enroll Course</a>
                                         @else
                                             <strong class="text-danger">Not enrolled yet.</strong>
-                                            <br><small class="muted sm-text text-warning">Ask the authorities to enroll the student</small>
+                                            <br><small class="muted sm-text text-warning">Ask admin to enroll the student</small>
                                         @endrole
                                     @endif
                                 </td>

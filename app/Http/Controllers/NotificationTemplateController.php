@@ -28,7 +28,7 @@ class NotificationTemplateController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Storenotification_templateRequest $request)
+    public function store(StorenotificationtemplateRequest $request)
     {
         //
     }
@@ -52,10 +52,10 @@ class NotificationTemplateController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Updatenotification_templateRequest $request, notification_template $notification_template)
+    public function update(Updatenotification_templateRequest $request, notification_template $template)
     {
         $messages = [
-            'body.required' => '"Body" field is required!',
+            'body.required' => 'Body is required!',
         ];
 
         // Validate the request
@@ -66,13 +66,11 @@ class NotificationTemplateController extends Controller
 
         $post = $request->All();
 
-        $template = notification_template::where('type', $post['type'])->firstOrFail();
-
         $template->body = $post['body'];
 
         $template->save();
 
-        return redirect()->back();
+        return back();
 
 
     }
