@@ -77,7 +77,7 @@
                                         {{ method_field('DELETE') }}
                                         <button class="dropdown-item" onclick="return confirm('Are you sure?')" type="submit">Delete</button>
                                     </form>
-                                    <form method="POST" action="{{ url('send-notification', $student->id) }}">
+                                    <form method="POST" action="{{ url('send-balance-sms', [$student,'Balance']) }}">
                                         {{ csrf_field() }}
                                         <button class="dropdown-item" type="submit">Send balance reminder</button>
                                     </form>

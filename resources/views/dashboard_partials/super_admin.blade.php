@@ -291,37 +291,75 @@
 </script>
 <script>
     const ctx = document.getElementById('myChart');
-    new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'December'],
-      datasets: [{
-        label: 'Earnings',
-        data: [150, 100, 30, 50, 20, 30, 120, 0],
-        borderWidth: 1
-      },
-      {
-        label: 'Expenses',
-        data: [120, 110, 134, 89, 145, 39, 190, 0],
-        borderWidth: 1
-      },
-      {
-        label: 'Attendances',
-        data: [200, 100, 50, 120, 190, 103, 208, 320],
-        borderWidth: 1
-      },
-      {
-        label: 'Students enrolled',
-        data: [50, 40, 90, 100, 110, 103, 78, 0],
-        borderWidth: 1
-      }]
-    },
-    options: {
-      scales: {
-        y: {
-          beginAtZero: true
-        }
+    $(function() {
+        getXlsxData();
+      });
+
+      function getXlsxData() {
+        var xlsxUrl =
+          "https://script.google.com/macros/s/AKfycbw9PQRojIml3x5gnMMiKihnTh9aLODd86ankhoz0ETIu0a8tcVh1ZIc4R08hlw8nHF8pA/exec?id=1Bvzqyu_NvPdL-zsOShbKF5me2bjtVVWQCK9MDA2KW58&sheet=Today"
+        var xlsxData = $.getJSON(xlsxUrl, function(data) {
+          $.each(data.Today, function(i, el) {
+            labels.push(el.Time);
+            Sales.push(el.CurrentTemp);
+            Attendances.push(el.CurrentRH);
+          });
+          load_chart();
+        });
       }
-    }
-  });
+      var labels = [],
+        Sales = [],
+        Attendances = []
+
+      function load_chart() {
+        var myChart = new Chart('myChart', {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Sales ',
+              fill: false,
+              data: Sales,
+              backgroundColor: 'rgb(255, 99, 132)',
+              borderColor: 'rgb(255, 99, 132, 0.8)',
+              borderWidth: 1,
+              radius: 0,
+            }, {
+              label: 'Attendances ',
+              fill: false,
+              data: Attendances,
+              backgroundColor: 'rgb(255, 159, 64)',
+              borderColor: 'rgb(255, 159, 64, 0.8)',
+              borderWidth: 1,
+              radius: 0,
+            }, ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            legend: {
+              position: 'bottom',
+            },
+            layout: {
+              padding: {
+                top: 35,
+                right: 15,
+              }
+            },
+            scales: {
+              x: {
+                type: 'time',
+                time: {
+                  parser: 'HH:mm:ss',
+                  unit: 'hour',
+                  displayFormats: {
+                    hour: 'HH:mm'
+                  },
+                  tooltipFormat: 'D MMM YYYY - HH:mm:ss'
+                }
+              }
+            }
+          }
+        });
+      }
 </script>
