@@ -77,7 +77,7 @@ class PaymentController extends Controller
             $payment->amount_paid = $post['paid_amount'];
             $payment->payment_method_id = $paymentMethod;
             $payment->transaction_id = Str::random(14);
-            $payment->student_id = $student->id;
+            $payment->student_id = $student->student->id;
             $payment->entered_by = Auth::user()->name;
 
 
