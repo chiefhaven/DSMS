@@ -91,6 +91,7 @@
             </table>
         </div>
         </div>
+        {{ $student->id }}
         <div class="tab-pane fade" id="payments" role="tabpanel" aria-labelledby="payments-tab">
         <div class="table-responsive">
             <table class="table table-bordered table-striped table-vcenter">
