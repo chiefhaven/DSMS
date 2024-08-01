@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('notification_templates', function (Blueprint $table) {
-            $table->text('available_tags')->nullable()->default('{none}');
+            $table->text('available_tags')->nullable();
         });
     }
 
