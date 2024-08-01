@@ -1,5 +1,5 @@
 <div class="row" id="app">
-    <div class="row items-push block">
+    <div class="row block">
         <div class="col-md-12 mb-3">
             <div class="col-md-12 block-rounded block-bordered p-4 dropdown d-inline-block">
                 <form action="{{ url('/') }}" method="POST" enctype="multipart/form-data">
@@ -107,9 +107,15 @@
         </div>
     </div>
 
+    <div class="row block">
+        <div class="block-conent block-rounded block-bordered">
+            <canvas id="myChart"></canvas>
+        </div>
+    </div>
+
     <div class="row items-push mt-4">
         <div class="col-sm-6 col-md-6 p-0 p-1">
-            <div class="block block-rounded block-bordered block-mode-loading-refresh h-100 mb-0">
+            <div class="block block-rounded block-bordered block-mode-loading-refresh mb-0">
               <div class="block-header border-bottom">
                 <h3 class="block-title">Students</h3>
                 <div class="block-options">
@@ -122,7 +128,7 @@
                 </div>
               </div>
               <div class="block-content">
-                <div class="table-responsive">
+                <div class="table-responsive h-100">
                   <table class="table table-striped table-hover table-borderless table-vcenter fs-sm">
                     <thead>
                       <tr class="text-uppercase">
@@ -282,4 +288,40 @@
 
 <script>
     document.getElementById("filter").value = "{{ $time }}"
+</script>
+<script>
+    const ctx = document.getElementById('myChart');
+    new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'December'],
+      datasets: [{
+        label: 'Earnings',
+        data: [150, 100, 30, 50, 20, 30, 120, 0],
+        borderWidth: 1
+      },
+      {
+        label: 'Expenses',
+        data: [120, 190, 334, 89, 245, 39, 190, 0],
+        borderWidth: 1
+      },
+      {
+        label: 'Attendances',
+        data: [500, 400, 900, 1020, 290, 1003, 708, 0],
+        borderWidth: 1
+      },
+      {
+        label: 'Students enrolled',
+        data: [500, 400, 900, 1020, 290, 1003, 708, 0],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
 </script>
