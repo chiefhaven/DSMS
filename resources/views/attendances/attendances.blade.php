@@ -9,11 +9,24 @@
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
             <ol class="breadcrumb">
             @role(['instructor'])
-                <div class="dropdown d-inline-block">
-                    <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <span class="d-none d-sm-inline-block"><i class="fa fa-download"></i> Summary</span>
-                    </button>
-                </div>
+            <div class="col-md-12 block-rounded block-bordered p-4 dropdown d-inline-block">
+                <form action="{{ url('/attendenceSummary') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <b>Download Summary</b> &nbsp;
+                    <select class="btn btn-primary dropdown-toggle" id="filter" name="filter" onchange="this.form.submit()">
+                        <div class="dropdown-menu">
+                            <option class="text-left" value="today">Today</option>
+                            <option class="" value="yesterday">Yesterday</option>
+                            <option class="" value="thisweek">This Week</option>
+                            <option class="" value="thismonth">This Month</option>
+                            <option class="" value="lastmonth">Last Month</option>
+                            <option class="" value="thisyear">This Year</option>
+                            <option class="" value="lastyear">Last Year</option>
+                            <option class="" value="alltime">All Time</option>
+                        </div>
+                    </select>
+                </form>
+            </div>
             @endcan
             </ol>
         </nav>
@@ -91,12 +104,12 @@
     </div>
 
     <!-- Attendance Report Modal -->
-    <div class="modal" id="modal-block-vcenter" tabindex="-1" aria-labelledby="modal-block-vcenter" style="display: none;" aria-hidden="true">
+    <div class="modal" id="summary" tabindex="-1" aria-labelledby="summary" style="display: none;" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="block block-rounded block-themed block-transparent mb-0">
             <div class="block-header bg-primary-dark">
-                <h3 class="block-title">Add Payment</h3>
+                <h3 class="block-title">Download Report</h3>
                 <div class="block-options">
                 <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
                     <i class="fa fa-fw fa-times"></i>
@@ -104,40 +117,13 @@
                 </div>
             </div>
             <div class="block-content">
-                <form class="mb-5" action="{{ url('/add-payment') }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
+                <form class="mb-5" action="{{ url('/downloadSummary') }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
                     @csrf
-                    @if(isset($student->invoice->created_at))
-                        <input type="text" class="form-control" id="invoice_number" name="invoice_number" value="{{$student->invoice->invoice_number}}" hidden>
-                    @else
+                <div class="row haven-floating">
+                    <div class="col-7 form-floating mb-4">
 
-                    @endif
-                <div class="col-12 form-floating mb-4">
-                    <input type="date" class="form-control" id="date_created" name="date_created" placeholder="Enter invoice date">
-                    <label for="invoice_discount">Date</label>
-                </div>
-                <div class="row">
-                    <div class="col-6 form-floating mb-4">
-                        <input type="number" class="form-control" id="paid_amount" name="paid_amount" value="0">
-                        <label for="invoice_discount">Amount</label>
+                        <label for="district">Period</label>
                     </div>
-                    <div class="col-6 form-floating mb-4">
-                        <select class="form-select" id="payment_method" name="payment_method">
-                            <option value="Cash" selected>Cash</option>
-                            <option value="National Bank">National Bank</option>
-                            <option value="Airtel Money">Airtel Money</option>
-                            <option value="TNM Mpamba">TNM Mpamba</option>
-                            <option value="Other">Other</option>
-                        </select>
-                        <label for="district">Payment Method</label>
-                    </div>
-                </div>
-                <div class="col-12 form-floating mb-4">
-                    <input type="file" class="form-control" id="payment_proof" name="payment_proof" placeholder="Upload a reciept">
-                    <label for="invoice_discount">Payment proof</label>
-                </div>
-                <div class="block-content block-content-full text-end bg-body">
-                    <button type="submit" class="btn btn-primary">Save</button>
-                    <button type="button" class="btn btn-sm btn-alt-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </form>
             </div>

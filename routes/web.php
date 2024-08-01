@@ -66,6 +66,7 @@ Route::post('/editattendance/{id}', [AttendanceController::class, 'edit'])->midd
 Route::post('/updateattendance', [AttendanceController::class, 'update'])->middleware('auth')->name('updateattendance');
 Route::delete('/deleteattendance/{id}', [AttendanceController::class, 'destroy'])->middleware('auth')->name('deleteattendance');
 Route::get('/attendance-student-search', [AttendanceController::class, 'autocompletestudentSearch'])->name('attendance-student-search');
+Route::post('/attendanceSummary', [AttendanceController::class, 'attendenceSummary'])->name('attendenceSummary');
 
 Route::get('/courses', [CourseController::class, 'index'])->middleware('auth')->name('courses');
 Route::get('/view-course/{id}', [CourseController::class, 'show'])->middleware('auth')->name('courses');

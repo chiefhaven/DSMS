@@ -10,6 +10,7 @@ use App\Http\Requests\StoreAttendanceRequest;
 use App\Http\Requests\UpdateAttendanceRequest;
 use App\Models\Setting;
 use Auth;
+use PDF;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use RealRashid\SweetAlert\Facades\Alert;
@@ -309,5 +310,18 @@ class AttendanceController extends Controller
         }
 
         return false;
+    }
+
+    public function attendenceSummary(){
+
+        $instructor = Auth::user();
+        $attendances = Attendance::where('instructor_id', $instructor->instructor_id)->get();
+        $setting = $this->setting;
+
+        $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/e8704ed2-d90e-41ca/'.$instructor->instructor_id);
+
+        $pdf = PDF::loadView('pdf_templates.attendanceSummary', compact('instructor', 'setting', 'qrCode', 'attendances'));
+        return $pdf->download('Daron Driving School-'.$instructor->instructor->fname.' '.$instructor->instructor->sname.' Attendance Summary.pdf');
+
     }
 }
