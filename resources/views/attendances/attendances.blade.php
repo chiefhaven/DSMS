@@ -13,16 +13,17 @@
                 <form action="{{ url('/attendenceSummary') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <b>Download Summary</b> &nbsp;
-                    <select class="btn btn-primary dropdown-toggle" id="filter" name="filter" onchange="this.form.submit()">
+                    <select class="btn btn-primary dropdown-toggle" id="period" name="period" onchange="this.form.submit()">
                         <div class="dropdown-menu">
-                            <option class="text-left" value="today">Today</option>
-                            <option class="" value="yesterday">Yesterday</option>
-                            <option class="" value="thisweek">This Week</option>
-                            <option class="" value="thismonth">This Month</option>
-                            <option class="" value="lastmonth">Last Month</option>
-                            <option class="" value="thisyear">This Year</option>
-                            <option class="" value="lastyear">Last Year</option>
-                            <option class="" value="alltime">All Time</option>
+                            <option disabled>Choose date...</option>
+                            <option value="today">Today</option>
+                            <option value="yesterday">Yesterday</option>
+                            <option value="thisweek">This Week</option>
+                            <option value="thismonth">This Month</option>
+                            <option value="lastmonth">Last Month</option>
+                            <option value="thisyear">This Year</option>
+                            <option value="lastyear">Last Year</option>
+                            <option value="alltime">All Time</option>
                         </div>
                     </select>
                 </form>
