@@ -72,9 +72,4 @@ class Student extends Model
              $student->attendance()->delete();
         });
     }
-
-    public function getFullNameAttribute()
-    {
-        return "{$this->fname} {$this->mname} {$this->sname}";
-    }
 }
