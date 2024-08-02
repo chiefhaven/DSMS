@@ -13,6 +13,7 @@ use Auth;
 use PDF;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use PhpParser\Node\Stmt\Break_;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class AttendanceController extends Controller
@@ -312,16 +313,71 @@ class AttendanceController extends Controller
         return false;
     }
 
-    public function attendenceSummary(){
+    public function attendenceSummary(request $request){
 
         $instructor = Auth::user();
-        $attendances = Attendance::where('instructor_id', $instructor->instructor_id)->get();
+        $period = $request['period'];
+        switch($period) {
+            case 'today':
+                $attendances = Attendance::whereDate('created_at', Carbon::today())
+                    ->where('instructor_id', $instructor->instructor_id)
+                    ->get();
+                break;
+
+            case 'yesterday':
+                $attendances = Attendance::whereDate('created_at', Carbon::yesterday())
+                    ->where('instructor_id', $instructor->instructor_id)
+                    ->get();
+                break;
+
+            case 'thisweek':
+                $startOfWeek = Carbon::now()->startOfWeek();
+                $endOfWeek = Carbon::now()->endOfWeek();
+                $attendances = Attendance::whereBetween('created_at', [$startOfWeek, $endOfWeek])
+                    ->where('instructor_id', $instructor->instructor_id)
+                    ->get();
+                break;
+
+            case 'lastweek':
+                $startOfLastWeek = Carbon::now()->subWeek()->startOfWeek();
+                $endOfLastWeek = Carbon::now()->subWeek()->endOfWeek();
+                $attendances = Attendance::whereBetween('created_at', [$startOfLastWeek, $endOfLastWeek])
+                    ->where('instructor_id', $instructor->instructor_id)
+                    ->get();
+                break;
+
+            case 'thismonth':
+                $currentMonth = Carbon::now()->month;
+                $attendances = Attendance::whereMonth('created_at', $currentMonth)
+                    ->where('instructor_id', $instructor->instructor_id)
+                    ->get();
+                break;
+
+            case 'thisyear':
+                $currentYear = Carbon::now()->year;
+                $attendances = Attendance::whereYear('created_at', $currentYear)
+                    ->where('instructor_id', $instructor->instructor_id)
+                    ->get();
+                break;
+
+            case 'lastyear':
+                $lastYear = Carbon::now()->subYear()->year;
+                $attendances = Attendance::whereYear('created_at', $lastYear)
+                    ->where('instructor_id', $instructor->instructor_id)
+                    ->get();
+                break;
+
+            default:
+                $attendances = Attendance::whereDate('created_at', Carbon::today())
+                    ->where('instructor_id', $instructor->instructor_id)
+                    ->get();
+        }
+
         $setting = $this->setting;
 
-        $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/e8704ed2-d90e-41ca/'.$instructor->instructor_id);
+        $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/e8704ed2-d90e-41ca/' . $instructor->instructor_id);
 
         $pdf = PDF::loadView('pdf_templates.attendanceSummary', compact('instructor', 'setting', 'qrCode', 'attendances'));
-        return $pdf->download('Daron Driving School-'.$instructor->instructor->fname.' '.$instructor->instructor->sname.' Attendance Summary.pdf');
-
+return $pdf->download('Daron Driving School-' . $instructor->instructor->fname . ' ' . $instructor->instructor->sname . ' Attendance Summary.pdf');
     }
 }
