@@ -245,7 +245,7 @@ class ExpenseController extends Controller
                 }
                 break;
             case "TRN":
-                if(($student->invoice->invoice_balance / $student->invoice->course_price) * 100 < 10){
+                if(($student->invoice->invoice_balance / $student->invoice->course_price) * 100 < 90){
                     $data = [
                         'feedback'=>'error',
                         'message' => $post['student'].' can not be selected for TRN, There are balances that must be paid'
