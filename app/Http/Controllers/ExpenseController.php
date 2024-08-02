@@ -244,6 +244,15 @@ class ExpenseController extends Controller
                     return response()->json($data, 200);
                 }
                 break;
+            case "TRN":
+                if(($student->invoice->invoice_balance / $student->invoice->course_price) * 100 < 10){
+                    $data = [
+                        'feedback'=>'error',
+                        'message' => $post['student'].' can not be selected for TRN, There are balances that must be paid'
+                    ];
+                    return response()->json($data, 200);
+                }
+                break;
             case "Highway Code I":
                 if(($student->Invoice->invoice_balance / $student->Invoice->course_price) * 100 < $this->setting->fees_code_i_threshold){
                     $data = [
