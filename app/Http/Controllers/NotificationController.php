@@ -2,19 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use GuzzleHttp\Client;
 use RealRashid\SweetAlert\Facades\Alert;
 use App\Models\Student;
 use App\Models\notification_template;
-use App\Models\Invoice;
-use App\Models\Account;
-use App\Models\User;
-use App\Models\District;
-use App\Models\Payment;
-use App\Models\Attendance;
-use App\Models\Setting;
-use SebastianBergmann\Template\Template;
 
 class NotificationController extends Controller
 {
