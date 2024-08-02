@@ -274,20 +274,19 @@ class AttendanceController extends Controller
 
     public function autocompletestudentSearch(Request $request)
     {
-        $datas = Student::select("fname", "mname", "sname")
-            ->where("fname","LIKE","%{$request->student}%")
-            ->orWhere("mname","LIKE","%{$request->student}%")
-            ->orWhere("sname","LIKE","%{$request->student}%")
+        $students = Student::select("fname", "mname", "sname")
+            ->where("fname", "LIKE", "%{$request->student}%")
+            ->orWhere("mname", "LIKE", "%{$request->student}%")
+            ->orWhere("sname", "LIKE", "%{$request->student}%")
             ->get();
 
-        $dataModified = array();
-
-        foreach ($datas as $data){
-           $dataModified[] = $data->fname.' '.$data->mname.' '.$data->sname;
-         }
+        $dataModified = $students->map(function($student) {
+            return $student->full_name;
+        });
 
         return response()->json($dataModified);
     }
+
 
     public function attendanceCount($student_id){
         $attendanceCount = Attendance::where('student_id', $student_id)->count();
