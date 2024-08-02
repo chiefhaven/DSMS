@@ -236,7 +236,7 @@ class ExpenseController extends Controller
 
         switch ($expenseType) {
             case "Road Test":
-                if(($student->Invoice->invoice_balance / $student->Invoice->course_price) * 100 < $this->setting->fees_road_threshold){
+                if(($student->Invoice->invoice_amount_paid / $student->Invoice->invoice_total) * 100 < $this->setting->fees_road_threshold){
                     $data = [
                         'feedback'=>'error',
                         'message' => $post['student'].' can not be selected for road test, There are balances that must be paid'
@@ -245,7 +245,7 @@ class ExpenseController extends Controller
                 }
                 break;
             case "TRN":
-                if(($student->invoice->invoice_balance / $student->invoice->course_price) * 100 < 90){
+                if(($student->invoice->invoice_amount_paid / $student->invoice->invoice_total) * 100 < 90){
                     $data = [
                         'feedback'=>'error',
                         'message' => $post['student'].' can not be selected for TRN, There are balances that must be paid'
@@ -254,7 +254,7 @@ class ExpenseController extends Controller
                 }
                 break;
             case "Highway Code I":
-                if(($student->Invoice->invoice_balance / $student->Invoice->course_price) * 100 < $this->setting->fees_code_i_threshold){
+                if(($student->Invoice->invoice_amount_paid / $student->Invoice->invoice_total) * 100 < $this->setting->fees_code_i_threshold){
                     $data = [
                         'feedback'=>'error',
                         'message' => $post['student'].' can not be selected for Highway code I, There are balances that must be paid'
@@ -263,7 +263,7 @@ class ExpenseController extends Controller
                 }
                 break;
             case "Highway Code II":
-                if(($student->Invoice->invoice_balance / $student->Invoice->course_price) * 100 < $this->setting->fees_code_ii_threshold){
+                if(($student->Invoice->invoice_amount_paid / $student->Invoice->invoice_total) * 100 < $this->setting->fees_code_ii_threshold){
                     $data = [
                         'feedback'=>'error',
                         'message' => $post['student'].' can not be selected for Highway code II, There are balances that must be paid'
