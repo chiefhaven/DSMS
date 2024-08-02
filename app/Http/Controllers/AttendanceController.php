@@ -312,8 +312,8 @@ class AttendanceController extends Controller
         return false;
     }
 
-    public function attendanceSummary(request $request){
-
+    public function attendanceSummary(request $request)
+    {
         $instructor = Auth::user();
         $period = $request['period'];
         switch($period) {
@@ -375,7 +375,7 @@ class AttendanceController extends Controller
 
         $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/e8704ed2-d90e-41ca/' . $instructor->instructor_id);
 
-        if($attendances->count()==0){
+        if($attendances->count() == 0){
             Alert::error('Empty', 'No attendances for your selection');
             return back();
         }
@@ -383,4 +383,5 @@ class AttendanceController extends Controller
         $pdf = PDF::loadView('pdf_templates.attendanceSummary', compact('instructor', 'setting', 'qrCode', 'attendances'));
         return $pdf->download('Daron Driving School-' . $instructor->instructor->fname . ' ' . $instructor->instructor->sname . ' Attendance Summary.pdf');
     }
+
 }
