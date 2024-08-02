@@ -10,12 +10,12 @@
             <ol class="breadcrumb">
             @role(['instructor'])
             <div class="col-md-12 block-rounded block-bordered p-4 dropdown d-inline-block">
-                <form action="{{ url('/attendenceSummary') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ url('/attendanceSummary') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <b>Download Summary</b> &nbsp;
-                    <select class="btn btn-primary dropdown-toggle" id="period" name="period" onchange="this.form.submit()">
+                    <select class="btn btn-primary dropdown-toggle" id="period" name="period" onchange="this.form.submit()" onsubmit="this.form.reset()">
                         <div class="dropdown-menu">
-                            <option disabled>Choose date...</option>
+                            <option>Choose date...</option>
                             <option value="today">Today</option>
                             <option value="yesterday">Yesterday</option>
                             <option value="thisweek">This Week</option>
