@@ -13,7 +13,6 @@ use Auth;
 use PDF;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use PhpParser\Node\Stmt\Break_;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class AttendanceController extends Controller
@@ -313,7 +312,7 @@ class AttendanceController extends Controller
         return false;
     }
 
-    public function attendenceSummary(request $request){
+    public function attendanceSummary(request $request){
 
         $instructor = Auth::user();
         $period = $request['period'];
@@ -368,16 +367,20 @@ class AttendanceController extends Controller
                 break;
 
             default:
-                $attendances = Attendance::whereDate('created_at', Carbon::today())
-                    ->where('instructor_id', $instructor->instructor_id)
-                    ->get();
+                Alert::error('No selection made', 'Make another selection');
+                return back();
         }
 
         $setting = $this->setting;
 
         $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/e8704ed2-d90e-41ca/' . $instructor->instructor_id);
 
+        if($attendances->count()==0){
+            Alert::error('Empty', 'No attendances for your selection');
+            return back();
+        }
+
         $pdf = PDF::loadView('pdf_templates.attendanceSummary', compact('instructor', 'setting', 'qrCode', 'attendances'));
-return $pdf->download('Daron Driving School-' . $instructor->instructor->fname . ' ' . $instructor->instructor->sname . ' Attendance Summary.pdf');
+        return $pdf->download('Daron Driving School-' . $instructor->instructor->fname . ' ' . $instructor->instructor->sname . ' Attendance Summary.pdf');
     }
 }
