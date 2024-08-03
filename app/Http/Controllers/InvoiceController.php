@@ -152,6 +152,9 @@ class InvoiceController extends Controller
         //$student->fleet_id = $fleet_id;
 
 
+        $sms = new NotificationController;
+
+
         if(Invoice::where('student_id', '=', $student_id)->count() > 0){
             Alert::toast('There is already an invoice for '.$student->fname.'. Can not be re-enrolled. You must delete the invoice first', 'warning');
         }
@@ -169,6 +172,7 @@ class InvoiceController extends Controller
                 $invoice->save();
                 $student->save();
                 $payment->save();
+                $sms->balanceSMS($student, 'Payment');
                 Alert::toast($student->fname.' successifully enrolled', 'success');
             }
 
@@ -177,10 +181,8 @@ class InvoiceController extends Controller
                 $invoice->save();
                 $student->save();
                 Alert::toast($student->fname.' successifully enrolled', 'success');
+                $sms->balanceSMS($student, 'Enrollment');
             }
-
-            $sms = new NotificationController;
-            $sms->balanceSMS($student, 'Enrollment');
         }
 
         $student = Student::with('User', 'Course', 'Enrollment', 'Invoice', 'Payment')->find($student_id);
