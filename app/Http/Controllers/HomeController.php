@@ -145,7 +145,7 @@ class HomeController extends Controller
         }
 
         // Query to get the count of attendances per date for the current month
-        $countAttendance = DB::table('Attendances')
+        $countAttendance = DB::table('attendances')
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->groupBy('date')
