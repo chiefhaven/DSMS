@@ -300,8 +300,8 @@
           "/summaryData"
         var xlsxData = $.getJSON(xlsxUrl, function(data) {
           $.each(data, function(i, el) {
-            labels.push(el.Date);
-            Attendances.push(el.Count);
+            labels.push(el.date);
+            Attendances.push(el.count);
           });
           load_chart();
         });
