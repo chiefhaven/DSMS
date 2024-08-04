@@ -301,14 +301,12 @@
         var xlsxData = $.getJSON(xlsxUrl, function(data) {
           $.each(data, function(i, el) {
             labels.push(el.Date);
-            Sales.push(el.Count);
             Attendances.push(el.Count);
           });
           load_chart();
         });
       }
       var labels = [],
-        Sales = [],
         Attendances = []
 
       function load_chart() {
@@ -317,20 +315,12 @@
           data: {
             labels: labels,
             datasets: [{
-              label: 'Sales ',
-              fill: false,
-              data: Sales,
-              backgroundColor: 'rgb(255, 99, 132)',
-              borderColor: 'rgb(255, 99, 132, 0.8)',
-              borderWidth: 1,
-              radius: 0,
-            }, {
               label: 'Attendances ',
               fill: false,
               data: Attendances,
               backgroundColor: 'rgb(255, 159, 64)',
               borderColor: 'rgb(255, 159, 64, 0.8)',
-              borderWidth: 1,
+              borderWidth: 3,
               radius: 0,
             }, ]
           },
@@ -350,10 +340,10 @@
                 x: {
                     type: 'time',
                     time: {
-                        parser: 'YYYY-MM-DD', // Adjust based on your data format
+                        parser: 'YYYY-MM-DD', // Ensure this matches your data format
                         unit: 'day', // Use 'day' for daily data
                         displayFormats: {
-                            month: 'D MMM' // Display format for tick marks
+                            day: 'D MMM' // Format for daily tick marks
                         },
                         tooltipFormat: 'D MMM YYYY' // Tooltip format
                     },
@@ -361,10 +351,9 @@
                         display: true,
                         text: 'Date'
                     }
-
                 },
                 y: {
-                    beginAtZero: true // Example option for the y-axis
+                    beginAtZero: true
                 }
             }
           }
