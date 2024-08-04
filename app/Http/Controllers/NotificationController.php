@@ -138,9 +138,7 @@ class NotificationController extends Controller
         $attendance_balance = $attendanceRequired - $attendanceCount;
         $fleet = $student->fleet;
 
-        $attendanceLatest = $student->attendance()
-        ->orderBy('created_by', 'DESC')
-        ->firstOrFail()->created_at;
+        $attendanceLatest = $student->attendance->isNotEmpty() ? $student->attendance()->orderBy('created_at', 'DESC')->first()->created_at: '';
 
 
         $variables = array(
