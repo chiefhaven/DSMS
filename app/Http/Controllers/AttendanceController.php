@@ -54,52 +54,54 @@ class AttendanceController extends Controller
     public function create($token)
     {
         $instructor = Auth::user();
-        $timeStart = $this->setting->attendance_time_start;
-        $timeStop = $this->setting->attendance_time_stop;
+        $timeStart = Carbon::createFromTimeString($this->setting->attendance_time_start);
+        $timeStop = Carbon::createFromTimeString($this->setting->attendance_time_stop);
         $now = Carbon::now();
-        $start = Carbon::createFromTimeString($timeStart);
-        $end = Carbon::createFromTimeString($timeStop);
-        if (!$now->between($start, $end)) {
-            Alert()->error('Attendance can not be entered','Attendances can only be entered from '.$timeStart->format('h:i A').' to '.$timeStop->format('h:i A'));
+
+        if (!$now->between($timeStart, $timeStop)) {
+            Alert()->error('Attendance can not be entered', 'Attendances can only be entered from ' . $timeStart->format('h:i A') . ' to ' . $timeStop->format('h:i A'));
             return back();
         }
 
-        if(Auth::user() && Auth::user()->hasRole('instructor')){
-            $lesson = Lesson::get();
+        if ($instructor->hasRole('instructor')) {
+            $lesson = Lesson::all();
             $student = Student::find($token);
-            if(!isset($student)){
-                Alert()->error('Student not found, choose from the list below else contact the admin');
+
+            if (!$student) {
+                Alert()->error('Student not found', 'Choose from the list below or contact the admin');
                 return redirect()->route('students');
             }
 
-            if($this->attendanceLatest($instructor->instructor_id, $now) == false){
-                Alert()->error('Attendance can not be entered','You can only enter attendances every '.$this->setting->time_between_attendances.' minutes, for more information contact the admin!');
+            if (!$this->attendanceLatest($instructor->instructor_id, $now)) {
+                Alert()->error('Attendance can not be entered', 'You can only enter attendances every ' . $this->setting->time_between_attendances . ' minutes, for more information contact the admin!');
                 return back();
-            };
+            }
 
-            $checkStudentInstructor = havenUtils::checkStudentInstructor($token);
+            if (!havenUtils::checkStudentInstructor($token)) {
+                Alert()->error('Student not found', 'Student belongs to another car, scan another document or contact administrator');
+                return back();
+            }
 
-             if($checkStudentInstructor == false){
-                 Alert()->error('Student not found', 'Student belongs to another car, scan another document or contact administrator');
-                 return back();
-             }
+            $attendanceCount = $student->attendance->count();
+            $attendanceThreshold = $this->setting->attendance_threshold;
+            $feesBalanceThreshold = $this->setting->fees_balance_threshold;
+            $courseDuration = $student->course->duration;
+            $feesBalancePercentage = ($student->invoice->invoice_balance / $student->invoice->course_price) * 100;
+            $attendancePercentage = ($attendanceCount / $courseDuration) * 100;
 
-            if($student->attendance->count()/$student->course->duration*100 >= $this->setting->attendance_threshold && $student->invoice->invoice_balance/$student->invoice->course_price*100 < $this->setting->fees_balance_threshold){
+            if ($attendancePercentage >= $attendanceThreshold && $feesBalancePercentage < $feesBalanceThreshold) {
                 Alert()->error('Fees balance', 'Attendance can not be entered, student has fees balance that must be paid...');
                 return back();
             }
 
-            $instructor = Auth::user();
             $date = Carbon::now()->timezone('Africa/Blantyre');
-            return view('attendances.addattendance', compact('student','lesson', 'instructor', 'date'));
-
-        }
-
-        else{
+            return view('attendances.addattendance', compact('student', 'lesson', 'instructor', 'date'));
+        } else {
             $student = havenUtils::invoiceQrCode($token);
             return view('qrCodeGuest', compact('student'));
         }
     }
+
 
     /**
      * Store a newly created resource in storage.

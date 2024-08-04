@@ -84,91 +84,103 @@ class NotificationController extends Controller
 
     }
 
-    //send sms for enrollment, payments and balance reminders
-    public function balanceSMS(student $student, $type){
-
+    // Send SMS for enrollment, payments, and balance reminders
+    public function balanceSMS(Student $student, $type)
+    {
         $destination = $student->phone;
-        $student = Student::with('User', 'Invoice')->find($student->id);
-        $course = $student->course ? $student->course: '';
+        $student = Student::with('User', 'Invoice', 'course')->find($student->id);
+
+        // Ensure all necessary relations are loaded
+        if (!$student) {
+            Alert::toast('Student not found', 'error');
+            return back();
+        }
+
+        $course = $student->course;
         $total = $student->invoice ? number_format($student->invoice->invoice_total, 2, '.', '') : '';
         $paid = $student->invoice ? number_format($student->invoice->invoice_amount_paid, 2, '.', '') : '';
         $balance = $student->invoice ? number_format($student->invoice->invoice_balance, 2, '.', '') : '';
-        $due_date =  $student->invoice ? $student->invoice->invoice_payment_due_date->format('j F, Y'): '';
+        $due_date = $student->invoice ? $student->invoice->invoice_payment_due_date->format('j F, Y') : '';
 
-        $variables = array(
-            "first_name"=>$student->fname,
-            "middle_name"=>$student->mname,
-            "sir_name"=>$student->sname,
-            "invoice_total"=>$total,
-            "invoice_paid"=>$paid,
-            "balance"=>$balance,
-            "due_date"=>$due_date,
-            "course_name"=> $student->course ? $course->name : '',
-        );
+        $variables = [
+            "first_name" => $student->fname,
+            "middle_name" => $student->mname ?? '',
+            "sir_name" => $student->sname,
+            "invoice_total" => $total,
+            "invoice_paid" => $paid,
+            "balance" => $balance,
+            "due_date" => $due_date,
+            "course_name" => $course ? $course->name : '',
+        ];
 
         $sms_template = notification_template::where('type', $type)->firstOrFail()->body;
 
-        foreach($variables as $key => $value){
-            $sms_template = str_replace('{'.strtoupper($key).'}', $value, $sms_template);
+        foreach ($variables as $key => $value) {
+            $sms_template = str_replace('{' . strtoupper($key) . '}', $value, $sms_template);
         }
 
         $response = $this->sendSMS($sms_template, $destination);
 
-        if($response['statusCode'] == '200'){
+        if ($response['statusCode'] == '200') {
             Alert::toast($response['message'], 'success');
-        }
-        else{
+        } else {
             Alert::toast($response['message'], 'error');
         }
 
         return back();
-
     }
+
 
     public function announcementSMS(){
 
     }
 
-    public function generalSMS($student, $type){
-
+    public function generalSMS($student, $type)
+    {
         $destination = $student->phone;
-        $student = Student::with('User', 'Invoice')->find($student->id);
+        $student = Student::with('User', 'Invoice', 'course', 'attendance', 'fleet.instructor')->find($student->id);
+
+        // Ensure all necessary relations are loaded
+        if (!$student || !$student->course) {
+            Alert::toast('Student or course not found', 'error');
+            return back();
+        }
+
         $attendanceRequired = $student->course->practicals + $student->course->theory;
         $attendanceCount = $student->attendance->count();
         $attendance_balance = $attendanceRequired - $attendanceCount;
         $fleet = $student->fleet;
 
-        $attendanceLatest = $student->attendance->isNotEmpty() ? $student->attendance()->orderBy('created_at', 'DESC')->first()->created_at: '';
+        $attendanceLatest = $student->attendance->isNotEmpty() ? $student->attendance()->orderBy('created_at', 'DESC')->first()->created_at->format('Y-m-d H:i:s') : '';
 
-
-        $variables = array(
-            "first_name"=>$student->fname,
-            "middle_name"=>$student->mname,
-            "sir_name"=>$student->sname,
-            "total_attendance_entered"=>$attendanceCount ? $attendanceCount:'',
-            "attendance_difference"=>$attendance_balance,
-            "total_required_attendance"=>$attendanceRequired,
-            "attendance_date"=>$attendanceLatest,
-            "car_assigned"=>$fleet ? $fleet->car_brand_model.', '.$fleet->car_registration_number:'',
-            "instructor"=>$fleet ? $fleet->instructor->fname.' '.$fleet->instructor->mname.' '.$fleet->instructor->sname.', '.$fleet->instructor->phone:'',
-        );
+        $variables = [
+            "first_name" => $student->fname,
+            "middle_name" => $student->mname ?? '',
+            "sir_name" => $student->sname,
+            "total_attendance_entered" => $attendanceCount ?: '',
+            "attendance_difference" => $attendance_balance,
+            "total_required_attendance" => $attendanceRequired,
+            "attendance_date" => $attendanceLatest,
+            "car_assigned" => $fleet ? "{$fleet->car_brand_model}, {$fleet->car_registration_number}" : '',
+            "instructor" => $fleet ? "{$fleet->instructor->fname} {$fleet->instructor->mname} {$fleet->instructor->sname}, {$fleet->instructor->phone}" : '',
+        ];
 
         $sms_template = notification_template::where('type', $type)->firstOrFail()->body;
 
-        foreach($variables as $key => $value){
-            $sms_template = str_replace('{'.strtoupper($key).'}', $value, $sms_template);
+        foreach ($variables as $key => $value) {
+            $sms_template = str_replace('{' . strtoupper($key) . '}', $value, $sms_template);
         }
 
         $response = $this->sendSMS($sms_template, $destination);
 
-        if($response['statusCode'] == '200'){
+        if ($response['statusCode'] == '200') {
             Alert::toast($response['message'], 'success');
-        }
-        else{
+        } else {
             Alert::toast($response['message'], 'error');
         }
 
         return back();
     }
+
 
 }

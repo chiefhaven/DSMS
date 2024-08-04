@@ -1,246 +1,183 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Attendance;
-use App\Models\expense;
+use App\Models\Expense;
 use Illuminate\Http\Request;
 use App\Models\Invoice;
 use App\Models\Student;
 use View;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class HomeController extends Controller
 {
-
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
         $this->middleware('auth');
     }
 
-    /**
-     * Show the application dashboard.
-     *
-     * @return \Illuminate\Contracts\Support\Renderable
-     */
     public function index(Request $request)
     {
-
         $validated = $request->validate([
             'filter' => 'max:255',
         ]);
 
-        if(request('filter') == 'today' ){
+        $filter = $request->input('filter');
+        $time = "today"; // Default to today
 
-            $attendanceCount = Attendance::whereDate('created_at', Carbon::today())->count();
-            $studentCount = Student::whereDate('created_at', Carbon::today())->count();
-            $earningsTotal = Invoice::whereDate('created_at', Carbon::today())->sum('invoice_total');
-            $invoiceBalances = Invoice::whereDate('created_at', Carbon::today())->sum('invoice_balance');
-            $earningsTotal = Invoice::whereDate('created_at', Carbon::today())->sum('invoice_total');
-            $expensesTotal = Expense::whereDate('created_at', Carbon::today())->sum('approved_amount');
-            $time = "today";
+        switch ($filter) {
+            case 'today':
+                $time = "today";
+                $studentCount = Student::whereDate('created_at', Carbon::today())->count();
+                $attendanceCount = Attendance::whereDate('created_at', Carbon::today())->count();
+                $earningsTotal = Invoice::whereDate('created_at', Carbon::today())->sum('invoice_total');
+                $invoiceBalances = Invoice::whereDate('created_at', Carbon::today())->sum('invoice_balance');
+                $expensesTotal = Expense::whereDate('created_at', Carbon::today())->sum('approved_amount');
+                break;
+
+            case 'yesterday':
+                $time = "yesterday";
+                $studentCount = Student::whereDate('created_at', Carbon::yesterday())->count();
+                $attendanceCount = Attendance::whereDate('created_at', Carbon::yesterday())->count();
+                $earningsTotal = Invoice::whereDate('created_at', Carbon::yesterday())->sum('invoice_total');
+                $invoiceBalances = Invoice::whereDate('created_at', Carbon::yesterday())->sum('invoice_balance');
+                $expensesTotal = Expense::whereDate('created_at', Carbon::yesterday())->sum('approved_amount');
+                break;
+
+            case 'thisweek':
+                $time = "thisweek";
+                $startOfWeek = Carbon::now()->startOfWeek();
+                $endOfWeek = Carbon::now()->endOfWeek();
+                $studentCount = Student::whereBetween('created_at', [$startOfWeek, $endOfWeek])->count();
+                $attendanceCount = Attendance::whereBetween('created_at', [$startOfWeek, $endOfWeek])->count();
+                $earningsTotal = Invoice::whereBetween('created_at', [$startOfWeek, $endOfWeek])->sum('invoice_total');
+                $invoiceBalances = Invoice::whereBetween('created_at', [$startOfWeek, $endOfWeek])->sum('invoice_balance');
+                $expensesTotal = Expense::whereBetween('created_at', [$startOfWeek, $endOfWeek])->sum('approved_amount');
+                break;
+
+            case 'thismonth':
+                $time = "thismonth";
+                $studentCount = Student::whereMonth('created_at', Carbon::now()->month)->count();
+                $attendanceCount = Attendance::whereMonth('created_at', Carbon::now()->month)->count();
+                $earningsTotal = Invoice::whereMonth('created_at', Carbon::now()->month)->sum('invoice_total');
+                $invoiceBalances = Invoice::whereMonth('created_at', Carbon::now()->month)->sum('invoice_balance');
+                $expensesTotal = Expense::whereMonth('created_at', Carbon::now()->month)->sum('approved_amount');
+                break;
+
+            case 'lastmonth':
+                $time = "lastmonth";
+                $studentCount = Student::whereMonth('created_at', Carbon::now()->subMonth()->month)->count();
+                $attendanceCount = Attendance::whereMonth('created_at', Carbon::now()->subMonth()->month)->count();
+                $earningsTotal = Invoice::whereMonth('created_at', Carbon::now()->subMonth()->month)->sum('invoice_total');
+                $invoiceBalances = Invoice::whereMonth('created_at', Carbon::now()->subMonth()->month)->sum('invoice_balance');
+                $expensesTotal = Expense::whereMonth('created_at', Carbon::now()->subMonth()->month)->sum('approved_amount');
+                break;
+
+            case 'thisyear':
+                $time = "thisyear";
+                $studentCount = Student::whereYear('created_at', Carbon::now()->year)->count();
+                $attendanceCount = Attendance::whereYear('created_at', Carbon::now()->year)->count();
+                $earningsTotal = Invoice::whereYear('created_at', Carbon::now()->year)->sum('invoice_total');
+                $invoiceBalances = Invoice::whereYear('created_at', Carbon::now()->year)->sum('invoice_balance');
+                $expensesTotal = Expense::whereYear('created_at', Carbon::now()->year)->sum('approved_amount');
+                break;
+
+            case 'lastyear':
+                $time = "lastyear";
+                $studentCount = Student::whereYear('created_at', Carbon::now()->subYear()->year)->count();
+                $attendanceCount = Attendance::whereYear('created_at', Carbon::now()->subYear()->year)->count();
+                $earningsTotal = Invoice::whereYear('created_at', Carbon::now()->subYear()->year)->sum('invoice_total');
+                $invoiceBalances = Invoice::whereYear('created_at', Carbon::now()->subYear()->year)->sum('invoice_balance');
+                $expensesTotal = Expense::whereYear('created_at', Carbon::now()->subYear()->year)->sum('approved_amount');
+                break;
+
+            case 'alltime':
+                $time = "alltime";
+                $studentCount = Student::count();
+                $attendanceCount = Attendance::count();
+                $earningsTotal = Invoice::sum('invoice_total');
+                $invoiceBalances = Invoice::sum('invoice_balance');
+                $expensesTotal = Expense::sum('approved_amount');
+                break;
+
+            default:
+                $time = "today";
+                $studentCount = Student::whereDate('created_at', Carbon::today())->count();
+                $attendanceCount = Attendance::whereDate('created_at', Carbon::today())->count();
+                $earningsTotal = Invoice::whereDate('created_at', Carbon::today())->sum('invoice_total');
+                $invoiceBalances = Invoice::whereDate('created_at', Carbon::today())->sum('invoice_balance');
+                $expensesTotal = Expense::whereDate('created_at', Carbon::today())->sum('approved_amount');
+                break;
         }
 
-        elseif(request('filter') == 'yesterday' ){
-
-            $studentCount = Student::whereMonth('created_at', Carbon::now()->subDay()->day)->count();
-            $attendanceCount = Attendance::whereMonth('created_at', Carbon::now()->subDay()->day)->count();
-            $earningsTotal = Invoice::whereMonth('created_at', Carbon::now()->subDay()->day)->sum('invoice_total');
-            $invoiceBalances = Invoice::whereMonth('created_at', Carbon::now()->subDay()->day)->sum('invoice_balance');
-            $earningsTotal = Invoice::whereMonth('created_at', Carbon::now()->subDay()->day)->sum('invoice_total');
-            $expensesTotal = Expense::whereMonth('created_at', Carbon::now()->subDay()->day)->sum('approved_amount');
-            $time = "yesterday";
-        }
-
-        elseif(request('filter') == 'thisweek' ){
-
-            // Calculate the start and end of the current week
-            $startOfWeek = Carbon::now()->startOfWeek();
-            $endOfWeek = Carbon::now()->endOfWeek();
-
-            // Count of students created this week
-            $studentCount = Student::whereBetween('created_at', [$startOfWeek, $endOfWeek])->count();
-
-            // Count of attendances created this week
-            $attendanceCount = Attendance::whereBetween('created_at', [$startOfWeek, $endOfWeek])->count();
-
-            // Total earnings from invoices created this week
-            $earningsTotal = Invoice::whereBetween('created_at', [$startOfWeek, $endOfWeek])->sum('invoice_total');
-
-            // Total invoice balances for invoices created this week
-            $invoiceBalances = Invoice::whereBetween('created_at', [$startOfWeek, $endOfWeek])->sum('invoice_balance');
-
-            // Total expenses approved this week
-            $expensesTotal = Expense::whereBetween('created_at', [$startOfWeek, $endOfWeek])->sum('approved_amount');
-
-            // Time frame description
-            $time = "thisweek";
-        }
-
-        elseif(request('filter') == 'thismonth' ){
-
-            // Get the current month
-            $currentMonth = Carbon::now()->month;
-
-            // Count of students created this month
-            $studentCount = Student::whereMonth('created_at', $currentMonth)->count();
-
-            // Count of attendances created this month
-            $attendanceCount = Attendance::whereMonth('created_at', $currentMonth)->count();
-
-            // Total earnings from invoices created this month
-            $earningsTotal = Invoice::whereMonth('created_at', $currentMonth)->sum('invoice_total');
-
-            // Total invoice balances for invoices created this month
-            $invoiceBalances = Invoice::whereMonth('created_at', $currentMonth)->sum('invoice_balance');
-
-            // Total expenses approved this month
-            $expensesTotal = Expense::whereMonth('created_at', $currentMonth)->sum('approved_amount');
-
-            // Time frame description
-            $time = "thismonth";
-        }
-
-        elseif(request('filter') == 'lastmonth' ){
-
-            // Get the previous month
-            $lastMonth = Carbon::now()->subMonth()->month;
-
-            // Count of students created last month
-            $studentCount = Student::whereMonth('created_at', $lastMonth)->count();
-
-            // Count of attendances created last month
-            $attendanceCount = Attendance::whereMonth('created_at', $lastMonth)->count();
-
-            // Total earnings from invoices created last month
-            $earningsTotal = Invoice::whereMonth('created_at', $lastMonth)->sum('invoice_total');
-
-            // Total invoice balances for invoices created last month
-            $invoiceBalances = Invoice::whereMonth('created_at', $lastMonth)->sum('invoice_balance');
-
-            // Total expenses approved this month
-            $expensesTotal = Expense::whereMonth('created_at', $lastMonth)->sum('approved_amount');
-
-            // Time frame description
-            $time = "lastmonth";
-        }
-
-        elseif(request('filter') == 'thisyear' ){
-
-            // Get the current year
-            $currentYear = Carbon::now()->year;
-
-            // Count of students created this year
-            $studentCount = Student::whereYear('created_at', $currentYear)->count();
-
-            // Count of attendances created this year
-            $attendanceCount = Attendance::whereYear('created_at', $currentYear)->count();
-
-            // Total earnings from invoices created this year
-            $earningsTotal = Invoice::whereYear('created_at', $currentYear)->sum('invoice_total');
-
-            // Total invoice balances for invoices created this year
-            $invoiceBalances = Invoice::whereYear('created_at', $currentYear)->sum('invoice_balance');
-
-            // Total expenses approved this month
-            $expensesTotal = Expense::whereYear('created_at', $currentYear)->sum('approved_amount');
-
-            // Time frame description
-            $time = "thisyear";
-        }
-        elseif(request('filter') == 'alltime' ){
-
-            // Count of all students
-            $studentCount = Student::count();
-
-            // Total earnings from all invoices
-            $earningsTotal = Invoice::sum('invoice_total');
-
-            // Total invoice balances from all invoices
-            $invoiceBalances = Invoice::sum('invoice_balance');
-
-            // Total invoice balances from all invoices
-            $attendanceCount = Attendance::count();
-
-            // Total expenses approved this month
-            $expensesTotal = Expense::sum('approved_amount');
-
-            // Time frame description
-            $time = "alltime";
-        }
-
-        elseif(request('filter') == 'lastyear' ){
-
-            // Get the previous year
-            $lastYear = Carbon::now()->subYear()->year;
-
-            // Count of attendances created last year
-            $attendanceCount = Attendance::whereYear('created_at', $lastYear)->count();
-
-            // Count of students created last year
-            $studentCount = Student::whereYear('created_at', $lastYear)->count();
-
-            // Total earnings from invoices created last year
-            $earningsTotal = Invoice::whereYear('created_at', $lastYear)->sum('invoice_total');
-
-            // Total invoice balances for invoices created last year
-            $invoiceBalances = Invoice::whereYear('created_at', $lastYear)->sum('invoice_balance');
-
-            // Total expenses approved this month
-            $expensesTotal = Expense::whereYear('created_at', $lastYear)->sum('approved_amount');
-
-            // Time frame description
-            $time = "lastyear";
-        }
-
-        else{
-
-            // Get today's date
-            $today = Carbon::today();
-
-            // Count of students created today
-            $studentCount = Student::whereDate('created_at', $today)->count();
-
-            // Count of attendances created today
-            $attendanceCount = Attendance::whereDate('created_at', $today)->count();
-
-            // Total earnings from invoices created today
-            $earningsTotal = Invoice::whereDate('created_at', $today)->sum('invoice_total');
-
-            // Total invoice balances for invoices created today
-            $invoiceBalances = Invoice::whereDate('created_at', $today)->sum('invoice_balance');
-
-            // Total expenses approved today
-            $expensesTotal = Expense::whereDate('created_at', $today)->sum('approved_amount');
-
-            // Time frame description
-            $time = "today";
-        }
-
-        // Get the previous month
-        $lastMonth = date("m", strtotime("first day of previous month"));
-
-        // Retrieve invoices with a balance greater than 0, along with associated Student and User, ordered by date_created, limited to 13
         $invoice = Invoice::with('Student', 'User')
             ->where('invoice_balance', '>', 0.00)
             ->orderBy('date_created', 'DESC')
             ->take(13)
             ->get();
 
-        // Retrieve students with associated Invoice and User, ordered by created_at, limited to 15
         $student = Student::with('Invoice', 'User')
             ->orderBy('created_at', 'DESC')
             ->take(15)
             ->get();
 
-        // Count the retrieved invoices
         $invoiceCount = $invoice->count();
 
-        return view::make('dashboard', compact(['attendanceCount','expensesTotal','invoice', 'student', 'invoiceBalances', 'studentCount', 'earningsTotal', 'time']));
+        return View::make('dashboard', compact(['attendanceCount', 'expensesTotal', 'invoice', 'student', 'invoiceBalances', 'studentCount', 'earningsTotal', 'time']));
+    }
+
+    public function summaryData()
+    {
+        // Get the first day of the current month and the last day of the current month
+        $startOfMonth = Carbon::now()->startOfMonth()->format('Y-m-d');
+        $endOfMonth = Carbon::now()->endOfMonth()->format('Y-m-d');
+
+        // Initialize the dates collection for the current month
+        $dates = collect();
+        $currentDate = Carbon::parse($startOfMonth);
+
+        // Populate the collection with dates for the current month and initialize counts to 0
+        while ($currentDate->lte($endOfMonth)) {
+            $dates->put($currentDate->format('Y-m-d'), 0);
+            $currentDate->addDay();
+        }
+
+        // Query to get the count of attendances per date for the current month
+        $countAttendance = DB::table('Attendances')
+            ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+
+        // Create an associative array to store the attendance counts by date
+        $arrayOfAttendances = [];
+
+        // Loop through the results to build the array
+        foreach ($countAttendance as $attendance) {
+            $arrayOfAttendances[$attendance->date] = $attendance->count;
+        }
+
+        // Add dates with zero counts to ensure all dates are included
+        foreach ($dates as $date => $value) {
+            if (!array_key_exists($date, $arrayOfAttendances)) {
+                $arrayOfAttendances[$date] = 0;
+            }
+        }
+
+        // Sort the array by date
+        ksort($arrayOfAttendances);
+
+        // Convert the associative array to a simple array of objects
+        $attendanceMonthlyInfo = collect($arrayOfAttendances)->map(function ($count, $date) {
+            $item = new \stdClass();
+            $item->date = $date;
+            $item->count = $count;
+            return $item;
+        })->values();
+
+        // Return the data as JSON
+        return response()->json($attendanceMonthlyInfo, 200);
     }
 }

@@ -297,12 +297,12 @@
 
       function getXlsxData() {
         var xlsxUrl =
-          "https://script.google.com/macros/s/AKfycbw9PQRojIml3x5gnMMiKihnTh9aLODd86ankhoz0ETIu0a8tcVh1ZIc4R08hlw8nHF8pA/exec?id=1Bvzqyu_NvPdL-zsOShbKF5me2bjtVVWQCK9MDA2KW58&sheet=Today"
+          "/summaryData"
         var xlsxData = $.getJSON(xlsxUrl, function(data) {
-          $.each(data.Today, function(i, el) {
-            labels.push(el.Time);
-            Sales.push(el.CurrentTemp);
-            Attendances.push(el.CurrentRH);
+          $.each(data, function(i, el) {
+            labels.push(el.Date);
+            Sales.push(el.Count);
+            Attendances.push(el.Count);
           });
           load_chart();
         });
@@ -347,17 +347,25 @@
               }
             },
             scales: {
-              x: {
-                type: 'time',
-                time: {
-                  parser: 'HH:mm:ss',
-                  unit: 'hour',
-                  displayFormats: {
-                    hour: 'HH:mm'
-                  },
-                  tooltipFormat: 'D MMM YYYY - HH:mm:ss'
+                x: {
+                    type: 'time',
+                    time: {
+                        parser: 'YYYY-MM-DD', // Adjust based on your data format
+                        unit: 'hour', // Use 'day' for daily data
+                        displayFormats: {
+                            hour: 'D MMM' // Display format for tick marks
+                        },
+                        tooltipFormat: 'D MMM YYYY' // Tooltip format
+                    },
+                    title: {
+                        display: true,
+                        text: 'Date'
+                    }
+
+                },
+                y: {
+                    beginAtZero: true // Example option for the y-axis
                 }
-              }
             }
           }
         });
