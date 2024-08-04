@@ -109,7 +109,7 @@
 
     <div class="row block">
         <div class="block-conent block-rounded block-bordered">
-            <canvas id="myChart"></canvas>
+            <canvas id="myChart" height="200"></canvas>
         </div>
     </div>
 
@@ -347,10 +347,6 @@
                         },
                         tooltipFormat: 'D MMM YYYY' // Tooltip format
                     },
-                    title: {
-                        display: true,
-                        text: 'Date'
-                    }
                 },
                 y: {
                     beginAtZero: true
