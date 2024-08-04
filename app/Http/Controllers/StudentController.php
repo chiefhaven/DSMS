@@ -368,7 +368,7 @@ class StudentController extends Controller
         if ($validator->fails()) {
 
             Alert::toast($messages, 'Error');
-            return redirect()->back();
+            return back();
 
          }
 
@@ -494,6 +494,10 @@ class StudentController extends Controller
         $student = Student::find($request['student']);
         $student->fleet_id = $fleet_id;
         $student->save();
+
+
+        $sms = new NotificationController;
+        $sms->generalSMS($student, 'Carassignment');
 
         if(!$student->save()){
             return response()->json('Something wrong happened', 403);

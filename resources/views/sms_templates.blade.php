@@ -63,7 +63,7 @@
 
             <div class="form-floating mb-4">
                 <p><label class="form-label" for="example-school-name-input-floating font-weight-bold">Car assignment</label></p>
-                <button class="btn content content-full shadow-sm p-3 mb-5 bg-white rounded small" data-bs-toggle="modal" data-bs-target="#Carassign">
+                <button class="btn content content-full shadow-sm p-3 mb-5 bg-white rounded small" data-bs-toggle="modal" data-bs-target="#Carassignment">
                     <small>{{ $templates[5]->body }}</small>
                 </button>
             </div>

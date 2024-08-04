@@ -94,7 +94,6 @@ class NotificationController extends Controller
         $paid = $student->invoice ? number_format($student->invoice->invoice_amount_paid, 2, '.', '') : '';
         $balance = $student->invoice ? number_format($student->invoice->invoice_balance, 2, '.', '') : '';
         $due_date =  $student->invoice ? $student->invoice->invoice_payment_due_date->format('j F, Y'): '';
-        //$type = $student['type'];
 
         $variables = array(
             "first_name"=>$student->fname,
@@ -130,13 +129,14 @@ class NotificationController extends Controller
 
     }
 
-    public function attendanceSMS($student){
+    public function generalSMS($student, $type){
 
         $destination = $student->phone;
         $student = Student::with('User', 'Invoice')->find($student->id);
         $attendanceRequired = $student->course->practicals + $student->course->theory;
         $attendanceCount = $student->attendance->count();
         $attendance_balance = $attendanceRequired - $attendanceCount;
+        $fleet = $student->fleet;
 
         $attendanceLatest = $student->attendance()
         ->orderBy('created_by', 'DESC')
@@ -147,13 +147,15 @@ class NotificationController extends Controller
             "first_name"=>$student->fname,
             "middle_name"=>$student->mname,
             "sir_name"=>$student->sname,
-            "total_attendance_entered"=>$attendanceCount,
+            "total_attendance_entered"=>$attendanceCount ? $attendanceCount:'',
             "attendance_difference"=>$attendance_balance,
             "total_required_attendance"=>$attendanceRequired,
-            "attendance_date"=>$attendanceLatest
+            "attendance_date"=>$attendanceLatest,
+            "car_assigned"=>$fleet ? $fleet->car_brand_model.', '.$fleet->registration_number:'',
+            "instructor"=>$fleet ? $fleet->instructor->fname.' '.$fleet->instructor->mname.' '.$fleet->instructor->sname.', '.$fleet->instructor->phone:'',
         );
 
-        $sms_template = notification_template::where('type', 'Attendance')->firstOrFail()->body;
+        $sms_template = notification_template::where('type', $type)->firstOrFail()->body;
 
         foreach($variables as $key => $value){
             $sms_template = str_replace('{'.strtoupper($key).'}', $value, $sms_template);

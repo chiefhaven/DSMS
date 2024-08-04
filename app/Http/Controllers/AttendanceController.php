@@ -183,7 +183,7 @@ class AttendanceController extends Controller
             }
 
             $sms = new NotificationController;
-            $sms->attendanceSMS($student);
+            $sms->generalSMS($student, 'Attendance');
 
             $student->save();
         }
