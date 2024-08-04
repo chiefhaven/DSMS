@@ -108,8 +108,15 @@
     </div>
 
     <div class="row block">
-        <div class="block-conent block-rounded block-bordered">
-            <canvas id="myChart" height="200"></canvas>
+        <div class="col-8">
+            <div class="block-conent block-rounded block-bordered">
+                <canvas id="attendancesChart" height="200"></canvas>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="block-conent block-rounded block-bordered">
+                <canvas id="coursesChart" width="400" height="400"></canvas>
+            </div>
         </div>
     </div>
 
@@ -290,7 +297,7 @@
     document.getElementById("filter").value = "{{ $time }}"
 </script>
 <script>
-    const ctx = document.getElementById('myChart');
+    const ctx = document.getElementById('attendancesChart');
     $(function() {
         getXlsxData();
       });
@@ -310,7 +317,7 @@
         Attendances = []
 
       function load_chart() {
-        var myChart = new Chart('myChart', {
+        var attendancesChart = new Chart('attendancesChart', {
           type: 'line',
           data: {
             labels: labels,
@@ -354,5 +361,40 @@
             }
           }
         });
-      }
-</script>
+
+        var ctx1 = document.getElementById('coursesChart');
+
+        var coursesChart = new Chart(ctx1, {
+            type: 'doughnut',
+            data: {
+                labels: ['Full Course B', 'Full Course C1', 'Full Course B VIP', '20 Days Course B'], // Data labels
+                datasets: [{
+                    label: 'My Dataset',
+                    data: [10, 20, 30, 50], // Data values
+                    backgroundColor: ['rgba(255, 99, 132, 0.9)', 'rgba(54, 162, 235, 0.9)', 'rgba(255, 206, 86, 0.9)'], // Segment colors
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + context.raw;
+                            }
+                        }
+                    }
+                },
+                layout: {
+                    padding: {
+                        top: 20,
+                        bottom: 20
+                    }
+                }
+            }
+        });
+    }
+  </script>
