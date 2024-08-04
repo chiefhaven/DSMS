@@ -40,7 +40,7 @@
         <div class="col-md-6 col-xl-4">
             <div class="block block-rounded block-link-shadow text-center" href="javascript:void(0)">
                 <div class="block-content block-content-full">
-                    <img class="fleet-avatar" src="public/media/fleet/{{$fleet->fleet_image}}" max-width="auto" height="200px" alt="Fleet Image">
+                    <img class="fleet-avatar" src="public/media/fleet/{{$fleet->fleet_image}}" width="100%" height="auto" alt="Fleet Image">
                 </div>
                 <div class="block-content block-content-full block-content-sm bg-body-light">
                     <h3 class="font-w600 mb-0">{{$fleet->car_brand_model}}</h3>
