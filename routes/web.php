@@ -32,9 +32,9 @@ use App\Http\Controllers\QrCodeController;
 
 include_once('install_r.php');
 
-Route::post('/', [HomeController::class,'index'])->middleware(['auth'])->name('dashboard');
+//Route::post('/', [HomeController::class,'index'])->middleware(['auth'])->name('dashboard');
 Route::get('/summaryData', [HomeController::class,'summaryData'])->middleware(['auth'])->name('summaryData');
-//Route::get('/', [HomeController::class,'index'])->middleware(['auth'])->name('dashboard');
+Route::get('/', [HomeController::class,'index'])->middleware(['auth'])->name('dashboard');
 
 Auth::routes();
 
