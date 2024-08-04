@@ -20,6 +20,7 @@ use Illuminate\Support\Str;
 use PDF;
 use RealRashid\SweetAlert\Facades\Alert;
 use Auth;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class StudentController extends Controller
 {
@@ -31,12 +32,26 @@ class StudentController extends Controller
     public function index()
     {
         if(Auth::user()->hasRole('instructor')){
-            $fleet_id = Fleet::Where('instructor_id', Auth::user()->instructor_id)->firstOrFail()->id;
-            $student = Student::Where('fleet_id', $fleet_id)->with('User', 'Attendance', 'Course')->orderBy('created_at', 'DESC')->paginate(10);
+
+            try {
+                $fleet = Fleet::where('instructor_id', Auth::user()->instructor_id)->firstOrFail();
+
+                $students = Student::where('fleet_id', $fleet->id)
+                    ->with('User', 'Attendance', 'Course')
+                    ->orderBy('created_at', 'DESC')
+                    ->paginate(10);
+
+                return view('your-view', compact('students'));
+
+            } catch (ModelNotFoundException $e) {
+                Alert::error('No students', 'You are not allocated a car, for more information contact the admin');
+                return redirect('/');
+            }
         }
         else{
             $student = Student::with('User', 'Attendance', 'Course')->orderBy('created_at', 'DESC')->paginate(10);
         }
+
         $fleet = Fleet::get();
         return view('students.students', compact('student', 'fleet'));
     }
