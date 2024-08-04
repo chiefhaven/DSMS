@@ -351,9 +351,9 @@
                     type: 'time',
                     time: {
                         parser: 'YYYY-MM-DD', // Adjust based on your data format
-                        unit: 'hour', // Use 'day' for daily data
+                        unit: 'day', // Use 'day' for daily data
                         displayFormats: {
-                            hour: 'D MMM' // Display format for tick marks
+                            month: 'D MMM' // Display format for tick marks
                         },
                         tooltipFormat: 'D MMM YYYY' // Tooltip format
                     },
