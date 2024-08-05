@@ -86,7 +86,7 @@ class AttendanceController extends Controller
             $attendanceThreshold = $this->setting->attendance_threshold;
             $feesBalanceThreshold = $this->setting->fees_balance_threshold;
             $courseDuration = $student->course->duration;
-            $feesBalancePercentage = ($student->invoice->invoice_balance / $student->invoice->course_price) * 100;
+            $feesBalancePercentage = ($student->invoice->invoice_amount_paid / $student->invoice->course_price) * 100;
             $attendancePercentage = ($attendanceCount / $courseDuration) * 100;
 
             if ($attendancePercentage >= $attendanceThreshold && $feesBalancePercentage < $feesBalanceThreshold) {
