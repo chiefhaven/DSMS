@@ -48,7 +48,7 @@
                         @foreach ($attendance as $attendance)
                             <tr class="py-1" style="padding-top: 0px; padding-bottom: 0px; ">
                                 <td class="invoice-td">
-                                    {{$attendance->attendance_date->format('j F, Y')}}
+                                    {{$attendance->attendance_date->format('j F, Y H:m:s')}}
                                 </td>
                                 <td class="invoice-td">
                                     {{$attendance->lesson->name}}
