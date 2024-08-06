@@ -354,6 +354,17 @@
                         },
                         tooltipFormat: 'D MMM YYYY' // Tooltip format
                     },
+                    ticks: {
+                        source: 'data', // Ensures ticks are based on data
+                        autoSkip: false, // Disable automatic skipping
+                        stepSize: 1, // Display every day (adjust if necessary)
+                        maxRotation: 60, // Prevent tick label rotation
+                        minRotation: 60
+                    },
+                    title: {
+                        display: true,
+                        text: 'Date' // Optional: Add title for the x-axis
+                    }
                 },
                 y: {
                     beginAtZero: true
@@ -370,8 +381,8 @@
                 labels: ['Full Course B', 'Full Course C1', 'Full Course B VIP', '20 Days Course B'], // Data labels
                 datasets: [{
                     label: 'My Dataset',
-                    data: [10, 20, 30, 50], // Data values
-                    backgroundColor: ['rgba(255, 99, 132, 0.9)', 'rgba(54, 162, 235, 0.9)', 'rgba(255, 206, 86, 0.9)'], // Segment colors
+                    data: [100, 20, 10, 50], // Data values
+                    backgroundColor: ['rgba(255, 99, 132, 0.9)', 'rgba(54, 162, 235, 0.9)', 'rgba(255, 206, 86, 0.9)', 'rgba(255, 116, 86, 0.9)'], // Segment colors
                 }]
             },
             options: {
