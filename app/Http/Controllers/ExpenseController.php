@@ -72,8 +72,6 @@ class ExpenseController extends Controller
 
         $students = $post['students'];
 
-        $studentsCount = count($students);
-
         $expense = new expense();
         $expense->group = $post['expenseGroupName'];
         $expense->group_type = $post['expenseGroupType'];
@@ -148,7 +146,7 @@ class ExpenseController extends Controller
      * @param  \App\Models\expense  $expense
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateexpenseRequest $request)
+    public function update(UpdateexpenseRequest $request, expense $expense)
     {
         $messages = [
             'expenseGroupName.required' => 'Expense Group Name is required',
@@ -166,7 +164,7 @@ class ExpenseController extends Controller
 
         $students = $post['students'];
 
-        $expenseUpdate = Expense::find($post['expenseId']);
+        $expenseUpdate = $expense;
 
         $expenseUpdate->group = $post['expenseGroupName'];
         $expenseUpdate->group_type = $post['expenseGroupType'];
@@ -179,10 +177,9 @@ class ExpenseController extends Controller
 
         //Get student id
         foreach ($students as $data) {
-            $expenseId = Expense::orderBy('updated_at', 'desc')->first()->id;
             $student = havenUtils::student($data['fname'].' '.$data['mname'].' '.$data['sname']);
             $student->expenses()->sync([
-                $expenseId => ['expense_type' => $data['expenses'][0]['pivot']['expense_type']]
+                $expense => ['expense_type' => $data['expenses'][0]['pivot']['expense_type']]
             ]);
         }
 
@@ -245,7 +242,7 @@ class ExpenseController extends Controller
                 }
                 break;
             case "TRN":
-                if(($student->invoice->invoice_amount_paid / $student->invoice->invoice_total) * 100 < 90){
+                if(($student->invoice->invoice_amount_paid / $student->invoice->invoice_total) * 100 < 0){
                     $data = [
                         'feedback'=>'error',
                         'message' => $post['student'].' can not be selected for TRN, There are balances that must be paid'
