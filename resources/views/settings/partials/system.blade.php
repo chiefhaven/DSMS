@@ -36,6 +36,11 @@
           </div>
           <div class="row haven-floating">
             <div class="mb-4 col-md-4 form-floating">
+                <input type="number" class="form-control @error('fees_trn_threshold') is-invalid @enderror" id="fees_trn_threshold" name="fees_trn_threshold" value="{{$setting->fees_trn_threshold}}" placeholder="Fees TRN threshold (%)">
+                <label class="form-label" for="fees_trn_threshold">Fees TRN threshold (%)</label>
+                <p class="muted small"><em>Fees percent at which student can be selected for TRN</em></p>
+            </div>
+            <div class="mb-4 col-md-4 form-floating">
                 <input type="number" class="form-control @error('fees_code_i_threshold') is-invalid @enderror" id="fees_code_i_threshold" name="fees_code_i_threshold" value="{{$setting->fees_code_i_threshold}}" placeholder="Highway code I threshold (%)">
                 <label class="form-label" for="fees_threshold">Highway code I threshold (%)</label>
                 <p class="muted small"><em>Fees percent at which student can be selected for highway code I expense</em></p>

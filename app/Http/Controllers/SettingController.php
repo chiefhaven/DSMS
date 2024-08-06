@@ -181,6 +181,7 @@ class SettingController extends Controller
             'fees_road_test_threshold' => 'required|integer|between:0,100',
             'fees_code_i_threshold'=> 'required|integer|between:0,100',
             'fees_code_ii_threshold' => 'required|integer|between:0,100',
+            'fees_trn_threshold' => 'required|integer|between:0,100',
 
         ], $messages);
 
@@ -197,6 +198,7 @@ class SettingController extends Controller
         $settings->fees_code_i_threshold =$post['fees_code_i_threshold'];
         $settings->fees_code_ii_threshold =$post['fees_code_ii_threshold'];
         $settings->fees_road_threshold = $post['fees_road_test_threshold'];
+        $settings->fees_trn_threshold = $post['fees_trn_threshold'];
 
         $settings->save();
         if($settings->save()){
