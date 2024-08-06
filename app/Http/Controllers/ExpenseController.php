@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\expense;
+use App\Models\Expense;
 use App\Http\Requests\StoreexpenseRequest;
 use App\Http\Requests\UpdateexpenseRequest;
 use App\Models\Setting;
