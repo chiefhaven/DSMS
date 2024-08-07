@@ -132,12 +132,6 @@
                                 <td>
                                     {{$expense->description}}
                                 </td>
-                                <td>
-                                    K{{number_format($expense->amount)}}
-                                </td>
-                                <td>
-                                    K{{number_format($expense->approved_amount)}}
-                                </td>
                                 @role(['superAdmin'])
                                     <td>
                                         @if ($expense->administrator)
@@ -146,13 +140,19 @@
                                             -
                                         @endif
                                     </td>
-                                    <td>
-                                        @if ($expense->approved==true)
-                                            {{App\Models\Administrator::find($expense->approved_by)->fname}}
-                                            {{App\Models\Administrator::find($expense->approved_by)->sname}}
-                                        @endif
-                                    </td>
                                 @endcan
+                                <td>
+                                    K{{number_format($expense->amount)}}
+                                </td>
+                                <td>
+                                    K{{number_format($expense->approved_amount)}}
+                                </td>
+                                <td>
+                                    @if ($expense->approved==true)
+                                        {{App\Models\Administrator::find($expense->approved_by)->fname}}
+                                        {{App\Models\Administrator::find($expense->approved_by)->sname}}
+                                    @endif
+                                </td>
                                 <td>
                                     @if ($expense->approved==true)
                                         {{$expense->date_approved->format('j F, Y')}}
@@ -164,7 +164,7 @@
                                             {{App\Models\Administrator::find($expense->edited_by)->fname}}
                                             {{App\Models\Administrator::find($expense->edited_by)->sname}}
                                         @else
-                                            You
+                                            By: You
                                         @endif
 
                                         <div class="sm-text" style="font-size: 12px">
