@@ -42,82 +42,90 @@
                   </div>
                   <div class="col-lg-8 col-xl-8">
                     <div class="row haven-floating">
-                      <div class="col-4 form-floating mb-4">
-                        <input type="text" class="form-control @error('fname') is-invalid @enderror" id="fname" name="fname" placeholder="Firt name" required>
-                        <label class="form-label" for="fname">First name</label>
-                      </div>
-                      <div class="col-4 form-floating mb-4">
-                        <input type="text" class="form-control @error('mname') is-invalid @enderror" id="mname" name="mname" placeholder="Other names">
-                        <label class="form-label" for="sname">Other names</label>
-                      </div>
-                      <div class="col-4 form-floating mb-4">
-                        <input type="text" class="form-control @error('sname') is-invalid @enderror" id="sname" name="sname" placeholder="Sirname" required>
-                        <label class="form-label" for="sname">Last name</label>
-                      </div>
+                        <div class="col-4 form-floating mb-4">
+                            <input type="text" class="form-control @error('fname') is-invalid @enderror" id="fname" name="fname" placeholder="First name" value="{{ old('fname') }}" required>
+                            <label class="form-label" for="fname">First name</label>
+                        </div>
+                        <div class="col-4 form-floating mb-4">
+                            <input type="text" class="form-control @error('mname') is-invalid @enderror" id="mname" name="mname" placeholder="Other names" value="{{ old('mname') }}">
+                            <label class="form-label" for="mname">Other names</label>
+                        </div>
+                        <div class="col-4 form-floating mb-4">
+                            <input type="text" class="form-control @error('sname') is-invalid @enderror" id="sname" name="sname" placeholder="Surname" value="{{ old('sname') }}" required>
+                            <label class="form-label" for="sname">Last name</label>
+                        </div>
                     </div>
                     <div class="mb-4 form-floating">
-                      <input type="file" name="signature" class="form-control @error('signature') is-invalid @enderror" accept=".jpg,.jpeg,.png">
-                      <label class="form-label" for="signature">Student Signature</label>
+                        <input type="file" name="signature" class="form-control @error('signature') is-invalid @enderror" accept=".jpg,.jpeg,.png">
+                        <label class="form-label" for="signature">Student Signature</label>
                     </div>
                     <div class="col-12 form-floating mb-4">
                         <select class="form-select @error('gender') is-invalid @enderror" id="gender" name="gender" required>
-                          <option value="male">Male</option>
-                          <option value="female" selected>Female</option>
-                          <option value="other">Other</option>
+                            <option value="male" {{ old('gender') == 'male' ? 'selected' : '' }}>Male</option>
+                            <option value="female" {{ old('gender') == 'female' ? 'selected' : '' }}>Female</option>
+                            <option value="other" {{ old('gender') == 'other' ? 'selected' : '' }}>Other</option>
                         </select>
                         <label for="gender">Gender</label>
                     </div>
                     <div class="mb-4 form-floating">
-                      <input type="number" class="form-control @error('trn') is-invalid @enderror" id="trn" name="trn" placeholder="TRN">
-                      <label class="form-label" for="trn">TRN</label>
+                        <input type="number" class="form-control @error('trn') is-invalid @enderror" id="trn" name="trn" placeholder="TRN" value="{{ old('trn') }}">
+                        <label class="form-label" for="trn">TRN</label>
                     </div>
                     <div class="mb-4 form-floating">
-                      <input type="text" class="form-control @error('phone') is-invalid @enderror" id="phone" name="phone" placeholder="+265" value="+265" required>
+                        <input type="text" class="form-control @error('phone') is-invalid @enderror" id="phone" name="phone" placeholder="+265" value="{{ old('phone', '+265') }}" required>
                         <label class="form-label" for="phone">Phone</label>
                     </div>
                     <div class="mb-4 form-floating">
-                      <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" placeholder="john.doe@example.com" formnovalidate="" required>
+                        <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" placeholder="john.doe@example.com" value="{{ old('email') }}" required>
                         <label class="form-label" for="email">Email address</label>
                     </div>
                     <div class="mb-4 form-floating">
-                      <input type="date" class="form-control @error('date_of_birth') is-invalid @enderror" id="date_of_birth" name="date_of_birth" placeholder="DDMMYY" value="07-08-1999" formnovalidate="" required>
-                        <label class="form-label" for="email">Date of birth</label>
+                        <input type="date" class="form-control @error('date_of_birth') is-invalid @enderror" id="date_of_birth" name="date_of_birth" placeholder="DDMMYY" value="{{ old('date_of_birth', '1999-08-07') }}" required>
+                        <label class="form-label" for="date_of_birth">Date of birth</label>
                     </div>
                     <div class="mb-4 form-floating">
-                      <input type="text" class="form-control @error('address') is-invalid @enderror" id="address" name="address" placeholder="Address" required>
+                        <input type="text" class="form-control @error('address') is-invalid @enderror" id="address" name="address" placeholder="Address" value="{{ old('address') }}" required>
                         <label class="form-label" for="address">Street address</label>
                     </div>
                     <div class="form-floating mb-4">
-                      <select class="form-select @error('district') is-invalid @enderror" id="district" name="district" required>
-                        @foreach ($district as $district)
-                           <option value="{{$district->name}}">{{$district->name}}</option>
-                        @endforeach
-                      </select>
-                      <label for="district">Distirct</label>
+                        <select class="form-select @error('district') is-invalid @enderror" id="district" name="district" required>
+                            @foreach ($district as $district)
+                                <option value="{{ $district->name }}" {{ old('district') == $district->name ? 'selected' : '' }}>{{ $district->name }}</option>
+                            @endforeach
+                        </select>
+                        <label for="district">District</label>
                     </div>
-                  </div>
-                  <div class=" content-heading"><p>&nbsp;</p></div>
-                  <div class="col-lg-4">
-                    <p class="text-muted">
-                      Login details
-                    </p>
-                  </div>
-                  <div class="col-lg-8 col-xl-5">
-                      <div class="form-floating mb-4">
-                        <input type="text" class="form-control" id="username" name="username" placeholder="Student's username">
-                        <label class="form-label" for="example-username-input-floating">Username</label>
-                      </div>
-                      <div class="form-floating mb-4">
-                        <input type="password" class="form-control" id="password" name="password" placeholder="password" required>
-                        <label class="form-label" for="example-email-input-floating">Password</label>
-                      </div>
-                  </div>
+                </div>
+
+                <div class=" content-heading"><p>&nbsp;</p></div>
+                <div class="col-lg-3">
+                <p class="text-muted">
+                    Login details
+                </p>
+                </div>
+                <div class="col-lg-12 col-xl-7">
+                    <div class="form-floating mb-4">
+                        <input type="text" class="form-control @error('username') is-invalid @enderror" id="username" name="username" placeholder="Student's username" value="{{ old('username') }}" autocomplete="off">
+                        <label class="form-label" for="username">Username</label>
+                        @error('username')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="form-floating mb-4">
+                        <input type="password" class="form-control @error('password') is-invalid @enderror" id="password" name="password" placeholder="Password" required autocomplete="off">
+                        <label class="form-label" for="password">Password</label>
+                        @error('password')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
                 </div>
                 <div class="row push">
-                  <div class="col-lg-8 col-xl-5 offset-lg-4">
+                  <div class="col-lg-8 col-xl-5 offset-lg-3">
                     <div class="mb-4">
-                      <button type="submit" class="btn btn-alt-primary">
-                        <i class="fa fa-check-circle opacity-50 me-1"></i> Save
+                      <button type="submit" class="btn btn-primary">
+                        <i class="fa fa-check-circle opacity-100 me-1"></i> Save
                       </button>
                     </div>
                   </div>

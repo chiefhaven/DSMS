@@ -66,6 +66,7 @@
                     </p>
                     <div class="row">
                         <h3 class="">Car assigned</h3>
+                        <hr>
                         @if(isset($student->fleet->car_brand_model))
                             <div class="col-sm-4">
                                 {{$student->fleet->car_registration_number}}
@@ -78,7 +79,12 @@
                                 <button type="submit" @click="assign()" class="btn btn-danger">Unassign</button>
                             </div>
                         @else
-                            <button type="submit" @click="getFleet()" class="btn btn-primary" data-bs-toggle="modal" data-bs-target=".assignCar">Assign</button>
+                            <div class="col-sm-6 text-danger">
+                                <strong>Unassigned yet</strong>
+                            </div>
+                            <div class="col-sm-4">
+                                <button type="submit" @click="getFleet()" class="btn btn-primary" data-bs-toggle="modal" data-bs-target=".assignCar">Assign</button>
+                            </div>
                         @endif
                     </div>
                 </div>

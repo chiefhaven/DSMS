@@ -121,9 +121,13 @@ class ExpenseController extends Controller
     public function reviewExpenseData(expense $expense)
     {
         $expenseId = $expense->id;
-        $expenseStudents = Student::with('invoice', 'attendance', 'expenses', 'course')->whereHas('expenses', function($q) use ($expenseId) {
-            $q->where('expense_student.expense_id', $expenseId);
-        })->get();
+        $expenseStudents = Student::whereHas('expenses', function ($query) use ($expenseId) {
+            $query->where('expense_id', $expenseId);
+        })
+        ->with(['expenses' => function ($query) use ($expenseId) {
+            $query->where('expense_id', $expenseId);
+        }])
+        ->get();
 
         return response()->json($expenseStudents);
     }
@@ -136,6 +140,7 @@ class ExpenseController extends Controller
      */
     public function edit(expense $expense)
     {
+        $expense = Expense::with('Students')->find($expense->id);
         return view('expenses.editExpense', compact('expense'));
     }
 
@@ -164,14 +169,18 @@ class ExpenseController extends Controller
 
         $students = $post['students'];
 
-        $expenseUpdate = $expense;
+        $expenseUpdate = Expense::find($post['expenseId']);
 
+        if (!$expenseUpdate) {
+            return response()->json(['error' => 'Expense not found'], 404);
+        }
+
+        // Proceed with updating and saving
         $expenseUpdate->group = $post['expenseGroupName'];
         $expenseUpdate->group_type = $post['expenseGroupType'];
         $expenseUpdate->description = $post['expenseDescription'];
-        // $expense->amount = $studentsCount * $post['expenseAmount'];
         $expenseUpdate->amount = $post['expenseAmount'];
-        $expenseUpdate->added_by = Auth::user()->administrator_id;
+        $expenseUpdate->edited_by = Auth::user()->administrator_id;
 
         $expenseUpdate->save();
 
@@ -179,7 +188,7 @@ class ExpenseController extends Controller
         foreach ($students as $data) {
             $student = havenUtils::student($data['fname'].' '.$data['mname'].' '.$data['sname']);
             $student->expenses()->sync([
-                $expense => ['expense_type' => $data['expenses'][0]['pivot']['expense_type']]
+                $expenseUpdate->id => ['expense_type' => $data['expenses'][0]['pivot']['expense_type']]
             ]);
         }
 

@@ -23,6 +23,7 @@
         "doctrine/dbal": "^2.13.1",
         "giggsey/libphonenumber-for-php": "^8.12",
         "guzzlehttp/guzzle": "^7.2",
+        "havenplus/malawi-disctricts": "^1.0",
         "jeroennoten/laravel-adminlte": "^3.11",
         "khanamiryan/qrcode-detector-decoder": "^2.0",
         "knox/pesapal": "1.0.0",

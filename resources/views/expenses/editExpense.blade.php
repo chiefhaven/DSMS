@@ -89,7 +89,7 @@
                             <div v-if="student.expenses && student.expenses.length">
                                 <div v-for="expense in student.expenses" :key="expense.id">
                                   <!-- Assuming pivot is part of each expense object -->
-                                  <div v-if="expense.pivot">
+                                  <div v-if="expense.pivot.expense_type">
                                     @{{ expense.pivot.expense_type }}
                                   </div>
                                 </div>
@@ -126,7 +126,7 @@
         const state = ref({
             amount: {{ $expense->amount }},
             totalAmount:0,
-            expenseGroupName: '{{ $expense->group }}',       // Name of the expense group or category
+            expenseGroupName: '',       // Name of the expense group or category
             expenseGroupType: '{{ $expense->group_type }}',
             expenseDescription: '{{ $expense->description }}',       // Name of the expense group or category
             studentName: '', // Name of the student'
@@ -142,8 +142,15 @@
         onMounted(async () => {
             const res = await axios.get("/reviewExpenseData/{{ $expense->id }}")
             state.value.selectedStudents = res.data
+            state.value.expenseGroupName = formatDate('{{ $expense->group }}')
             totalAmount()
           })
+
+        function formatDate(dateString) {
+            const [year, month, day] = dateString.split('-');
+            return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        }
+
 
         const formatter = new Intl.NumberFormat('en-US', {
             style: 'currency',

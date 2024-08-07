@@ -80,41 +80,46 @@ class StudentController extends Controller
      */
     public function store(StoreStudentRequest $request)
     {
+        // Custom error messages
         $messages = [
-            'fname.required' => 'The "First name" field is required!',
-            'sname.required'   => 'The "Sir name" field is should be unique!',
-            'email.required' => 'The "Email" is required!',
-            'email.unique' => 'The "Email" is already in use',
-            'gender.required'   => 'The "Gender" field required!',
-            'trn.unique'   => 'This "TRN" is already registered!',
+            'fname.required' => 'Firstname is required!',
+            'sname.required' => 'Sirname is required!',
+            'email.required' => 'Email address is required!',
+            'email.unique' => 'Email address is already in use',
+            'gender.required' => 'The "Gender" field is required!',
+            'trn.unique' => 'TRN must be unique!',
             'date_of_birth.required' => 'Date of birth is required',
-            'signature.required' => 'Signature i required',
+            'signature.required' => 'Signature is required',
             'signature.image' => 'Signature must be an image',
         ];
 
-        // Validate the request
-        $this->validate($request, [
-            'fname'  =>'required',
-            'sname' =>'required',
-            'email'   =>'required | unique:users',
-            'address' =>'required',
-            'gender'  =>'required',
-            'date_of_birth' =>'required',
-            'district' =>'required',
-            'phone' =>'required',
-            'trn' =>'unique:students',
+        // Validation rules
+        $rules = [
+            'fname' => 'required',
+            'sname' => 'required',
+            'email' => 'required|unique:users',
+            'address' => 'required',
+            'gender' => 'required',
+            'date_of_birth' => 'required',
+            'district' => 'required',
+            'phone' => 'required|unique:students',
+            'trn' => 'unique:students',
             'signature' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ];
 
-        ], $messages);
+        // Validate the request
+        $validatedData = $request->validate($rules, $messages);
 
-        $post = $request->All();
+        $post = $request->all();
 
+        // Select district using havenUtils
         $district = havenUtils::selectDistrict($post['district']);
 
+        // Create new student
         $student = new Student;
 
-        //signature processing
-        if($request->file('signature')){
+        // Signature processing
+        if ($request->file('signature')) {
             $signatureName = $request->file('signature')->getClientOriginalName();
             $request->signature->move(public_path('media/signatures'), $signatureName);
             $student->signature = $signatureName;
@@ -132,20 +137,23 @@ class StudentController extends Controller
 
         $student->save();
 
-
+        // Create new user
         $user = new User;
         $user->name = Str::random(10);
         $user->student_id = $student->id;
         $user->email = $post['email'];
-        $user->password = Str::random(10);
+        $user->password = bcrypt(Str::random(10)); // Encrypt the password
 
         $user->save();
 
+        // Send notification SMS
         $sms = new NotificationController;
         $sms->balanceSMS($student, 'Registration');
 
+        // Get the last student ID and show success message
         $studentLastID = Student::max('id');
-        Alert::toast('Student'.' '.$student->fname.' '.'added successifully', 'success');
+        Alert::toast('Student ' . $student->fname . ' added successfully', 'success');
+
         return redirect()->route('viewStudent', ['id' => $studentLastID]);
     }
 
@@ -199,10 +207,11 @@ class StudentController extends Controller
     public function update(UpdateStudentRequest $request, Student $student)
     {
         $messages = [
-            'fname.required' => 'The "First name" field is required!',
-            'sname.required'   => 'The "Sir name" field is should be unique!',
-            'email.required' => 'The "Email" is required!',
-            'gender.required'   => 'The "Gender" field required!',
+            'fname.required' => 'First name is required!',
+            'sname.required'   => 'Sir name is required!',
+            'email.required' => 'Email is required!',
+            'gender.required'   => 'Gender is required!',
+            'phone.required'   => 'Gender is required!',
         ];
 
         // Validate the request
