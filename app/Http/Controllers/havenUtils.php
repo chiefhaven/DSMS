@@ -236,15 +236,20 @@ class havenUtils extends Controller
     }
 
     static function checkStudentInstructor($id){
-        if(Auth::user()->hasRole('instructor')){
-            $instructor_fleet_id = Fleet::Where('instructor_id', Auth::user()->instructor_id)->firstOrFail()->id;
-            $student_fleet =  Student::find($id)->fleet_id;
-            if($instructor_fleet_id != $student_fleet){
-                return false;
-            }
+        $instructorFleet = Fleet::where('instructor_id', Auth::user()->instructor_id)->first();
 
-            return true;
+        if (!$instructorFleet) {
+            // Handle the case where the fleet is not found
+            return false;
         }
+
+        $studentFleetId = Student::find($id)->fleet_id;
+
+        if ($instructorFleet->id != $studentFleetId) {
+            return false;
+        }
+
+        return true;
     }
 
     static function invoiceQrCode($id){
