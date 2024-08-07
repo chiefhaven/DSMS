@@ -31,18 +31,18 @@
             </ul>
         </div>
     @endif
-    <div class="block block-rounded block-bordered p-2">
+    <div class="block block-rounded block-bordered p-2" id="attendance">
           <div class="block-content">
           <div class="row">
             <p class="text-center">
                 Adding attendance for
                 <h2 class="text-center">{{$student->fname}} {{$student->mname}} {{$student->sname}}</h2>
             </p>
-          <form class="mb-5" action="{{ url('/storeattendance') }}" method="post" onsubmit="return true;">
+          <form ref="state.attendanceForm" class="mb-5" action="{{ url('/storeattendance') }}" method="post" @submit.prevent="handleButtonClick">
             @csrf
-            <input class="" name="student" value="{{$student->fname}} {{$student->mname}} {{$student->sname}}" hidden>
+            <input class="" name="student" v-model="state.student" hidden>
             <div class="form-floating mb-4">
-              <select class="form-select" id="lesson" name="lesson">
+              <select class="form-select" id="lesson" name="lesson" v-model="state.lesson">
                 @foreach ($lesson as $lesson)
                    <option value="{{$lesson->name}}">{{$lesson->name}}</option>
                 @endforeach
@@ -51,7 +51,14 @@
             </div>
             <br>
             <div class="form-group">
-                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="submit" :disabled="state.isSubmitButtonDisabled" class="btn btn-primary">
+                    <template v-if="state.isLoading">
+                        Processing...
+                      </template>
+                      <template v-else>
+                        @{{ state.buttonText }}
+                      </template>
+                </button>
             </div>
           </form>
         </div>
@@ -91,12 +98,62 @@
   setInterval(showTime, 1000);
 </script>
 
-<script>
-    $(document).ready(function() {
-        $(document).on('submit', 'form', function() {
-            $('button').attr('disabled', 'disabled');
+<script setup>
+    const { createApp, ref, onMounted } = Vue;
+
+    const app = createApp({
+      setup() {
+        const state = ref({
+          isSubmitButtonDisabled: false,
+          isLoading: false,
+          buttonText: 'Save',
+          attendanceForm: null,
+          lesson: '',
+          student: '{{ $student->fname }} {{ $student->mname }} {{ $student->sname }}'
         });
+
+        onMounted(() => {
+            state.value.attendanceForm = document.querySelector('#attendance form');
+          });
+
+        const handleButtonClick = async () => {
+          state.value.isSubmitButtonDisabled = true;
+          state.value.isLoading = true;
+          state.value.buttonText = "Processing...";
+
+          if (state.value.attendanceForm) {
+            state.value.attendanceForm.submit();
+          }
+          else{
+            notification('An error occured, attendance not entered', 'error')
+          }
+
+        }
+
+        function notification($text, $icon){
+            Swal.fire({
+                toast: true,
+                position: "center",
+                text: $text,
+                showConfirmButton: false,
+                timer: 5500,
+                timerProgressBar: true,
+                icon: $icon,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                  }
+              });
+        }
+
+        return {
+          state,
+          handleButtonClick
+        };
+      }
     });
-</script>
+
+    app.mount('#attendance');
+  </script>
 
 @endsection

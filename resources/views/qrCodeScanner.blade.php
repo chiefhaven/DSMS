@@ -63,17 +63,17 @@
         //  - ChecksumException
         //  - FormatException
 
-        if (err instanceof ZXing.NotFoundException) {
-            console.log('No QR code found.')
-        }
+            if (err instanceof ZXing.NotFoundException) {
 
-        if (err instanceof ZXing.ChecksumException) {
-            console.log('A code was found, but it\'s read value was not valid.')
-        }
+            }
 
-        if (err instanceof ZXing.FormatException) {
-            console.log('A code was found, but it was in a invalid format.')
-        }
+            if (err instanceof ZXing.ChecksumException) {
+
+            }
+
+            if (err instanceof ZXing.FormatException) {
+
+            }
         }
     })
 

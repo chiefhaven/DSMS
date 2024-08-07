@@ -36,12 +36,12 @@ class StudentController extends Controller
             try {
                 $fleet = Fleet::where('instructor_id', Auth::user()->instructor_id)->firstOrFail();
 
-                $students = Student::where('fleet_id', $fleet->id)
+                $student = Student::where('fleet_id', $fleet->id)
                     ->with('User', 'Attendance', 'Course')
                     ->orderBy('created_at', 'DESC')
                     ->paginate(10);
 
-                return view('your-view', compact('students'));
+                return view('students.students', compact('student'));
 
             } catch (ModelNotFoundException $e) {
                 Alert::error('No students', 'You are not allocated a car, for more information contact the admin');
