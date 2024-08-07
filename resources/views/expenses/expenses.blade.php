@@ -49,13 +49,12 @@
                             <th style="min-width: 10rem;">Status</th>
                             <th style="min-width: 7rem;">Type</th>
                             <th style="min-width: 10rem;">Description</th>
+                            <th style="min-width: 10rem;">Posted by</th>
                             <th style="min-width: 10rem;">Amount per student</th>
                             <th style="min-width: 10em;">Approved Amount</th>
-                            @role(['superAdmin'])
-                                <th style="min-width: 10rem;">Posted by</th>
-                                <th style="min-width: 10rem;">Approved by</th>
-                            @endcan
+                            <th style="min-width: 10rem;">Approved by</th>
                             <th style="min-width: 10rem;">Date Approved</th>
+                            <th style="min-width: 10rem;">Last edited</th>
                             <th style="min-width: 10rem;">Payment method</th>
                           </tr>
                       </thead>
@@ -157,6 +156,20 @@
                                 <td>
                                     @if ($expense->approved==true)
                                         {{$expense->date_approved->format('j F, Y')}}
+                                    @endif
+                                </td>
+                                <td>
+                                    @if ($expense->edited_by)
+                                        @if ($expense->edited_by != Auth::user()->administrator->id)
+                                            {{App\Models\Administrator::find($expense->edited_by)->fname}}
+                                            {{App\Models\Administrator::find($expense->edited_by)->sname}}
+                                        @else
+                                            You
+                                        @endif
+
+                                        <div class="sm-text" style="font-size: 12px">
+                                            {{$expense->updated_at->format('j F, Y H:m:s')}}
+                                        </div>
                                     @endif
                                 </td>
                                 <td>
