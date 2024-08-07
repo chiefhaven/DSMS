@@ -91,7 +91,14 @@
             </div>
     </div>
     <div class="block-content block-content-full text-end">
-        <button type="submit" :disabled="state.isSubmitButtonDisabled" @click="saveExpense()" class="btn btn-primary">Submit</button>
+        <button type="submit" :disabled="state.isSubmitButtonDisabled" @click="saveExpense()" class="btn btn-primary">
+            <template v-if="state.isLoading">
+                Processing...
+              </template>
+              <template v-else>
+                @{{ state.buttonText }}
+              </template>
+        </button>
     </div>
 </div>
 </div>
@@ -122,7 +129,9 @@
             selectedStudents: [],       // Array of selected students (possibly for group payments or expenses)
             paymentMethod: 'Cash', // Preferred payment method (defaulting to 'Airtel Money')
             errors: [],              // Array to store any validation or error messages
-            isSubmitButtonDisabled: false
+            isSubmitButtonDisabled: false,
+            isLoading: false,
+            buttonText: 'Submit'
         })
 
         const paymentMethodOptions = ref([
@@ -193,7 +202,8 @@
                 notification('Expense Group Name, Payment Method and Amount must be filled and Amount must be greater than 0', 'error')
                 return false
             }
-            state.value.isSubmitButtonDisabled = true;
+            state.value.isSubmitButtonDisabled = true
+            state.value.isLoading = true
             axios.post('/storeexpense', {students:state.value.selectedStudents, expenseGroupName:state.value.expenseGroupName, expenseDescription:state.value.expenseDescription, expenseGroupType:state.value.expenseGroupType, expenseAmount: state.value.amount}).then(response => {
                 if(response.status==200){
                     notification('Expense added successfully','success')
