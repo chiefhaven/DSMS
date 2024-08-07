@@ -91,7 +91,7 @@
             </div>
     </div>
     <div class="block-content block-content-full text-end">
-        <button type="submit" @click="saveExpense()" class="btn btn-primary">Submit</button>
+        <button type="submit" :disabled="state.isSubmitButtonDisabled" @click="saveExpense()" class="btn btn-primary">Submit</button>
     </div>
 </div>
 </div>
@@ -121,7 +121,8 @@
             expenseType: '',            // Type of expense
             selectedStudents: [],       // Array of selected students (possibly for group payments or expenses)
             paymentMethod: 'Cash', // Preferred payment method (defaulting to 'Airtel Money')
-            errors: []                  // Array to store any validation or error messages
+            errors: [],              // Array to store any validation or error messages
+            isSubmitButtonDisabled: false
         })
 
         const paymentMethodOptions = ref([
@@ -183,7 +184,6 @@
         }
 
         function saveExpense(){
-
             if(Object.keys( state.value.selectedStudents ).length == 0){
                 notification('Student list must not be empty', 'error')
                 return false
@@ -193,7 +193,7 @@
                 notification('Expense Group Name, Payment Method and Amount must be filled and Amount must be greater than 0', 'error')
                 return false
             }
-
+            state.value.isSubmitButtonDisabled = true;
             axios.post('/storeexpense', {students:state.value.selectedStudents, expenseGroupName:state.value.expenseGroupName, expenseDescription:state.value.expenseDescription, expenseGroupType:state.value.expenseGroupType, expenseAmount: state.value.amount}).then(response => {
                 if(response.status==200){
                     notification('Expense added successfully','success')
