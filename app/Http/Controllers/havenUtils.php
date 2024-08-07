@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Invoice;
 use App\Models\Course;
 use App\Models\Fleet;
@@ -240,7 +239,7 @@ class havenUtils extends Controller
         if(Auth::user()->hasRole('instructor')){
             $instructor_fleet_id = Fleet::Where('instructor_id', Auth::user()->instructor_id)->firstOrFail()->id;
             $student_fleet =  Student::find($id)->fleet_id;
-            if($instructor_fleet_id !== $student_fleet){
+            if($instructor_fleet_id != $student_fleet){
                 return false;
             }
 
