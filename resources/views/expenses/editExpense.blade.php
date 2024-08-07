@@ -103,7 +103,14 @@
         </div>
     </div>
     <div class="block-content block-content-full text-end">
-        <button type="submit" @click="updateExpense()" class="btn btn-primary">Update</button>
+        <button type="submit" :disabled="state.isSubmitButtonDisabled" @click="updateExpense()" class="btn btn-primary">
+            <template v-if="state.isLoading">
+                Processing...
+              </template>
+              <template v-else>
+                @{{ state.buttonText }}
+              </template>
+        </button>
     </div>
 </div>
 </div>
@@ -136,7 +143,9 @@
             expenseId: '{{ $expense->id }}',
             expenseType: '',            // Type of expense
             selectedStudents: [],       // Array of selected students (possibly for group payments or expenses)
-            errors: []                  // Array to store any validation or error messages
+            errors: [],                  // Array to store any validation or error messages
+            isLoading: false,
+            buttonText: 'Submit'
         })
 
         onMounted(async () => {
@@ -228,17 +237,16 @@
                 notification('Expense Group Name, Payment Method and Amount must be filled and Amount must be greater than 0', 'error')
                 return false
             }
-
+            state.value.isSubmitButtonDisabled = true
+            state.value.isLoading = true
             axios.post('/updateExpense', {expenseId:state.value.expenseId, students:state.value.selectedStudents, expenseGroupName:state.value.expenseGroupName, expenseDescription:state.value.expenseDescription, expenseGroupType:state.value.expenseGroupType, expenseAmount: state.value.amount}).then(response => {
-                //console.log(response.data)
                 if(response.status==200){
                     console.log(response.data)
                     notification('Expense updated successfully','success')
-                    //window.location.replace('/expenses')
+                    window.location.replace('/expenses')
                 }
                 else if(error.response.data.errors){
                     notification('error.response.data.errors.message','error')
-                    //console.log(error.response.data.errors)
                 }
                 else{
                     return false
