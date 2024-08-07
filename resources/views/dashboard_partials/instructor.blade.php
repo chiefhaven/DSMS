@@ -2,7 +2,7 @@
         <div class="col-md-6 col-xl-6">
             <h1>Welcome <b>{{ Auth::user()->instructor->fname }}</b> {{ Auth::user()->instructor->sname }}</h1>
             Assigned car:
-            @if({{ Auth::user()->instructor->fleet }})
+            @if(Auth::user()->instructor->fleet)
                 {{ Auth::user()->instructor->fleet->car_registration_number }}
             @else
                 Not yet assigned
