@@ -49,7 +49,9 @@
                             <th style="min-width: 10rem;">Status</th>
                             <th style="min-width: 7rem;">Type</th>
                             <th style="min-width: 10rem;">Description</th>
-                            <th style="min-width: 10rem;">Posted by</th>
+                            @role(['superAdmin'])
+                                <th style="min-width: 10rem;">Posted by</th>
+                            @endcan
                             <th style="min-width: 10rem;">Amount per student</th>
                             <th style="min-width: 10em;">Approved Amount</th>
                             <th style="min-width: 10rem;">Approved by</th>
@@ -160,11 +162,12 @@
                                 </td>
                                 <td>
                                     @if ($expense->edited_by)
+                                    By:
                                         @if ($expense->edited_by != Auth::user()->administrator->id)
                                             {{App\Models\Administrator::find($expense->edited_by)->fname}}
                                             {{App\Models\Administrator::find($expense->edited_by)->sname}}
                                         @else
-                                            By: You
+                                            You
                                         @endif
 
                                         <div class="sm-text" style="font-size: 12px">
