@@ -35,18 +35,20 @@
                         @csrf
                     <div class="row">
                         <div class="col-4 form-floating mb-4">
-                            <select class="form-select" id="group" name="group"  v-model="state.group" @blur="getBalanceTemplate()">
+                            {{--  <select class="form-select" id="group" name="group"  v-model="state.group" @blur="getBalanceTemplate()">
                                 <option>All students</option>
                                 <option>Students with balance</option>
                             </select>
-                            <label class="px-4" for="group">Group</label>
+                            <label class="px-4" for="group">Group</label> --}}
+                            <input type="text" class="form-control" name="group" v-model="group" >
+                            <label class="px-4" for="group">Phone number</label>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-12 mt-4">
                             <P>
                                 Available tags:
-                                {FIRST_NAME} {SIR_NAME} {BALANCE} {FEES_PAID} {FEES_TOTAL} {INVOICE_NUMBER}
+                                {{--  {FIRST_NAME} {SIR_NAME} {BALANCE} {FEES_PAID} {FEES_TOTAL} {INVOICE_NUMBER}  --}}
                             </P>
                         </div>
                     </div>
