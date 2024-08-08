@@ -1,4 +1,3 @@
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <div class="watermark">
     <div id="watermark">
         <p>
@@ -14,7 +13,7 @@
                 @endfor
             @else
                 @for($i = 0; $i < 1500; $i++)
-                    Driving School Management System
+                    Daron Driving School Management System
                 @endfor
             @endif
         </p>

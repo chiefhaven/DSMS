@@ -1,10 +1,11 @@
 <style>
         @page {
-            margin: 50px 0 0 0;
+            margin: 30px 0 0 0;
         }
 
         .page-break {
             page-break-after: always;
+            margin: 50px 0 0 0;
         }
         .page:last-child {
             page-break-after: never;
@@ -120,7 +121,7 @@
         .reference_letters{
                 //position: absolute; //commented for it table dont overflow to second pages...
                 z-index: 999;
-                margin: 4em 7em !important;
+                margin: 0 7em !important;
         }
 
         .items table{
@@ -159,7 +160,7 @@
             height: 34.5cm;
             width: 24cm;
             overflow: hidden;
-            position: absolute;
+            position: fixed;
             top: -50px;
             left: -50px;
             margin:0;
@@ -210,7 +211,7 @@
         blue-line-left{
             height: 300%;
             width: 5px;
-            position:absolute;
+            position:fixed;
             top:-90px;
             left: 30px;
             z-index: 999;
@@ -220,7 +221,7 @@
         black-line{
             height: 300%;
             width: 2px;
-            position:absolute;
+            position:fixed;
             top:-90px;
             left: 35px;
             z-index: 999;
@@ -230,7 +231,7 @@
         blue-line-right{
             height: 300%;
             width: 3px;
-            position:absolute;
+            position:fixed;
             top:-90px;
             left: 37px;
             z-index: 999;
