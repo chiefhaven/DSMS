@@ -99,6 +99,7 @@
           state.value.buttonText = "Processing...";
 
           if (state.value.announcementForm) {
+            console.log(state.value.group)
             axios.post('/sendAnnouncement', {body:state.value.body, group:state.value.group}).then(response => {
                 if(response.status==200){
                     console.log(response.data)
