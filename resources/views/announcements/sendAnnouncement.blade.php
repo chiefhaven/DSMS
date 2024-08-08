@@ -40,7 +40,7 @@
                                 <option>Students with balance</option>
                             </select>
                             <label class="px-4" for="group">Group</label> --}}
-                            <input type="text" class="form-control" name="group" v-model="group" >
+                            <input type="text" class="form-control" name="group" v-model="state.group" >
                             <label class="px-4" for="group">Phone number</label>
                         </div>
                     </div>
