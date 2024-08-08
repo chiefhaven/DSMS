@@ -13,6 +13,10 @@ use Illuminate\Http\Request;
 
 class AnnouncementController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['role:superAdmin']);
+    }
     /**
      * Display a listing of the resource.
      *
@@ -30,6 +34,10 @@ class AnnouncementController extends Controller
      */
     public function create()
     {
+        if (! $this->middleware(['role:superAdmin|admin'])) {
+            abort(403, 'Unauthorized action.');
+        }
+
         return view('announcements.sendAnnouncement');
     }
 
