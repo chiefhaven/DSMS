@@ -26,7 +26,7 @@
                 @foreach ($expense->students as $student)
                     <tr class="py-1" style="padding-top: 0px; padding-bottom: 0px; ">
                         <td class="invoice-td text-uppercase">
-                            {{$student->fname}} {{$student->mname}} <strong>{{$student->sname}}</strong>
+                            {{$student->fname}} {{$student->mname}} <b>{{$student->sname}}</b>
                         </td>
                         <td class="invoice-td text-center">
                             {{$student->course->class}}
