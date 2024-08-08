@@ -316,6 +316,10 @@ class ExpenseController extends Controller
 
         $template = 'pdf_templates.theoryExpense';
 
+        $expense = Expense::with(['students' => function ($query) {
+            $query->orderBy('fname', 'asc');
+        }])->findOrFail($expense->id);
+
         if($expense->group_type == 'Road Test'){
             $template = 'pdf_templates.roadTestExpense';
         }
