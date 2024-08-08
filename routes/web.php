@@ -9,6 +9,7 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\AdministratorController;
+use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\InvoiceSettingController;
 use App\Http\Controllers\FleetController;
@@ -17,6 +18,7 @@ use App\Http\Controllers\NotificationTemplateController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\QrCodeController;
+use App\Models\Announcement;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,9 +30,6 @@ use App\Http\Controllers\QrCodeController;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
-
-
-include_once('install_r.php');
 
 Route::post('/', [HomeController::class,'index'])->middleware(['auth'])->name('dashboard');
 Route::get('/summaryData', [HomeController::class,'summaryData'])->middleware(['auth'])->name('summaryData');
@@ -154,12 +153,15 @@ Route::post('/approveList', [ExpenseController::class, 'approveList'])->middlewa
 
 Route::get('/dashboard', [HomeController::class,'index'])->middleware(['auth'])->name('dashboard');
 
+//Announcement routes
+Route::get('/send-announcement', [AnnouncementController::class,'create'])->middleware(['auth'])->name('send-announcement');
+Route::post('/sendAnnouncement', [AnnouncementController::class,'send'])->middleware(['auth'])->name('sendAnnouncement');
+Route::post('/get-balance-template', [AnnouncementController::class,'getBalanceTempplate'])->middleware(['auth'])->name('getBalanceTemplate');
+
 require __DIR__.'/auth.php';
 
 
 Auth::routes();
-
-Route::get('/dashboard', [App\Http\Controllers\HomeController::class, 'index'])->middleware(['auth'])->name('home');
 
 //qrCode routes
 Route::get('/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/{token}', [AttendanceController::class, 'create'])->middleware('auth')->name('attendanceQrCode');

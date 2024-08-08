@@ -102,3 +102,7 @@
   @keyframes spin {
     to { transform: rotate(360deg); }
   }
+
+  textarea.form-control {
+    height: auto !important; /* Override any fixed height */
+    }

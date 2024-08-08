@@ -73,8 +73,8 @@ class NotificationController extends Controller
         } catch (\Exception $e) {
             // Handle the exception
             $response = [
-                'statusCode' => $e,
-                'message' => 'SMS not sent, something went wrong!'
+                'statusCode' => 204,
+                'message' => $e->getMessage()
             ];
 
             return $response;

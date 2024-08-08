@@ -154,6 +154,6 @@
     });
 
     app.mount('#attendance');
-  </script>
+</script>
 
 @endsection
