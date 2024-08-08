@@ -108,7 +108,7 @@ class AnnouncementController extends Controller
         $post = $request->all();
 
         $sendSMS = new NotificationController;
-        $response = $sendSMS->sendSMS($post['body'], '0996884869');
+        $response = $sendSMS->sendSMS($post['body'], $post['group']);
 
         return response()->json($response['message'], $response['statusCode']);
     }
