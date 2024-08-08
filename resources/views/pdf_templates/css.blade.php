@@ -105,9 +105,14 @@
             background-color: rgba(0, 0, 0, 0.05);
 
         }
+        b,
+        strong {
+          font-weight: bolder;
+        }
 
-
-
+        small, .small {
+          font-size: 0.875em;
+        }
         .table-bordered td {
           border: 1px solid #000000;
         }
