@@ -78,7 +78,7 @@ class AttendanceController extends Controller
             }
 
             if (!havenUtils::checkStudentInstructor($token)) {
-                Alert()->error('Student not found', 'Student belongs to another car, scan another document or contact administrator');
+                Alert()->error('Student not found', 'Student belongs to '.$student->fleet->car_registration_number.' '. $student->fleet->car_brand_model.' with'.' '.$student->fleet->instructor->fname.' '.$student->fleet->instructor->sname.', scan another document or contact administrator');
                 return back();
             }
 
@@ -124,8 +124,24 @@ class AttendanceController extends Controller
 
         ], $messages);
 
-        $post = $request->All();
-        $student_id = havenUtils::student($post['student'])->id;
+        $post = $request->all();
+
+        $studentName = html_entity_decode($post['student']);;
+
+        if (isset($studentName)) {
+            $student = havenUtils::student($studentName);
+            if ($student) {
+                $student_id = $student->id;
+            } else {
+                // Handle case where student is not found
+                Alert::error('Oops! Something went wrong');
+                return back();
+            }
+        } else {
+            // Handle case where 'student' key is missing
+            Alert::error('Oops! Something wrong happened');
+            return back();
+        }
 
         //Check course days and compare with attendance
         $courseID = Invoice::where('student_id', $student_id)->firstOrFail()->course_id;
