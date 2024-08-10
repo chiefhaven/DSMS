@@ -106,10 +106,10 @@ class NotificationController extends Controller
             "first_name" => $student->fname ?? '',
             "middle_name" => $student->mname ?? '',
             "sir_name" => $student->sname ?? '',
-            "invoice_total" => $student->invoice->total ?? '',
-            "invoice_paid" => $student->invoice->paid ?? '',
-            "balance" => $student->invoice->balance ?? '',
-            "due_date" => $student->invoice->due_date ?? '',
+            "invoice_total" => number_format($student->invoice->invoice_total, 2, '.', '') ?? '',
+            "invoice_paid" => number_format($student->invoice->invoice_amount_paid, 2, '.', '') ?? '',
+            "balance" => number_format($student->invoice->invoice_balance, 2, '.', '') ?? '',
+            "due_date" => $student->invoice->invoice_payment_due_date->format('j F, Y') ?? '',
             "course_name" => $student->course->name ?? '',
         ];
 
