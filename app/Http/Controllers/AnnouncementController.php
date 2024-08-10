@@ -107,7 +107,7 @@ class AnnouncementController extends Controller
     public function send(Request $request)
     {
         $post = $request->all();
-        $students = Student::where('status', '!=', 'Finished')->get();
+        $students = Student::where('status', 'Haven')->get();
 
         foreach($students as $student){
             $sendSMS = new NotificationController;
