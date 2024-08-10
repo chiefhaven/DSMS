@@ -59,14 +59,15 @@
                             <th class="text-center" style="width: 100px;">Actions</th>
                             <th>Name</th>
                             <th style="min-width: 15rem;">Course Enrolled</th>
-                            @role('superAdmin')
+                            @role('superAdmin|admin')
                                 <th>Balance</th>
                             @endrole
                             <th style="min-width: 10rem;">Registered on</th>
                             @role(['superAdmin','admin'])
                                 <th style="min-width: 10rem;">Car assigned</th>
                             @endrole
-                            <th>Status</th>
+                            <th>Attendance</th>
+                            <th style="min-width: 10rem;">Course Status</th>
                             <th>Phone</th>
                             <th>Email</th>
                             <th>TRN</th>
@@ -129,7 +130,7 @@
                                         @endrole
                                     @endif
                                 </td>
-                                @role('superAdmin')
+                                @role('superAdmin|admin')
                                 <td>
                                     <strong>
                                     @if(isset($students->invoice->invoice_balance))
@@ -150,7 +151,7 @@
                                 </td>
                                 @endrole
                                 <td>{{$students->created_at->format('j F, Y')}}</td>
-                                @role(['superAdmin'])
+                                @role('superAdmin|admin')
                                     <td>
                                         @if(isset($students->fleet->car_brand_model))
                                             {{$students->fleet->car_registration_number}}
@@ -180,6 +181,9 @@
                                         0%
                                     </span>
                                 @endif
+                                </td>
+                                <td>
+                                    {{ $students->status }}
                                 </td>
 
                                 <td>

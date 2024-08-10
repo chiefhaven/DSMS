@@ -6,6 +6,7 @@ use App\Models\Announcement;
 use App\Http\Requests\StoreAnnouncementRequest;
 use App\Http\Requests\UpdateAnnouncementRequest;
 use App\Models\notification_template;
+use App\Models\Student;
 use App\Policies\NotificationTemplatePolicy;
 use League\Uri\UriTemplate\Template;
 use Twilio\Rest\Api\V2010\Account\Call\NotificationContext;
@@ -106,10 +107,13 @@ class AnnouncementController extends Controller
     public function send(Request $request)
     {
         $post = $request->all();
+        $students = Student::where('status', '!=', 'Finished')->get();
 
-        $sendSMS = new NotificationController;
-        $response = $sendSMS->sendSMS($post['body'], $post['group']);
+        foreach($students as $student){
+            $sendSMS = new NotificationController;
+            $response = $sendSMS->sendSMS($post['body'], '0996884869');
+        }
 
-        return response()->json($post, $response['statusCode']);
+        return response()->json($response['message'], $response['statusCode']);
     }
 }

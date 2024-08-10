@@ -34,14 +34,12 @@
                 <form ref="state.announcementForm" class="mb-5" @submit.prevent="handleButtonClick">
                         @csrf
                     <div class="row">
-                        <div class="col-4 form-floating mb-4">
-                            {{--  <select class="form-select" id="group" name="group"  v-model="state.group" @blur="getBalanceTemplate()">
+                        <div class="col-4 col-sm-12 form-floating mb-4">
+                            <select class="form-select" id="group" name="group"  v-model="state.group" @blur="getBalanceTemplate()">
                                 <option>All students</option>
                                 <option>Students with balance</option>
                             </select>
-                            <label class="px-4" for="group">Group</label> --}}
-                            <input type="text" class="form-control" name="group" v-model="state.group" >
-                            <label class="px-4" for="group">Phone number</label>
+                            <label class="px-4" for="group">Group</label>
                         </div>
                     </div>
                     <div class="row">
@@ -91,38 +89,42 @@
 
         onMounted(() => {
             state.value.announcementForm = document.querySelector('#announcement form');
-          });
+          })
 
-        const handleButtonClick = async () => {
-          state.value.isSubmitButtonDisabled = true;
-          state.value.isLoading = true;
-          state.value.buttonText = "Processing...";
+          const handleButtonClick = async () => {
+            state.value.isSubmitButtonDisabled = true;
+            state.value.isLoading = true;
+            state.value.buttonText = "Processing...";
 
-          if (state.value.announcementForm) {
-            console.log(state.value.group)
-            axios.post('/sendAnnouncement', {body:state.value.body, group:state.value.group}).then(response => {
-                if(response.status==200){
-                    console.log(response.data)
-                    notification('Announcement sent','success')
+            if (state.value.announcementForm) {
+              try {
+                const response = await axios.post('/sendAnnouncement', {
+                    body: state.value.body,
+                    group: state.value.group
+                });
+                if (response.status === 200) {
+                    notification('Announcement sent', 'success');
+                } else {
+                    notification('There is an error, announcement not sent', 'error');
                 }
-                else
-                    notification('There is an error, announcement not sent','error')
+              } catch (error) {
+                    console.error('Error sending announcement:', error);
+                    notification('An error occurred, announcement not sent', 'error');
+              } finally {
+                    state.value.isSubmitButtonDisabled = false;
+                    state.value.isLoading = false;
+                    state.value.buttonText = "Send";
+              }
+            } else {
+                notification('An error occurred, announcement not sent', 'error');
+                state.value.isSubmitButtonDisabled = false;
+                state.value.isLoading = false;
+                state.value.buttonText = "Send";
+            }
+          };
 
-            })
-          }
-
-          else{
-            notification('An error occured, announcement not sent', 'error')
-          }
-
-          state.value.isSubmitButtonDisabled = false;
-          state.value.isLoading = false;
-          state.value.buttonText = "Send";
-
-        }
 
         function getBalanceTemplate() {
-            console.log(state.value.body)
 
             if(state.value.group == 'Students with balance')
                 axios.post('/get-balance-template').then(response => {

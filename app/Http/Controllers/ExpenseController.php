@@ -228,6 +228,8 @@ class ExpenseController extends Controller
 
         $student = havenUtils::student($post['student']);
 
+        return response()->json($student);
+
         $expenseType = $post['expenseType'];
 
         $expenseTypeCount = DB::table('expense_student')->where('student_id', $student->id)->where('expense_type', $request['expenseType'])->count();

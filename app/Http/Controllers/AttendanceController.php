@@ -190,7 +190,7 @@ class AttendanceController extends Controller
 
         if($attendance->save()){
 
-            if($courseDuration-self::attendanceCount($student_id)==0){
+            if($courseDuration-self::attendanceCount($student_id) == 0){
                 $student->status = 'Finished';
                 $message = 'This marks course completion for '.$student->fname.' '.$student->sname;
             }
