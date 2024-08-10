@@ -109,9 +109,16 @@ class AnnouncementController extends Controller
         $post = $request->all();
         $students = Student::where('status', 'Haven')->get();
 
+        // Access the first element if it's an array
+        if (is_array($post['body'])) {
+            $body = $post['body'][0];
+        } else {
+            $body = $post['body']; // It's already a string
+        }
+
         foreach($students as $student){
             $sendSMS = new NotificationController;
-            $response = $sendSMS->sendSMS($post['body'], $student->phone);
+            $response = $sendSMS->sendSMS($body, $student->phone);
         }
 
         return response()->json($response['message'], $response['statusCode']);
