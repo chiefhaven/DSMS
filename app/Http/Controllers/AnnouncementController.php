@@ -117,8 +117,24 @@ class AnnouncementController extends Controller
         }
 
         foreach($students as $student){
+
+            $variables = [
+                "first_name" => $student->fname ?? '',
+                "middle_name" => $student->mname ?? '',
+                "sir_name" => $student->sname ?? '',
+                "invoice_total" => $student->invoice->total ?? '',
+                "invoice_paid" => $student->invoice->paid ?? '',
+                "balance" => $student->invoice->balance ?? '',
+                "due_date" => $student->invoice->due_date ?? '',
+                "course_name" => $student->course->name ?? '',
+            ];
+
+            foreach ($variables as $key => $value) {
+                $sms_template = str_replace('{' . strtoupper($key) . '}', $value, $body);
+            }
+
             $sendSMS = new NotificationController;
-            $response = $sendSMS->sendSMS($body, $student->phone);
+            $response = $sendSMS->sendSMS($sms_template, $student->phone);
         }
 
         return response()->json($response['message'], $response['statusCode']);
