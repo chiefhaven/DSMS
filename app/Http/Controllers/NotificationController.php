@@ -103,14 +103,14 @@ class NotificationController extends Controller
         $due_date = $student->invoice ? $student->invoice->invoice_payment_due_date->format('j F, Y') : '';
 
         $variables = [
-            "first_name" => $student->fname,
+            "first_name" => $student->fname ?? '',
             "middle_name" => $student->mname ?? '',
-            "sir_name" => $student->sname,
-            "invoice_total" => $total,
-            "invoice_paid" => $paid,
-            "balance" => $balance,
-            "due_date" => $due_date,
-            "course_name" => $course ? $course->name : '',
+            "sir_name" => $student->sname ?? '',
+            "invoice_total" => $student->invoice->total ?? '',
+            "invoice_paid" => $student->invoice->paid ?? '',
+            "balance" => $student->invoice->balance ?? '',
+            "due_date" => $student->invoice->due_date ?? '',
+            "course_name" => $student->course->name ?? '',
         ];
 
         $sms_template = notification_template::where('type', $type)->firstOrFail()->body;
