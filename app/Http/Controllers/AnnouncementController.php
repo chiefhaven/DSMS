@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateAnnouncementRequest;
 use App\Models\notification_template;
 use App\Models\Student;
 use App\Policies\NotificationTemplatePolicy;
+use Carbon\Carbon;
 use League\Uri\UriTemplate\Template;
 use Twilio\Rest\Api\V2010\Account\Call\NotificationContext;
 use Illuminate\Http\Request;
@@ -107,31 +108,34 @@ class AnnouncementController extends Controller
     public function send(Request $request)
     {
         $post = $request->all();
-
+        $today = Carbon::now();
         $group = $post['group'];
 
-    switch ($group) {
-        case 'All students':
-            // Get all students whose status is not 'Finished'
-            $students = Student::where('status', '!=', 'Finished')->get();
-            break;
+        switch ($group) {
+            case 'All students':
+                // Get all students whose status is not 'Finished'
+                $students = Student::where('status', '!=', 'Finished')->get();
+                break;
 
-        case 'Students with balance':
-            // Get students with invoices having a specific balance
-            $students = Student::whereHas('invoice', function ($query) {
-                $query->where('invoice_balance', 3435.00);
-            })->get();
-            break;
+            case 'Students with balance':
+                // Get students with invoices having a specific balance
+                $students = Student::where('status', '!=', 'Finished')
+                ->whereHas('invoice', function ($query) use ($today) {
+                    $query->where('invoice_balance', '!=', 0)
+                        ->where('invoice_payment_due_date', '<', $today); // Check if due_date is past due
+                })
+                ->get();
+                break;
 
-        default:
-            // Return an error response for unsupported selections
-            return response()->json(['message' => 'Your selection failed'], 403);
-    }
+            default:
+                // Return an error response for unsupported selections
+                return response()->json(['message' => 'Your selection failed'], 403);
+        }
 
-    // Check if the collection is empty
-    if ($students->isEmpty()) {
-        return response()->json(['message' => 'No students found'], 404);
-    }
+        // Check if the collection is empty
+        if ($students->isEmpty()) {
+            return response()->json(['message' => 'No students found'], 404);
+        }
 
         // Access the first element if it's an array
         if (is_array($post['body'])) {
