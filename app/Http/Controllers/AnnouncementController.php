@@ -110,28 +110,28 @@ class AnnouncementController extends Controller
 
         $group = $post['group'];
 
-        switch ($group) {
-            case 'All students':
-                // Get all students whose status is not 'Finished'
-                $students = Student::where('status', '!=', 'Finished')->get();
-                break;
+    switch ($group) {
+        case 'All students':
+            // Get all students whose status is not 'Finished'
+            $students = Student::where('status', '!=', 'Finished')->get();
+            break;
 
-            case 'Students with balance':
-                // Get students with invoices having a specific balance
-                $students = Student::whereHas('invoice', function ($query) {
-                    $query->where('invoice_balance', 343.00);
-                })->get();
-                break;
+        case 'Students with balance':
+            // Get students with invoices having a specific balance
+            $students = Student::whereHas('invoice', function ($query) {
+                $query->where('invoice_balance', 3435.00);
+            })->get();
+            break;
 
-            default:
-                // Return an error response for unsupported selections
-                return response()->json(['message' => 'Your selection failed'], 403);
-        }
+        default:
+            // Return an error response for unsupported selections
+            return response()->json(['message' => 'Your selection failed'], 403);
+    }
 
-        // Check if the collection is empty
-        if ($students->isEmpty()) {
-            return response()->json(['message' => 'No students found'], 404);
-        }
+    // Check if the collection is empty
+    if ($students->isEmpty()) {
+        return response()->json(['message' => 'No students found'], 404);
+    }
 
         // Access the first element if it's an array
         if (is_array($post['body'])) {
