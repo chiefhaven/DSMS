@@ -18,10 +18,15 @@
                     <div class="p-2">
                     <form method="POST" action="/edit-student/{{$student->id}}">
                         {{ csrf_field() }}
-                        <button class="dropdown-item" type="submit">Edit profile</button>
+                        <button class="dropdown-item nav-main-link" type="submit">
+                            <i class="nav-main-link-icon  fas fa-user"></i> profile
+                        </button>
                     </form>
-                    <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal-block-vcenter">
-                        Add payment
+                    <button class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#modal-block-vcenter">
+                        <i class="nav-main-link-icon  fas fa-invoice"></i> payment
+                    </button>
+                    <button class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#change-status">
+                        <i class="nav-main-link-icon  fas fa-toggle-on"></i> Change status
                     </button>
                     </div>
                 </div>
@@ -166,15 +171,19 @@
                     </table>
                     </div>
                     <div class="mb-4">
-                        <h4 class="mb-4">Overall progress</h4>
+                        <h4 class="mb-4">Attendande progres</h4>
                         <div class="progress push">
-                        <div class="progress-bar progress-bar-striped" role="progressbar" style="width: {{$attendancePercent}}%;" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100">
-                            <span class="fs-sm fw-semibold">{{$attendancePercent}}%</span>
-                        </div>
+                            <div class="progress-bar progress-bar-striped" role="progressbar" style="width: {{$attendancePercent}}%;" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100">
+                                <span class="fs-sm fw-semibold">{{$attendancePercent}}%</span>
+                            </div>
                         </div>
                         <div class="push">
-                        <p>{{$attendanceTheoryCount}} days of Theory done, {{$attendancePracticalCount}} Practicals done</p>
+                            <p>{{$attendanceTheoryCount}} days of Theory done, {{$attendancePracticalCount}} Practicals done</p>
                         </div>
+                    </div>
+                    <div class="mb-1">
+                        Course Status:
+                        <strong class="">{{ $student->status }}</strong>
                     </div>
                 </div>
                 </div>
@@ -307,6 +316,46 @@
 
     @include('students.partials.assignCarModal')
 </div>
+
+@role(['superAdmin', 'admin'])
+    <div class="modal" id="change-status" tabindex="-1" aria-labelledby="modal-block-vcenter" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="block block-rounded block-themed block-transparent mb-0">
+            <div class="block-header bg-primary-dark">
+                <h3 class="block-title">Change students status</h3>
+                <div class="block-options">
+                    <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="fa fa-fw fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="block-content">
+                <form class="mb-5" action="{{ url('/updateStudentStatus', $student) }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
+                    @csrf
+                    <div class="row">
+                        <div class="col-sm-12 mb-4">
+                            <label for="invoice_discount">Date</label>
+                            <select class="form-select dropdown-toggle" id="status" name="status">
+                                <div class="dropdown-menu">
+                                    <option>Pending</option>
+                                    <option>In progress</option>
+                                    <option>Finished</option>
+                                </div>
+                            </select>
+                        </div>
+                        <div class="block-content block-content-full text-end bg-body">
+                            <button type="submit" class="btn btn-primary">Save</button>
+                            <button type="button" class="btn btn-alt-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        </div>
+        </div>
+    </div>
+    @endcan
 <script setup>
     const { createApp, ref, reactive } = Vue
     const { defineRule, configure, useForm, useField, ErrorMessage } = VeeValidate
