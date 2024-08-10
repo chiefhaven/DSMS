@@ -126,7 +126,7 @@ class AttendanceController extends Controller
 
         $post = $request->all();
 
-        $studentName = html_entity_decode($post['student']);;
+        $studentName = html_entity_decode($post['student']);
 
         if (isset($studentName)) {
             $student = havenUtils::student($studentName);
@@ -196,7 +196,7 @@ class AttendanceController extends Controller
             }
 
             else{
-                $student->status = 'In progress';
+                $student->status = 'Inprogress';
                 $message = 'Attendance added successifuly!';
             }
 
