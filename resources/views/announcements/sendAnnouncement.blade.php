@@ -103,14 +103,11 @@
                     group: state.value.group
                 });
                 if (response.status === 200) {
-                    console.log(response)
                     notification('Announcement sent', 'success');
                 } else {
-                    console.log(response)
                     notification('There is an error, announcement not sent', 'error');
                 }
               } catch (error) {
-                    console.error('Error sending announcement:', error);
                     notification('An error occurred, announcement not sent', 'error');
               } finally {
                     state.value.isSubmitButtonDisabled = false;
@@ -141,7 +138,7 @@
                     }
                 });
             else
-                console.log('state.value.body')
+                state.value.body = ''
 
 
         }
