@@ -107,7 +107,7 @@ class AnnouncementController extends Controller
     public function send(Request $request)
     {
         $post = $request->all();
-        $students = Student::where('status', 'Haven')->get();
+        $students = Student::where('status', '!=', 'Finished')->get();
 
         // Access the first element if it's an array
         if (is_array($post['body'])) {
