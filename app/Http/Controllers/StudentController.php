@@ -277,7 +277,7 @@ class StudentController extends Controller
 
         $student->save();
 
-        Alert::toast('Student status updated successifuly', 'success');
+        Alert::toast('Student status updated to '. $post['status'] , 'success');
         return back();
 
     }
