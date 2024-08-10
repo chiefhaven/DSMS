@@ -84,7 +84,7 @@
                                         <div class="dropdown-menu dropdown-menu-end p-0">
                                         <div class="p-2">
                                             <a class="dropdown-item nav-main-link" href="{{ url('/viewstudent', $students->id) }}">
-                                            <i class="nav-main-link-icon fa fa-user"></i><div class="btn">Profile</div>
+                                                <i class="nav-main-link-icon fa fa-user"></i><div class="btn">Profile</div>
                                             </a>
                                         @role(['superAdmin', 'admin'])
                                             <form method="POST" class="dropdown-item nav-main-link" action="{{ url('/edit-student', $students->id) }}">
