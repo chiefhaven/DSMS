@@ -103,8 +103,10 @@
                     group: state.value.group
                 });
                 if (response.status === 200) {
+                    console.log(response)
                     notification('Announcement sent', 'success');
                 } else {
+                    console.log(response)
                     notification('There is an error, announcement not sent', 'error');
                 }
               } catch (error) {
