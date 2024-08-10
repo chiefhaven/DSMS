@@ -336,11 +336,11 @@
                     <div class="row">
                         <div class="col-sm-12 mb-4">
                             <label for="invoice_discount">Date</label>
-                            <select class="form-select dropdown-toggle" id="status" name="status">
+                            <select class="form-select dropdown-toggle" id="status" name="status" value="$student->status">
                                 <div class="dropdown-menu">
-                                    <option>Pending</option>
-                                    <option>In progress</option>
-                                    <option>Finished</option>
+                                    <option {{ $student->status == 'Pending' ? 'selected' : '' }}>Pending</option>
+                                    <option {{ $student->status == 'In progress' ? 'selected' : '' }}>In progress</option>
+                                    <option {{ $student->status == 'Finished' ? 'selected' : '' }}>Finished</option>
                                 </div>
                             </select>
                         </div>
