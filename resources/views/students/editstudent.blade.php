@@ -31,7 +31,7 @@
             <div class="block-content">
               <form action="{{ url('/student-update') }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                <input type="text" name="student_id" id="student_id" value="{{$student->id}}" hidden>                              
+                <input type="text" name="student_id" id="student_id" value="{{$student->id}}" hidden>
                 <h2 class="content-heading pt-0">
                   <i class="fa fa-fw fa-user-graduate text-muted me-1"></i> Student Information
                 </h2>
@@ -59,7 +59,7 @@
                     <div class="mb-4 form-floating">
                       <input type="file" name="signature" class="form-control @error('signature') is-invalid @enderror" accept=".jpg,.jpeg,.png"> {{$student->signature}}
                       <label class="form-label" for="signature">Student Signature</label>
-                    </div> 
+                    </div>
                     <div class="col-4 form-floating mb-4">
                         <select class="form-select" id="gender" name="gender">
                           <option value="{{$student->gender}}" selected>{{$student->gender}}</option>
@@ -68,7 +68,7 @@
                           <option value="other">Other</option>
                         </select>
                         <label for="district">Gender</label>
-                    </div>                    
+                    </div>
                     <div class="mb-4 form-floating">
                       <input type="text" class="form-control" id="trn" name="trn" placeholder="TRN" value="{{$student->trn}}">
                       <label class="form-label" for="trn">TRN</label>
