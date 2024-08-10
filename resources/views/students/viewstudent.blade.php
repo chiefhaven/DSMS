@@ -171,7 +171,7 @@
                     </table>
                     </div>
                     <div class="mb-4">
-                        <h4 class="mb-4">Attendande progres</h4>
+                        <h4 class="mb-4">Attendande progress</h4>
                         <div class="progress push">
                             <div class="progress-bar progress-bar-striped" role="progressbar" style="width: {{$attendancePercent}}%;" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100">
                                 <span class="fs-sm fw-semibold">{{$attendancePercent}}%</span>
