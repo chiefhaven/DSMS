@@ -111,7 +111,7 @@ class AnnouncementController extends Controller
 
         foreach($students as $student){
             $sendSMS = new NotificationController;
-            $response = $sendSMS->sendSMS($post['body'], '0996884869');
+            $response = $sendSMS->sendSMS($post['body'], $student->phone);
         }
 
         return response()->json($response['message'], $response['statusCode']);
