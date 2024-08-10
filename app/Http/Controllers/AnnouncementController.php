@@ -116,27 +116,33 @@ class AnnouncementController extends Controller
             $body = $post['body']; // It's already a string
         }
 
-        foreach($students as $student){
+        foreach ($students as $student) {
 
             $variables = [
-                "first_name" => $student->fname ?? '',
-                "middle_name" => $student->mname ?? '',
-                "sir_name" => $student->sname ?? '',
-                "invoice_total" => $student->invoice->invoice_total ?? '',
-                "invoice_paid" => $student->invoice->invoice_amount_paid ?? '',
-                "balance" => $student->invoice->invoice_balance ?? '',
-                "due_date" => $student->invoice->invoice_payment_due_date->format('j F, Y') ?? '',
-                "course_name" => $student->course->name ?? '',
+                "FIRST_NAME" => $student->fname ?? '',
+                "MIDDLE_NAME" => $student->mname ?? '',
+                "SIR_NAME" => $student->sname ?? '',
+                "INVOICE_TOTAL" => $student->invoice->invoice_total ?? '',
+                "INVOICE_PAID" => $student->invoice->invoice_amount_paid ?? '',
+                "BALANCE" => $student->invoice->invoice_balance ?? '',
+                "DUE_DATE" => $student->invoice->invoice_payment_due_date->format('j F, Y') ?? '',
+                "COURSE_NAME" => $student->course->name ?? '',
             ];
 
+            // Start with the original template body
+            $sms_template = $body;
+
+            // Replace placeholders with corresponding values
             foreach ($variables as $key => $value) {
-                $sms_template = str_replace('{' . strtoupper($key) . '}', $value, $body);
+                $sms_template = str_replace('{' . $key . '}', $value, $sms_template);
             }
 
+            // Send the SMS
             $sendSMS = new NotificationController;
             $response = $sendSMS->sendSMS($sms_template, $student->phone);
         }
 
-        return response()->json($response['message'], $response['statusCode']);
+
+        return response()->json($sms_template, 200);
     }
 }
