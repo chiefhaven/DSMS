@@ -261,6 +261,27 @@ class StudentController extends Controller
         return redirect()->route('viewStudent', ['id' => $post['student_id']]);
     }
 
+    public function updateStudentStatus(UpdateStudentRequest $request, Student $student)
+    {
+        $messages = [
+            'status.required' => 'Status is required!',
+        ];
+
+        $this->validate($request, [
+            'status' => 'required|string|in:Finished,In progress,Pending', // Adjust the rules as needed
+        ], $messages);
+
+        $post = $request->All();
+        $student = Student::find( $student->id );
+        $student->status = $post['status'];
+
+        $student->save();
+
+        Alert::toast('Student status updated successifuly', 'success');
+        return back();
+
+    }
+
     /**
      * Remove the specified resource from storage.
      *
