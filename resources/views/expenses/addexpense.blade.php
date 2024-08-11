@@ -177,7 +177,7 @@
                         notification(response.data.message, 'success')
                     }
                     else{
-                        notification(response.data, 'error')
+                        notification(response.data.message, 'error')
                     }
                 })
             }
