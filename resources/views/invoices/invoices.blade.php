@@ -73,7 +73,7 @@
                                                 <button class="dropdown-item delete-confirm" type="submit">
                                                 <i class="si si-trash me-1"></i> Delete</button>
                                         </form>
-                                        <form method="POST" action="{{ url('send-notification', $invoice->student) }}">
+                                        <form method="POST" action="{{ url('send-balance-sms', [$invoice->student,'Balance'])}}">
                                             {{ csrf_field() }}
                                             <button class="dropdown-item" type="submit"><i class="si si-envelope me-1"></i> Send balance reminder</button>
                                         </form>
