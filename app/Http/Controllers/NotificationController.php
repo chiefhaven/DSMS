@@ -85,16 +85,17 @@ class NotificationController extends Controller
     }
 
     // Send SMS for enrollment, payments, and balance reminders
-    public function balanceSMS(Student $student, $type)
+    public function balanceSMS($studentId, $type)
     {
-        $destination = $student->phone;
-        $student = Student::with('User', 'Invoice', 'course')->find($student->id);
+        $student = Student::with('User', 'Invoice', 'Course')->find($studentId);
 
         // Ensure all necessary relations are loaded
         if (!$student) {
             Alert::toast('Student not found', 'error');
             return back();
         }
+
+        $destination = $student->phone;
 
         $course = $student->course;
         $total = $student->invoice ? number_format($student->invoice->invoice_total, 2, '.', '') : '';
