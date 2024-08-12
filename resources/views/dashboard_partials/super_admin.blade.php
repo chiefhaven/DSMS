@@ -24,7 +24,7 @@
             <div class="block block-rounded block-link-shadow border" href="javascript:void(0)">
                 <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                     <div>
-                        <i class="fa fa-3x fa-arrow-up"></i>
+                        <i class="fa fa-2x fa-arrow-up"></i>
                     </div>
                     <div class="ml-3 text-right">
                         <p class="font-size-h3 font-w300 mb-0">
@@ -41,10 +41,10 @@
             <div class="block block-rounded block-link-shadow border">
                 <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                     <div>
-                        <i class="fa fa-3x fa-arrow-up"></i>
+                        <i class="fa fa-2x fa-arrow-up"></i>
                     </div>
                     <div class="ml-3 text-right">
-                        <p class="font-size-h3 font-w300 mb-0">
+                        <p class="font-size-h3 font-w900 mb-0">
                             K{{number_format($invoiceBalances, 2)}}
                         </p>
                         <p class="mb-0">
@@ -58,10 +58,10 @@
             <div class="block block-rounded block-link-shadow border">
                 <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                     <div>
-                        <i class="far fa-3x fa-user"></i>
+                        <i class="far fa-2x fa-user"></i>
                     </div>
                     <div class="ml-3 text-right">
-                        <p class="font-size-h3 font-w300 mb-0">
+                        <p class="font-size-h3 font-w900 mb-0">
                             {{$studentCount}}
                         </p>
                         <p class="mb-0">
@@ -78,7 +78,7 @@
                         <i class="fa fa-2x fa-chart-line"></i>
                     </div>
                     <div class="mr-3">
-                        <p class="font-size-h3 font-w300 mb-0">
+                        <p class="font-size-h3 font-w900 mb-0">
                             K{{number_format($expensesTotal, 2)}}
                         </p>
                         <p class="mb-0">
@@ -92,10 +92,10 @@
             <div class="block block-rounded block-link-shadow border">
                 <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                     <div>
-                        <i class="far fa-3x fa-clock"></i>
+                        <i class="far fa-2x fa-clock"></i>
                     </div>
                     <div class="ml-3 text-right">
-                        <p class="font-size-h3 font-w300 mb-0">
+                        <p class="font-size-h3 font-w900 mb-0">
                             {{ $attendanceCount }}
                         </p>
                         <p class="mb-0">
