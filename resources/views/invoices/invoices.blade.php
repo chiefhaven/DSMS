@@ -62,7 +62,7 @@
                                             <button class="dropdown-item" type="submit"><i class="si si-edit-name"></i> Edit</button>
                                             </form>
                                         <a class="dropdown-item" href="javascript:void(0)">
-                                        Add payment
+                                            Add payment
                                         </a>
                                         <a class="dropdown-item" href="{{ url('/invoice-pdf', $invoice->invoice_number) }}">
                                             <i class="si si-printer me-1"></i> Print Invoice
