@@ -5,7 +5,7 @@
                 <form action="{{ url('/') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     Filter
-                    <select class="btn btn-primary dropdown-toggle" id="filter" name="filter" onchange="this.form.submit()">
+                    <select class="btn border dropdown-toggle" id="filter" name="filter" onchange="this.form.submit()">
                         <div class="dropdown-menu">
                             <option class="text-left" value="today">Today</option>
                             <option class="" value="yesterday">Yesterday</option>
@@ -21,33 +21,33 @@
             </div>
         </div>
         <div class="col-md-4 col-xl-4">
-            <div class="block block-rounded block-link-shadow bg-primary" href="javascript:void(0)">
+            <div class="block block-rounded block-link-shadow border" href="javascript:void(0)">
                 <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                     <div>
-                        <i class="fa fa-2x fa-arrow-alt-circle-up text-primary-lighter"></i>
+                        <i class="fa fa-3x fa-arrow-alt-circle-up"></i>
                     </div>
                     <div class="ml-3 text-right">
-                        <p class="text-white font-size-h3 font-w300 mb-0">
+                        <p class="font-size-h3 font-w300 mb-0">
                             K{{number_format($earningsTotal, 2)}}
                         </p>
-                        <p class="text-white-75 mb-0">
-                            Total Sales
+                        <p class="mb-0">
+                            Sales
                         </p>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-md-4 col-xl-4">
-            <div class="block block-rounded block-link-shadow bg-warning">
+            <div class="block block-rounded block-link-shadow border">
                 <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                     <div>
-                        <i class="fa fa-2x fa-arrow-alt-circle-up text-success-light"></i>
+                        <i class="fa fa-3x fa-arrow-alt-circle-up"></i>
                     </div>
                     <div class="ml-3 text-right">
-                        <p class="text-white font-size-h3 font-w300 mb-0">
+                        <p class="font-size-h3 font-w300 mb-0">
                             K{{number_format($invoiceBalances, 2)}}
                         </p>
-                        <p class="text-white-75 mb-0">
+                        <p class="mb-0">
                             Balances
                         </p>
                     </div>
@@ -55,50 +55,50 @@
             </div>
         </div>
         <div class="col-md-4 col-xl-4">
-            <div class="block block-rounded block-link-shadow bg-success">
+            <div class="block block-rounded block-link-shadow border">
                 <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                     <div>
-                        <i class="far fa-2x fa-user text-success-light"></i>
+                        <i class="far fa-3x fa-user"></i>
                     </div>
                     <div class="ml-3 text-right">
-                        <p class="text-white font-size-h3 font-w300 mb-0">
+                        <p class="font-size-h3 font-w300 mb-0">
                             {{$studentCount}}
                         </p>
-                        <p class="text-white-75 mb-0">
+                        <p class="mb-0">
                             Students
                         </p>
                     </div>
                 </div>
             </div>
         </div>
-        <a href="/expenses" class="col-md-4 col-xl-4">
-            <div class="block block-rounded block-link-shadow bg-danger">
+        <div class="col-md-4 col-xl-4">
+            <div class="block block-rounded block-link-shadow border">
                 <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                     <div>
-                        <i class="fa fa-2x fa-chart-line text-black-50"></i>
+                        <i class="fa fa-2x fa-chart-line"></i>
                     </div>
                     <div class="mr-3">
-                        <p class="text-white font-size-h3 font-w300 mb-0">
+                        <p class="font-size-h3 font-w300 mb-0">
                             K{{number_format($expensesTotal, 2)}}
                         </p>
-                        <p class="text-white-75 mb-0">
+                        <p class="mb-0">
                             Expenses
                         </p>
                     </div>
                 </div>
             </div>
-        </a>
+        </div>
         <div class="col-md-4 col-xl-4">
-            <div class="block block-rounded block-link-shadow bg-info">
+            <div class="block block-rounded block-link-shadow border">
                 <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                     <div>
-                        <i class="far fa-2x fa-clock text-success-light"></i>
+                        <i class="far fa-3x fa-clock"></i>
                     </div>
                     <div class="ml-3 text-right">
-                        <p class="text-white font-size-h3 font-w300 mb-0">
+                        <p class="font-size-h3 font-w300 mb-0">
                             {{ $attendanceCount }}
                         </p>
-                        <p class="text-white-75 mb-0">
+                        <p class="mb-0">
                             Attendanes
                         </p>
                     </div>
