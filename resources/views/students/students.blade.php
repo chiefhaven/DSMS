@@ -100,8 +100,8 @@
                                                 <button class="btn delete-confirm" type="submit">Delete</button>
                                             </form>
                                             @endcan
-                                            @if(isset($students->invoice->invoice_balance) && !$students->invoice->invoice_balance == 0)
-                                                <form method="POST" class="dropdown-item nav-main-link" action="{{ url('send-balance-sms', [$students,'Balance']) }}">
+                                            @if(isset($students->invoice) && !$students->invoice->invoice_balance == 0)
+                                                <form method="POST" class="dropdown-item nav-main-link" action="{{ url('send-balance-sms', [$students->id,'Balance']) }}">
                                                     {{ csrf_field() }}
                                                     <i class="nav-main-link-icon fa fa-paper-plane"></i>
                                                     <button class="btn" type="submit">Send balance reminder</button>
