@@ -89,7 +89,7 @@ class PaymentController extends Controller
             $invoice->save();
 
             $sms = new NotificationController;
-            $sms->balanceSMS($student->student, 'Payment');
+            $sms->balanceSMS($student->student->id, 'Payment');
 
         }
 
