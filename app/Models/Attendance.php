@@ -11,7 +11,7 @@ class Attendance extends Model
 
     protected $casts = ['attendance_date'=>'datetime'];
 
-    protected $fillable = ['student_id'];
+    protected $fillable = ['student_id', 'lesson_id'];
 
     public function Student()
     {
