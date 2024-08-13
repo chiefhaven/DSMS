@@ -111,104 +111,88 @@ class AttendanceController extends Controller
      */
     public function store(StoreAttendanceRequest $request)
     {
-        $messages = [
-            'student.required'   => 'Student is required!',
-            'lesson.required' => 'Lesson is required!',
-        ];
-
         // Validate the request
-        $this->validate($request, [
-            'student' =>'required',
-            'lesson'   =>'required',
+        $request->validate([
+            'student' => 'required',
+            'lesson'  => 'required',
+        ], [
+            'student.required' => 'Student is required!',
+            'lesson.required'  => 'Lesson is required!',
+        ]);
 
+        // Decode student name from the request
+        $studentName = html_entity_decode($request->input('student'));
 
-        ], $messages);
-
-        $post = $request->all();
-
-        $studentName = html_entity_decode($post['student']);
-
-        if (isset($studentName)) {
-            $student = havenUtils::student($studentName);
-            if ($student) {
-                $student_id = $student->id;
-            } else {
-                // Handle case where student is not found
-                Alert::error('Oops! Something went wrong');
-                return back();
-            }
-        } else {
-            // Handle case where 'student' key is missing
-            Alert::error('Oops! Something wrong happened');
-            return back();
+        // Retrieve the student by name
+        $student = havenUtils::student($studentName);
+        if (!$student) {
+            return $this->handleError('Oops! Something went wrong', 'Oops! Something wrong happened');
         }
 
-        //Check course days and compare with attendance
-        $courseID = Invoice::where('student_id', $student_id)->firstOrFail()->course_id;
+        $student_id = $student->id;
 
-        $student = Student::find($student_id);
-
-        if(!isset($courseID)){
-            Alert()->error('Attendance can not be entered', $student->fname.' not enrolled to any course yet!');
+        // Check if the student is enrolled in a course
+        $invoice = Invoice::where('student_id', $student_id)->first();
+        if (!$invoice) {
+            return $this->handleError('Attendance cannot be entered', "{$student->fname} is not enrolled in any course yet!");
         }
 
+        $courseID = $invoice->course_id;
         $courseDuration = havenUtils::courseDuration($courseID);
 
-        if(self::attendanceCount($student_id) >= $courseDuration){
-            Alert()->error('Attendance not entered','You can not enter more attendances than course duration a student enrolled!');
-            return redirect('/attendances');
+        // Check if the student has reached the maximum attendance for the course
+        if ($this->attendanceCount($student_id) >= $courseDuration) {
+            return $this->handleError('Attendance not entered', 'You cannot enter more attendances than the course duration the student is enrolled in!');
         }
 
-        $lesson_id = havenUtils::lessonID($post['lesson']);
+        // Check if the lesson is valid
+        $lesson_id = havenUtils::lessonID($request->input('lesson'));
+        if (!$lesson_id) {
+            return $this->handleError('Attendance not entered', 'Invalid lesson selected!');
+        }
 
-        if($post['lesson'] == 'Theory'){
-           $attendanceCount = Attendance::Where('lesson_id', $lesson_id)->Where('student_id', $student_id)->count();
-            if($attendanceCount == 10){
-                Alert()->error('Attendance not entered!','You can not enter more than 10 attendances for Theory lessons for a student.');
-                return back();
+        // Limit the number of Theory lessons to 10
+        if ($request->input('lesson') === 'Theory') {
+            $attendanceCount = Attendance::where('lesson_id', $lesson_id)->where('student_id', $student_id)->count();
+            if ($attendanceCount >= 10) {
+                return $this->handleError('Attendance not entered!', 'You cannot enter more than 10 attendances for Theory lessons for a student.');
             }
         }
 
-        $attendance = new Attendance;
+        // Create and save the new attendance record
+        $attendance = new Attendance([
+            'student_id'      => $student_id,
+            'attendance_date' => Carbon::now()->tz('Africa/Blantyre'),
+            'lesson_id'       => $lesson_id,
+            'instructor_id'   => Auth::user()->instructor_id,
+        ]);
 
-        if(is_null($student_id)){
+        if ($attendance->save()) {
+            $remainingAttendances = $courseDuration - $this->attendanceCount($student_id);
+            $student->status = $remainingAttendances === 0 ? 'Finished' : 'Inprogress';
+            $message = $remainingAttendances === 0
+                ? "This marks course completion for {$student->fname} {$student->sname}"
+                : 'Attendance added successfully!';
 
-            Alert::toast('No such student is registered with us!', 'error');
-            return redirect()->back()->withInput();
-        }
+            // Send notification SMS
+            (new NotificationController)->generalSMS($student, 'Attendance');
 
-        else{
-
-            $attendance->student_id = $student_id;
-        }
-
-        $attendance->attendance_date = Carbon::now()->tz('Africa/Blantyre');
-        $attendance->lesson_id = $lesson_id;
-        $attendance->instructor_id = Auth::user()->instructor_id;
-
-        $attendance->save();
-
-        if($attendance->save()){
-
-            if($courseDuration-self::attendanceCount($student_id) == 0){
-                $student->status = 'Finished';
-                $message = 'This marks course completion for '.$student->fname.' '.$student->sname;
-            }
-
-            else{
-                $student->status = 'Inprogress';
-                $message = 'Attendance added successifuly!';
-            }
-
-            $sms = new NotificationController;
-            $sms->generalSMS($student, 'Attendance');
-
+            // Save the student's updated status
             $student->save();
+
+            Alert::toast($message, 'success');
         }
 
-        Alert::toast($message, 'success');
         return redirect('/attendances');
+    }
 
+    protected function handleError($toastMessage, $alertMessage = null)
+    {
+        Alert::toast($toastMessage, 'error');
+        if ($alertMessage) {
+            Alert::error($alertMessage);
+        }
+        return redirect()->back()->withInput();
     }
 
     /**
