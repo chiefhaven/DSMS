@@ -97,10 +97,12 @@
                               <td>
                                   {{$attend->lesson->name}}
                               </td>
-                              <td>
-                                    {{$attend->instructor->fname}}
-                                    <strong>{{$attend->instructor->sname}}</strong>
-                              </td>
+                              @role(['superAdmin', 'admin'])
+                                <td>
+                                        {{$attend->instructor->fname}}
+                                        <strong>{{$attend->instructor->sname}}</strong>
+                                </td>
+                                @endcan
                           </tr>
                           @endforeach
                       </tbody>
