@@ -30,7 +30,7 @@
 
     codeReader.decodeFromVideoDevice(null, 'webcam-preview', (result, err) => {
         if (result) {
-            codeReader.scannerEnabled = false
+            codeReader.stopContinuousDecode()
             url = result.text
             Swal.fire(
                 'Scan complete!',
