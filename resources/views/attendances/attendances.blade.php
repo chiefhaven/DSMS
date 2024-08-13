@@ -58,12 +58,15 @@
                             <th style="min-width: 100px;">Date</th>
                             <th>Student</th>
                             <th style="width: 20%;">Lesson</th>
+                            @role(['superAdmin', 'admin'])
+                                <th style="width: 20%;">Instructor</th>
+                            @endcan
                           </tr>
                       </thead>
                       <tbody>
                         @foreach ($attendance as $attend)
                           <tr>
-                            @role(['superAdmin', 'admin'])
+                            @role(['superAdmin'])
                             <td class="text-center">
                                 <div class="dropdown d-inline-block">
                                     <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -89,10 +92,14 @@
                                   {{$attend->attendance_date->format('j F, Y, H:i:s' )}}
                               </td>
                               <td>
-                                  {{$attend->student->fname}} {{$attend->student->sname}}
+                                  {{$attend->student->fname}} <strong>{{$attend->student->sname}}</strong>
                               </td>
                               <td>
                                   {{$attend->lesson->name}}
+                              </td>
+                              <td>
+                                    {{$attend->instructor->fname}}
+                                    <strong>{{$attend->instructor->sname}}</strong>
                               </td>
                           </tr>
                           @endforeach
