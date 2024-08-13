@@ -183,7 +183,7 @@ class InvoiceController extends Controller
                 Alert::toast($student->fname.' successifully enrolled', 'success');
             }
 
-            $sms->balanceSMS($student, 'Enrollment');
+            $sms->balanceSMS($student->id, 'Enrollment');
         }
 
         $student = Student::with('User', 'Course', 'Enrollment', 'Invoice', 'Payment')->find($student_id);
