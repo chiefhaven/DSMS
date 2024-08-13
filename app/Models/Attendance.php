@@ -11,6 +11,8 @@ class Attendance extends Model
 
     protected $casts = ['attendance_date'=>'datetime'];
 
+    protected $fillable = ['student_id'];
+
     public function Student()
     {
         return $this->belongsTo(Student::class);
