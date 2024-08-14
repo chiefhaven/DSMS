@@ -162,8 +162,8 @@ class NotificationController extends Controller
             "attendance_difference" => $attendance_balance,
             "total_required_attendance" => $attendanceRequired,
             "attendance_date" => $attendanceLatest,
-            "car_assigned" => $fleet ? $fleet->car_brand_model.','. $fleet->car_registration_number : '',
-            "instructor" => $fleet ? $fleet->instructor->fname.','. $fleet->instructor->mname.','. $fleet->instructor->sname.','. $fleet->instructor->phone : '',
+            "car_assigned" => $fleet ? "{$fleet->car_brand_model}, {$fleet->car_registration_number}" : '',
+            "instructor" => $fleet ? "{$fleet->instructor->fname} {$fleet->instructor->mname} {$fleet->instructor->sname}, {$fleet->instructor->phone}" : '',
         ];
 
         $sms_template = notification_template::where('type', $type)->firstOrFail()->body;
