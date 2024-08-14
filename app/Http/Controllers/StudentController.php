@@ -148,7 +148,7 @@ class StudentController extends Controller
 
         // Send notification SMS
         $sms = new NotificationController;
-        $sms->balanceSMS($student, 'Registration');
+        $sms->balanceSMS($student->id, 'Registration');
 
         // Get the last student ID and show success message
         $studentLastID = Student::max('id');
