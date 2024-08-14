@@ -331,7 +331,7 @@
                 </div>
             </div>
             <div class="block-content">
-                <form class="mb-5" action="{{ url('/updateStudentStatus', $student) }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
+                <form class="mb-5" action="{{ url('/updateStudentStatus', $student->id) }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
                     @csrf
                     <div class="row">
                         <div class="col-sm-12 mb-4">

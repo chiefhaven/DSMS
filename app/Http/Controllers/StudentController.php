@@ -261,8 +261,9 @@ class StudentController extends Controller
         return redirect()->route('viewStudent', ['id' => $post['student_id']]);
     }
 
-    public function updateStudentStatus(UpdateStudentRequest $request, Student $student)
+    public function updateStudentStatus(UpdateStudentRequest $request, $student)
     {
+
         $messages = [
             'status.required' => 'Status is required!',
         ];
@@ -272,7 +273,7 @@ class StudentController extends Controller
         ], $messages);
 
         $post = $request->All();
-        $student = Student::find( $student->id );
+        $student = Student::find($student);
         $student->status = $post['status'];
 
         $student->save();
