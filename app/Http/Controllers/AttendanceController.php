@@ -72,6 +72,11 @@ class AttendanceController extends Controller
                 return redirect()->route('students');
             }
 
+            if (!isset($student->fleet)) {
+                Alert()->error('Not assigned car yet', 'Choose from the list below or contact the admin');
+                return back();
+            }
+
             if (!$this->attendanceLatest($instructor->instructor_id, $now)) {
                 Alert()->error('Attendance can not be entered', 'You can only enter attendances every ' . $this->setting->time_between_attendances . ' minutes, for more information contact the admin!');
                 return back();
