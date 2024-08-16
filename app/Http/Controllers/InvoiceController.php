@@ -172,7 +172,7 @@ class InvoiceController extends Controller
                 $invoice->save();
                 $student->save();
                 $payment->save();
-                $sms->balanceSMS($student, 'Payment');
+                $sms->balanceSMS($student->id, 'Payment');
                 Alert::toast($student->fname.' successifully enrolled', 'success');
             }
 
