@@ -68,8 +68,8 @@ class AttendanceController extends Controller
             $student = Student::find($token);
 
             if (!$student) {
-                Alert()->error('Student not found', 'Choose from the list below or contact the admin');
-                return redirect()->route('students');
+                Alert()->error('Student not found', 'Scan another document or contact the admin');
+                return back();
             }
 
             if (!isset($student->fleet)) {
