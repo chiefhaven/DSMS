@@ -236,7 +236,7 @@ class ExpenseController extends Controller
         if($expenseTypeCount > 0){
             $data = [
                 'feedback'=>'error',
-                'message' => $post['student'].' was already selected for '.$post['expenseType'].' expenses dated '.Expense::find($expenseTypeSet[0]->expense_id)->group
+                'message' => $post['student'].' was already selected for '.$post['expenseType'].' expenses dated <strong>'.Expense::find($expenseTypeSet[0]->expense_id)->group .'</strong>'
             ];
             return response()->json($data, 200);
         }

@@ -295,7 +295,7 @@
             Swal.fire({
                 toast: true,
                 position: "top-end",
-                text: $text,
+                html: $text,
                 showConfirmButton: false,
                 timer: 5500,
                 timerProgressBar: true,
