@@ -230,12 +230,13 @@ class ExpenseController extends Controller
 
         $expenseType = $post['expenseType'];
 
-        $expenseTypeCount = DB::table('expense_student')->where('student_id', $student->id)->where('expense_type', $request['expenseType'])->count();
+        $expenseTypeSet = DB::table('expense_student')->where('student_id', $student->id)->where('expense_type', $request['expenseType'])->get();
+        $expenseTypeCount = $expenseTypeSet->count();
 
         if($expenseTypeCount > 0){
             $data = [
                 'feedback'=>'error',
-                'message' => $post['student'].' was already selected for '.$post['expenseType'].' expenses'
+                'message' => $post['student'].' was already selected for '.$post['expenseType'].' expenses dated '.Expense::find($expenseTypeSet[0]->expense_id)->group
             ];
             return response()->json($data, 200);
         }
