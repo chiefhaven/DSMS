@@ -99,10 +99,13 @@
                               </td>
                               @role(['superAdmin', 'admin'])
                                 <td>
+                                    {{--  @if(isset($attend->instructor))
                                         {{$attend->instructor->fname}}
                                         <strong>{{$attend->instructor->sname}}</strong>
+                                    @endif  --}}
+                                    -
                                 </td>
-                                @endcan
+                              @endcan
                           </tr>
                           @endforeach
                       </tbody>

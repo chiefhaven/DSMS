@@ -185,7 +185,11 @@
 </script>
 <script>
     $(document).ready(function() {
-        $('#invoices').DataTable();
+        $('#invoices').DataTable({
+            "columnDefs": [
+                { "orderable": false, "targets": 0 }
+            ]
+        } );
     });
 </script>
 
