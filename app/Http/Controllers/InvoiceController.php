@@ -29,7 +29,7 @@ class InvoiceController extends Controller
     public function index()
     {
         if(Auth::user()->hasRole('superAdmin')){
-            $invoices = Invoice::with('Student', 'User')->orderBy('created_at', 'DESC')->paginate(10);
+            $invoices = Invoice::with('Student', 'User')->orderBy('created_at', 'DESC')->get();
             return view('invoices.invoices', compact('invoices'));
         }
 

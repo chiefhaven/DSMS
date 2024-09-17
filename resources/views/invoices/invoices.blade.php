@@ -18,18 +18,9 @@
     @endif
     <div class="block block-rounded block-bordered">
           <div class="block-content">
-            <div class="col-md-12 mb-1">
-                <form action="{{ url('/search-invoice') }}" method="GET" enctype="multipart/form-data">
-                    @csrf
-                        <input type="text" class="col-md-5 block block-rounded block-bordered p-2" id="search" name="search" placeholder="Search invoice" required>
-                        <button type="submit" class="block-rounded  p-2 btn btn-alt-primary">
-                            <i class="fa fa-search opacity-50 me-1"></i> Search
-                        </button>
-                </form>
-            </div>
             <div class="table-responsive">
             @if(!$invoices->isEmpty())
-              <table class="table table-bordered table-striped table-vcenter">
+              <table id="invoices" class="table table-bordered table-striped table-vcenter">
                   <thead>
                       <tr>
                         <th class="text-center">Actions</th>
@@ -112,7 +103,6 @@
                       @endforeach
                   </tbody>
               </table>
-              {{ $invoices->links('pagination::bootstrap-4') }}
             @else
                 <p class="p-5">No matching records found!</p>
             @endif
@@ -192,6 +182,11 @@
         }
 
     }).mount('#invoices')
+</script>
+<script>
+    $(document).ready(function() {
+        $('#invoices').DataTable();
+    });
 </script>
 
   <!-- END Hero -->

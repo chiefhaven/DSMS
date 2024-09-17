@@ -36,11 +36,11 @@ class AttendanceController extends Controller
         if(Auth::user()->hasRole('instructor')){
             $attendance = Attendance::with('Student', 'Lesson')
             ->where('instructor_id', Auth::user()->instructor_id)
-            ->orderBy('attendance_date', 'DESC')->paginate(10);
+            ->orderBy('attendance_date', 'DESC')->get();
         }
         else{
             $attendance = Attendance::with('Student', 'Lesson')
-            ->orderBy('attendance_date', 'DESC')->paginate(10);
+            ->orderBy('attendance_date', 'DESC')->get();
         }
 
         return view('attendances.attendances', compact('attendance'));

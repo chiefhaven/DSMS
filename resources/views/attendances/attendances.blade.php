@@ -49,7 +49,7 @@
     <div class="block block-rounded block-bordered">
           <div class="block-content">
                 <div class="table-responsive">
-                  <table class="table table-bordered table-striped table-vcenter">
+                  <table id="attendances" class="table table-bordered table-striped table-vcenter">
                       <thead>
                           <tr>
                             @role(['superAdmin', 'admin'])
@@ -107,7 +107,6 @@
                           @endforeach
                       </tbody>
                   </table>
-                  {{ $attendance->links('pagination::bootstrap-4') }}
                 </div>
           </div>
       </div>
@@ -141,5 +140,10 @@
         </div>
         </div>
     </div>
+    <script>
+        $(document).ready(function() {
+            $('#attendances').DataTable();
+        });
+    </script>
 <!-- END Hero -->
 @endsection

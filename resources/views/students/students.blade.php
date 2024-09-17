@@ -41,7 +41,7 @@
   <div class="content content-full">
     <div class="block block-rounded block-bordered">
           <div class="block-content">
-            <div class="col-md-12 mb-1">
+            {{--  <div class="col-md-12 mb-1">
                 <form action="{{ url('/search-student') }}" method="GET" enctype="multipart/form-data">
                     @csrf
                         <input type="text" class="col-md-5 block block-bordered p-2" id="search" name="search" placeholder="Search student" required>
@@ -49,11 +49,11 @@
                             <i class="fa fa-search opacity-50 me-1"></i> Search
                         </button>
                 </form>
-            </div>
+            </div>  --}}
             </div>
                 <div class="m-4 table-responsive">
                 @if( !$student->isEmpty())
-                  <table class="table table-bordered table-striped table-vcenter">
+                  <table id="students" class="table table-bordered table-striped table-vcenter">
                       <thead class="thead-dark">
                           <tr>
                             <th class="text-center" style="width: 100px;">Actions</th>
@@ -203,7 +203,7 @@
                         @endforeach
                       </tbody>
                   </table>
-                    {{ $student->links('pagination::bootstrap-4') }}
+                    {{--  {{ $student->links('pagination::bootstrap-4') }}  --}}
                 @else
                     <p class="p-5">No matching records found!</p>
                 @endif
@@ -296,6 +296,9 @@
             });
         });
 
+        $(document).ready(function() {
+            $('#students').DataTable();
+        });
     </script>
 
 @endsection

@@ -38,8 +38,7 @@ class StudentController extends Controller
 
                 $student = Student::where('fleet_id', $fleet->id)
                     ->with('User', 'Attendance', 'Course')
-                    ->orderBy('created_at', 'DESC')
-                    ->paginate(10);
+                    ->orderBy('created_at', 'DESC')->get();
 
                 return view('students.students', compact('student'));
 
@@ -49,7 +48,7 @@ class StudentController extends Controller
             }
         }
         else{
-            $student = Student::with('User', 'Attendance', 'Course')->orderBy('created_at', 'DESC')->paginate(10);
+            $student = Student::with('User', 'Attendance', 'Course')->orderBy('created_at', 'DESC')->get();
         }
 
         $fleet = Fleet::get();
