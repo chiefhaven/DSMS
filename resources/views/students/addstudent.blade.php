@@ -80,7 +80,7 @@
                         <label class="form-label" for="email">Email address</label>
                     </div>
                     <div class="mb-4 form-floating">
-                        <input type="date" class="form-control @error('date_of_birth') is-invalid @enderror" id="date_of_birth" name="date_of_birth" placeholder="DDMMYY" value="{{ old('date_of_birth', '1999-08-07') }}" required>
+                        <input type="text" class="form-control @error('date_of_birth') is-invalid @enderror" id="date_of_birth" name="date_of_birth" placeholder="DDMMYY" value="{{ old('date_of_birth', '1999-08-07') }}" required>
                         <label class="form-label" for="date_of_birth">Date of birth</label>
                     </div>
                     <div class="mb-4 form-floating">
@@ -142,6 +142,22 @@
             $('button').attr('disabled', 'disabled');
         });
     });
+
+    // Set the datepicker with current date as default value
+    $(document).ready(function() {
+        var today = new Date();
+        var day = ("0" + today.getDate()).slice(-2); // Get day with leading zero
+        var month = ("0" + (today.getMonth() + 1)).slice(-2); // Get month with leading zero (Months are zero-based)
+        var year = today.getFullYear();
+
+        // Set the datepicker
+        $("#date_of_birth").datepicker({
+            format: "dd/mm/yyyy",
+            autoclose: true,
+            todayHighlight: true
+        }).datepicker('setDate', day + '-' + month + '-' + year);
+    });
    </script>
+
 
 @endsection

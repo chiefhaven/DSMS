@@ -37,11 +37,11 @@
 
                     <div class="row">
                         <div class="col-6 form-floating mb-4">
-                            <input type="date" class="form-control" id="date_created" name="date_created" placeholder="Enter invoice date" value="12/07/2022">
+                            <input type="text" class="form-control" id="date_created" name="date_created" placeholder="Enter invoice date" value="12/07/2022">
                             <label class="px-4" for="invoice_discount">Date</label>
                         </div>
                         <div class="col-6 form-floating mb-4">
-                            <input type="date" class="form-control" id="invoice_due_date" name="invoice_due_date" placeholder="Enter invoice due date" value="12/07/2022">
+                            <input type="text" class="form-control" id="invoice_due_date" name="invoice_due_date" placeholder="Enter invoice due date" value="12/07/2022">
                             <label class="px-4" for="invoice_discount">Invoice Due Date</label>
                         </div>
                     </div>
@@ -79,5 +79,27 @@
     </div>
   </div>
   <!-- END Hero -->
+  <script>
+    $(document).ready(function() {
+        var today = new Date();
+        var day = ("0" + today.getDate()).slice(-2); // Get day with leading zero
+        var month = ("0" + (today.getMonth() + 1)).slice(-2); // Get month with leading zero (Months are zero-based)
+        var year = today.getFullYear();
+
+        // Set the datepicker
+        $("#date_created").datepicker({
+            format: "dd/mm/yyyy",
+            autoclose: true,
+            todayHighlight: true
+        }).datepicker('setDate', day + '-' + month + '-' + year);
+
+        // Set the datepicker
+        $("#invoice_due_date").datepicker({
+            format: "dd/mm/yyyy",
+            autoclose: true,
+            todayHighlight: true
+        }).datepicker('setDate', day + '-' + month + '-' + year);
+    });
+  </script>
 
 @endsection
