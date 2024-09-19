@@ -88,14 +88,14 @@
 
         // Set the datepicker
         $("#date_created").datepicker({
-            format: "dd/mm/yyyy",
+            format: "dd-mm-yyyy",
             autoclose: true,
             todayHighlight: true
         }).datepicker('setDate', day + '-' + month + '-' + year);
 
         // Set the datepicker
         $("#invoice_due_date").datepicker({
-            format: "dd/mm/yyyy",
+            format: "dd-mm-yyyy",
             autoclose: true,
             todayHighlight: true
         }).datepicker('setDate', day + '-' + month + '-' + year);
