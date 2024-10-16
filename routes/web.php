@@ -19,6 +19,7 @@ use App\Http\Controllers\LessonController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\QrCodeController;
 use App\Models\Announcement;
+use Illuminate\Support\Facades\Artisan;
 
 /*
 |--------------------------------------------------------------------------
@@ -172,7 +173,19 @@ Route::get("/scanqrcode", function(){
     return view("qrCodeScanner");
  })->middleware('auth');
 
-Route::get('/migrate', function(){
-      Artisan::call('migrate',['--force' => true]);
-       dd('migrated!');
-   })->middleware(['auth']);
+ Route::get('/migrate', function () {
+    // Check that the environment is not production before running the migration
+    if (app()->environment('production')) {
+        abort(403, 'Unauthorized action.');
+    }
+
+    // Ensure the user has an appropriate role or permission (e.g., 'admin')
+    if (!auth()->user()->hasRole('superAdmin')) {
+        abort(403, 'Unauthorized action.');
+    }
+
+    // Run the migration with the '--force' flag
+    Artisan::call('migrate', ['--force' => true]);
+    return response()->json(['message' => 'Database migration completed successfully!']);
+})->middleware(['auth']);
+
