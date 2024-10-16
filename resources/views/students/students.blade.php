@@ -31,8 +31,8 @@
                   @endcan
                   </div>
                 </div>
-              </div>
-            @endcan
+            </div>
+        @endcan
         </nav>
       </div>
     </div>
