@@ -156,8 +156,14 @@
                 <i class="text-danger">New! </i><i class="fa fa-fw fa-bell shake"></i>
             </button>
             <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0" aria-labelledby="page-header-notifications-dropdown">
-              <div class="bg-primary-dark rounded-top fw-semibold text-white text-center p-3">
+              <div class="bg-primary fw-semibold text-white text-center p-3">
                 Notifications
+              </div>
+              <div class="bg-light p-3">
+                <p class="fw-bold">
+                    Coming soon!
+                </p>
+                <p>System and event notifications to notify users of what actions they must take; Expense need approval...
               </div>
             </div>
           </div>
@@ -166,7 +172,7 @@
           <!-- User Dropdown -->
           <div class="dropdown d-inline-block">
             <button type="button" class="btn btn-alt-secondary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <i class="fa fa-fw fa-user d-sm-none"></i>
+              <i class="fa fa-fw fa-user"></i>
               <span class="d-none d-sm-inline-block">{{ Auth::user()->name }}</span>
               <i class="fa fa-fw fa-angle-down opacity-50 ms-1 d-none d-sm-inline-block"></i>
             </button>
