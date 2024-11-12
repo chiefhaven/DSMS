@@ -31,7 +31,7 @@
             <div class="block-content">
               <form action="{{ url('/updateinstructor') }}" enctype="multipart/form-data" method="POST">
                 @csrf
-                <input type="text" name="instructor_id" id="instructor_id" value="{{$instructor->id}}" hidden>                              
+                <input type="text" name="instructor_id" id="instructor_id" value="{{$instructor->id}}" hidden>
                 <h2 class="content-heading pt-0">
                   <i class="fa fa-fw fa-user text-muted me-1"></i> Instructor Information
                 </h2>
@@ -60,11 +60,11 @@
                           <option value="other">Other</option>
                         </select>
                         <label for="district">Gender</label>
-                    </div>    
+                    </div>
                     <div class="mb-4 form-floating">
                       <input type="date" class="form-control @error('date_of_birth') is-invalid @enderror" id="date_of_birth" name="date_of_birth" placeholder="DDMMYY" value="{{$instructor->date_of_birth}}" formnovalidate="">
                         <label class="form-label" for="text">Date of birth</label>
-                    </div>       
+                    </div>
                     <div class="mb-4 form-floating">
                       <input type="text" class="form-control" id="phone" name="phone" placeholder="+265" value="{{$instructor->phone}}">
                         <label class="form-label" for="example-email-input-floating">Phone</label>

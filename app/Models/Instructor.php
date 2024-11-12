@@ -11,6 +11,16 @@ class Instructor extends Model
 {
     use HasFactory;
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($instructor) {
+            // Delete associated user when the instructor is deleted
+            User::where('instructor_id', $instructor->id)->delete();
+        });
+    }
+
     public function User()
     {
        return $this->hasOne(User::class);

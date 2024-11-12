@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Instructor;
@@ -11,10 +10,12 @@ use App\Models\Permission;
 use App\Models\Role;
 use App\Http\Requests\StoreInstructorRequest;
 use App\Http\Requests\UpdateInstructorRequest;
+use App\Models\Administrator;
 use Session;
 use Illuminate\Support\Str;
 use PDF;
 use Illuminate\Foundation\Auth\RegistersUsers;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use RealRashid\SweetAlert\Facades\Alert;
@@ -115,7 +116,6 @@ class InstructorController extends Controller
      */
     public function show(Instructor $instructor)
     {
-        $Administrator = Administrator::with('User')->find($id);
         return view('instructors.viewinstructor', [ 'instructor' => $instructor ], compact('instructor'));
     }
 
@@ -214,19 +214,45 @@ class InstructorController extends Controller
      */
     public function destroy($id)
     {
+        $instructor = Instructor::find($id);
 
-            $instructor = Instructor::find($id);
+        // Check if the instructor exists
+        if ($instructor) {
+            // Store the instructor's name for alert
+            $instructorName = $instructor->fname . " " . $instructor->sname;
 
-            $instructor->delete();
+            // Start a database transaction to ensure consistency
+            DB::beginTransaction();
 
-            $instructorName = $instructor->fname." ". $instructor->sname;
+            try {
+                // Delete related users with the instructor_id
+                User::where('instructor_id', $id)->delete();
 
-            User::where('instructor_id', $id)->delete();
+                // Delete the instructor record
+                $instructor->delete();
 
-            Alert::toast('Instructor'.$instructorName.'deleted', 'success');
+                // Commit the transaction
+                DB::commit();
 
-            return redirect('/instructors')->with('message', $message);
+                // Show success message
+                Alert::toast('Instructor ' . $instructorName . ' deleted', 'success');
+            } catch (\Exception $e) {
+                // Rollback in case of error
+                DB::rollBack();
 
+                // Log the error for debugging
+                Log::error('Error deleting instructor: ' . $e->getMessage());
+
+                // Show error message
+                Alert::toast('Failed to delete instructor. Please try again later.', 'error');
+            }
+        } else {
+            // Show error message if instructor not found
+            Alert::toast('Instructor not found', 'error');
+        }
+
+        // Redirect to the instructors page
+        return redirect('/instructors');
     }
 
     public function instructorSearch(Request $request)

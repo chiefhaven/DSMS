@@ -51,7 +51,7 @@
                                 </button>
                                 <div class="dropdown-menu dropdown-menu-end p-0">
                                     <div class="p-2">
-                                    <form method="POST" action="{{ url('/editinstructor', $instructor->id) }}">
+                                    <form method="GET" action="{{ url('/editinstructor', $instructor->id) }}">
                                         {{ csrf_field() }}
                                         <button class="dropdown-item" type="submit">Edit</button>
                                     </form>
@@ -102,21 +102,29 @@
       </div>
     </div>
   <!-- END Hero -->
-<script type="text/javascript">
-    $('.delete-confirm').on('click', function (e) {
-        e.preventDefault();
-        var form = $(this).parents('form');
-        swal({
-            title: 'Are you sure you want to delete {{$instructor->fname}} {{$instructor->sname}}?',
-            text: 'All Lessons belonging to him/her will be transfered to Super instructor!',
-            icon: 'warning',
-            buttons: ["Cancel", "Yes!"],
-        }).then(function(isConfirm){
-                if(isConfirm){
-                        form.submit();
+  <script type="text/javascript">
+    $(document).ready(function() {
+        $('.delete-confirm').on('click', function(e) {
+            e.preventDefault();
+            var form = $(this).closest('form');
+            var instructorName = "{{ $instructor->fname }} {{ $instructor->sname }}";
+
+            // Updated for SweetAlert2
+            Swal.fire({
+                title: `Are you sure you want to delete ${instructorName}?`,
+                text: "All lessons belonging to this instructor will be transferred to the Super instructor.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Delete!",
+                cancelButtonText: "Cancel",
+                dangerMode: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
                 }
+            });
         });
     });
-
 </script>
+
 @endsection

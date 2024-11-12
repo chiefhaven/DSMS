@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Spatie\Permission\Traits\HasRoles;
@@ -11,6 +12,9 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
+    use HasUuids;
+    protected $keyType = 'string'; // Ensure it's a string (UUID)
+    public $incrementing = false; // Disable auto-incrementing
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
     /**

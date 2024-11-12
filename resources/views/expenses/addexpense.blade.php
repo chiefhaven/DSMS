@@ -235,7 +235,7 @@
             });
         }
 
-        function notification($text, $icon){
+        const notification = ($text, $icon) =>{
             Swal.fire({
                 toast: true,
                 position: "top-end",

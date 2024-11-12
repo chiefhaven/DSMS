@@ -106,7 +106,7 @@ Route::get('/instructors', [InstructorController::class, 'index'])->middleware('
 Route::get('/viewinstructor', [InstructorController::class, 'show'])->middleware('auth')->name('instructors');
 Route::get('/addinstructor', [InstructorController::class, 'create'])->middleware('auth')->name('instructors');
 Route::post('/storeinstructor', [InstructorController::class, 'store'])->middleware('auth')->name('instructors');
-Route::post('/editinstructor/{id}', [InstructorController::class, 'edit'])->middleware('auth')->name('instructors');
+Route::get('/editinstructor/{id}', [InstructorController::class, 'edit'])->middleware('auth')->name('instructors');
 Route::post('/updateinstructor', [InstructorController::class, 'update'])->middleware('auth')->name('instructors');
 Route::delete('/deleteinstructor/{id}', [InstructorController::class, 'destroy'])->middleware('auth')->name('instructors');
 Route::get('/instructor-search', [InstructorController::class, 'instructorSearch'])->name('instructorSearch');
