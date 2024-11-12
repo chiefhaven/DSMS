@@ -70,7 +70,7 @@
                         <label class="form-label" for="example-email-input-floating">Phone</label>
                     </div>
                     <div class="mb-4 form-floating">
-                      <input type="text" class="form-control" id="email_address" name="email" placeholder="Instructor's email address" value="{{$instructor->user->email}}">
+                      <input type="email" class="form-control" id="email_address" name="email" placeholder="Email address" value="{{$instructor->user->email}}">
                         <label class="form-label" for="example-email-input-floating">Email address</label>
                     </div>
                     <div class="mb-4 form-floating">
@@ -93,22 +93,6 @@
                       </select>
                       <label for="district">Lesson to teach</label>
                     </div>
-                  </div>
-                  <div class=" content-heading"><p>&nbsp;</p></div>
-                  <div class="col-lg-4">
-                    <p class="text-muted">
-                      Login details
-                    </p>
-                  </div>
-                  <div class="col-lg-8 col-xl-5">
-                      <div class="form-floating mb-4">
-                        <input type="text" class="form-control" id="username" name="username" placeholder="Administrator's username">
-                        <label class="form-label" for="example-email-input-floating">Username</label>
-                      </div>
-                      <div class="form-floating mb-4">
-                        <input type="password" class="form-control" id="password" name="password" placeholder="password">
-                        <label class="form-label" for="example-email-input-floating">Password</label>
-                      </div>
                   </div>
                 </div>
                 <div class="row push">

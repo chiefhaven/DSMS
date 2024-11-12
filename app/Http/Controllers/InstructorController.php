@@ -167,13 +167,12 @@ class InstructorController extends Controller
         $this->validate($request, [
             'first_name'  =>'required',
             'sir_name' =>'required',
-            'email'   =>'required',
+            'email'          => 'required|unique:users,email,' . Instructor::find($request->instructor_id)->user->id,
             'address' =>'required',
             'gender'  =>'required',
             'date_of_birth' =>'required',
             'district' =>'required',
             'phone' =>'required',
-            'password' =>'required'
 
         ], $messages);
 
