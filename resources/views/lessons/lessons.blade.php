@@ -178,7 +178,8 @@
         };
 
         const postLesson = async () => {
-            NProgress.start()
+            NProgress.start();
+
             try {
                 // Prepare the payload
                 const payload = {
@@ -188,30 +189,48 @@
                 };
 
                 // Determine if this is an update or a new lesson
-                let response;
-                if (state.value.lessonId) {
-                    // Update an existing lesson
-                    response = await axios.put(`/updatelesson/${state.value.lessonId}`, payload);
+                const endpoint = state.value.lessonId
+                    ? `/updatelesson/${state.value.lessonId}`
+                    : '/storelesson';
+                const method = state.value.lessonId ? 'put' : 'post';
+
+                // Send the request
+                const response = await axios[method](endpoint, payload);
+
+                if (response.status === 200 || response.status === 201) {
+                    // Handle success
+                    notification('Lesson saved successfully.', 'success');
+
+                    // Reset the form
+                    resetForm();
+
+                    // Close the modal
+                    closeForm();
+
+                    // Refresh the lesson list
+                    fetchLessons();
                 } else {
-                    // Add a new lesson
-                    response = await axios.post('/storelesson', payload);
+                    throw new Error('Unexpected response status');
                 }
-
-                // Handle success
-                notification('Lesson saved successfully:', 'success');
-
-                // Reset modal state
-                closeForm();
-
-                // Refresh the lesson list (if applicable)
-                fetchLessons();
             } catch (error) {
+                console.error('Error saving lesson:', error);
 
-                // Optionally, show an error message
-                notification('Failed to save the lesson. Please try again.', 'error');
-            } finally{
+                notification(
+                    error.response?.data?.message || 'Failed to save the lesson. Please try again.',
+                    'error'
+                );
+            } finally {
                 NProgress.done();
             }
+        };
+
+        const resetForm = () => {
+            state.value.name = '';
+            state.value.description = '';
+            state.value.lesson_type = '';
+            state.value.lessonId = null; // Reset the ID for a new lesson
+            state.value.modalTitle = 'Add Lesson'; // Set default title
+            state.value.buttonName = 'Save'; // Set default button label
         };
 
         const fetchLessons = async () => {
