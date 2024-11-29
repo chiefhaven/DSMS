@@ -1,10 +1,10 @@
 <x-guest-layout>
     <x-auth-card>
 
-            @section('project_title', config('app.name'))
+            @section('project_title', config('app.school_name'))
 
         <x-slot name="logo">
-                <h1 style="font-size: 2.7em; text-align:center; color:aliceblue"><strong>{{ env('APP_NAME')}}</strong></h1>
+                <h1 style="font-size: 2.7em; text-align:center; color:aliceblue"><strong>{{ env('SCHOOL_NAME')}}</strong></h1>
         </x-slot>
 
         <!-- Session Status -->

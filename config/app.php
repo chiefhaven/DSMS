@@ -30,6 +30,9 @@ return [
 
     'env' => env('APP_ENV', 'production'),
 
+
+    'school_name' => env('SCHOOL_NAME', 'Mbira DSMS'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Debug Mode
