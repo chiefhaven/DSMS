@@ -118,7 +118,6 @@
                     state.value.description = selectedLesson.description;
                     state.value.lesson_type = selectedLesson.type;
                 } else {
-                    console.warn('Lesson not found!');
                     return; // Exit if lesson is invalid
                 }
             } else {
@@ -169,7 +168,7 @@
                     notification('Lesson deleted successfully.', 'success');
 
                     // Update local state to remove the deleted lesson
-                    lessons.value = lessons.value.filter((l) => l.id !== lesson.id);
+                    lessons.value = lessons.value.filter((l) => l.id !== lesson);
                 } else {
                     notification('Failed to delete the lesson.', 'error');
                 }
@@ -207,7 +206,6 @@
                 // Refresh the lesson list (if applicable)
                 fetchLessons();
             } catch (error) {
-                console.error('Error saving lesson:', error.response?.data || error.message);
 
                 // Optionally, show an error message
                 notification('Failed to save the lesson. Please try again.', 'error');
@@ -225,10 +223,9 @@
                 lessons.value = response.data;
 
             } catch (error) {
-                console.error('Error fetching lessons:', error.response?.data || error.message);
 
                 // Optionally, show an error message
-                alert('Failed to load lessons. Please try again later.');
+                notification('Failed to load lessons. Please try again later.', 'error');
             }
         };
 
