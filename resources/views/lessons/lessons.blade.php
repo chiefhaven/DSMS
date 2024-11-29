@@ -1,6 +1,7 @@
 @extends('layouts.backend')
 
 @section('content')
+<div id="lessons">
   <!-- Hero -->
   <div class="bg-body-light">
     <div class="content content-full">
@@ -8,8 +9,8 @@
         <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Lessons</h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
           <ol class="breadcrumb">
-            <a href="/addlesson" class="btn btn-primary">
-                    <i class="fa fa-fw fa-plus mr-1"></i> Add Lesson
+            <a href="#" class="btn btn-primary" @click.prevent="openAddLessonModal('null')">
+                <i class="fa fa-fw fa-plus mr-1"></i> Add Lesson
             </a>
           </ol>
         </nav>
@@ -18,59 +19,45 @@
   </div>
 
   <div class="content content-full">
-    @if(Session::has('message'))
-      <div class="alert alert-info">
-        {{Session::get('message')}}
-      </div>
-    @endif
-    @if ($errors->any())
-      <div class="alert alert-danger">
-          <ul>
-              @foreach ($errors->all() as $error)
-                  <li>{{ $error }}</li>
-              @endforeach
-          </ul>
-      </div>
-    @endif
       <div class="block-content">
       <div class="row">
-        @foreach ($lessons as $lesson)
-        <div class="col-md-6 col-xl-3">
+        <div class="col-md-6 col-xl-3" v-for="lesson in lessons" :key="lesson.id">
             <div class="block block-rounded block-link-shadow text-center">
                 <div class="block-content block-content-full p-5">
                     <i class="fa fa-fw fa-book fa-2xl text-large"></i>
                 </div>
                 <div class="block-content block-content-full block-content-sm bg-body-light">
-                    <p class="font-w600 mb-0">{{$lesson->name}}</p>
+                    @{{lesson.name}} <br>
+                    <div class="text-muted text-small">
+                        @{{lesson.type}}
+                    </div>
                 </div>
                 <div class="block-content block-content-full overflow-visible">
-                    <div class="row gutters-tiny">
-                        <div class="col-10">
+                    <div class="row ">
+                        <div class="col-md-12">
                             <p class="mb-2">
                                 <p class="font-size-sm font-italic text-muted mb-0">
-                                    {{$lesson->description}}
+                                    @{{lesson.description}}
                                 </p>
                             </p>
                         </div>
-                        <div class="col-2 col-md-2">
+                        <div class="col-md-12">
                             <div class="dropdown d-inline-block">
-                                <button type="button" class="btn btn-clear" id="" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
+                                <button type="button" class="btn btn-sm btn-primary" id="" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Action
                                 </button>
                                 <div class="dropdown-menu dropdown-menu-end p-0">
                                 <div class="p-2">
-                                    <a class="dropdown-item" href="{{ url('/view-lesson', $lesson->id) }}">
-                                    View
+                                    <a class="dropdown-item" href="{{ url('/view-lesson') }}">
+                                        View
                                     </a>
-                                    <form method="POST" action="{{ url('/edit-lesson', $lesson->id) }}">
-                                    {{ csrf_field() }}
-                                    <button class="dropdown-item" type="submit">Edit</button>
-                                    </form>
-                                    <form method="POST" action="{{ url('/delete-lesson', $lesson->id) }}">
-                                    {{ csrf_field() }}
-                                    {{ method_field('DELETE') }}
-                                    <button class="dropdown-item delete-confirm" type="submit">Delete</button>
-                                    </form>
+                                    <button class="dropdown-item" @click="openAddLessonModal(lesson.id)">
+                                        Edit
+                                    </button>
+
+                                    <button class="dropdown-item" @click="confirmDeleteLesson(lesson.id)">
+                                        Delete
+                                    </button>
                                 </div>
                                 </div>
                             </div>
@@ -79,13 +66,13 @@
                 </div>
             </div>
         </div>
-        @endforeach
       </div>
-
+      @include('lessons/includes/addLessonModal')
       </div>
-    </div>
+  </div>
+</div>
   <!-- END Hero -->
-  <script type="text/javascript">
+<script>
     $('.delete-confirm').on('click', function (e) {
         e.preventDefault();
         var form = $(this).parents('form');
@@ -100,6 +87,182 @@
                 }
         });
     });
+
+    const { createApp, ref, reactive, onMounted } = Vue
+
+    const lessons = createApp({
+      setup() {
+        const showAddLessonModal = ref(false);
+        const lessonData = ref({});
+        const lessons = ref([]);
+        const state = ref({
+            modalTitle: 'Add lesson',
+            buttonName:'Save',
+            lesson_type: 'Practical',
+            name:'',
+            description:'',
+            lessonId:null,
+        })
+
+        const openAddLessonModal = (lesson) => {
+            if (lesson != 'null') {
+                // Populate modal for editing
+                state.value.modalTitle = 'Edit Lesson';
+                state.value.buttonName = 'Update';
+
+                // Ensure lesson exists in the lessons array/object
+                const selectedLesson = lessons.value.find((l) => l.id === lesson);
+                if (selectedLesson) {
+                    state.value.lessonId = selectedLesson.id;
+                    state.value.name = selectedLesson.name;
+                    state.value.description = selectedLesson.description;
+                    state.value.lesson_type = selectedLesson.type;
+                } else {
+                    console.warn('Lesson not found!');
+                    return; // Exit if lesson is invalid
+                }
+            } else {
+                // Reset modal for adding a new lesson
+                state.value.modalTitle = 'Add Lesson';
+                state.value.buttonName = 'Save';
+                state.value.lessonData = { name: '', description: '' }; // Clear form data
+            }
+
+            showAddLessonModal.value = true;
+        };
+
+        onMounted(() => {
+            fetchLessons();
+        });
+
+
+        const closeForm = () => {
+            showAddLessonModal.value = false;
+        }
+
+        const confirmDeleteLesson = async(lessonId) => {
+            Swal.fire({
+                title: 'Delete Lesson?',
+                text: 'Do you want to delete this lesson? This action cannot be undone!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Delete!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    deleteLesson(lessonId);
+                }
+            });
+        };
+
+        const deleteLesson = async(lesson) => {
+            if (!lesson) {
+                notification('Invalid lesson provided for deletion.', 'error');
+                return;
+            }
+
+            // Perform the delete action
+            try {
+                const response = await axios.delete(`/delete-lesson/${lesson}`);
+
+                if (response.status === 200) {
+                    notification('Lesson deleted successfully.', 'success');
+
+                    // Update local state to remove the deleted lesson
+                    lessons.value = lessons.value.filter((l) => l.id !== lesson.id);
+                } else {
+                    notification('Failed to delete the lesson.', 'error');
+                }
+            } catch (error) {
+                notification(error.response.data.message, 'error');
+            }
+        };
+
+        const postLesson = async () => {
+            NProgress.start()
+            try {
+                // Prepare the payload
+                const payload = {
+                    lesson_name: state.value.name,
+                    lesson_description: state.value.description,
+                    lesson_type: state.value.lesson_type,
+                };
+
+                // Determine if this is an update or a new lesson
+                let response;
+                if (state.value.lessonId) {
+                    // Update an existing lesson
+                    response = await axios.put(`/updatelesson/${state.value.lessonId}`, payload);
+                } else {
+                    // Add a new lesson
+                    response = await axios.post('/storelesson', payload);
+                }
+
+                // Handle success
+                notification('Lesson saved successfully:', 'success');
+
+                // Reset modal state
+                closeForm();
+
+                // Refresh the lesson list (if applicable)
+                fetchLessons();
+            } catch (error) {
+                console.error('Error saving lesson:', error.response?.data || error.message);
+
+                // Optionally, show an error message
+                notification('Failed to save the lesson. Please try again.', 'error');
+            } finally{
+                NProgress.done();
+            }
+        };
+
+        const fetchLessons = async () => {
+            try {
+                // Send GET request to fetch lessons
+                const response = await axios.get('/getLessons');
+
+                // Update the lesson list in state
+                lessons.value = response.data;
+
+            } catch (error) {
+                console.error('Error fetching lessons:', error.response?.data || error.message);
+
+                // Optionally, show an error message
+                alert('Failed to load lessons. Please try again later.');
+            }
+        };
+
+
+        const notification = ($text, $icon) =>{
+            Swal.fire({
+                toast: true,
+                position: "top-end",
+                html: $text,
+                showConfirmButton: false,
+                timer: 5500,
+                timerProgressBar: true,
+                icon: $icon,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                  }
+              });
+        }
+
+        return {
+            state,
+            showAddLessonModal,
+            closeForm,
+            openAddLessonModal,
+            postLesson,
+            lessonData,
+            lessons,
+            confirmDeleteLesson,
+        }
+      }
+    })
+
+    lessons.mount('#lessons')
 
 </script>
 

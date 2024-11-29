@@ -28,6 +28,12 @@ class LessonController extends Controller
         return view('lessons.lessons', compact('lessons'));
     }
 
+    public function getLessons()
+    {
+        $lessons = Lesson::get();
+        return response()->json($lessons, 200);
+    }
+
     /**
      * Show the form for creating a new resource.
      *
@@ -103,31 +109,33 @@ class LessonController extends Controller
      * @param  \App\Models\Lesson  $lesson
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateLessonRequest $request, Lesson $lesson)
+    public function update(UpdateLessonRequest $request, $lesson)
     {
         $messages = [
             'lesson_name.required' => 'Lesson name is required!',
-            'lesson_description.required'   => 'Lesson description is required'
+            'lesson_description.required' => 'Lesson description is required!',
+            'lesson_type.required' => 'Lesson type is required!',
+            'lesson_type.in' => 'Lesson type must be either "practical" or "theory"!',
         ];
 
         // Validate the request
         $this->validate($request, [
-            'lesson_name'  =>'required',
-            'lesson_description' =>'required'
-
+            'lesson_name' => 'required|string',
+            'lesson_description' => 'required|string',
+            'lesson_type' => 'required|in:practical,theory',
         ], $messages);
 
         $post = $request->All();
 
-        $lesson = Lesson::find($post['lesson_id']);
+        $lesson = Lesson::find($lesson);
 
         $lesson->name = $post['lesson_name'];
         $lesson->description = $post['lesson_description'];
+        $lesson->type = $post['lesson_type'];
 
         $lesson->save();
 
-        Alert::toast('Lesson updated successifully', 'success');
-        return redirect('/lessons');
+        return response()->json('Lesson updated successifully', 200);
     }
 
     /**
@@ -138,20 +146,30 @@ class LessonController extends Controller
      */
     public function destroy($id)
     {
+        // Check if the lesson exists
+        $lesson = Lesson::find($id);
+
+        if (!$lesson) {
+            return response()->json([
+                'message' => 'Lesson not found.'
+            ], 404);
+        }
+
+        // Check for related attendances
         $attendanceCount = Attendance::where('lesson_id', $id)->count();
 
-        if($attendanceCount >= 1){
-
-            $message ="There are attendances related to this course, lesson can not be deleted";
+        if ($attendanceCount > 0) {
+            return response()->json([
+                'message' => 'There are attendances related to this lesson. The lesson cannot be deleted.'
+            ], 400);
         }
 
-        else{
+        // Delete the lesson
+        $lesson->delete();
 
-            Lesson::find($id)->delete();
-            $message ="Lesson deleted";
-        }
-
-        Alert::toast($message, 'warning');
-        return redirect()->back();
+        return response()->json([
+            'message' => 'Lesson deleted successfully.'
+        ], 200);
     }
+
 }

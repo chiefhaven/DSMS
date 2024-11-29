@@ -79,12 +79,13 @@ Route::delete('/delete-course/{id}', [CourseController::class, 'destroy'])->midd
 Route::post('/updatecourse', [CourseController::class, 'update'])->middleware('auth')->name('courses');
 
 Route::get('/lessons', [LessonController::class, 'index'])->middleware('auth')->name('lessons');
+Route::get('/getLessons', [LessonController::class, 'getLessons'])->middleware('auth')->name('getLessons');
 Route::get('/view-lesson/{id}', [LessonController::class, 'show'])->middleware('auth')->name('viewlessons');
 Route::get('/addlesson', [LessonController::class, 'create'])->middleware('auth')->name('addlessons');
 Route::post('/storelesson', [LessonController::class, 'store'])->middleware('auth')->name('editlessons');
 Route::post('/edit-lesson/{id}', [LessonController::class, 'edit'])->middleware('auth')->name('edit_lessons');
 Route::delete('/delete-lesson/{id}', [LessonController::class, 'destroy'])->middleware('auth')->name('delete_lessons');
-Route::post('/updatelesson', [LessonController::class, 'update'])->middleware('auth')->name('updatelesson');
+Route::put('/updatelesson/{id}', [LessonController::class, 'update'])->middleware('auth')->name('updatelesson');
 
 Route::get('/invoices', [InvoiceController::class, 'index'])->middleware('auth')->name('invoices');
 Route::get('/view-invoice/{id}', [InvoiceController::class, 'show'])->middleware('auth')->name('view-invoice');
