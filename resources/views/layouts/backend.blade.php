@@ -84,10 +84,10 @@
           <!-- Logo -->
           <a class="fw-semibold text-white tracking-wide" href="{{ url('/') }}">
             <span class="smini-visible">
-                ${APP_NAME}
+                ${SCHOOL_NAME}
             </span>
             <span class="smini-hidden">
-                {{ env('APP_NAME')}}
+                {{ env('SCHOOL_NAME')}}
             </span>
             </span>
           </a>

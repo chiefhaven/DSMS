@@ -44,16 +44,24 @@
                 </a>
                 <ul class="nav-main-submenu">
                     <li class="nav-main-item">
+                        <a class="nav-main-link" href="{{ url('/classes') }}">
+                            <span class="nav-main-link-name">Classes</span>
+                        </a>
+                    </li>
+                    <li class="nav-main-item">
                         <a class="nav-main-link" href="{{ url('/courses') }}">
                             <span class="nav-main-link-name">Courses</span>
                         </a>
-                        </li>
-                    </ul>
-                <ul class="nav-main-submenu">
-                <li class="nav-main-item">
-                    <a class="nav-main-link" href="{{ url('/lessons') }}">
-                        <span class="nav-main-link-name">Lessons</span>
-                    </a>
+                    </li>
+                    <li class="nav-main-item">
+                        <a class="nav-main-link" href="{{ url('/lessons') }}">
+                            <span class="nav-main-link-name">Lessons</span>
+                        </a>
+                    </li>
+                    <li class="nav-main-item">
+                        <a class="nav-main-link" href="{{ url('/fleet') }}">
+                            <span class="nav-main-link-name">Fleet</span>
+                        </a>
                     </li>
                 </ul>
             </li>
@@ -128,19 +136,6 @@
             @endcan
 
             @role(['superAdmin', 'admin'])
-                <li class="nav-main-item">
-                    <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false">
-                        <i class="nav-main-link-icon fa fa-car"></i>
-                        <span class="nav-main-link-name">Fleet</span>
-                    </a>
-                    <ul class="nav-main-submenu">
-                    <li class="nav-main-item">
-                        <a class="nav-main-link" href="{{ url('/fleet') }}">
-                            <span class="nav-main-link-name">All fleet</span>
-                        </a>
-                        </li>
-                    </ul>
-                </li>
                 <li class="nav-main-item">
                     <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false">
                         <i class="nav-main-link-icon fa fa-envelope"></i>

@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
 
 class Course extends Model
 {
-    use HasFactory;
+    use Notifiable, HasUuids, HasFactory;
+    protected $keyType = 'string';
+    public $incrementing = false;
 
     public function Student()
     {
@@ -34,8 +38,10 @@ class Course extends Model
        return $this->hasMany(Attendance::class);
     }
 
-    public function Lesson()
+    public function Lessons()
     {
-        return $this->belongsToMany(Lesson::class);
+        return $this->belongsToMany(Lesson::class, 'course_lesson')
+                ->withPivot('lesson_quantity')
+                ->withTimestamps();
     }
 }

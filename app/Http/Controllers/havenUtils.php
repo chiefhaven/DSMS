@@ -14,6 +14,7 @@
     use Carbon\Carbon;
     use SimpleSoftwareIO\QrCode\Facades\QrCode;
     use Auth;
+    use Illuminate\Http\Request;
 
     use RealRashid\SweetAlert\Facades\Alert;
 
@@ -60,6 +61,24 @@
 
             }
 
+        }
+
+        public function autocompleteLessonSearch(Request $request)
+        {
+            $datas = \DB::table('lessons')
+                ->where(function($query) use ($request) {
+                $query->where('name', 'LIKE', "%{$request->student}%")
+                    ->orWhere('description', 'LIKE', "%{$request->student}%");
+            })
+            ->get();
+
+            $dataModified = array();
+
+            foreach ($datas as $data){
+            $dataModified[] = $data->name;
+            }
+
+            return response()->json($dataModified);
         }
 
         static function studentID_InvoiceNumber($invoiceNumber){

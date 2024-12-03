@@ -27,7 +27,7 @@ class CourseController extends Controller
      */
     public function index()
     {
-        $course = Course::with('Student', 'Invoice')->get();
+        $course = Course::with('Student', 'Invoice', 'Lessons')->get();
         $invoiceCount = Invoice::all()->groupBy('course_id');
         return view('courses.courses', compact('course', 'invoiceCount'));
     }
@@ -99,9 +99,21 @@ class CourseController extends Controller
      */
     public function show($id)
     {
-       $course = Course::with('Instructor')->find($id);
-       return view('courses.viewcourse', compact('course'));
+        // Fetch the course along with the related instructor
+        $course = Course::with('Instructor', 'lessons')->find($id);
+
+        // Get the count of theory and practical lessons
+        $theoryCount = $course->lessons()->where('type', 'theory')->count();
+        $practicalCount = $course->lessons()->where('type', 'practical')->count();
+
+        // Return a JSON response with actual values
+        return response()->json([
+            'course' => $course, // course data
+            'theoryCount' => $theoryCount, // theory lesson count
+            'practicalCount' => $practicalCount, // practical lesson count
+        ]);
     }
+
 
     /**
      * Show the form for editing the specified resource.

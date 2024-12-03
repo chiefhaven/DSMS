@@ -20,7 +20,7 @@
         "barryvdh/laravel-dompdf": "^2.0",
         "composer/semver": "^3.0",
         "consoletvs/charts": "^6.5",
-        "doctrine/dbal": "^2.13.1",
+        "doctrine/dbal": "^3.6",
         "giggsey/libphonenumber-for-php": "^8.12",
         "guzzlehttp/guzzle": "^7.2",
         "havenplus/malawi-disctricts": "^1.0",

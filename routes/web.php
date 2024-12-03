@@ -11,12 +11,14 @@ use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\AdministratorController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\InvoiceSettingController;
 use App\Http\Controllers\FleetController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationTemplateController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\havenUtils;
 use App\Http\Controllers\QrCodeController;
 use App\Models\Announcement;
 use Illuminate\Support\Facades\Artisan;
@@ -71,7 +73,10 @@ Route::get('/attendance-student-search', [AttendanceController::class, 'autocomp
 Route::post('/attendanceSummary', [AttendanceController::class, 'attendanceSummary'])->name('attendanceSummary');
 
 Route::get('/courses', [CourseController::class, 'index'])->middleware('auth')->name('courses');
-Route::get('/view-course/{id}', [CourseController::class, 'show'])->middleware('auth')->name('courses');
+Route::get('/view-course/{id}', function ($courseId) {
+    return view('courses.viewcourse', compact('courseId'));
+})->middleware('auth')->name('view-course');
+Route::get('/course-details/{id}', [CourseController::class, 'show'])->middleware('auth')->name('courseDetails');
 Route::get('/addcourse', [CourseController::class, 'create'])->middleware('auth')->name('addcourse');
 Route::post('/storecourse', [CourseController::class, 'store'])->middleware('auth')->name('editcourse');
 Route::post('/edit-course/{id}', [CourseController::class, 'edit'])->middleware('auth')->name('edit-course');
@@ -86,6 +91,15 @@ Route::post('/storelesson', [LessonController::class, 'store'])->middleware('aut
 Route::post('/edit-lesson/{id}', [LessonController::class, 'edit'])->middleware('auth')->name('edit_lessons');
 Route::delete('/delete-lesson/{id}', [LessonController::class, 'destroy'])->middleware('auth')->name('delete_lessons');
 Route::put('/updatelesson/{id}', [LessonController::class, 'update'])->middleware('auth')->name('updatelesson');
+
+Route::get('/classes', [ClassroomController::class, 'index'])->middleware('auth')->name('classrooms');
+Route::get('/getClassRooms', [ClassroomController::class, 'getClassrooms'])->middleware('auth')->name('getClassrooms');
+Route::get('/view-classroom/{id}', [ClassroomController::class, 'show'])->middleware('auth')->name('view_classrooms');
+Route::get('/addclassroom', [ClassroomController::class, 'create'])->middleware('auth')->name('add_classrooms');
+Route::post('/storeclassroom', [ClassroomController::class, 'store'])->middleware('auth')->name('store_classrooms');
+Route::post('/edit-classroom/{id}', [ClassroomController::class, 'edit'])->middleware('auth')->name('edit_classrooms');
+Route::delete('/delete-classroom/{id}', [ClassroomController::class, 'destroy'])->middleware('auth')->name('delete_classrooms');
+Route::put('/updateclassroom/{id}', [ClassroomController::class, 'update'])->middleware('auth')->name('update_classrooms');
 
 Route::get('/invoices', [InvoiceController::class, 'index'])->middleware('auth')->name('invoices');
 Route::get('/view-invoice/{id}', [InvoiceController::class, 'show'])->middleware('auth')->name('view-invoice');
@@ -189,4 +203,7 @@ Route::get("/scanqrcode", function(){
     Artisan::call('migrate', ['--force' => true]);
     return response()->json(['message' => 'Database migration completed successfully!']);
 })->middleware(['auth']);
+
+Route::get('/lesson-search', [havenUtils::class, 'autocompleteLessonSearch'])->middleware('auth')->name('lesson-search');
+
 

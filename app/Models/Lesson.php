@@ -2,14 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
 
 class Lesson extends Model
 {
-    use HasFactory;
+    use Notifiable, HasUuids, HasFactory;
+    protected $keyType = 'string';
+    public $incrementing = false;
 
-    public function Course()
+    public function Courses()
     {
         return $this->belongsToMany(Course::class);
     }
