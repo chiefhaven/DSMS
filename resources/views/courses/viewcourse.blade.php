@@ -98,7 +98,9 @@
         const courseId = {{ $courseId }};
         const showActions = ref(false);
         const showCourseLessons = ref(true);
-        const lessonName = ref();
+        const lessonName = ref('');
+        const lesson_quantities = ref([]);
+        const lesson_orders = ref([]);
 
         const course = ref({
             id: "1",
@@ -142,22 +144,22 @@
             showActions.value = false;
         }
 
-        const confirmDeleteLesson = async(lessonId) => {
+        const confirmRemoveLesson = async(lesson) => {
             Swal.fire({
                 title: 'Delete Lesson?',
-                text: 'Do you want to delete this lesson? This action cannot be undone!',
+                text: 'Do you want to remove this lesson? This action cannot be undone!',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Delete!',
                 cancelButtonText: 'Cancel'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    deleteLesson(lessonId);
+                    removeLesson(lesson);
                 }
             });
         };
 
-        const deleteLesson = async(lesson) => {
+        const removeLesson = async(lesson) => {
             if (!lesson) {
                 notification('Invalid lesson provided for deletion.', 'error');
                 return;
@@ -165,18 +167,11 @@
 
             // Perform the delete action
             try {
-                const response = await axios.delete(`/delete-lesson/${lesson}`);
 
-                if (response.status === 200) {
-                    notification('Lesson deleted successfully.', 'success');
+                courseLessons.value = courseLessons.value.filter((l) => l.id !== lesson);
 
-                    // Update local state to remove the deleted lesson
-                    lessons.value = lessons.value.filter((l) => l.id !== lesson);
-                } else {
-                    notification('Failed to delete the lesson.', 'error');
-                }
             } catch (error) {
-                notification(error.response.data.message, 'error');
+                notification('error.response.data.message', 'error');
             }
         };
 
@@ -192,18 +187,22 @@
             NProgress.start();
 
             try {
+
                 // Prepare the payload
                 const payload = {
-                    lesson_name: state.value.name,
-                    lesson_description: state.value.description,
-                    lesson_type: state.value.lesson_type,
+                    courseLessons: courseLessons.value.map((lesson) => ({
+                        id: lesson.id,
+                        lesson_quantity: lesson.pivot.lesson_quantity,
+                        order: lesson.pivot.order,
+                    })),
+                    courseId: courseId,
                 };
 
                 // Determine if this is an update or a new lesson
-                const endpoint = state.value.lessonId
-                    ? `/updatelesson/${state.value.lessonId}`
+                const endpoint = courseId
+                    ? `/update-course-lesson`
                     : '/storelesson';
-                const method = state.value.lessonId ? 'put' : 'post';
+                const method = courseId ? 'put' : 'post';
 
                 // Send the request
                 const response = await axios[method](endpoint, payload);
@@ -211,6 +210,9 @@
                 if (response.status === 200 || response.status === 201) {
                     // Handle success
                     notification('Lesson saved successfully.', 'success');
+                    closeForm();
+                    fetchCourseDetails(courseId);
+
                 } else {
                     throw new Error('Unexpected response status');
                 }
@@ -226,21 +228,119 @@
             }
         };
 
-        const onLessonChange = (event) => {
-            lessonName.value = event.target.value;  // Now you should have access to your selected option.
+        function onLessonChange(event) {
+            addLesson(); // Adds a new lesson
         }
+
+        const addLesson = (quantity = 1, order = 0) => {
+            // Ensure lesson_quantities and lesson_orders are arrays
+            if (!Array.isArray(lesson_quantities.value)) {
+                lesson_quantities.value = [];
+            }
+            if (!Array.isArray(lesson_orders.value)) {
+                lesson_orders.value = [];
+            }
+
+            // Add the new quantity and order to their respective arrays
+            lesson_quantities.value.push(quantity);
+            lesson_orders.value.push(order);
+        };
 
         const lessonSearch = () => {
-            var path = "{{ route('lesson-search') }}";
-            $('#lesson').typeahead({
-                source:  function (query, process) {
-                return $.get(path, { query: query }, function (data) {
-                        return process(data);
-                    });
-                }
-            });
-        }
+            NProgress.start();
+            const path = "{{ route('lesson-search') }}";
 
+            $('#lesson').typeahead({
+                minLength: 1, // Start searching after typing 1 character
+                highlight: true, // Highlight matching results
+
+                // Fetch the data from the server
+                source: function (query, process) {
+                    clearTimeout(this.searchTimeout);
+                    this.searchTimeout = setTimeout(() => {
+                        $.get(path, { search: query }, function (data) {
+                            if (!data || data.length === 0) {
+                                notification('No lesson found. Add one if needed.', 'error');
+                            }
+
+                            process(data); // Pass data to typeahead
+                            NProgress.done();
+                        }).fail(function () {
+                            console.error('Error fetching lessons');
+                            notification(
+                                "There was an issue fetching the lessons. Please try again later.",
+                                'error'
+                            );
+                        });
+                    }, 300); // Delay of 300ms
+                },
+
+                // Define how to display suggestions
+                displayText: function (item) {
+                    return item.name; // Display the lesson name in the dropdown
+                },
+
+                // Handle the event when a suggestion is selected
+                afterSelect: function (item) {
+
+                    // Check if the lesson already exists in the courseLessons array
+                    const existingLesson = courseLessons.value.find(
+                        (lesson) => lesson.id === item.id
+                    );
+
+                    if (existingLesson) {
+                        // Increment the quantity if the lesson already exists
+                        existingLesson.pivot.lesson_quantity += 1;
+
+                        // Ensure lesson_quantities is initialized and update it
+                        if (!lesson_quantities.value[existingLesson.id]) {
+                            lesson_quantities.value[existingLesson.id] = 0;
+                        }
+
+                        lesson_quantities.value[existingLesson.id] += 1;
+
+                    } else {
+                        // Add a new lesson to the courseLessons array
+                        courseLessons.value.push({
+                            ...item,
+                            pivot: {
+                                lesson_quantity: 1,
+                                course_id: courseId,
+                                lesson_id: item.id,
+                            },
+                        });
+
+                        // Initialize lesson quantity for the new lesson
+                        lesson_quantities.value[item.id] = 1;
+                        lesson_orders.value[item.id] = 0;
+                    }
+
+                    // Clear the search input after adding the lesson
+                    $('#lesson').val('');
+                },
+
+            });
+        };
+
+        const validateQuantity = (index) => {
+            if (lesson_quantities.value[index] < 1 && lesson_orders.value[index] < 1) {
+                lesson_quantities.value[index] = 1; // Reset to minimum allowed value
+                lesson_orders.value[index] = 0; // Reset to minimum allowed value
+            }
+        };
+
+        const handleRowChanges = (index) => {
+            // Validate the quantity to ensure it's not less than the minimum allowed value
+            validateQuantity(index);
+
+            // Retrieve the lesson from the selectedProducts array using the index
+            const lesson = courseLessons.value[index];
+            if (lesson) {
+                // Update the lesson's quantity
+                lesson.pivot.lesson_quantity = lesson_quantities.value[index];
+                lesson.pivot.order = lesson_orders.value[index];
+            }
+        };
 
         const fetchCourseDetails = async (courseId) => {
             // Start the loading progress bar
@@ -252,13 +352,25 @@
 
                 // Check if response contains valid data
                 if (response.data) {
-                    
-                    courseLessons.value = response.data.course.lessons.sort((a, b) => a.order - b.order);
+
+                    courseLessons.value = (response.data.course.lessons || []).sort(
+                        (a, b) => (a.pivot?.order || 0) - (b.pivot?.order || 0)
+                    );
+
                     course.value = response.data.course || {};
+
                     theoryCount.value = response.data.theoryCount || 0;
+
                     practicalCount.value = response.data.practicalCount || 0;
 
-                    console.log('Course Details:', course.value);  // Log course details for debugging
+                    lesson_quantities.value = (response.data.course.lessons || []).map(
+                        lesson => lesson.pivot?.lesson_quantity || 0
+                    );
+
+                    lesson_orders.value = (response.data.course.lessons || []).map(
+                        lesson => lesson.pivot?.order || 0
+                    );
+
                 } else {
                     throw new Error('Invalid response data');
                 }
@@ -292,7 +404,7 @@
             OpenCourseLessonsModal,
             courseLessonsModal,
             closeForm,
-            confirmDeleteLesson,
+            confirmRemoveLesson,
             courseLessons,
             course,
             theoryCount,
@@ -305,7 +417,11 @@
             back,
             lessonName,
             onLessonChange,
-            lessonSearch
+            lessonSearch,
+            lesson_quantities,
+            lesson_orders,
+            handleRowChanges,
+            removeLesson
         }
       }
     })

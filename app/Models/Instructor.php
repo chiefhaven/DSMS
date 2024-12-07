@@ -35,4 +35,9 @@ class Instructor extends Model
     {
         return $this->hasOne(Fleet::class);
     }
+
+    public function classrooms()
+    {
+        return $this->hasMany(Classroom::class, 'classroom_instructor')->using(ClassroomInstructor::class);;
+    }
 }

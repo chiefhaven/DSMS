@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Classroom;
+use App\Models\Instructor;
 use App\Http\Requests\StoreClassroomRequest;
 use App\Http\Requests\UpdateClassroomRequest;
 
@@ -22,14 +23,14 @@ class ClassroomController extends Controller
      */
     public function index()
     {
-        $classrooms = Classroom::get(); // Retrieve all classrooms
-        return view('classrooms.classrooms', compact('classrooms')); // Pass classrooms to the view
+        $classrooms = Classroom::get();
+        return view('classrooms.classrooms', compact('classrooms'));
     }
 
     public function getClassrooms()
     {
-        $classrooms = Classroom::get(); // Retrieve all classrooms
-        return response()->json($classrooms, 200); // Return classrooms as JSON
+        $classrooms = Classroom::with('instructors')->get();
+        return response()->json($classrooms, 200);
     }
 
 
@@ -51,8 +52,27 @@ class ClassroomController extends Controller
      */
     public function store(StoreClassroomRequest $request)
     {
-        //
+        // Retrieve validated data
+        $data = $request->validated();
+
+        // Create the Classroom
+        $classroom = Classroom::create([
+            'name' => $data['name'],
+            'description' => $data['description'] ?? null,
+            'location' => $data['location'] ?? null,
+        ]);
+
+        // Assign the instructor to the classroom
+        $classroom->instructors()->attach($data['instructor']);
+        $classroom->save();
+
+        // Return success response
+        return response()->json([
+            'message' => 'Classroom created successfully!',
+            'classroom' => $classroom,
+        ], 201);
     }
+
 
     /**
      * Display the specified resource.
@@ -83,10 +103,33 @@ class ClassroomController extends Controller
      * @param  \App\Models\Classroom  $classroom
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateClassroomRequest $request, Classroom $classroom)
+    public function update(UpdateClassroomRequest $request, $classroom)
     {
-        //
+        // Retrieve validated data
+        $data = $request->validated();
+
+        $classroom = Classroom::find($classroom);
+
+        // Update the existing classroom
+        $classroom->update([
+            'name' => $data['name'],
+            'description' => $data['description'] ?? null,
+            'location' => $data['location'] ?? null,
+        ]);
+
+        // Update the assigned instructor(s)
+        if (isset($data['instructor'])) {
+            // Sync to update the relationship, replacing any existing instructors
+            $classroom->instructors()->sync($data['instructor']);
+        }
+
+        // Return success response
+        return response()->json([
+            'message' => 'Classroom updated successfully!',
+            'classroom' => $classroom->load('instructors'), // Load related instructors
+        ], 200);
     }
+
 
     /**
      * Remove the specified resource from storage.
@@ -94,8 +137,32 @@ class ClassroomController extends Controller
      * @param  \App\Models\Classroom  $classroom
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Classroom $classroom)
+    public function destroy($classroom)
     {
-        //
+        try {
+
+            $classroom = Classroom::find($classroom);
+
+            // Optionally check for related data and handle deletion logic
+            if ($classroom->students()->exists()) {
+                return response()->json([
+                    'message' => 'Classroom has associated students and cannot be deleted.'
+                ], 400);
+            }
+
+            // Delete the classroom
+            $classroom->delete();
+
+            return response()->json([
+                'message' => 'Classroom deleted successfully.'
+            ], 200);
+
+        } catch (\Exception $e) {
+            // Handle unexpected errors
+            return response()->json([
+                'message' => 'An error occurred while deleting the classroom.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

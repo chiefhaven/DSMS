@@ -41,34 +41,18 @@
             <div class="block block-rounded block-link-shadow text-center" href="javascript:void(0)">
                 <div class="block-content block-content-full">
                     <div class="row">
-                        <div class="col-md-8">
+                        <div class="col-md-12">
                             <img class="img-avatar" src="media/avatars/avatar6.jpg" alt="">
-                        </div>
-                        <div class="col-4">
-                            <div class="dropdown d-inline-block">
-                                <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <span class="d-sm-inline-block">Action</span>
-                                </button>
-                                <div class="dropdown-menu dropdown-menu-end p-0">
-                                    <div class="p-2">
-                                    <form method="GET" action="{{ url('/editinstructor', $instructor->id) }}">
-                                        {{ csrf_field() }}
-                                        <button class="dropdown-item" type="submit">Edit</button>
-                                    </form>
-                                    <form method="POST" action="{{ url('/deleteinstructor', $instructor->id) }}">
-                                        {{ csrf_field() }}
-                                        {{ method_field('DELETE') }}
-                                        <button class="dropdown-item delete-confirm" type="submit">Delete</button>
-                                    </form>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="block-content block-content-full block-content-sm bg-body-light">
-                    <h3 class="font-w600 mb-0">{{$instructor->fname}} {{$instructor->sname}}</h3>
+                    <h3 class="font-w600">{{$instructor->fname}} {{$instructor->sname}}</h3>
+                    <p>
+                        Department: {{$instructor->department}}<br>
+                        Status: {{$instructor->status}}
+                    </p>
                 </div>
                 <div class="block-content block-content-full">
                     <div class="row">
@@ -92,6 +76,27 @@
                                 @endif
                             </p>
                         </div>
+
+                        <div class="col-12 pt-4">
+                            <div class="dropdown d-inline-block">
+                                <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <span class="d-sm-inline-block">Action</span>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end p-0">
+                                    <div class="p-2">
+                                    <form method="GET" action="{{ url('/editinstructor', $instructor->id) }}">
+                                        {{ csrf_field() }}
+                                        <button class="dropdown-item" type="submit">Edit</button>
+                                    </form>
+                                    <form method="POST" action="{{ url('/deleteinstructor', $instructor->id) }}">
+                                        {{ csrf_field() }}
+                                        {{ method_field('DELETE') }}
+                                        <button class="dropdown-item delete-confirm" type="submit">Delete</button>
+                                    </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -107,11 +112,10 @@
         $('.delete-confirm').on('click', function(e) {
             e.preventDefault();
             var form = $(this).closest('form');
-            var instructorName = "{{ $instructor->fname }} {{ $instructor->sname }}";
 
             // Updated for SweetAlert2
             Swal.fire({
-                title: `Are you sure you want to delete ${instructorName}?`,
+                title: `Are you sure you want to delete instructor?`,
                 text: "All lessons belonging to this instructor will be transferred to the Super instructor.",
                 icon: "warning",
                 showCancelButton: true,

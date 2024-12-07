@@ -41,7 +41,7 @@ class Course extends Model
     public function Lessons()
     {
         return $this->belongsToMany(Lesson::class, 'course_lesson')
-                ->withPivot('lesson_quantity')
+                ->withPivot('lesson_quantity', 'order')
                 ->withTimestamps();
     }
 }

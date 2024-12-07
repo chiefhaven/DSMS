@@ -86,12 +86,11 @@
                       <label for="district">Distirct</label>
                     </div>
                     <div class="form-floating mb-4">
-                      <select class="form-select" id="lesson" name="lesson">
-                        @foreach ($lesson as $lesson)
-                           <option value="{{$lesson->name}}">{{$lesson->name}}</option>
-                        @endforeach
-                      </select>
-                      <label for="district">Lesson to teach</label>
+                        <select class="form-select" id="department" name="department">
+                            <option value="practical" {{ $instructor->department == 'practical' ? 'selected' : '' }}>Practical</option>
+                            <option value="theory" {{ $instructor->department == 'theory' ? 'selected' : '' }}>Theory</option>
+                        </select>
+                      <label for="department">Department</label>
                     </div>
                   </div>
                 </div>

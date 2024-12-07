@@ -65,21 +65,23 @@
 
         public function autocompleteLessonSearch(Request $request)
         {
-            $datas = \DB::table('lessons')
-                ->where(function($query) use ($request) {
-                $query->where('name', 'LIKE', "%{$request->student}%")
-                    ->orWhere('description', 'LIKE', "%{$request->student}%");
-            })
-            ->get();
+            // Retrieve the search term from the request
+            $searchTerm = $request->input('search');
 
-            $dataModified = array();
-
-            foreach ($datas as $data){
-            $dataModified[] = $data->name;
+            if (empty($searchTerm)) {
+                // Return an empty JSON response if no input is provided
+                return response()->json([]);
             }
 
-            return response()->json($dataModified);
+            // Fetch lessons matching the search term
+            $datas = \DB::table('lessons')
+                ->where('name', 'LIKE', "%{$searchTerm}%")
+                ->orWhere('description', 'LIKE', "%{$searchTerm}%")
+                ->get();
+
+            return response()->json($datas);
         }
+
 
         static function studentID_InvoiceNumber($invoiceNumber){
 

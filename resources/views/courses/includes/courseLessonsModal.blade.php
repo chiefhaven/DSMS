@@ -13,21 +13,21 @@
 
                 <!-- Modal Body -->
                 <div class="modal-body">
-                    <div class="row" v-if="showActions">
-                        <div class="col-md-12 p-4">
-                            <input 
-                                class="form-control"
-                                id="lesson" 
-                                name="lesson" 
-                                v-model="lessonName"
-                                @input="lessonSearch()"
-                                @blur="onLessonChange($event)" 
-                                placeholder="Start typing to search lesson..." 
-                                required
-                            >
+                    <div class="row p-4" v-if="showActions">
+                        <div class="col-md-12">
+                                <input
+                                    class="form-control"
+                                    id="lesson"
+                                    name="lesson"
+                                    v-model="lessonName"
+                                    @input="lessonSearch()"
+                                    @blur="onLessonChange($event)"
+                                    placeholder="Start typing to search lesson..."
+                                    required
+                                >
                         </div>
                     </div>
-                    
+
                     <table v-if="courseLessons.length > 0" class="table table-responsive">
                         <thead>
                             <th>
@@ -40,32 +40,61 @@
                                 Type
                             </th>
                             <th>
-                                Times
+                                Periods
                             </th>
                             <th>
-                                Sequence
+                                Order
                             </th>
                             <th v-if="showActions">
                                 Action
                             </th>
                         </thead>
-                        <tr v-for="lesson in courseLessons" :key="lesson.id">
+                        <tr v-for="(lesson, index) in courseLessons" :key="index">
                             <td>@{{ lesson.name }}</td>
                             <td>@{{ lesson.description }}</td>
                             <td>@{{ lesson.type }}</td>
-                            <td>@{{ lesson.pivot.lesson_quantity }}</td>
-                            <td>@{{ lesson.order }}</td>
+                            <td>
+                                <div v-if="showActions">
+                                    <input
+                                        type="number"
+                                        name="lesson_quantities[]"
+                                        v-model="lesson_quantities[index]"
+                                        min="1"
+                                        class="form-control"
+                                        @input="handleRowChanges(index)"
+                                    />
+                                </div>
+                                <div v-else>
+                                    @{{ lesson.pivot.lesson_quantity }}
+                                </div>
+                            </td>
+                            <td>
+                                <div v-if="showActions">
+                                    <input
+                                        type="number"
+                                        name="lesson_orders[]"
+                                        v-model="lesson_orders[index]"
+                                        min="1"
+                                        class="form-control"
+                                        @input="handleRowChanges(index)"
+                                        v-if="showActions"
+                                    />
+                                </div>
+                                <div v-else>
+                                    @{{ lesson.pivot.order }}
+                                </div>
+                            </td>
                             <td v-if="showActions">
-                                <button class="btn btn-danger btn-small" @click="removeLessonFromcourseLessons(lesson.id)">Remove</button>
+                                <button class="btn btn-danger btn-small" @click="removeLesson(lesson.id)">Remove</button>
                             </td>
                         </tr>
                     </table>
-                    
+
                     <!-- Display message if no lessons are available -->
                     <p v-else class="text-center text-large">
                         <span class="fa fa-warning text-warning"></span> No lessons added yet
                     </p>
-                    
+
                 </div>
 
                 <!-- Modal Footer -->
@@ -75,7 +104,7 @@
                     </button>
                     <button type="submit" v-if="showActions" class="btn btn-primary" @click="saveCourseLessons">
                         Save
-                    </button>                    
+                    </button>
                     <button type="button" v-if="showActions" class="btn btn-default" @click="back">
                         Back
                     </button>

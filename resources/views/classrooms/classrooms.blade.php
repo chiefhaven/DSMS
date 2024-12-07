@@ -21,9 +21,11 @@
   <div class="content content-full">
       <div class="block-content">
       <div class="row">
-        <div class="p-1 mb-5 card col-md-12">
-            <div class="card-body">
-                <p class="card-text">Classrooms meant for theory lessons.</p>
+        <div class="mb-5 col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <p class="card-text">Classrooms meant for theory lessons.</p>
+                </div>
             </div>
         </div>
 
@@ -43,7 +45,10 @@
                         <div class="col-md-12">
                             <p class="mb-2">
                                 <p class="font-size-sm font-italic text-muted mb-0">
-                                    Capacity: @{{classroom.capacity}}
+                                    Instructors:
+                                    <div v-for="instructor in classroom.instructors" :key="instructors.id">
+                                        @{{ instructor.fname }} @{{ instructor.sname }}
+                                    </div>
                                 </p>
                             </p>
                         </div>
@@ -101,28 +106,55 @@
         const showAddClassRoomModal = ref(false);
         const classroomData = ref({});
         const classrooms = ref([]);
+        const instructors = ref([]);
+        const instructor = ref('');
         const state = ref({
             modalTitle: 'Add classroom',
             buttonName:'Save',
-            classroom_type: 'Practical',
             name:'',
-            capacity:0,
+            description:'',
+            location:'',
             classroomId:null,
         })
 
-        const openAddclassroomModal = (classRoom) => {
+        const openAddclassroomModal = async(classRoom) => {
+            try{
+                const payload = {
+                    department: 'theory',
+                    status: 'active',
+                };
+
+                const response = await axios.get(`/instructors-json`, { params: payload });
+
+                if (response.status === 200) {
+                    instructors.value = response.data;
+
+                } else {
+                    notification('Failed to fetch instructors.', 'error');
+                }
+            } catch (error) {
+                notification(error.response.data.message, 'error');
+            }
+
             if (classRoom != 'null') {
                 // Populate modal for editing
                 state.value.modalTitle = 'Edit class room';
                 state.value.buttonName = 'Update';
 
                 // Ensure classroom exists in the classrooms array/object
-                const selectedclassroom = classrooms.value.find((l) => l.id === classroom);
+                const selectedclassroom = classrooms.value.find((l) => l.id === classRoom);
+                console.log(selectedclassroom.instructor);
                 if (selectedclassroom) {
                     state.value.classroomId = selectedclassroom.id;
                     state.value.name = selectedclassroom.name;
-                    state.value.capacity = selectedclassroom.capacity;
-                    state.value.classroom_type = selectedclassroom.type;
+                    state.value.description = selectedclassroom.description;
+                    state.value.location = selectedclassroom.location;
+
+                    if (Array.isArray(selectedclassroom.instructors) && selectedclassroom.instructors.length > 0) {
+                        instructor.value = selectedclassroom.instructors[0].id;
+                    } else {
+                        instructor.value = null;
+                    }
                 } else {
                     return; // Exit if classroom is invalid
                 }
@@ -161,7 +193,9 @@
         };
 
         const deleteClassRoom = async(classRoom) => {
-            if (!classroom) {
+            NProgress.start();
+
+            if (!classRoom) {
                 notification('Invalid classroom provided for deletion.', 'error');
                 return;
             }
@@ -174,24 +208,27 @@
                     notification('Classroom deleted successfully.', 'success');
 
                     // Update local state to remove the deleted classroom
-                    classrooms.value = classrooms.value.filter((l) => l.id !== classroom);
+                    classrooms.value = classrooms.value.filter((l) => l.id !== classRoom);
                 } else {
                     notification('Failed to delete the classroom.', 'error');
                 }
             } catch (error) {
-                notification(error.response.data.message, 'error');
+                notification(error, 'error');
+            } finally{
+                NProgress.done();
             }
         };
 
-        const postclassroom = async () => {
+        const postClassRoom = async () => {
             NProgress.start();
 
             try {
                 // Prepare the payload
                 const payload = {
-                    classroom_name: state.value.name,
-                    classroom_capacity: state.value.capacity,
-                    classroom_type: state.value.classroom_type,
+                    name: state.value.name,
+                    location: state.value.location,
+                    description: state.value.description,
+                    instructor: instructor.value
                 };
 
                 // Determine if this is an update or a new classroom
@@ -205,7 +242,7 @@
 
                 if (response.status === 200 || response.status === 201) {
                     // Handle success
-                    notification('classroom saved successfully.', 'success');
+                    notification('Classroom saved successfully.', 'success');
 
                     // Reset the form
                     resetForm();
@@ -214,7 +251,7 @@
                     closeForm();
 
                     // Refresh the classroom list
-                    fetchclassrooms();
+                    fetchClassRooms();
                 } else {
                     throw new Error('Unexpected response status');
                 }
@@ -232,8 +269,9 @@
 
         const resetForm = () => {
             state.value.name = '';
-            state.value.capacity = '';
-            state.value.classroom_type = '';
+            state.value.location = '';
+            state.value.description = '';
+            instructor.value = '';
             state.value.classroomId = null; // Reset the ID for a new classroom
             state.value.modalTitle = 'Add classroom'; // Set default title
             state.value.buttonName = 'Save'; // Set default button label
@@ -246,7 +284,6 @@
 
                 // Update the classroom list in state
                 classrooms.value = response.data;
-
             } catch (error) {
 
                 // Optionally, show an error message
@@ -276,10 +313,12 @@
             showAddClassRoomModal,
             closeForm,
             openAddclassroomModal,
-            postclassroom,
+            postClassRoom,
             classroomData,
             classrooms,
             confirmDeleteClassRoom,
+            instructors,
+            instructor
         }
       }
     })

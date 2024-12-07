@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use RealRashid\SweetAlert\Facades\Alert;
 use App\Enums\ServerStatus;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
 
 class CourseController extends Controller
 {
@@ -102,9 +103,18 @@ class CourseController extends Controller
         // Fetch the course along with the related instructor
         $course = Course::with('Instructor', 'lessons')->find($id);
 
+        if (!$course) {
+            return response()->json(['error' => 'Course not found'], 404);
+        }
+
         // Get the count of theory and practical lessons
-        $theoryCount = $course->lessons()->where('type', 'theory')->count();
-        $practicalCount = $course->lessons()->where('type', 'practical')->count();
+        $theoryCount = $course->lessons()
+            ->where('type', 'theory')
+            ->sum('course_lesson.lesson_quantity'); // Specify the pivot table
+
+        $practicalCount = $course->lessons()
+            ->where('type', 'practical')
+            ->sum('course_lesson.lesson_quantity'); // Specify the pivot table
 
         // Return a JSON response with actual values
         return response()->json([
@@ -171,6 +181,49 @@ class CourseController extends Controller
         $course->save();
 
         return redirect('/courses')->with('message', 'Course updated successifully!');
+    }
+
+    public function updateCourseLessons(Request $request, Course $course)
+    {
+        $messages = [
+            'courseId.required' => 'Course is required!',
+        ];
+
+        // Validate the request
+        $this->validate($request, [
+            'courseId'  =>'required',
+
+        ], $messages);
+
+        $post = $request->all();
+
+        // Retrieve the lessons and their quantities
+        $lessons = $post['courseLessons'];
+
+        // Find the course
+        $course = Course::find($post['courseId']); // Find the course by its ID
+
+        // Ensure course exists to avoid null errors
+        if (!$course) {
+            return response()->json(['error' => 'Course not found.'], 404);
+        }
+
+        // Prepare the lessons with pivot data
+        $lessonData = [];
+        foreach ($lessons as $lesson) {
+            $lessonData[$lesson['id']] = [
+                'id' => Str::uuid(), // Generate a unique UUID for the pivot table
+                'lesson_quantity' => $lesson['lesson_quantity'], // Use lesson_quantity from the request
+                'order' => $lesson['order'], // Use lesson_quantity from the request
+            ];
+        }
+
+        // Attach or sync the lessons with pivot data
+        $course->lessons()->sync($lessonData);
+
+        $course->save();
+
+        return response()->json(['message' => 'Course lessons updated successifully!']);
     }
 
     /**

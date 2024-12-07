@@ -66,6 +66,11 @@ class Student extends Model
         return $this->belongsToMany(Expense::class)->withPivot('expense_type');
     }
 
+    public function classroom()
+    {
+        return $this->belongsTo(Classroom::class, 'classroom_id', 'id');
+    }
+
     //Delete relationships!
     protected static function booted () {
         static::deleting(function(Student $student) {

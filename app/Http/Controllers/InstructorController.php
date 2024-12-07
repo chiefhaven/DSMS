@@ -37,6 +37,31 @@ class InstructorController extends Controller
         return view('instructors.instructors', compact('instructor'));
     }
 
+    public function indexInstructors(Request $request)
+    {
+        // Validate the query parameters
+        $validated = $request->validate([
+            'status' => 'nullable|string|in:active,inactive',
+            'department' => 'nullable|string',
+        ]);
+
+        // Apply filters dynamically
+        $query = Instructor::with(['User', 'Lesson', 'Fleet']);
+
+        if ($request->has('status')) {
+            $query->where('status', $validated['status']);
+        }
+
+        if ($request->has('department')) {
+            $query->where('department', $validated['department']);
+        }
+
+        // Fetch the data with pagination
+        $instructors = $query->get(); // Adjust the number per page as needed
+
+        return response()->json($instructors);
+    }
+
     /**
      * Show the form for creating a new resource.
      *

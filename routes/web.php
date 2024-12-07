@@ -81,7 +81,8 @@ Route::get('/addcourse', [CourseController::class, 'create'])->middleware('auth'
 Route::post('/storecourse', [CourseController::class, 'store'])->middleware('auth')->name('editcourse');
 Route::post('/edit-course/{id}', [CourseController::class, 'edit'])->middleware('auth')->name('edit-course');
 Route::delete('/delete-course/{id}', [CourseController::class, 'destroy'])->middleware('auth')->name('courses');
-Route::post('/updatecourse', [CourseController::class, 'update'])->middleware('auth')->name('courses');
+Route::put('/updatecourse', [CourseController::class, 'update'])->middleware('auth')->name('update-courses');
+Route::put('/update-course-lesson', [CourseController::class, 'updateCourseLessons'])->middleware('auth')->name('update-course-lessons');
 
 Route::get('/lessons', [LessonController::class, 'index'])->middleware('auth')->name('lessons');
 Route::get('/getLessons', [LessonController::class, 'getLessons'])->middleware('auth')->name('getLessons');
@@ -118,6 +119,7 @@ Route::post('/show-payment', [PaymentController::class, 'show'])->middleware('au
 Route::post('/update-payment', [PaymentController::class, 'update'])->middleware('auth')->name('update-payment');
 
 Route::get('/instructors', [InstructorController::class, 'index'])->middleware('auth')->name('instructors');
+Route::get('/instructors-json', [InstructorController::class, 'indexInstructors'])->middleware('auth')->name('instructors-json');
 Route::get('/viewinstructor', [InstructorController::class, 'show'])->middleware('auth')->name('instructors');
 Route::get('/addinstructor', [InstructorController::class, 'create'])->middleware('auth')->name('instructors');
 Route::post('/storeinstructor', [InstructorController::class, 'store'])->middleware('auth')->name('instructors');

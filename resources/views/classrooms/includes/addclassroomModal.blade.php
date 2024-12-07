@@ -43,27 +43,46 @@
                             <div class="form-floating mb-4">
                                 <input
                                     class="form-control"
-                                    id="classRoom_capacity"
-                                    type="number"
-                                    name="classRoom_capacity"
-                                    v-model="state.capacity"
-                                    placeholder="Capacity"
+                                    id="classRoom_description"
+                                    type="text"
+                                    name="classRoom_description"
+                                    v-model="state.description"
+                                    placeholder="Description"
                                 />
-                                <label for="classRoom_capacity">Capacity</label>
+                                <label for="classRoom_description">Description</label>
                             </div>
+
+                            <!-- Location Input -->
+                            <div class="form-floating mb-4">
+                                <input
+                                    class="form-control"
+                                    id="classRoom_location"
+                                    type="text"
+                                    name="classRoom_location"
+                                    v-model="state.location"
+                                    placeholder="Location"
+                                />
+                                <label for="classRoom_location">Location</label>
+                            </div>
+
                             <div class="form-floating mb-4">
                                 <select
                                     class="form-control"
-                                    id="classRoom_type"
-                                    name="classRoom_type"
-                                    v-model="state.classRoom_type"
-                                    placeholder="ClassRoom type"
-                                    required
+                                    id="instructor"
+                                    name="instructor"
+                                    v-model="instructor"
+                                    placeholder="Location"
                                 >
-                                    <option value="practical">Practical</option>
-                                    <option value="theory">Theory</option>
+                                    <option
+                                        v-for="instructor in instructors"
+                                        :key="instructor.id"
+                                        :value="instructor.id"
+                                    >
+                                        @{{ instructor.fname }} @{{ instructor.sname }}
+                                    </option>
                                 </select>
-                                <label for="classRoom_type">ClassRoom Type</label>
+
+                                <label for="insturctor">Assign instructor</label>
                             </div>
                         </form>
                     </div>
@@ -72,7 +91,7 @@
 
             <!-- Modal Footer -->
             <div class="modal-footer">
-                <button type="submit" class="btn btn-primary" @click="postClassRoom()">
+                <button type="submit" class="btn btn-primary" @click="postClassRoom">
                     @{{ state.buttonName }}
                 </button>
                 <button type="button" class="btn btn-default" @click="closeForm">Cancel</button>
