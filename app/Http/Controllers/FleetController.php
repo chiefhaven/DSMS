@@ -176,7 +176,7 @@ class FleetController extends Controller
         $post = $request->all();
 
         // Find the fleet to update
-        $fleet = Fleet::where('id', $post['id'])->firstOrFail();
+        $fleet = Fleet::find($post['id']);
         $fleetCount = Fleet::where('instructor_id', $post['instructor'])->count();
 
         // Handle the car image upload if present
@@ -191,7 +191,7 @@ class FleetController extends Controller
         if ($fleetCount < 1 ) {
             $fleet->instructor_id = $post['instructor'] ?? 1000000;  // Assign instructor, default to 1000000 if not provided
         }
-        elseif ($fleetCount > 1) {
+        elseif ($fleetCount > 0) {
             // Unassign the instructor from all other fleets
             $fleets = Fleet::where('instructor_id', $post['instructor'])->get();
             foreach ($fleets as $fleet_1) {
@@ -201,7 +201,8 @@ class FleetController extends Controller
 
             // Assign the instructor to the current fleet
             $fleet->instructor_id = $post['instructor'];
-            $message = 'Instructor was assigned to a different car, has been unassigned and reassigned';
+
+            $message = 'Instructor was assigned to different cars, has been unassigned and reassigned';
         }
         else {
             // If no instructor is provided, assign a default value
