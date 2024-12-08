@@ -280,6 +280,19 @@
             return $student;
         }
 
+        public function checkInstructorClassFleetAssignment(Request $request)
+        {
+            $data = $request->all();
 
+            // Validate the incoming request data
+            $request->validate([
+                'instructor' => 'required|exists:instructors,id'
+            ]);
+
+            // Check if the instructor has a fleet assigned
+            $fleetAssigned = Fleet::where('instructor_id', $data['instructor'])->exists();
+
+            return response()->json($fleetAssigned);
+       }
 
     }

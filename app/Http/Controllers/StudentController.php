@@ -31,29 +31,30 @@ class StudentController extends Controller
      */
     public function index()
     {
-        if(Auth::user()->hasRole('instructor')){
+        try {
+            $studentQuery = Student::with('User', 'Attendance', 'Course', 'Invoice')->where('status', '!=', 'Finished')->orderBy('created_at', 'DESC');
 
-            try {
+            if (Auth::user()->hasRole('instructor')) {
                 $fleet = Fleet::where('instructor_id', Auth::user()->instructor_id)->firstOrFail();
 
-                $student = Student::where('fleet_id', $fleet->id)
-                    ->with('User', 'Attendance', 'Course')
-                    ->orderBy('created_at', 'DESC')->get();
-
-                return view('students.students', compact('student'));
-
-            } catch (ModelNotFoundException $e) {
-                Alert::error('No students', 'You are not allocated a car, for more information contact the admin');
-                return redirect('/');
+                // Fetch students linked to the instructor's fleet
+                $student = $studentQuery->where('fleet_id', $fleet->id)->get();
+            } else {
+                // Fetch most recent 50 students
+                $student = $studentQuery->get();
             }
-        }
-        else{
-            $student = Student::with('User', 'Attendance', 'Course')->orderBy('created_at', 'DESC')->get();
-        }
 
-        $fleet = Fleet::get();
-        return view('students.students', compact('student', 'fleet'));
+            // Fetch all fleets (can add filters if necessary)
+            $fleet = Fleet::all();
+
+            return view('students.students', compact('student', 'fleet'));
+
+        } catch (ModelNotFoundException $e) {
+            Alert::error('No students', __('You are not allocated a car. Please contact the admin for assistance.'));
+            return redirect('/');
+        }
     }
+
 
     /**
      * Show the form for creating a new resource.

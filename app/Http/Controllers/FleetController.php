@@ -32,9 +32,13 @@ class FleetController extends Controller
     public function index()
     {
         $fleet = Fleet::with('Instructor')->get();
-        $instructor = Instructor::get();
+
+        $instructors = Instructor::whereHas('department', function($query) {
+            $query->where('name', 'Practical');
+        })->get();
+
         $student = Student::get();
-        return view('fleet.fleet', compact('fleet', 'instructor', 'student'));
+        return view('fleet.fleet', compact('fleet', 'instructors', 'student'));
     }
 
     public function getFleet()
@@ -137,8 +141,12 @@ class FleetController extends Controller
     public function edit($id)
     {
         $fleet = Fleet::with('Instructor')->find($id);
-        $instructor = Instructor::get();
-        return view('fleet.editfleet', [ 'fleet' => $fleet ], compact('fleet', 'instructor'));
+
+        $instructors = Instructor::whereHas('department', function($query) {
+            $query->where('name', 'Practical');
+        })->get();
+
+        return view('fleet.editfleet', [ 'fleet' => $fleet ], compact('fleet', 'instructors'));
     }
 
     /**
@@ -150,57 +158,67 @@ class FleetController extends Controller
      */
     public function update(UpdateFleetRequest $request, Fleet $fleet)
     {
+        // Custom validation messages
         $messages = [
             'car_brand_model.required' => 'The "car name/brand" field is required!',
-            'reg_number.required'   => 'The "car number plate" field is should be unique!',
-            'instructor.required'   => 'The "instructor" field is should be unique!',
+            'reg_number.required' => 'The "car number plate" field should be unique!',
+            'instructor.required' => 'The "instructor" field should be unique!',
         ];
 
-        // Validate the request
-        $this->validate($request, [
-            'car_brand_model'  =>'required',
-            'reg_number' =>'required',
-            'instructor' =>'required'
-
+        // Validate the request data
+        $request->validate([
+            'car_brand_model' => 'required',
+            'reg_number' => 'required',
+            'instructor' => 'required',
         ], $messages);
 
-        $post = $request->All();
+        // Get the validated data
+        $post = $request->all();
 
+        // Find the fleet to update
         $fleet = Fleet::where('id', $post['id'])->firstOrFail();
+        $fleetCount = Fleet::where('instructor_id', $post['instructor'])->count();
 
-        //car image processing
-        if($request->file('fleet_image')){
-            $carImageName = time().'-'.$request->file('fleet_image')->getClientOriginalName();
-            $request->fleet_image->move(public_path('media/fleet'), $carImageName);
+        // Handle the car image upload if present
+        if ($request->hasFile('fleet_image')) {
+            // Use Laravel's storage system to handle the file upload
+            $carImageName = time() . '-' . $request->file('fleet_image')->getClientOriginalName();
+            $request->file('fleet_image')->move(public_path('media/fleet'), $carImageName);
             $fleet->fleet_image = $carImageName;
         }
 
-        if(isset($post['instructor'])){
-
-            $instructorID = havenUtils::instructorID($post['instructor']);
-
-            if(isset($instructorID)){
-
-                $fleet->instructor_id = $instructorID;
-
+        // Check if the instructor is already assigned to another fleet
+        if ($fleetCount < 1 ) {
+            $fleet->instructor_id = $post['instructor'] ?? 1000000;  // Assign instructor, default to 1000000 if not provided
+        }
+        elseif ($fleetCount > 1) {
+            // Unassign the instructor from all other fleets
+            $fleets = Fleet::where('instructor_id', $post['instructor'])->get();
+            foreach ($fleets as $fleet_1) {
+                $fleet_1->instructor_id = null;
+                $fleet_1->save(); // Save the unassigned fleet
             }
-            else{
-                $fleet->instructor_id = 1000000;
-            }
+
+            // Assign the instructor to the current fleet
+            $fleet->instructor_id = $post['instructor'];
+            $message = 'Instructor was assigned to a different car, has been unassigned and reassigned';
+        }
+        else {
+            // If no instructor is provided, assign a default value
+            $fleet->instructor_id = null;
+            $message = 'Instructor has been unassigned';
         }
 
-        else{
-                $fleet->instructor_id = 1000000;
-        }
-
-
+        // Update the fleet details
         $fleet->car_brand_model = $post['car_brand_model'];
         $fleet->car_registration_number = $post['reg_number'];
         $fleet->car_description = $post['car_description'];
 
+        // Save the updated fleet
         $fleet->save();
 
-        return redirect()->route('fleet')->with('message', 'Fleet updated');
+        // Redirect back with a success message
+        return redirect()->route('fleet')->with('message', $message ?? 'Fleet updated successfully!');
     }
 
     /**

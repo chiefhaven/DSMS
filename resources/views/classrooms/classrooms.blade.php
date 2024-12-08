@@ -37,7 +37,8 @@
                 <div class="block-content block-content-full block-content-sm bg-body-light">
                     @{{classroom.name}} <br>
                     <div class="text-muted text-small">
-                        @{{classroom.type}}
+                       Location: @{{classroom.location}}<br>
+                       Description: @{{classroom.description}}
                     </div>
                 </div>
                 <div class="block-content block-content-full overflow-visible">
@@ -108,6 +109,7 @@
         const classrooms = ref([]);
         const instructors = ref([]);
         const instructor = ref('');
+        const error = ref(false);
         const state = ref({
             modalTitle: 'Add classroom',
             buttonName:'Save',
@@ -143,7 +145,6 @@
 
                 // Ensure classroom exists in the classrooms array/object
                 const selectedclassroom = classrooms.value.find((l) => l.id === classRoom);
-                console.log(selectedclassroom.instructor);
                 if (selectedclassroom) {
                     state.value.classroomId = selectedclassroom.id;
                     state.value.name = selectedclassroom.name;
@@ -174,6 +175,7 @@
 
 
         const closeForm = () => {
+            resetForm();
             showAddClassRoomModal.value = false;
         }
 
@@ -219,45 +221,82 @@
             }
         };
 
+        const checkInstructorClassFleetAssignment = async (instructor) => {
+            try {
+                // Send the request to check assignment
+                const response = await axios.post('/check-class-fleet-assignment', { instructor });
+
+                console.log(response)
+
+                if (response.status === 200 && response.data === true) {
+                    NProgress.done()
+                    const result = await Swal.fire({
+                        title: 'Assigned Car Detected',
+                        text: 'The instructor is already assigned to a car. Do you want to continue? This will unassign them from the car.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Continue',
+                        cancelButtonText: 'Cancel',
+                    });
+
+                    // Return true if user confirms, false otherwise
+                    return result.isConfirmed;
+                } else if (response.status === 200 && response.data === false) {
+                    // No assignment exists, proceed normally
+                    return true;
+                } else {
+                    throw new Error('Unexpected response status');
+                }
+            } catch (error) {
+                // Notify the user of an error
+                notification(
+                    error.response?.data?.message || 'Failed to verify the assignment. Please try again.',
+                    'error'
+                );
+                return false; // Return false on error
+            } finally {
+                NProgress.done();
+            }
+
+        };
+
         const postClassRoom = async () => {
             NProgress.start();
-
             try {
                 // Prepare the payload
                 const payload = {
                     name: state.value.name,
                     location: state.value.location,
                     description: state.value.description,
-                    instructor: instructor.value
+                    instructor: instructor.value,
                 };
 
-                // Determine if this is an update or a new classroom
+                // Check if instructor is already assigned
+                const isAssignmentValid = await checkInstructorClassFleetAssignment(instructor.value);
+                if (!isAssignmentValid) {
+                    return;
+                }
+
+                // Determine endpoint and HTTP method
                 const endpoint = state.value.classroomId
                     ? `/updateclassroom/${state.value.classroomId}`
                     : '/storeclassroom';
                 const method = state.value.classroomId ? 'put' : 'post';
 
-                // Send the request
+                NProgress.start();
+
+                // Send the request to save classroom
                 const response = await axios[method](endpoint, payload);
 
                 if (response.status === 200 || response.status === 201) {
-                    // Handle success
+                    // Notify success and refresh classrooms
                     notification('Classroom saved successfully.', 'success');
-
-                    // Reset the form
-                    resetForm();
-
-                    // Close the modal
                     closeForm();
-
-                    // Refresh the classroom list
                     fetchClassRooms();
                 } else {
                     throw new Error('Unexpected response status');
                 }
             } catch (error) {
-                console.error('Error saving classroom:', error);
-
                 notification(
                     error.response?.data?.message || 'Failed to save the classroom. Please try again.',
                     'error'
@@ -318,7 +357,8 @@
             classrooms,
             confirmDeleteClassRoom,
             instructors,
-            instructor
+            instructor,
+            error,
         }
       }
     })

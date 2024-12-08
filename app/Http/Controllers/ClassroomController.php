@@ -6,6 +6,7 @@ use App\Models\Classroom;
 use App\Models\Instructor;
 use App\Http\Requests\StoreClassroomRequest;
 use App\Http\Requests\UpdateClassroomRequest;
+use App\Models\Fleet;
 
 class ClassroomController extends Controller
 {
@@ -30,6 +31,7 @@ class ClassroomController extends Controller
     public function getClassrooms()
     {
         $classrooms = Classroom::with('instructors')->get();
+
         return response()->json($classrooms, 200);
     }
 
@@ -117,9 +119,21 @@ class ClassroomController extends Controller
             'location' => $data['location'] ?? null,
         ]);
 
-        // Update the assigned instructor(s)
+        // Find the fleet assigned to the instructor
+        $fleet = Fleet::where('instructor_id', $data['instructor'])->first();
+
+        if ($fleet) {
+            // Unassign the instructor if the fleet is found
+            $fleet->instructor_id = null;
+            $fleet->save();
+
+            return response()->json([
+                'message' => 'Instructor has been unassigned from the fleet.',
+            ]);
+        }
+
+        // Check if 'instructor' is provided and update the relationship
         if (isset($data['instructor'])) {
-            // Sync to update the relationship, replacing any existing instructors
             $classroom->instructors()->sync($data['instructor']);
         }
 

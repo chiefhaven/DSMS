@@ -29,7 +29,9 @@ class CourseController extends Controller
     public function index()
     {
         $course = Course::with('Student', 'Invoice', 'Lessons')->get();
+
         $invoiceCount = Invoice::all()->groupBy('course_id');
+
         return view('courses.courses', compact('course', 'invoiceCount'));
     }
 
@@ -107,14 +109,19 @@ class CourseController extends Controller
             return response()->json(['error' => 'Course not found'], 404);
         }
 
-        // Get the count of theory and practical lessons
+        // Get the count of theory lessons
         $theoryCount = $course->lessons()
-            ->where('type', 'theory')
-            ->sum('course_lesson.lesson_quantity'); // Specify the pivot table
+        ->whereHas('department', function($query) {
+            $query->where('name', 'Theory');
+        })
+        ->sum('course_lesson.lesson_quantity'); // Specify the pivot table
 
+        // Get the count of practical lessons
         $practicalCount = $course->lessons()
-            ->where('type', 'practical')
-            ->sum('course_lesson.lesson_quantity'); // Specify the pivot table
+        ->whereHas('department', function($query) {
+            $query->where('name', 'Practical');
+        })
+        ->sum('course_lesson.lesson_quantity'); // Specify the pivot table
 
         // Return a JSON response with actual values
         return response()->json([

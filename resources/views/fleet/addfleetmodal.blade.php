@@ -13,7 +13,7 @@
           <div class="block-content">
             <form class="mb-5" action="{{ url('/storefleet') }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
                   @csrf
-              <div class="row">
+              <div class="row haven-floating">
                   <div class="col-6 form-floating mb-4">
                       <input type="text" class="form-control" id="car_brand_model" name="car_brand_model" required>
                       <label for="car_brand_model">Car brand/Model</label>
@@ -33,7 +33,7 @@
               </div>
               <div class="form-floating mb-4">
                 <select class="form-select" id="instructor" name="instructor">
-                  @foreach ($instructor as $instructor)
+                  @foreach ($instructors as $instructor)
                      <option value="{{$instructor->fname}} {{$instructor->sname}}">{{$instructor->fname}} {{$instructor->sname}}</option>
                   @endforeach
                 </select>

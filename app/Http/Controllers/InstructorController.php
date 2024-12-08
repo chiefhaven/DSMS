@@ -11,6 +11,7 @@ use App\Models\Role;
 use App\Http\Requests\StoreInstructorRequest;
 use App\Http\Requests\UpdateInstructorRequest;
 use App\Models\Administrator;
+use App\Models\Department;
 use Session;
 use Illuminate\Support\Str;
 use PDF;
@@ -52,12 +53,9 @@ class InstructorController extends Controller
             $query->where('status', $validated['status']);
         }
 
-        if ($request->has('department')) {
-            $query->where('department', $validated['department']);
-        }
-
-        // Fetch the data with pagination
-        $instructors = $query->get(); // Adjust the number per page as needed
+        $instructors = $query->whereHas('department', function($query) {
+            $query->where('name', 'Theory');
+        })->get(); // Adjust the number per page as needed
 
         return response()->json($instructors);
     }
@@ -70,8 +68,9 @@ class InstructorController extends Controller
     public function create()
     {
         $district = District::get();
-        $lesson = Lesson::get();
-        return view('instructors.addinstructor', compact('district', 'lesson'));
+        $instructor = null;
+        $departments = Department::get();
+        return view('instructors.addinstructor', compact('district', 'departments', 'instructor'));
     }
 
     /**
@@ -83,25 +82,30 @@ class InstructorController extends Controller
     public function store(StoreInstructorRequest $request)
     {
         $messages = [
-            'fname.required' => 'The "First name" field is required!',
-            'sname.required'   => 'The "Sir name" field is should be unique!',
-            'email.required' => 'The "Email" is required!',
-            'email.unique' => 'The "Email" is already in use',
-            'gender.required'   => 'The "Gender" field required!',
-            'date_of_birth.required' => 'Date of birth is required',
+            'first_name.required'      => 'The "First name" field is required!',
+            'sir_name.required'        => 'The "Surname" field is required!',
+            'email.required'           => 'The "Email" field is required!',
+            'email.unique'             => 'The "Email" is already in use!',
+            'gender.required'          => 'The "Gender" field is required!',
+            'date_of_birth.required'   => 'The "Date of Birth" field is required!',
+            'date_of_birth.before'     => 'Instuctors age must be at least 18 years old!',
+            'department.required'      => 'The "Department" field is required!',
+            'department.exists'        => 'The selected "Department" is invalid!',
+            'address.required'         => 'The "Address" field is required!',
+            'district.required'        => 'The "District" field is required!',
+            'phone.required'           => 'The "Phone" field is required!',
         ];
 
-        // Validate the request
         $this->validate($request, [
-            'first_name'  =>'required',
-            'sir_name' =>'required',
-            'email'   =>'required | unique:users',
-            'address' =>'required',
-            'gender'  =>'required',
-            'date_of_birth' =>'required',
-            'district' =>'required',
-            'phone' =>'required'
-
+            'first_name'    => 'required',
+            'sir_name'      => 'required',
+            'email'         => 'required|unique:users',
+            'address'       => 'required',
+            'gender'        => 'required',
+            'date_of_birth' => ['required', 'date', 'before:' . now()->subYears(18)->format('Y-m-d')],
+            'district'      => 'required',
+            'phone'         => 'required',
+            'department'    => 'required|exists:departments,id',
         ], $messages);
 
         $post = $request->All();
@@ -115,8 +119,10 @@ class InstructorController extends Controller
         $instructor->gender = $post['gender'];
         $instructor->phone = $post['phone'];
         $instructor->address = $post['address'];
+        $instructor->status = $post['status'];
         $instructor->date_of_birth = $post['date_of_birth'];
         $instructor->district_id = $district;
+        $instructor->department_id = $post['department'];
 
         $instructor->save();
 
@@ -166,8 +172,8 @@ class InstructorController extends Controller
     {
         $instructor = Instructor::with('User')->find($id);
         $district = district::get();
-        $lesson = Lesson::get();
-        return view('instructors.editinstructor', [ 'instructor' => $instructor ], compact('instructor', 'district', 'lesson'));
+        $departments = Department::get();
+        return view('instructors.editinstructor', [ 'instructor' => $instructor ], compact('instructor', 'district', 'departments'));
     }
 
     /**
@@ -180,52 +186,60 @@ class InstructorController extends Controller
     public function update(UpdateInstructorRequest $request, Instructor $instructor)
     {
         $messages = [
-            'fname.required' => 'Firstname is required',
-            'sname.required'   => 'Sirname is required',
-            'email.required' => 'Email is required',
-            'email.unique' => 'Email is already in use',
-            'gender.required'   => 'The "Gender" field required',
-            'date_of_birth.required' => 'Date of birth is required',
+            'first_name.required'      => 'The "First name" field is required!',
+            'sir_name.required'        => 'The "Surname" field is required!',
+            'email.required'           => 'The "Email" field is required!',
+            'email.unique'             => 'The "Email" is already in use!',
+            'gender.required'          => 'The "Gender" field is required!',
+            'date_of_birth.required'   => 'The "Date of Birth" field is required!',
+            'date_of_birth.before'     => 'Instructors age must be at least 18 years old!',
+            'department.required'      => 'The "Department" field is required!',
+            'department.exists'        => 'The selected "Department" is invalid!',
+            'address.required'         => 'The "Address" field is required!',
+            'district.required'        => 'The "District" field is required!',
+            'phone.required'           => 'The "Phone" field is required!',
         ];
 
-        // Validate the request
         $this->validate($request, [
-            'first_name'  =>'required',
-            'sir_name' =>'required',
+            'first_name'    => 'required',
+            'sir_name'      => 'required',
             'email'          => 'required|unique:users,email,' . Instructor::find($request->instructor_id)->user->id,
-            'address' =>'required',
-            'gender'  =>'required',
-            'date_of_birth' =>'required',
-            'district' =>'required',
-            'phone' =>'required',
-
+            'address'       => 'required',
+            'gender'        => 'required',
+            'date_of_birth' => ['required', 'date', 'before:' . now()->subYears(18)->format('Y-m-d')],
+            'district'      => 'required',
+            'phone'         => 'required',
+            'department'    => 'required|exists:departments,id',
+            'status'        => 'required|in:active,pending,suspended,contract_ended',
         ], $messages);
 
-        $post = $request->All();
+        $post = $request->all();
 
         $district = havenUtils::selectDistrict($post['district']);
 
-        $instructor = Instructor::find($post['instructor_id']);
+        $instructor = Instructor::find($request->instructor_id);
 
+        // Update instructor data
         $instructor->fname = $post['first_name'];
         $instructor->sname = $post['sir_name'];
         $instructor->gender = $post['gender'];
         $instructor->phone = $post['phone'];
         $instructor->address = $post['address'];
+        $instructor->status = $post['status'];
         $instructor->date_of_birth = $post['date_of_birth'];
         $instructor->district_id = $district;
+        $instructor->department_id = $post['department'];
+        $instructor->save();
 
-        $user = User::where('instructor_id', $post['instructor_id'])->firstOrFail();
+        // Update associated user
+        $user = $instructor->User;
 
         $user->email = $post['email'];
-
-         if(isset($post['password'])){
+        if (!empty($post['password'])) {
             $user->password = Hash::make($post['password']);
         }
 
-        $instructor->save();
         $user->save();
-        $user->assignRole('instructor');
 
         return redirect('/instructors')->with('message', 'Instructor updated!');
     }

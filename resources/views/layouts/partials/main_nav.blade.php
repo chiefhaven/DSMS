@@ -44,6 +44,11 @@
                 </a>
                 <ul class="nav-main-submenu">
                     <li class="nav-main-item">
+                        <a class="nav-main-link" href="{{ url('#') }}">
+                            <span class="nav-main-link-name">Departments</span>
+                        </a>
+                    </li>
+                    <li class="nav-main-item">
                         <a class="nav-main-link" href="{{ url('/classes') }}">
                             <span class="nav-main-link-name">Classes</span>
                         </a>

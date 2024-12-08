@@ -35,6 +35,7 @@
                                     v-model="state.name"
                                     placeholder="Lesson name"
                                     required
+                                    :class="{ 'error': true, 'text-danger': true }"
                                 />
                                 <label for="lesson_name">Lesson Name</label>
                             </div>
@@ -48,22 +49,25 @@
                                     v-model="state.description"
                                     style="height: 150px"
                                     placeholder="Description"
+                                    :class="{ 'error': true, 'text-danger': true }"
                                 ></textarea>
                                 <label for="lesson_description">Description</label>
                             </div>
                             <div class="form-floating mb-4">
                                 <select
                                     class="form-control"
-                                    id="lesson_type"
-                                    name="lesson_type"
-                                    v-model="state.lesson_type"
-                                    placeholder="Lesson type"
+                                    id="department"
+                                    name="department"
+                                    v-model="state.department"
+                                    placeholder="Department"
                                     required
+                                    :class="{ 'error': true, text-danger }"
                                 >
-                                    <option value="practical">Practical</option>
-                                    <option value="theory">Theory</option>
+                                    <option v-for="department in departments" :key="department.id" :value="department.id">
+                                        @{{ department.name }}
+                                    </option>
                                 </select>
-                                <label for="lesson_type">Lesson Type</label>
+                                <label for="department">Department</label>
                             </div>
                         </form>
                     </div>
@@ -72,7 +76,7 @@
 
             <!-- Modal Footer -->
             <div class="modal-footer">
-                <button type="submit" class="btn btn-primary" @click="postLesson()">
+                <button type="submit" class="btn btn-primary">
                     @{{ state.buttonName }}
                 </button>
                 <button type="button" class="btn btn-default" @click="closeForm">Cancel</button>

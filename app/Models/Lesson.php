@@ -27,4 +27,9 @@ class Lesson extends Model
     {
         return $this->belongsToMany(Instructor::class);
     }
+
+    public function department()
+    {
+       return $this->belongsTo(Department::class);
+    }
 }

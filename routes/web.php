@@ -124,7 +124,7 @@ Route::get('/viewinstructor', [InstructorController::class, 'show'])->middleware
 Route::get('/addinstructor', [InstructorController::class, 'create'])->middleware('auth')->name('instructors');
 Route::post('/storeinstructor', [InstructorController::class, 'store'])->middleware('auth')->name('instructors');
 Route::get('/editinstructor/{id}', [InstructorController::class, 'edit'])->middleware('auth')->name('instructors');
-Route::post('/updateinstructor', [InstructorController::class, 'update'])->middleware('auth')->name('instructors');
+Route::post('/updateinstructor', [InstructorController::class, 'update'])->middleware('auth')->name('updateinstructor');
 Route::delete('/deleteinstructor/{id}', [InstructorController::class, 'destroy'])->middleware('auth')->name('instructors');
 Route::get('/instructor-search', [InstructorController::class, 'instructorSearch'])->name('instructorSearch');
 
@@ -207,5 +207,6 @@ Route::get("/scanqrcode", function(){
 })->middleware(['auth']);
 
 Route::get('/lesson-search', [havenUtils::class, 'autocompleteLessonSearch'])->middleware('auth')->name('lesson-search');
+Route::post('/check-class-fleet-assignment', [havenUtils::class, 'checkInstructorClassFleetAssignment'])->middleware('auth')->name('check-class-fleet-assignment');
 
 

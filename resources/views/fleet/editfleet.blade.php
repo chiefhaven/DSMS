@@ -52,11 +52,14 @@
               </div>
               <div class="form-floating mb-4">
                 <select class="form-select" id="instructor" name="instructor">
-                  @foreach ($instructor as $instructor)
-                     <option value="{{$instructor->fname}} {{$instructor->sname}}" {{ $instructor->id == $fleet->instructor->id ? 'selected' : '' }}>{{$instructor->fname}} {{$instructor->sname}}</option>
-                  @endforeach
+                    @foreach ($instructors as $instructor)
+                        <option value="{{ $instructor->id }}"
+                            {{ $fleet->instructor && $fleet->instructor->id && $instructor->id == $fleet->instructor->id ? 'selected' : '' }}>
+                            {{ $instructor->fname }} {{ $instructor->sname }}
+                        </option>
+                    @endforeach
                 </select>
-                <label for="lesson">Lesson instructor</label>
+                <label for="lesson">Assign instructor</label>
               </div>
               <div class="form-floating mb-4">
                   <button type="submit" class="btn btn-primary">Update</button>

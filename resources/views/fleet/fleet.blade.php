@@ -44,19 +44,26 @@
                 </div>
                 <div class="block-content block-content-full block-content-sm bg-body-light">
                     <h3 class="font-w600 mb-0">{{$fleet->car_brand_model}}</h3>
+                    <p><strong>Reg #:</strong> {{$fleet->car_registration_number}}<br>
+                    <strong>Description:</strong> {{$fleet->car_description}}</p>
                 </div>
                 <div class="block-content block-content-full" style="overflow-x: initial;">
                     <div class="row">
-                        <div class="col-8 text-left">
-                            <p class="font-size-sm text-muted mb-0" style="text-align:left">
-                              <b>Reg #:</b> {{$fleet->car_registration_number}}
-                              <br><b>Instructor:</b> {{$fleet->instructor->fname}} {{$fleet->instructor->sname}}
-                              <br><b>Students assigned:</b> {{$fleet->student->count()}} <br>
-                              <p>&nbsp;</p>
-                              <p style="text-align:left">{{$fleet->car_description}}</p>
-                            </p>
+                        <div class="col-12">
+                            <div class="font-size-sm text-muted mb-0">
+                                <p>
+                                    <strong>Instructor:</strong>
+                                    @if($fleet->instructor)
+                                        {{$fleet->instructor->fname}} {{$fleet->instructor->sname}}
+                                    @else
+                                        Not assigned instructor
+                                    @endif
+                                    <br>
+                                    <strong>Active students:</strong> {{$fleet->student()->where('status', '!=', 'Finished')->count()}}
+                                </p>
+                            </div>
                         </div>
-                        <div class="col-4 text-right">
+                        <div class="col-12 text-right">
                             <div class="dropdown d-inline-block">
                                   <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <span class="d-sm-inline-block">Action</span>

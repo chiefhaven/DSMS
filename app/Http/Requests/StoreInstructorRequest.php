@@ -24,7 +24,15 @@ class StoreInstructorRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            'first_name'  =>'required',
+            'sir_name' =>'required',
+            'email'   =>'required | unique:users',
+            'address' =>'required',
+            'gender'  =>'required',
+            'date_of_birth' =>'required',
+            'district' =>'required',
+            'phone' =>'required',
+            'department' => 'required'
         ];
     }
 }

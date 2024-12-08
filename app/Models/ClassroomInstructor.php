@@ -20,4 +20,9 @@ class ClassroomInstructor extends Pivot
 
     // Optional: Specify the table name if Laravel can't infer it
     protected $table = 'classroom_instructor';
+
+    public function instructors()
+    {
+       return $this->belongsToMany(Instructor::class);
+    }
 }

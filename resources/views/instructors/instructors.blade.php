@@ -47,13 +47,25 @@
                     </div>
                 </div>
 
-                <div class="block-content block-content-full block-content-sm bg-body-light">
-                    <h3 class="font-w600">{{$instructor->fname}} {{$instructor->sname}}</h3>
-                    <p>
-                        Department: {{$instructor->department}}<br>
-                        Status: {{$instructor->status}}
+                <div class="block-content block-content-full block-content-sm bg-body-light text-center py-3">
+                    <h3 class="font-w600 mb-1">{{$instructor->fname}} {{$instructor->sname}}</h3>
+                    <p class="text-muted mb-0">
+                        <span class="font-w600">Department:</span>
+                        @if(!empty($instructor->department->name))
+                            {{$instructor->department->name}}
+                        @else
+                            <span class="text-danger">Not assigned</span>
+                        @endif
+                    </p>
+                    <p class="text-muted mb-0">
+                        @if($instructor->status === 'Active')
+                            <span class="text-success">{{ $instructor->status }}</span>
+                        @else
+                            <span class="text-danger">{{ $instructor->status }}</span>
+                        @endif
                     </p>
                 </div>
+
                 <div class="block-content block-content-full">
                     <div class="row">
                         <div class="col-12">
@@ -65,14 +77,21 @@
                                 @endif
                                 <br>
                             </p>
-                            <p class="text-muted mb-0" style="font-size: 11px;">
-                                <b>Car assigned</b><br>
-                                @if(isset($instructor->fleet->car_registration_number))
-                                    {{$instructor->fleet->car_registration_number}} -
-                                    {{$instructor->fleet->car_brand_model}}
+                            <p class="text-muted mt-3 mb-0" style="font-size: 12px;">
+                                Assigned<br>
+                                @if(!empty($instructor->fleet?->car_registration_number) || $instructor->classrooms->isNotEmpty())
+                                    @if(!empty($instructor->fleet?->car_registration_number))
+                                        Car: {{ $instructor->fleet->car_registration_number }} - {{ $instructor->fleet->car_brand_model }}<br>
+                                    @endif
 
+                                    @if($instructor->classrooms->isNotEmpty())
+                                        Classes:
+                                        @foreach($instructor->classrooms as $classroom)
+                                            {{ $classroom->name }} - {{ $classroom->location }}@if(!$loop->last), @endif
+                                        @endforeach
+                                    @endif
                                 @else
-                                    -
+                                    Not assigned yet
                                 @endif
                             </p>
                         </div>

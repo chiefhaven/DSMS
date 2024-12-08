@@ -36,9 +36,9 @@ class Student extends Model
        return $this->belongsTo(Fleet::class);
     }
 
-    public function Course()
+    public function course()
     {
-       return $this->belongsTo(Course::class);
+        return $this->belongsTo(Course::class);
     }
 
     public function Invoice()
@@ -46,9 +46,9 @@ class Student extends Model
        return $this->hasOne(Invoice::class);
     }
 
-    public function Attendance()
+    public function attendance()
     {
-       return $this->hasMany(Attendance::class);
+        return $this->hasMany(Attendance::class);
     }
 
     public function District()

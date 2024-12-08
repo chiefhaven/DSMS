@@ -2,14 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
 class Instructor extends Model
 {
-    use HasFactory;
+    use Notifiable, HasUuids, HasFactory;
+    protected $keyType = 'string';
+    public $incrementing = false;
 
     protected static function boot()
     {
@@ -21,9 +25,9 @@ class Instructor extends Model
         });
     }
 
-    public function User()
+    public function user()
     {
-       return $this->hasOne(User::class);
+        return $this->hasOne(User::class, 'instructor_id');
     }
 
     public function Lesson()
@@ -38,6 +42,12 @@ class Instructor extends Model
 
     public function classrooms()
     {
-        return $this->hasMany(Classroom::class, 'classroom_instructor')->using(ClassroomInstructor::class);;
+        return $this->belongsToMany(Classroom::class, 'classroom_instructor', 'instructor_id', 'classroom_id')
+            ->using(ClassroomInstructor::class);
+    }
+
+    public function department()
+    {
+       return $this->belongsTo(Department::class);
     }
 }

@@ -6,6 +6,7 @@ use App\Models\Lesson;
 use App\Http\Requests\StoreLessonRequest;
 use App\Http\Requests\UpdateLessonRequest;
 use App\Models\Attendance;
+use App\Models\Department;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class LessonController extends Controller
@@ -30,8 +31,9 @@ class LessonController extends Controller
 
     public function getLessons()
     {
-        $lessons = Lesson::get();
-        return response()->json($lessons, 200);
+        $lessons = Lesson::with('department')->get();
+        $departments = Department::get();
+        return response()->json(['lessons' => $lessons, 'departments' => $departments], 200);
     }
 
     /**
@@ -54,16 +56,16 @@ class LessonController extends Controller
     {
         $messages = [
             'lesson_name.required' => 'Lesson name is required!',
-            'lesson_name.unique' => 'Lesson '.$request['lesson_name'].' already exist, choose another name!',
-            'lesson_description.required'   => 'Lesson description is required'
+            'lesson_description.required' => 'Lesson description is required!',
+            'lesson_department.required' => 'Lesson department is required!',
+            'lesson_department.exists' => 'The selected lesson department is invalid!',
         ];
 
         // Validate the request
         $this->validate($request, [
-            'lesson_name'  =>'required',
-            'lesson_name' => 'unique:lessons,name',
-            'lesson_description' =>'required'
-
+            'lesson_name' => 'required|string',
+            'lesson_description' => 'required|string',
+            'lesson_department' => 'required|exists:departments,id',
         ], $messages);
 
         $post = $request->All();
@@ -72,6 +74,7 @@ class LessonController extends Controller
 
         $lesson->name = $post['lesson_name'];
         $lesson->description = $post['lesson_description'];
+        $lesson->department_id = $post['lesson_department'];
 
         $lesson->save();
 
@@ -114,15 +117,15 @@ class LessonController extends Controller
         $messages = [
             'lesson_name.required' => 'Lesson name is required!',
             'lesson_description.required' => 'Lesson description is required!',
-            'lesson_type.required' => 'Lesson type is required!',
-            'lesson_type.in' => 'Lesson type must be either "practical" or "theory"!',
+            'lesson_department.required' => 'Lesson type is required!',
+            'lesson_department.exists' => 'The selected lesson type is invalid!',
         ];
 
         // Validate the request
         $this->validate($request, [
             'lesson_name' => 'required|string',
             'lesson_description' => 'required|string',
-            'lesson_type' => 'required|in:practical,theory',
+            'lesson_department' => 'required|exists:departments,id',
         ], $messages);
 
         $post = $request->All();
@@ -131,7 +134,7 @@ class LessonController extends Controller
 
         $lesson->name = $post['lesson_name'];
         $lesson->description = $post['lesson_description'];
-        $lesson->type = $post['lesson_type'];
+        $lesson->department_id = $post['lesson_department'];
 
         $lesson->save();
 

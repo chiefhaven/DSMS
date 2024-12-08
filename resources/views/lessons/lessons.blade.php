@@ -29,7 +29,7 @@
                 <div class="block-content block-content-full block-content-sm bg-body-light">
                     @{{lesson.name}} <br>
                     <div class="text-muted text-small">
-                        @{{lesson.type}}
+                        @{{lesson.department.name}}
                     </div>
                 </div>
                 <div class="block-content block-content-full overflow-visible">
@@ -95,10 +95,11 @@
         const showAddLessonModal = ref(false);
         const lessonData = ref({});
         const lessons = ref([]);
+        const departments = ref([]);
         const state = ref({
             modalTitle: 'Add lesson',
             buttonName:'Save',
-            lesson_type: 'Practical',
+            department: 'Practical',
             name:'',
             description:'',
             lessonId:null,
@@ -116,7 +117,7 @@
                     state.value.lessonId = selectedLesson.id;
                     state.value.name = selectedLesson.name;
                     state.value.description = selectedLesson.description;
-                    state.value.lesson_type = selectedLesson.type;
+                    state.value.department = selectedLesson.department.id;
                 } else {
                     return; // Exit if lesson is invalid
                 }
@@ -185,7 +186,7 @@
                 const payload = {
                     lesson_name: state.value.name,
                     lesson_description: state.value.description,
-                    lesson_type: state.value.lesson_type,
+                    lesson_department: state.value.department,
                 };
 
                 // Determine if this is an update or a new lesson
@@ -227,7 +228,7 @@
         const resetForm = () => {
             state.value.name = '';
             state.value.description = '';
-            state.value.lesson_type = '';
+            state.value.department = '';
             state.value.lessonId = null; // Reset the ID for a new lesson
             state.value.modalTitle = 'Add Lesson'; // Set default title
             state.value.buttonName = 'Save'; // Set default button label
@@ -239,7 +240,8 @@
                 const response = await axios.get('/getLessons');
 
                 // Update the lesson list in state
-                lessons.value = response.data;
+                lessons.value = response.data.lessons;
+                departments.value = response.data.departments;
 
             } catch (error) {
 
@@ -274,6 +276,7 @@
             lessonData,
             lessons,
             confirmDeleteLesson,
+            departments,
         }
       }
     })
