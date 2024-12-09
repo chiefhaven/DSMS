@@ -202,7 +202,7 @@ class FleetController extends Controller
             // Assign the instructor to the current fleet
             $fleet->instructor_id = $post['instructor'];
 
-            $message = 'Instructor was assigned to different cars, has been unassigned and reassigned';
+            $message = 'Instructor was assigned to different car, has been unassigned and reassigned to '.$fleet->car_brand_model;
         }
         else {
             // If no instructor is provided, assign a default value
@@ -230,12 +230,31 @@ class FleetController extends Controller
      */
     public function destroy($id)
     {
-        $fleet = Fleet::find($id)->delete();
+        // Check if any students are assigned to this fleet
+        $studentsCount = Student::where('fleet_id', $id)->where('status', '!=', 'Finished')->count();
 
-        $message ="Fleet deleted";
+        if ($studentsCount > 0) {
+            $message = "Cannot delete fleet as it still has active students assigned to it!";
+            Alert::toast($message, 'error');
+            return redirect()->back()->with('message', $message);
+        }
 
-        Alert::toast('Fleet deleted', 'success');
+        // Find the fleet
+        $fleet = Fleet::find($id);
+
+        if (!$fleet) {
+            $message = "Fleet not found";
+            Alert::toast($message, 'error');
+            return redirect()->back()->with('message', $message);
+        }
+
+        // Delete the fleet
+        $fleet->delete();
+
+        $message = "Fleet deleted successfully";
+        Alert::toast($message, 'success');
 
         return redirect()->back()->with('message', $message);
     }
+
 }
