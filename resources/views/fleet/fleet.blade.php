@@ -95,7 +95,7 @@
                 var form = $(this).parents('form');
                 swal({
                     title: 'Are you sure you want to delete {{$fleet->car_brand_model}}?',
-                    text: 'All Students and Instructors belonging to this fleet will be transfered to default fleet!',
+                    text: 'Will not delete as there are students still assigned to it!',
                     icon: 'warning',
                     buttons: ["Cancel", "Yes!"],
                 }).then(function(isConfirm){
