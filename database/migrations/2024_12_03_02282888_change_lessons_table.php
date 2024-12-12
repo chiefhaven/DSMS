@@ -14,7 +14,6 @@ return new class extends Migration
     public function up()
     {
         Schema::table('lessons', function (Blueprint $table) {
-            $table->dropColumn('order'); // Adds an 'order' column with a default value of 0
         });
     }
 
