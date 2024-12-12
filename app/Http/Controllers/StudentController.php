@@ -30,10 +30,47 @@ class StudentController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    public function fetchStudents(Request $request)
+    {
+        $columns = ['fname', 'mname', 'sname'];
+
+        $search = $request->input('search.value'); // Search keyword
+        $order = $request->input('order.0.column'); // Ordered column index
+        $orderDir = $request->input('order.0.dir'); // ASC or DESC
+        $start = $request->input('start'); // Offset
+        $length = $request->input('length'); // Limit
+
+        $query = Student::query();
+
+        // Filter results based on the search
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('fname', 'like', "%$search%")
+                ->orWhere('sname', 'like', "%$search%")
+                ->orWhere('mname', 'like', "%$search%");
+            });
+        }
+
+        // Order the results
+        $query->orderBy($columns[$order], $orderDir);
+
+        // Paginate results
+        $totalRecords = $query->count();
+        $records = $query->skip($start)->take($length)->get();
+
+        // Return response in DataTables format
+        return response()->json([
+            'draw' => intval($request->input('draw')), // Pass through the same draw count from the request
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $totalRecords,
+            'data' => $records,
+        ]);
+    }
+
     public function index()
     {
         try {
-            $studentQuery = Student::with('User', 'Attendance', 'Course', 'Invoice')->where('status', '!=', 'Finished')->orderBy('created_at', 'DESC');
+            $studentQuery = Student::with('User')->where('status', '!=', 'Finished')->orderBy('created_at', 'DESC');
 
             if (Auth::user()->hasRole('instructor')) {
                 $fleet = null; // Initialize fleet variable
