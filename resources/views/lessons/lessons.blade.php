@@ -181,6 +181,8 @@
         const postLesson = async () => {
             NProgress.start();
 
+            console.log('haven')
+
             try {
                 // Prepare the payload
                 const payload = {
