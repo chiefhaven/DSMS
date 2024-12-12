@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('students', function (Blueprint $table) {
-            $table->uuid('classroom_id')->nullable()->after('fleet_id');
+            $table->uuid('classroom_id')->nullable()->after('fleet_id')->change();
         });
     }
 
