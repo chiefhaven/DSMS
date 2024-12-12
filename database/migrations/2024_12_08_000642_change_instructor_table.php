@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('instructors', function (Blueprint $table) {
-            $table->renameColumn('department', 'department_id');
+            $table->uuid('department_id');
         });
 
         Schema::table('instructors', function (Blueprint $table) {
