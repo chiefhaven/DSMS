@@ -6,7 +6,7 @@ use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\studentProfileController;
-
+use App\Http\Controllers\StudentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,3 +35,4 @@ Route::get('invoice-view/{id}', [InvoiceController::class, 'show'])->middleware(
 
 Route::get('/studentProfile', [studentProfileController::class, 'show'])->middleware('auth:sanctum')->name('studentProfile');
 Route::get('/attendance', [studentProfileController::class, 'showAttendance'])->middleware('auth:sanctum')->name('attendance');
+Route::get('/students', [StudentController::class, 'fetchStudents'])->middleware('auth')->name('students');
