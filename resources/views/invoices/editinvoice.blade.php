@@ -37,7 +37,7 @@
                     <div class="row">
                         <div class="col-6 form-floating mb-4">
                             <select class="form-select" id="student" name="student">
-                                <option value="{{$invoice->student->fname}} {{$invoice->student->mname}} {{$invoice->student->sname}}"><strong>{{$invoice->student->fname}} {{$invoice->student->sname}}</strong></option>
+                                <option value="{{$invoice->student->id}}"><strong>{{$invoice->student->fname}} {{$invoice->student->sname}}</strong></option>
                             </select>
                             <label class="px-4" for="example-ltf-email">Select student</label>
                         </div>
@@ -52,8 +52,8 @@
                     </div>
                     <div class="col-12 form-floating mb-4">
                         <select class="form-select" id="course" name="course">
-                          @foreach($course as $course_option)
-                            <option value="{{$course_option->name}}" {{ $course_option->id == $invoice->course_id ? 'selected' : '' }}><strong>{{$course_option->name}}</strong> (K{{$course_option->price}})</option>
+                          @foreach($courses as $course)
+                            <option value="{{$course->name}}" {{ $course->id == $invoice->course_id ? 'selected' : '' }}>{{$course->name}}</option>
                           @endforeach
                         </select>
                         <label for="district">Course To Enroll</label>
@@ -75,12 +75,14 @@
                         </div>
                     </div>
                     <div class="col-4 form-floating mb-4">
-                        <select class="form-select" id="fleet" name="fleet">
-                          @foreach($fleet as $fleet_option)
-                            <option value="{{$fleet_option->car_registration_number}}" {{ $fleet_option->id == $invoice->student->fleet_id ? 'selected' : '' }}><strong>{{$fleet_option->car_registration_number}} - </strong> <div class="text-muted text-small">{{$fleet_option->car_brand_model}} ({{$fleet_option->student->count()}} students assigned)</div></option>
+                        <select class="form-select" id="classroom" name="classroom">
+                          @foreach($classrooms as $classroom)
+                            <option value="{{$classroom->id}}" {{ $classroom->id == $invoice->student->classroom_id ? 'selected' : '' }}>
+                                {{$classroom->name}}
+                            </option>
                           @endforeach
                         </select>
-                        <label for="district">Assign Car</label>
+                        <label for="district">Assign classroom</label>
                     </div>
                     <div class="form-group">
                         <button type="submit" class="btn btn-primary">Save</button>

@@ -62,6 +62,7 @@ Route::post('/studentsPdf', [StudentController::class, 'studentsPDF'])->middlewa
 Route::post('/assignCar', [StudentController::class, 'assignCar'])->middleware('auth')->name('assignCar');
 Route::post('/unAssign', [StudentController::class, 'unAssign'])->middleware('auth')->name('unAssign');
 Route::post('/updateStudentStatus/{student}', [StudentController::class, 'updateStudentStatus'])->middleware('auth')->name('editstudent');
+Route::post('/assign-class-room', [StudentController::class, 'assignClassRoom'])->middleware('auth')->name('student-assign-class-room');
 
 Route::get('/attendances', [AttendanceController::class, 'index'])->middleware('auth')->name('attendances');
 Route::post('/addattendance/{token}', [AttendanceController::class, 'create'])->middleware('auth')->name('addattendance');
@@ -107,7 +108,7 @@ Route::get('/view-invoice/{id}', [InvoiceController::class, 'show'])->middleware
 Route::get('/invoice-pdf/{id}', [InvoiceController::class, 'invoicePDF'])->middleware('auth')->name('invoice-pdf');
 Route::get('/addinvoice/{id}', [InvoiceController::class, 'create'])->middleware('auth')->name('addinvoices');
 Route::post('/store-invoice', [InvoiceController::class, 'store'])->middleware('auth')->name('store-invoice');
-Route::post('/edit-invoice/{id}', [InvoiceController::class, 'edit'])->middleware('auth')->name('edit-invoices');
+Route::get('/edit-invoice/{id}', [InvoiceController::class, 'edit'])->middleware('auth')->name('edit-invoices');
 Route::delete('/invoice-delete/{invoice}', [InvoiceController::class, 'destroy'])->middleware('auth')->name('invoice-delete');
 Route::post('/invoice-update', [InvoiceController::class, 'update'])->middleware('auth')->name('invoice-update');
 Route::get('/search-invoice', [InvoiceController::class, 'search'])->middleware('auth')->name('searchInvoice');

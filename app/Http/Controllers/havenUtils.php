@@ -255,22 +255,49 @@
             return $qrCode;
         }
 
-        static function checkStudentInstructor($id){
-            $instructorFleet = Fleet::where('instructor_id', Auth::user()->instructor_id)->first();
+        static function checkStudentInstructor($studentId)
+        {
+            // Ensure there is an authenticated user
+            $user = Auth::user();
+            if (!$user || !$user->instructor_id) {
+                return false;
+            }
 
+            // Retrieve the instructor's fleet
+            $instructorFleet = Fleet::where('instructor_id', $user->instructor_id)->first();
             if (!$instructorFleet) {
-                // Handle the case where the fleet is not found
-                return false;
+                return false; // Instructor does not have a fleet assigned
             }
 
-            $studentFleetId = Student::find($id)->fleet_id;
-
-            if ($instructorFleet->id != $studentFleetId) {
-                return false;
-            }
-
-            return true;
+            // Retrieve the student and validate their fleet
+            $student = Student::find($studentId);
+            return $student && $instructorFleet->id === $student->fleet_id;
         }
+
+
+        static function checkClassRoom($studentId)
+        {
+            // Ensure there is an authenticated user and retrieve their classroom IDs
+            $user = Auth::user();
+
+            if (!$user || !$user->instructor || !$user->instructor->classrooms()->exists()) {
+                return false; // Instructor does not have a classroom assigned
+            }
+
+            // Get all classroom IDs associated with the instructor
+            $classroomIds = $user->instructor->classrooms->pluck('id');
+
+            // Retrieve the student and validate their classroom
+            $student = Student::find($studentId);
+            if (!$student) {
+                Log::warning("Student not found with ID: $studentId");
+                return false;
+            }
+
+            // Check if the student's classroom ID exists in the instructor's classrooms
+            return $classroomIds->contains($student->classroom_id);
+}
+
 
         static function invoiceQrCode($id){
             $student = Student::find($id);

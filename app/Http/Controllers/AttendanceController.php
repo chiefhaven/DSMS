@@ -64,7 +64,8 @@ class AttendanceController extends Controller
         }
 
         if ($instructor->hasRole('instructor')) {
-            $lesson = Lesson::all();
+
+            $lesson = Lesson::where('department_id', $instructor->instructor->department_id)->get();
             $student = Student::find($token);
 
             if (!$student) {
@@ -72,20 +73,44 @@ class AttendanceController extends Controller
                 return back();
             }
 
-            if (!isset($student->fleet)) {
-                Alert()->error('Not assigned car yet', 'Choose from the list below or contact the admin');
-                return back();
+            if (!$student->fleet && !$student->classroom) {
+                Alert::error('Not assigned car or classroom yet', 'Choose from the list below or contact the admin');
+                return redirect()->back();
             }
 
             if (!$this->attendanceLatest($instructor->instructor_id, $now)) {
-                Alert()->error('Attendance can not be entered', 'You can only enter attendances every ' . $this->setting->time_between_attendances . ' minutes, for more information contact the admin!');
+                    Alert()->error('Attendance can not be entered', 'You can only enter attendances every ' . $this->setting->time_between_attendances . ' minutes, for more information contact the admin!');
                 return back();
             }
 
-            if (!havenUtils::checkStudentInstructor($token)) {
-                Alert()->error('Student not found', 'Student belongs to '.$student->fleet->car_registration_number.' '. $student->fleet->car_brand_model.' with'.' '.$student->fleet->instructor->fname.' '.$student->fleet->instructor->sname.', scan another document or contact administrator');
+            if (!$student->classroom) {
+                    Alert()->error('Student not found', 'Student belongs to '.$student->fleet->car_registration_number.' '. $student->fleet->car_brand_model.' with'.' '.$student->fleet->instructor->fname.' '.$student->fleet->instructor->sname.', scan another document or contact administrator');
                 return back();
             }
+
+            if ($student->fleet && !havenUtils::checkStudentInstructor($token)) {
+                $fleetDetails = $student->fleet->car_registration_number . ' ' . $student->fleet->car_brand_model;
+                $instructorDetails = $student->fleet->instructor->fname . ' ' . $student->fleet->instructor->sname;
+                Alert()->error('Student not found', "Student belongs to $fleetDetails with $instructorDetails. Scan another document or contact administrator.");
+                return back();
+            }
+
+            if ($student->classroom && !havenUtils::checkClassRoom($token)) {
+                $classroomDetails = $student->classroom->name . ' ' . $student->classroom->location;
+
+                // Get all instructors' full names
+                $instructorNames = $student->classroom->instructors->pluck('fname', 'sname')->map(function($fname, $sname) {
+                    return $fname . ' ' . $sname;
+                })->implode(', '); // Join all instructor names with a comma
+
+                if (empty($instructorNames)) {
+                    $instructorNames = 'no instructors assigned';
+                }
+
+                Alert()->error('Student not found', "Student belongs to $classroomDetails whose instructors are $instructorNames. Scan another document or contact administrator.");
+                return back();
+            }
+
 
             $attendanceCount = $student->attendance->count();
             $attendanceThreshold = $this->setting->attendance_threshold;

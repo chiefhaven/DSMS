@@ -60,7 +60,7 @@
                                     <a class="dropdown-item" href="{{ url('/view-invoice', $student->invoice->invoice_number) }}">
                                         View
                                     </a>
-                                    <form method="POST" action="{{ url('/edit-invoice', $student->invoice->invoice_number) }}">
+                                    <form method="get" action="{{ url('/edit-invoice', $student->invoice->invoice_number) }}">
                                             {{ csrf_field() }}
                                         <button class="dropdown-item" type="submit">Edit</button>
                                     </form>

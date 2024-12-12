@@ -13,6 +13,7 @@ use App\Models\Attendance;
 use App\Models\Setting;
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\UpdateInvoiceRequest;
+use App\Models\Classroom;
 use Illuminate\Support\Str;
 use Auth;
 use RealRashid\SweetAlert\Facades\Alert;
@@ -46,16 +47,15 @@ class InvoiceController extends Controller
      */
     public function create($id)
     {
+        if (Auth::user()->hasRole('superAdmin')) {
+            $courses = Course::all();
+            $classrooms = Classroom::all();
+            $fleets = Fleet::all();
+            $student = Student::findOrFail($id); // Ensures proper error handling if student is not found.
 
-        if(Auth::user()->hasRole('superAdmin')){
-            $course = Course::get();
-            $fleet = Fleet::get();
-            $student = Student::find($id);
-            return view('invoices.addinvoice', compact('course', 'student', 'fleet'));
-        }
-
-        else{
-            Alert::toast('You don\'t have permission to enroll a student, Ask the administrator for more information.', 'warning');
+            return view('invoices.addinvoice', compact('courses', 'student', 'fleets', 'classrooms'));
+        } else {
+            Alert::toast('You do not have permission to enroll a student. Please contact the administrator for assistance.', 'warning');
             return back();
         }
     }
@@ -212,10 +212,23 @@ class InvoiceController extends Controller
      */
     public function edit($id)
     {
-        $course = Course::get();
-        $fleet = Fleet::get();
-        $invoice = Invoice::with('User', 'Course', 'Student')->where('invoice_number', $id)->firstOrFail();
-        return view('invoices.editinvoice', [ 'invoice' => $invoice ], compact('invoice', 'course', 'fleet'));
+        try {
+            $courses = Course::all();
+            $classrooms = Classroom::all();
+            $fleets = Fleet::all();
+
+            $invoice = Invoice::with(['user', 'course', 'student'])
+                ->where('invoice_number', $id)
+                ->firstOrFail();
+
+            return view('invoices.editinvoice', compact('invoice', 'courses', 'fleets', 'classrooms'));
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            Alert::toast('Invoice not found. Please check the invoice number and try again.', 'error');
+            return back();
+        } catch (\Exception $e) {
+            Alert::toast('An error occurred while trying to edit the invoice. Please try again later.', 'error');
+            return back();
+        }
     }
 
     /**
@@ -227,87 +240,67 @@ class InvoiceController extends Controller
      */
     public function update(UpdateInvoiceRequest $request, Invoice $invoice)
     {
+        // Validation messages
         $messages = [
-            'student.required' => 'Please choose a Student!',
-            'course.required'   => 'Please choose a Course',
-            'discount.numeric' => 'Discount must be a number greater than zero',
+            'student.required' => 'Please choose a student!',
+            'student.exists'   => 'The selected student does not exist.',
+            'course.required'  => 'Please choose a course!',
+            'discount.numeric' => 'The discount must be a numeric value.',
+            'discount.min'     => 'The discount must be at least zero.',
+            'classroom.exists' => 'The selected classroom does not exist.',
         ];
 
         // Validate the request
         $this->validate($request, [
-            'student'  =>'required',
-            'course' =>'required',
-            'discount'   =>'numeric|min:0'
+            'student'   => 'required|exists:students,id',
+            'course'    => 'required',
+            'discount'  => 'numeric|min:0',
+            'classroom' => 'nullable|exists:classrooms,id', // Optional but must exist in classrooms table
         ], $messages);
 
-        $post = $request->All();
+        // Get all request data
+        $post = $request->all();
 
-        $invoice = Invoice::where('invoice_number', $post['invoice_number'])->firstOrFail();
+        // Handle discount with a default value of 0 if not set
+        $discount = isset($post['discount']) ? (float)$post['discount'] : 0;
 
-        $discount = (float)$post['discount'];
+        // Set invoice creation date and due date
+        $date_created = $post['date_created'] ?? date('Y/m/d');
+        $invoice_due_date = $post['invoice_due_date'] ?? date('Y-m-d', strtotime('+10 days'));
 
-        if(isset($discount)){
-
-            $discount = $discount;
-        }
-
-        else{
-
-            $discount = 0;
-        }
-
-
-        if(isset($post['date_created'])){
-
-            $date_created = $post['date_created'];
-        }
-        else{
-
-            $date_created = date('Y/m/d');
-        }
-
-
-        if(isset($post['inovice_due_date'])){
-
-            $invoice_due_date = $post['invoice_due_date'];
-        }
-        else{
-
-            $start_date = date('Y-m-d');
-            $invoice_due_date = date('Y-m-d', strtotime( $start_date . " +10 days"));
-
-        }
-
-
-        $student_id = havenUtils::student($post['student'])->id;
-        //$fleet_id = havenUtils::fleetID($post['fleet']);
+        // Financial calculations
         $invoice_total = havenUtils::invoiceDiscountedPrice($post['course'], $discount);
         $courseId = havenUtils::courseID($post['course']);
         $coursePrice = havenUtils::coursePrice($post['course']);
         $invoice_balance = havenUtils::invoiceBalance($post['paid_amount'], $invoice_total);
 
+        // Update the invoice
         $invoice->invoice_number = $post['invoice_number'];
-        $invoice->student_id = $student_id;
+        $invoice->student_id = $post['student'];
         $invoice->course_id = $courseId;
         $invoice->course_price = $coursePrice;
         $invoice->invoice_total = $invoice_total;
         $invoice->invoice_discount = $discount;
         $invoice->invoice_amount_paid = $post['paid_amount'];
         $invoice->invoice_balance = $invoice_balance;
+        $invoice->invoice_payment_method = $post['payment_method'];
         $invoice->invoice_payment_due_date = $invoice_due_date;
         $invoice->invoice_terms = '';
         $invoice->date_created = $date_created;
 
-
-        $student = Student::where('id', $student_id)->firstOrFail();
-        $student->course_id = $courseId;
-
-        //$student->fleet_id = $fleet_id;
-
+        // Save the updated invoice
         $invoice->save();
+
+        // Update the student's course
+        $student = Student::findOrFail($post['student']);
+        $student->classroom_id = $post['classroom'] ?? null; // Assign classroom
+        $student->course_id = $courseId;
         $student->save();
 
-        return redirect('/invoices')->with('message', 'Invoice updated!');
+        Alert::toast('Invoice updated successfully, including classroom!', 'success');
+        // Return success response
+        return redirect(url('/viewstudent/' . $student->id));
+
     }
 
     /**

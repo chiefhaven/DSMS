@@ -15,6 +15,7 @@ use App\Models\Setting;
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\PdfStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
+use App\Models\Classroom;
 use App\Models\Fleet;
 use Illuminate\Support\Str;
 use PDF;
@@ -35,12 +36,33 @@ class StudentController extends Controller
             $studentQuery = Student::with('User', 'Attendance', 'Course', 'Invoice')->where('status', '!=', 'Finished')->orderBy('created_at', 'DESC');
 
             if (Auth::user()->hasRole('instructor')) {
-                $fleet = Fleet::where('instructor_id', Auth::user()->instructor_id)->firstOrFail();
+                $fleet = null; // Initialize fleet variable
+                $classrooms = collect(); // Initialize classrooms as an empty collection
 
-                // Fetch students linked to the instructor's fleet
-                $student = $studentQuery->where('fleet_id', $fleet->id)->get();
-            } else {
-                // Fetch most recent 50 students
+                if (Auth::user()->instructor->department) {
+                    // Initialize the student query to avoid overwriting it in multiple conditions
+                    $studentQuery = $studentQuery ?? Student::query(); // Ensure $studentQuery is initialized
+
+                    // Practical department: Fetch fleet associated with the instructor
+                    if (Auth::user()->instructor->department->name == 'Practical') {
+                        $fleet = Fleet::where('instructor_id', Auth::user()->instructor_id)->firstOrFail();
+                        $studentQuery->Where('fleet_id', $fleet->id); // Correct typo: Use `orWhere`
+                    }
+
+                    // Theory department: Fetch classrooms associated with the instructor
+                    if (Auth::user()->instructor->department->name == 'Theory') {
+                        $classrooms = Auth::user()->instructor->classrooms;
+                        $classroomIds = $classrooms->pluck('id');
+
+                        $studentQuery->whereIn('classroom_id', $classroomIds); // `whereIn` for classroom IDs
+                    }
+
+                    // Execute the query to fetch students
+                    $student = $studentQuery->get();
+                }
+
+            }
+            else {
                 $student = $studentQuery->get();
             }
 
@@ -50,11 +72,10 @@ class StudentController extends Controller
             return view('students.students', compact('student', 'fleet'));
 
         } catch (ModelNotFoundException $e) {
-            Alert::error('No students', __('You are not allocated a car. Please contact the admin for assistance.'));
+            Alert::error('No students', __('You are not allocated a car or class. Please contact the admin for assistance.'));
             return redirect('/');
         }
     }
-
 
     /**
      * Show the form for creating a new resource.
@@ -165,7 +186,7 @@ class StudentController extends Controller
      */
     public function show($id)
     {
-        $student = Student::With('User', 'Course', 'Enrollment', 'Invoice', 'Payment')->find($id);
+        $student = Student::With('User', 'Course', 'Enrollment', 'Invoice', 'Payment', 'Classroom')->find($id);
 
         if(!isset($student)){
             abort(404);
@@ -537,4 +558,39 @@ class StudentController extends Controller
         return response()->json('Success, student assigned car', 200);
 
     }
+
+    public function assignClassRoom(Request $request)
+    {
+        $messages = [
+            'classroom.required' => 'The classroom field is required.',
+            'classroom.exists'   => 'The selected classroom does not exist.',
+            'student.required'   => 'The student field is required.',
+            'student.exists'     => 'The selected student does not exist.',
+        ];
+
+        // Validate the request
+        $this->validate($request, [
+            'classroom' => 'required|exists:classrooms,id',
+            'student'   => 'required|exists:students,id',
+        ], $messages);
+
+        try {
+            // Find the student
+            $student = Student::findOrFail($request->student);
+
+            // Assign the classroom
+            $student->classroom_id = $request->classroom;
+            $student->save();
+
+            $sms = new NotificationController;
+            $sms->generalSMS($student, 'Carassignment');
+
+            // Notify success
+            return response()->json('Success, student assigned to classroom', 200);
+        } catch (\Exception $e) {
+            // Handle any exceptions
+            return response()->json(['error' => 'Something went wrong: ' . $e->getMessage()], 500);
+        }
+    }
+
 }

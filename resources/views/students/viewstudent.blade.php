@@ -62,40 +62,42 @@
             <div class="tab-pane fade active show" id="student-details" role="tabpanel" aria-labelledby="student-details-tab">
             <div class="content content-full row">
                 <div class="col-6" style="background: #ffffff; margin: 0 10px; border-radius: 5px; border: thin solid #cdcdcd;">
-                <div class="py-6 px-4">
+                <div class="p-2">
                     <img class="img-avatar img-avatar96 img-avatar-thumb" src="/../media/avatars/avatar2.jpg" alt="">
                     <h1 class="my-2">{{$student->fname}} {{$student->mname}} {{$student->sname}}</h1>
                     <p>
                         Gender: {{$student->gender}}<br>
                         Address: {{$student->address}} <br>Phone: {{$student->phone}}<br>Email: {{$student->user->email}}<br>TRN: {{$student->trn}}
                     </p>
-                    <div class="row">
-                        <h3 class="">Car assigned</h3>
-                        <hr>
-                        @if(isset($student->fleet->car_brand_model))
-                            <div class="col-sm-4">
-                                {{$student->fleet->car_registration_number}}
-                                <div style="font-size: 10px">{{$student->fleet->car_brand_model}}</div>
-                            </div>
-                            <div class="col-sm-4">
-                                <button type="submit" @click="getFleet()" class="btn btn-warning" data-bs-toggle="modal" data-bs-target=".assignCar">Reassign</button>
-                            </div>
-                            <div class="col-sm-4">
-                                <button type="submit" @click="assign()" class="btn btn-danger">Unassign</button>
-                            </div>
-                        @else
-                            <div class="col-sm-6 text-danger">
-                                <strong>Unassigned yet</strong>
-                            </div>
-                            <div class="col-sm-4">
-                                <button type="submit" @click="getFleet()" class="btn btn-primary" data-bs-toggle="modal" data-bs-target=".assignCar">Assign</button>
-                            </div>
-                        @endif
-                    </div>
+                    @role(['superAdmin','admin'])
+                        <div class="row">
+                            @if(isset($student->fleet->car_brand_model))
+                                <h3 class="">Car assigned</h3>
+                                <hr>
+                                <div class="col-sm-4">
+                                    {{$student->fleet->car_registration_number}}
+                                    <div style="font-size: 10px">{{$student->fleet->car_brand_model}}</div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <button type="submit" @click="getFleet()" class="btn btn-warning" data-bs-toggle="modal" data-bs-target=".assignCar">Reassign</button>
+                                </div>
+                                <div class="col-sm-4">
+                                    <button type="submit" @click="assign()" class="btn btn-danger">Unassign</button>
+                                </div>
+                            @else
+                                <div class="col-sm-6 text-danger">
+                                    <strong>Unassigned car</strong>
+                                </div>
+                                <div class="col-sm-4">
+                                    <button type="submit" @click="getFleet()" class="btn btn-primary" data-bs-toggle="modal" data-bs-target=".assignCar">Assign</button>
+                                </div>
+                            @endif
+                        </div>
+                    @endrole
                 </div>
                 </div>
                 <div class="col-5" style="background: #ffffff; margin: 0 10px; border-radius: 5px; border: thin solid #cdcdcd;">
-                <div class="py-5 px-5">
+                <div class="p-2">
                     <p><strong>General Information</strong></p>
                     <div class="table-responsive">
                     <table class="table table-bordered ">
@@ -110,7 +112,6 @@
                                     <td>
                                         @if(isset($student->invoice->created_at))
                                             {{$student->invoice->created_at->format('j F, Y')}}
-
                                         @else
                                             <a href="{{ url('/addinvoice', $student->id) }}">Enroll Course</a>
                                         @endif
@@ -123,13 +124,34 @@
                                 </td>
                                 <td>
                                     @if(isset($student->invoice->created_at))
-                                    {{$student->course->name}}<br>{{$student->course->duration}} days
+                                        {{$student->course->name}}<br>{{$student->course->duration}} days
                                     @else
-
+                                        -
                                     @endif
                                 </td>
                             </tr>
                             @role(['superAdmin', 'admin'])
+                                <tr>
+                                    <td>
+                                        Classroom
+                                    </td>
+                                    <td>
+                                        @if(isset($student->classroom))
+                                            <a data-bs-toggle="collapse" href="#collapseButton" role="button" aria-expanded="false" aria-controls="collapseButton">
+                                                {{ $student->classroom->name }}<br>{{ $student->classroom->location }}
+                                            </a>
+                                            <div class="collapse mt-2" id="collapseButton">
+                                                    <button type="button" @click="getClassRooms()" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target=".assignClassRoom">
+                                                        Re-assign
+                                                    </button>
+                                            </div>
+                                        @else
+                                            <button type="button" @click="getClassRooms()" class="btn btn-primary" data-bs-toggle="modal" data-bs-target=".assignClassRoom">
+                                                Assign
+                                            </button>
+                                        @endif
+                                    </td>
+                                </tr>
                                 <tr>
                                     <td>
                                         Fees
@@ -315,6 +337,7 @@
     @endcan
 
     @include('students.partials.assignCarModal')
+    @include('students.partials.assignClassRoomModal')
 </div>
 
 @role(['superAdmin', 'admin'])
@@ -336,12 +359,10 @@
                     <div class="row">
                         <div class="col-sm-12 mb-4">
                             <label for="invoice_discount">Date</label>
-                            <select class="form-select dropdown-toggle" id="status" name="status" value="$student->status">
-                                <div class="dropdown-menu">
-                                    <option {{ $student->status == 'Pending' ? 'selected' : '' }}>Pending</option>
-                                    <option {{ $student->status == 'In progress' ? 'selected' : '' }}>In progress</option>
-                                    <option {{ $student->status == 'Finished' ? 'selected' : '' }}>Finished</option>
-                                </div>
+                            <select class="form-select dropdown-toggle" id="status" name="status">
+                                <option value="Pending" {{ $student->status == 'Pending' ? 'selected' : '' }}>Pending</option>
+                                <option value="In progress" {{ $student->status == 'In progress' ? 'selected' : '' }}>In progress</option>
+                                <option value="Finished" {{ $student->status == 'Finished' ? 'selected' : '' }}>Finished</option>
                             </select>
                         </div>
                         <div class="block-content block-content-full text-end bg-body">
@@ -358,7 +379,6 @@
     @endcan
 <script setup>
     const { createApp, ref, reactive } = Vue
-    const { defineRule, configure, useForm, useField, ErrorMessage } = VeeValidate
 
     const app = createApp({
       setup() {
@@ -366,8 +386,12 @@
         const cars = ref([])
         const fleetRegNumber = ref(null)
         const fleet = ref('')
+        const classRoom = ref('{{ $student->classroom->id }}');
+        const classRooms = ref([]);
 
         function getFleet(){
+            NProgress.start();
+
             axios.get('/getFleet').then(response => {
                 if(response.status==200){
                     cars.value = response.data
@@ -379,9 +403,38 @@
                     return false
                 }
             });
+
+            NProgress.done();
+
         }
 
+        const getClassRooms = () => {
+            NProgress.start();
+
+            axios.get('/getClassRooms')
+                .then(response => {
+                    if (response.status === 200 && response.data) {
+                        classRooms.value = response.data;
+                    } else {
+                        notification('Unexpected response from server', 'error');
+                    }
+                })
+                .catch(error => {
+                    if (error.response && error.response.data && error.response.data.errors) {
+                        notification(error.response.data.errors.message, 'error');
+                    } else {
+                        notification('An error occurred while fetching classrooms', 'error');
+                    }
+                })
+                .finally(() => {
+                    NProgress.done();
+                });
+        };
+
         function assign(){
+
+            NProgress.start();
+
             axios.post('/assignCar', { student: '{{ $student->id }}', fleet: fleetRegNumber.value  }).then(response => {
                 if(response.status==200){
                     notification(response.data,'success')
@@ -394,7 +447,36 @@
                     return false
                 }
             });
+
+            NProgress.done();
         }
+
+        const assignClassRoom = () => {
+            NProgress.start();
+
+            axios.post('/assign-class-room', {
+                student: '{{ $student->id }}',
+                classroom: classRoom.value
+            })
+            .then(response => {
+                if (response.status === 200) {
+                    notification(response.data, 'success');
+                    location.reload();
+                } else {
+                    notification('Unexpected response from server', 'error');
+                }
+            })
+            .catch(error => {
+                if (error.response && error.response.data && error.response.data.errors) {
+                    notification(error.response.data.errors.message, 'error');
+                } else {
+                    notification('An error occurred while assigning the classroom', 'error');
+                }
+            })
+            .finally(() => {
+                NProgress.done();
+            });
+        };
 
         function notification($text, $icon){
             Swal.fire({
@@ -417,11 +499,14 @@
             getFleet,
             fleetRegNumber,
             fleet,
-            assign
+            assign,
+            assignClassRoom,
+            classRoom,
+            classRooms,
+            getClassRooms
         }
       }
     })
-    app.use(VeeValidate);
     app.mount('#student')
 </script>
 @endsection
