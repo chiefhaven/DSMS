@@ -6,19 +6,7 @@ use App\Http\Controllers\havenUtils;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Student;
-use App\Models\Invoice;
-use App\Models\Account;
-use App\Models\User;
-use App\Models\District;
-use App\Models\Payment;
 use App\Models\Attendance;
-use App\Models\Setting;
-use App\Http\Requests\StoreStudentRequest;
-use App\Http\Requests\UpdateStudentRequest;
-use Session;
-use Illuminate\Support\Str;
-use PDF;
-use RealRashid\SweetAlert\Facades\Alert;
 use Illuminate\Support\Facades\Auth;
 
 class studentProfileController extends Controller
