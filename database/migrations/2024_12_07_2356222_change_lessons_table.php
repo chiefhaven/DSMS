@@ -13,6 +13,9 @@ return new class extends Migration
      */
     public function up()
     {
+        Schema::table('lessons', function (Blueprint $table) {
+            $table->uuid('department_id')->change();
+        });
 
         Schema::table('lessons', function (Blueprint $table) {
             $table->uuid('department_id')->after('description')->change();
