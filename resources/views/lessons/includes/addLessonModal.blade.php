@@ -1,17 +1,17 @@
 <div>
     <!-- Modal Background Overlay -->
-    <div v-if="showAddLessonModal" class="modal-backdrop fade" :class="{ show: showAddLessonModal }"></div>
+    <div v-if="showAddLessonModal" class="modal-backdrop fade show"></div>
 
     <!-- Modal Dialog -->
     <div
-    class="modal fade"
-    :class="{ show: showAddLessonModal }"
-    v-if="showAddLessonModal"
-    tabindex="-1"
-    role="dialog"
-    aria-labelledby="gridSystemModalLabel"
-    style="display: block;"
->
+        class="modal fade"
+        :class="{ show: showAddLessonModal }"
+        v-if="showAddLessonModal"
+        tabindex="-1"
+        role="dialog"
+        aria-labelledby="gridSystemModalLabel"
+        style="display: block;"
+    >
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <!-- Modal Header -->
@@ -35,7 +35,6 @@
                                     v-model="state.name"
                                     placeholder="Lesson name"
                                     required
-                                    :class="{ 'error': true, 'text-danger': true }"
                                 />
                                 <label for="lesson_name">Lesson Name</label>
                             </div>
@@ -49,7 +48,6 @@
                                     v-model="state.description"
                                     style="height: 150px"
                                     placeholder="Description"
-                                    :class="{ 'error': true, 'text-danger': true }"
                                 ></textarea>
                                 <label for="lesson_description">Description</label>
                             </div>
@@ -61,7 +59,6 @@
                                     v-model="state.department"
                                     placeholder="Department"
                                     required
-                                    :class="{ 'error': true, text-danger }"
                                 >
                                     <option v-for="department in departments" :key="department.id" :value="department.id">
                                         @{{ department.name }}
@@ -76,7 +73,7 @@
 
             <!-- Modal Footer -->
             <div class="modal-footer">
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" class="btn btn-primary" @click="postLesson">
                     @{{ state.buttonName }}
                 </button>
                 <button type="button" class="btn btn-default" @click="closeForm">Cancel</button>
