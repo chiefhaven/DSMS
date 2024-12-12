@@ -54,7 +54,7 @@
             <div class="m-4 table-responsive">
                 @if( !$student->isEmpty())
                 <table id="students" class="table table-bordered table-striped table-vcenter">
-                    <thead class="thead-dark">
+                    {{--  <thead class="thead-dark">
                         <tr>
                             <th class="text-center" style="width: 100px;">Actions</th>
                             <th>Name</th>
@@ -72,8 +72,8 @@
                             <th>Email</th>
                             <th>TRN</th>
                         </tr>
-                    </thead>
-                    <tbody>
+                    </thead>  --}}
+                    {{--  <tbody>
                         @if($student->isNotEmpty())
                             @foreach ($student as $students)
                             @php
@@ -145,7 +145,7 @@
                                 <td colspan="12" class="text-center">No students found.</td>
                             </tr>
                         @endif
-                    </tbody>
+                    </tbody>  --}}
                 </table>
                     {{--  {{ $student->links('pagination::bootstrap-4') }}  --}}
                 @else
@@ -234,7 +234,31 @@
     });
 
     $(document).ready(function() {
-        $('#students').DataTable();
+        $('#students').DataTable({
+            serverSide: true,
+            processing: true,
+            ajax: {
+                url: '/api/students',
+                type: 'GET',
+            },
+            columns: [
+                { data: 'actions', className: 'text-center', orderable: false }, // Actions
+                { data: 'name' }, // Name
+                { data: 'course_enrolled', className: 'text-wrap' }, // Course Enrolled
+                @role('superAdmin|admin')
+                { data: 'balance', className: 'text-right' }, // Balance
+                @endrole
+                { data: 'registered_on', className: 'text-center' }, // Registered On
+                @role(['superAdmin','admin'])
+                { data: 'car_assigned', className: 'text-center' }, // Car Assigned
+                @endrole
+                { data: 'attendance', className: 'text-center' }, // Attendance
+                { data: 'course_status', className: 'text-wrap' }, // Course Status
+                { data: 'phone' }, // Phone
+                { data: 'email' }, // Email
+                { data: 'trn' }, // TRN
+            ],
+        });
     });
 </script>
 <!-- END Hero -->
