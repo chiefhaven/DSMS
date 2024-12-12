@@ -32,38 +32,77 @@ class StudentController extends Controller
      */
     public function fetchStudents(Request $request)
     {
-        $columns = ['fname', 'mname', 'sname'];
+        $columns = ['fname', 'mname', 'sname', 'course_enrolled', 'balance', 'registered_on', 'car_assigned', 'attendance', 'course_status', 'phone', 'email', 'trn'];
 
-        $search = $request->input('search.value'); // Search keyword
-        $order = $request->input('order.0.column'); // Ordered column index
-        $orderDir = $request->input('order.0.dir'); // ASC or DESC
-        $start = $request->input('start'); // Offset
-        $length = $request->input('length'); // Limit
+        $search = $request->input('search.value');
+        $order = $request->input('order.0.column');
+        $orderDir = $request->input('order.0.dir') ?? 'asc';
+        $start = $request->input('start');
+        $length = $request->input('length');
 
-        $query = Student::query();
+        $query = Student::with(['user', 'course', 'fleet', 'invoice']);
 
-        // Filter results based on the search
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('fname', 'like', "%$search%")
-                ->orWhere('sname', 'like', "%$search%")
-                ->orWhere('mname', 'like', "%$search%");
+                    ->orWhere('sname', 'like', "%$search%")
+                    ->orWhere('mname', 'like', "%$search%");
             });
         }
 
-        // Order the results
-        $query->orderBy($columns[$order], $orderDir);
+        if (isset($columns[$order])) {
+            $query->orderBy($columns[$order], $orderDir);
+        }
 
-        // Paginate results
-        $totalRecords = $query->count();
+        $totalRecords = Student::count();
+        $filteredRecords = $query->count();
         $records = $query->skip($start)->take($length)->get();
 
-        // Return response in DataTables format
+        $data = $records->map(function ($student) {
+            return [
+                'actions' => '
+                    <div class="dropdown d-inline-block">
+                        <button class="btn btn-primary" data-bs-toggle="dropdown">Actions</button>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <a class="dropdown-item" href="' . url('/viewstudent', $student->id) . '">
+                                <i class="fa fa-user"></i> Profile
+                            </a>
+                            ' . (auth()->user()->can('edit student') ? '
+                            <a class="dropdown-item" href="' . url('/edit-student', $student->id) . '">
+                                <i class="fa fa-pencil"></i> Edit
+                            </a>' : '') . '
+                            ' . (auth()->user()->can('delete student') ? '
+                            <form method="POST" action="' . url('student-delete', $student->id) . '">
+                                ' . csrf_field() . '
+                                ' . method_field('DELETE') . '
+                                <button type="submit" class="dropdown-item delete-confirm">
+                                    <i class="fa fa-trash"></i> Delete
+                                </button>
+                            </form>' : '') . '
+                        </div>
+                    </div>',
+                'fname' => htmlspecialchars($student->fname, ENT_QUOTES, 'UTF-8'),
+                'mname' => htmlspecialchars($student->mname ?? '', ENT_QUOTES, 'UTF-8'),
+                'sname' => htmlspecialchars($student->sname, ENT_QUOTES, 'UTF-8'),
+                'course_enrolled' => $student->course->name ?? '-',
+                'balance' => isset($student->invoice->invoice_balance)
+                    ? 'K' . number_format($student->invoice->invoice_balance, 2)
+                    : '-',
+                'registered_on' => $student->created_at->format('F j, Y'),
+                'car_assigned' => $student->fleet->name ?? '-',
+                'attendance' => $student->attendance?->count() ?? 0,
+                'course_status' => $student->status ? Str::title($student->status) : '-',
+                'phone' => $student->phone,
+                'email' => $student->user->email ?? '-',
+                'trn' => $student->trn ?? '-',
+            ];
+        });
+
         return response()->json([
-            'draw' => intval($request->input('draw')), // Pass through the same draw count from the request
+            'draw' => intval($request->input('draw')),
             'recordsTotal' => $totalRecords,
-            'recordsFiltered' => $totalRecords,
-            'data' => $records,
+            'recordsFiltered' => $filteredRecords,
+            'data' => $data,
         ]);
     }
 

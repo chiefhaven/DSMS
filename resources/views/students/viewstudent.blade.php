@@ -386,7 +386,7 @@
         const cars = ref([])
         const fleetRegNumber = ref(null)
         const fleet = ref('')
-        const classRoom = ref('{{ $student->classroom->id }}');
+        const classRoom = ref('{{ $student->classroom->id ?? null }}');
         const classRooms = ref([]);
 
         function getFleet(){

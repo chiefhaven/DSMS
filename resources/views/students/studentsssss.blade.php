@@ -40,13 +40,25 @@
 
     <div class="content content-full">
         <div class="block block-rounded block-bordered">
+            <div class="block-content">
+                {{--  <div class="col-md-12 mb-1">
+                    <form action="{{ url('/search-student') }}" method="GET" enctype="multipart/form-data">
+                        @csrf
+                            <input type="text" class="col-md-5 block block-bordered p-2" id="search" name="search" placeholder="Search student" required>
+                            <button type="submit" class="p-2 btn btn-alt-primary">
+                                <i class="fa fa-search opacity-50 me-1"></i> Search
+                            </button>
+                    </form>
+                </div>  --}}
+            </div>
             <div class="m-4 table-responsive">
+                @if( !$student->isEmpty())
                 <table id="students" class="table table-bordered table-striped table-vcenter">
                     <thead class="thead-dark">
                         <tr>
                             <th class="text-center" style="width: 100px;">Actions</th>
-                            <th style="min-width: 10rem;">Name</th>
-                            <th style="min-width: 10rem;">Course Enrolled</th>
+                            <th>Name</th>
+                            <th style="min-width: 15rem;">Course Enrolled</th>
                             @role('superAdmin|admin')
                                 <th>Balance</th>
                             @endrole
@@ -61,7 +73,84 @@
                             <th>TRN</th>
                         </tr>
                     </thead>
+                    <tbody>
+                        @if($student->isNotEmpty())
+                            @foreach ($student as $students)
+                            @php
+                                $attendancePercentage = $students->course && $students->course->duration > 0
+                                    ? number_format($students->attendance->count() / $students->course->duration * 100)
+                                    : 0;
+                                $invoiceBalance = $students->invoice->invoice_balance ?? 0;
+                            @endphp
+                                <tr>
+                                    <td class="text-center">
+                                        <!-- Actions Dropdown -->
+                                        <div class="dropdown d-inline-block">
+                                            <button class="btn btn-primary" data-bs-toggle="dropdown">Actions</button>
+                                            <div class="dropdown-menu dropdown-menu-end">
+                                                <a class="dropdown-item" href="{{ url('/viewstudent', $students->id) }}">
+                                                    <i class="fa fa-user"></i> Profile
+                                                </a>
+                                                @can('edit student')
+                                                    <a class="dropdown-item" href="{{ url('/edit-student', $students->id) }}">
+                                                        <i class="fa fa-pencil"></i> Edit
+                                                    </a>
+                                                @endcan
+                                                @can('delete student')
+                                                    <form method="POST" action="{{ url('student-delete', $students->id) }}">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="dropdown-item delete-confirm">
+                                                            <i class="fa fa-trash"></i> Delete
+                                                        </button>
+                                                    </form>
+                                                @endcan
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ $students->fname }} {{ $students->mname }} {{ $students->sname }}</td>
+                                    <td>{{ optional($students->course)->name ?? 'Not enrolled yet.' }}</td>
+                                    @role(['superAdmin','admin'])
+                                        <td>
+                                            <strong>
+                                                <span class="{{ $invoiceBalance > 0 ? 'text-danger' : 'text-success' }}">
+                                                    K{{ number_format($invoiceBalance, 2) }}
+                                                </span>
+                                            </strong>
+                                        </td>
+                                    @endrole
+                                    <td>{{ $students->created_at->format('j F, Y') }}</td>
+                                    @role(['superAdmin','admin'])
+                                        <td>
+                                            {{ optional($students->fleet)->car_registration_number ?? 'Not assigned yet' }}
+                                        </td>
+                                    @endrole
+                                    <td class="text-center">
+                                        @if($attendancePercentage >= 100)
+                                            <span class="badge bg-success">Completed</span>
+                                        @elseif($attendancePercentage >= 50)
+                                            <span class="badge bg-info">{{ $attendancePercentage }}%</span>
+                                        @else
+                                            <span class="badge bg-warning">{{ $attendancePercentage }}%</span>
+                                        @endif
+                                    </td>
+                                    <td>{{ $students->status }}</td>
+                                    <td>{{ $students->phone }}</td>
+                                    <td>{{ optional($students->user)->email ?? '-' }}</td>
+                                    <td>{{ $students->trn }}</td>
+                                </tr>
+                            @endforeach
+                        @else
+                            <tr>
+                                <td colspan="12" class="text-center">No students found.</td>
+                            </tr>
+                        @endif
+                    </tbody>
                 </table>
+                    {{--  {{ $student->links('pagination::bootstrap-4') }}  --}}
+                @else
+                    <p class="p-5">No matching records found!</p>
+                @endif
             </div>
         </div>
     </div>
@@ -144,99 +233,33 @@
         });
     });
 
-    $(document).ready(function () {
+    $(document).ready(function() {
         $('#students').DataTable({
             serverSide: true,
             processing: true,
             ajax: {
                 url: '/api/students',
                 type: 'GET',
-                error: function (xhr, error, thrown) {
-                    console.error('Error fetching data:', error);
-                    alert('Failed to load data. Please try again.');
-                },
             },
             columns: [
-                {
-                    data: 'actions',
-                    className: 'text-center',
-                    orderable: false
-                },
-                {
-                    data: null,
-                    render: function (data, type, row) {
-                        return `${row.fname} ${row.mname || ''} ${row.sname}`.trim();
-                    },
-                    className: 'text-wrap'
-                },
-                {
-                    data: 'course_enrolled',
-                    className: 'text-wrap',
-                    render: function (data) {
-                        return data || '-';
-                    }
-                },
-                @if(auth()->user()->hasRole(['superAdmin', 'admin']))
-                {
-                    data: 'balance',
-                    className: 'text-right',
-                    render: function (data) {
-                        return data ? `K${data}` : '-';
-                    }
-                },
-                @endif
-                {
-                    data: 'registered_on',
-                    className: 'text-center',
-                    render: function (data) {
-                        return data || '-';
-                    }
-                },
-                @if(auth()->user()->hasRole(['superAdmin', 'admin']))
-                {
-                    data: 'car_assigned',
-                    className: 'text-center',
-                    render: function (data) {
-                        return data || '-';
-                    }
-                },
-                @endif
-                {
-                    data: 'attendance',
-                    className: 'text-center',
-                    render: function (data) {
-                        return data || '0';
-                    }
-                },
-                {
-                    data: 'course_status',
-                    className: 'text-wrap',
-                    render: function (data) {
-                        return data || '-';
-                    }
-                },
-                {
-                    data: 'phone',
-                    render: function (data) {
-                        return data || '-';
-                    }
-                },
-                {
-                    data: 'email',
-                    render: function (data) {
-                        return data || '-';
-                    }
-                },
-                {
-                    data: 'trn',
-                    render: function (data) {
-                        return data || '-';
-                    }
-                },
+                { data: 'actions', className: 'text-center', orderable: false }, // Actions
+                { data: 'name' }, // Name
+                { data: 'course_enrolled', className: 'text-wrap' }, // Course Enrolled
+                @role('superAdmin|admin')
+                { data: 'balance', className: 'text-right' }, // Balance
+                @endrole
+                { data: 'registered_on', className: 'text-center' }, // Registered On
+                @role(['superAdmin','admin'])
+                { data: 'car_assigned', className: 'text-center' }, // Car Assigned
+                @endrole
+                { data: 'attendance', className: 'text-center' }, // Attendance
+                { data: 'course_status', className: 'text-wrap' }, // Course Status
+                { data: 'phone' }, // Phone
+                { data: 'email' }, // Email
+                { data: 'trn' }, // TRN
             ],
         });
     });
-
 </script>
 <!-- END Hero -->
 @endsection
