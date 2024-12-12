@@ -114,7 +114,7 @@
 
         onMounted(() => {
             state.value.attendanceForm = document.querySelector('#attendance form');
-          });
+        });
 
         const handleButtonClick = async () => {
           state.value.isSubmitButtonDisabled = true;
