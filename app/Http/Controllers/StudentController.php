@@ -87,7 +87,9 @@ class StudentController extends Controller
                 'course_enrolled' => $student->course->name ?? '-',
                 'balance' => isset($student->invoice) && $student->invoice->invoice_balance > 0
                     ? '<span class="text-danger">K' . number_format($student->invoice->invoice_balance, 2) . '</span>'
-                    : 'K'.number_format($student->invoice->invoice_balance, 2) ?? '-',
+                    : (isset($student->invoice->invoice_balance)
+                        ? 'K' . number_format($student->invoice->invoice_balance, 2)
+                        : '-'),
                 'registered_on' => $student->created_at->format('F j, Y'),
                 'car_assigned' => $student->fleet->name ?? '-',
                 'attendance' => $student->attendance?->count() ?? 0,
