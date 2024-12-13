@@ -3,7 +3,7 @@
             <h1>
                 Welcome <b>{{ Auth::user()->instructor->fname }}</b> {{ Auth::user()->instructor->sname }}
             </h1>
-            Department: {{ Auth::user()->instructor->department->name }}
+            Department: {{ Auth::user()->instructor->department->name ?? '' }}
             <p>
                 @if (Auth::user()->instructor->fleet)
                     Assigned car: {{ Auth::user()->instructor->fleet->car_registration_number }}
