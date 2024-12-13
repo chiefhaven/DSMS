@@ -86,7 +86,7 @@ class StudentController extends Controller
                 'sname' => htmlspecialchars($student->sname, ENT_QUOTES, 'UTF-8'),
                 'course_enrolled' => $student->course->name ?? '-',
                 'balance' => isset($student->invoice->invoice_balance)
-                    ? 'K' . number_format($student->invoice->invoice_balance, 2)
+                    ? number_format($student->invoice->invoice_balance, 2)
                     : '-',
                 'registered_on' => $student->created_at->format('F j, Y'),
                 'car_assigned' => $student->fleet->name ?? '-',
