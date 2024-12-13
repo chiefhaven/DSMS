@@ -17,6 +17,7 @@
             <div class="row">
                 <div class="col-lg-8 col-xl-5">
                     <form action="{{ url('/updatecourse') }}" method="POST">
+                        @method('put')
                         @csrf
                         <input type="text" name="course_id" id="course_id" value="{{$course->id}}" hidden>
 
