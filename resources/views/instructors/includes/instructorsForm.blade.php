@@ -127,7 +127,7 @@
                     <option value="active" {{ old('status', optional($instructor)->status) == 'active' ? 'selected' : '' }}>Active</option>
                     <option value="pending" {{ old('status', optional($instructor)->status) == 'pending' ? 'selected' : '' }}>Pending</option>
                     <option value="suspended" {{ old('status', optional($instructor)->status) == 'suspended' ? 'selected' : '' }}>Suspended</option>
-                    <option value="contract_ended" {{ old('status', optional($instructor)->status) == 'contract_ended' ? 'selected' : '' }}>Contract Ended</option>
+                    <option value="contract ended" {{ old('status', optional($instructor)->status) == 'contract_ended' ? 'selected' : '' }}>Contract Ended</option>
                 </select>
                 <label for="status">Status</label>
             </div>
