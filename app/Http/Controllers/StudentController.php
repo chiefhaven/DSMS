@@ -81,9 +81,9 @@ class StudentController extends Controller
                             </form>' : '') . '
                         </div>
                     </div>',
-                'fname' => htmlspecialchars($student->fname, ENT_QUOTES, 'UTF-8'),
-                'mname' => htmlspecialchars($student->mname ?? '', ENT_QUOTES, 'UTF-8'),
-                'sname' => htmlspecialchars($student->sname, ENT_QUOTES, 'UTF-8'),
+                'fname' => strtoupper(htmlspecialchars($student->fname, ENT_QUOTES, 'UTF-8')),
+                'mname' => strtoupper(htmlspecialchars($student->mname ?? '', ENT_QUOTES, 'UTF-8')),
+                'sname' => strtoupper(htmlspecialchars($student->sname, ENT_QUOTES, 'UTF-8')),
                 'course_enrolled' => $student->course->name ?? '-',
                 'balance' => isset($student->invoice) && $student->invoice->invoice_balance > 0
                     ? '<span class="text-danger">K' . number_format($student->invoice->invoice_balance, 2) . '</span>'
