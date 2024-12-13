@@ -217,6 +217,7 @@ class CourseController extends Controller
 
         // Prepare the lessons with pivot data
         $lessonData = [];
+
         foreach ($lessons as $lesson) {
             $lessonData[$lesson['id']] = [
                 'id' => Str::uuid(), // Generate a unique UUID for the pivot table
