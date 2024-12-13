@@ -65,8 +65,6 @@
             </div>
         </div>
     </div>
-
-
     @role(['superAdmin', 'admin'])
         <!-- Payment Modal -->
             <div class="modal" id="modal-block-vcenter" tabindex="-1" aria-labelledby="modal-block-vcenter" style="display: none;" aria-hidden="true">
@@ -181,7 +179,7 @@
                     data: 'balance',
                     className: 'text-right',
                     render: function (data) {
-                        return data ? `K${data}` : '-';
+                        return data ? `${data}` : '-';
                     }
                 },
                 @endif
