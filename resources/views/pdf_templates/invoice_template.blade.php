@@ -72,7 +72,7 @@
                                                 <div class="text-muted">{{$invoice->course->short_description}}</div>
                                             </td>
                                             <td class="invoice-td amount">
-                                                K{{number_format($invoice->invoice_total, 2)}}
+                                                K{{number_format($invoice->course_price, 2)}}
                                             </td>
                                             <td class="invoice-td amount">
                                                 K{{number_format($invoice->invoice_discount, 2)}}
