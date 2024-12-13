@@ -40,7 +40,7 @@ class StudentController extends Controller
         $start = $request->input('start');
         $length = $request->input('length');
 
-        $query = Student::with(['user', 'course', 'fleet', 'invoice']);
+        $query = Student::with(['user', 'course', 'fleet', 'invoice'])->orderBy('created_at', 'desc');
 
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
