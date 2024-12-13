@@ -210,7 +210,7 @@ class InstructorController extends Controller
             'district'      => 'required',
             'phone'         => 'required',
             'department'    => 'required|exists:departments,id',
-            'status'        => 'required|in:active,pending,suspended,contract_ended',
+            'status'        => 'required|in:active,pending,suspended,contract ended',
         ], $messages);
 
         $post = $request->all();
