@@ -67,11 +67,11 @@ class StudentController extends Controller
                             <a class="dropdown-item" href="' . url('/viewstudent', $student->id) . '">
                                 <i class="fa fa-user"></i> Profile
                             </a>
-                            ' . (auth()->user()->can('edit student') ? '
+                            ' . (auth()->user()->hasRole(['superAdmin', 'admin']) ? '
                             <a class="dropdown-item" href="' . url('/edit-student', $student->id) . '">
                                 <i class="fa fa-pencil"></i> Edit
                             </a>' : '') . '
-                            ' . (auth()->user()->can('delete student') ? '
+                            ' . (auth()->user()->hasRole(['superAdmin']) ? '
                             <form method="POST" action="' . url('student-delete', $student->id) . '">
                                 ' . csrf_field() . '
                                 ' . method_field('DELETE') . '
@@ -85,9 +85,9 @@ class StudentController extends Controller
                 'mname' => htmlspecialchars($student->mname ?? '', ENT_QUOTES, 'UTF-8'),
                 'sname' => htmlspecialchars($student->sname, ENT_QUOTES, 'UTF-8'),
                 'course_enrolled' => $student->course->name ?? '-',
-                'balance' => isset($student->invoice->invoice_balance)
-                    ? number_format($student->invoice->invoice_balance, 2)
-                    : '-',
+                'balance' => isset($student->invoice->invoice_balance) && $student->invoice->invoice_balance > 0
+                    ? '<span class="text-danger">K' . number_format($student->invoice->invoice_balance, 2) . '</span>'
+                    : 'K'.number_format($student->invoice->invoice_balance, 2) ?? '-',
                 'registered_on' => $student->created_at->format('F j, Y'),
                 'car_assigned' => $student->fleet->name ?? '-',
                 'attendance' => $student->attendance?->count() ?? 0,
