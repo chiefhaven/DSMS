@@ -48,12 +48,12 @@ class InvoiceController extends Controller
     public function create($id)
     {
         if (Auth::user()->hasRole('superAdmin')) {
-            $courses = Course::all();
+            $course = Course::all();
             $classrooms = Classroom::all();
             $fleets = Fleet::all();
             $student = Student::findOrFail($id); // Ensures proper error handling if student is not found.
 
-            return view('invoices.addinvoice', compact('courses', 'student', 'fleets', 'classrooms'));
+            return view('invoices.addinvoice', compact('course', 'student', 'fleets', 'classrooms'));
         } else {
             Alert::toast('You do not have permission to enroll a student. Please contact the administrator for assistance.', 'warning');
             return back();
