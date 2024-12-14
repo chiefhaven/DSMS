@@ -62,7 +62,7 @@
             <div class="tab-pane fade active show" id="student-details" role="tabpanel" aria-labelledby="student-details-tab">
             <div class="content-full">
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-6 py-4">
                         <div class="card p-4">
                             <img class="img-avatar img-avatar96 img-avatar-thumb" src="/../media/avatars/avatar2.jpg" alt="">
                             <h1 class="my-2">{{$student->fname}} {{$student->mname}} {{$student->sname}}</h1>
@@ -97,7 +97,7 @@
                             @endrole
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-6 py-4">
                         <div class="card p-4">
                             <p><strong>General Information</strong></p>
                             <table class="table table-bordered table-responsive">
