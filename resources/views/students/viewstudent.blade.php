@@ -61,7 +61,7 @@
         <div class="block-content tab-content">
             <div class="tab-pane fade active show" id="student-details" role="tabpanel" aria-labelledby="student-details-tab">
             <div class="content content-full row">
-                <div class="col-6" style="background: #ffffff; margin: 0 10px; border-radius: 5px; border: thin solid #cdcdcd;">
+                <div class="col-md-6" style="background: #ffffff; margin: 0 10px; border-radius: 5px; border: thin solid #cdcdcd;">
                 <div class="p-2">
                     <img class="img-avatar img-avatar96 img-avatar-thumb" src="/../media/avatars/avatar2.jpg" alt="">
                     <h1 class="my-2">{{$student->fname}} {{$student->mname}} {{$student->sname}}</h1>
@@ -96,7 +96,7 @@
                     @endrole
                 </div>
                 </div>
-                <div class="col-5" style="background: #ffffff; margin: 0 10px; border-radius: 5px; border: thin solid #cdcdcd;">
+                <div class="col-md-5" style="background: #ffffff; margin: 0 10px; border-radius: 5px; border: thin solid #cdcdcd;">
                 <div class="p-2">
                     <p><strong>General Information</strong></p>
                     <div class="table-responsive">
@@ -209,7 +209,7 @@
                     </div>
                 </div>
                 </div>
-                <div class="col-11 px-5 py-6" style="background: #ffffff; margin: 50px 10px; border-radius: 5px; border: thin solid #cdcdcd;">
+                <div class="col-md-11 px-5 py-6" style="background: #ffffff; margin: 50px 10px; border-radius: 5px; border: thin solid #cdcdcd;">
                 <h3>Downloads</h3>
                     <table class="table table-responsive table-striped">
                     <thead>
@@ -300,7 +300,7 @@
                         @else
 
                         @endif
-                    <div class="col-12 form-floating mb-4">
+                    <div class="col-md-12 form-floating mb-4">
                         <input type="date" class="form-control" id="date_created" name="date_created" placeholder="Enter invoice date">
                         <label for="invoice_discount">Date</label>
                     </div>
