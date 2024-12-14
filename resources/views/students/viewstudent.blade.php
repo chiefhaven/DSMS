@@ -12,7 +12,7 @@
             @role(['superAdmin'])
                 <div class="dropdown d-inline-block">
                 <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <span class="d-none d-sm-inline-block">Action</span>
+                    <span class="d-sm-inline-block">Action</span>
                 </button>
                 <div class="dropdown-menu dropdown-menu-end p-0">
                     <div class="p-2">
