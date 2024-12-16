@@ -441,6 +441,7 @@
                 if(response.status==200){
                     notification(response.data,'success')
                     location.reload();
+                    console.log(response)
                 }
                 else if(error.response.data.errors){
                     notification('error.response.data.errors.message','error')
