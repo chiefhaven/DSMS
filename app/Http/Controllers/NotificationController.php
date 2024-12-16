@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Classroom;
 use GuzzleHttp\Client;
 use RealRashid\SweetAlert\Facades\Alert;
 use App\Models\Student;
@@ -139,7 +140,7 @@ class NotificationController extends Controller
     public function generalSMS($student, $type)
     {
         $destination = $student->phone;
-        $student = Student::with('Classroom','User', 'Invoice', 'course', 'attendance', 'fleet.instructor')->find($student->id);
+        $student = Student::with('User', 'Invoice', 'course', 'attendance', 'fleet.instructor')->find($student->id);
 
         // Ensure all necessary relations are loaded
         if (!$student || !$student->course) {
@@ -151,7 +152,7 @@ class NotificationController extends Controller
         $attendanceCount = $student->attendance->count();
         $attendance_balance = $attendanceRequired - $attendanceCount;
         $fleet = $student->fleet;
-        $classRoom = $student->classroom;
+        // $classRoom = $student->Classroom;
 
         $attendanceLatest = $student->attendance->isNotEmpty() ? $student->attendance()->orderBy('created_at', 'DESC')->first()->created_at->format('Y-m-d H:i:s') : '';
 
@@ -164,7 +165,7 @@ class NotificationController extends Controller
             "total_required_attendance" => $attendanceRequired,
             "attendance_date" => $attendanceLatest,
             "car_assigned" => $fleet ? "{$fleet->car_brand_model}, {$fleet->car_registration_number}" : '',
-            "class_room_assigned" => $classRoom ? "{$classRoom->name}, {$classRoom->location}" : '',
+            //"class_room_assigned" => $classRoom ? "{$classRoom->name}, {$classRoom->location}" : '',
             "instructor" => $fleet ? "{$fleet->instructor->fname} {$fleet->instructor->mname} {$fleet->instructor->sname}, {$fleet->instructor->phone}" : '',
         ];
 
