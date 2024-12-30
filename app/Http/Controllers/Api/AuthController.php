@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use Illuminate\Cache\RateLimiter;
 
 use App\Models\User;
 use App\Models\Student;
@@ -36,30 +37,49 @@ class AuthController extends Controller
         $response = ['token' => $token->plainTextToken];
         return response($response, 200);
     }
-    public function login (Request $request)
+    public function login(Request $request, RateLimiter $rateLimiter)
     {
+        $key = 'login-attempts:' . $request->ip();
+
+        if ($rateLimiter->tooManyAttempts($key, 5)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Too many login attempts. Please try again later.',
+            ], 429);
+        }
+
         $validator = Validator::make($request->all(), [
-            'trn' => 'required|string|max:255',
+            'email' => 'required|string|max:255',
             'password' => 'required|string|min:6',
+        ], [
+            'email.required' => 'The email field is required.',
+            'password.required' => 'The password field is required.',
         ]);
-        if ($validator->fails())
-        {
-            return response(['errors'=>$validator->errors()->all()], 422);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors(),
+            ], 422);
         }
-        $user = Student::where('trn', $request->trn)/*->whereNotNull('student_id')*/->first();
-        if ($user) {
-            if (Hash::check($request->password, $user->password)) {
-                $token = $user->createToken('auth_token');
-                // $token = $user->createToken('Laravel Password Grant Client')->accessToken;
-                $response = ['token' => $token->plainTextToken];
-                return response($response, 200);
-            } else {
-                $response = ["message" => "TRN or password are incorrect"];
-                return response($response, 422);
-            }
-        } else {
-            $response = ["message" =>'User does not exist'];
-            return response($response, 422);
+
+        $user = User::where('email', $request->email)->first();
+
+        if ($user && Hash::check($request->password, $user->password)) {
+            $token = $user->createToken('auth_token');
+            $rateLimiter->clear($key);
+
+            return response()->json([
+                'status' => 'success',
+                'data' => ['token' => $token->plainTextToken],
+            ], 200);
         }
+
+        $rateLimiter->hit($key);
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Invalid login credentials',
+        ], 422);
     }
+
 }
