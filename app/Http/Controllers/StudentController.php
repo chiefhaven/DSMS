@@ -60,28 +60,7 @@ class StudentController extends Controller
 
         $data = $records->map(function ($student) {
             return [
-                'actions' => '
-                    <div class="dropdown d-inline-block">
-                        <button class="btn btn-primary" data-bs-toggle="dropdown">Actions</button>
-                        <div class="dropdown-menu dropdown-menu-end">
-                            <a class="dropdown-item" href="' . url('/viewstudent', $student->id) . '">
-                                <i class="fa fa-user"></i> Profile
-                            </a>
-                            ' . (auth()->user()->hasRole(['superAdmin', 'admin']) ? '
-                            <a class="dropdown-item" href="' . url('/edit-student', $student->id) . '">
-                                <i class="fa fa-pencil"></i> Edit
-                            </a>' : '') . '
-                            ' . (auth()->user()->hasRole(['superAdmin']) ? '
-                            <form method="POST" action="' . url('student-delete', $student->id) . '">
-                                ' . csrf_field() . '
-                                ' . method_field('DELETE') . '
-                                <button type="submit" class="dropdown-item delete-confirm">
-                                    <i class="fa fa-trash"></i> Delete
-                                </button>
-                            </form>' : '') . '
-                        </div>
-                    </div>',
-                'fname' => strtoupper(htmlspecialchars($student->fname, ENT_QUOTES, 'UTF-8')),
+                'actions' => view('components.student-actions', ['student' => $student])->render(),'fname' => strtoupper(htmlspecialchars($student->fname, ENT_QUOTES, 'UTF-8')),
                 'mname' => strtoupper(htmlspecialchars($student->mname ?? '', ENT_QUOTES, 'UTF-8')),
                 'sname' => strtoupper(htmlspecialchars($student->sname, ENT_QUOTES, 'UTF-8')),
                 'course_enrolled' => $student->course->name ?? '-',

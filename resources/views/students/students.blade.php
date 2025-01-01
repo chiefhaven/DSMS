@@ -150,7 +150,6 @@
                 url: '/api/students',
                 type: 'GET',
                 error: function (xhr, error, thrown) {
-                    console.error('Error fetching data:', error);
                     alert('Failed to load data. Please try again.');
                 },
             },
