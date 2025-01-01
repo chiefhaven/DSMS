@@ -123,7 +123,7 @@
                                             Course
                                         </td>
                                         <td>
-                                            @if(isset($student->invoice && $student->course))
+                                            @if(isset($student->invoice) && isset($student->course))
                                                 {{$student->course->name}}<br>{{$student->course->duration}} days
                                             @else
                                                 -
