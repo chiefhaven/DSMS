@@ -92,8 +92,7 @@ class StudentController extends Controller
         try {
             $studentQuery = Student::with('User')
     ->where('status', '!=', 'Finished')
-    ->latest('created_at') // Shortcut for ordering by created_at DESC
-    ->paginate(10);
+    ->latest('created_at');
 
 
             if (Auth::user()->hasRole('instructor')) {
@@ -119,12 +118,12 @@ class StudentController extends Controller
                     }
 
                     // Execute the query to fetch students
-                    $student = $studentQuery->get();
+                    $student = $studentQuery->paginate(10);
                 }
 
             }
             else {
-                $student = $studentQuery->get();
+                $student = $studentQuery->paginate(10);
             }
 
             // Fetch all fleets (can add filters if necessary)
