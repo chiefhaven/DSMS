@@ -53,7 +53,7 @@
             </div>
             <div class="m-4 table-responsive">
                 @if( !$student->isEmpty())
-                <table id="students" class="table table-bordered table-striped table-vcenter">
+                <table class="table table-bordered table-striped table-vcenter">
                     <thead class="thead-dark">
                         <tr>
                             <th class="text-center" style="width: 100px;">Actions</th>

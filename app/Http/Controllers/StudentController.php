@@ -90,7 +90,7 @@ class StudentController extends Controller
     public function index()
     {
         try {
-            $studentQuery = Student::with('User')->where('status', '!=', 'Finished')->orderBy('created_at', 'DESC');
+            $studentQuery = Student::with('User')->where('status', '!=', 'Finished')->orderBy('created_at', 'DESC')->paginate(10);
 
             if (Auth::user()->hasRole('instructor')) {
                 $fleet = null; // Initialize fleet variable
