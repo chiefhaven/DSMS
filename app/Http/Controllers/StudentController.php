@@ -642,8 +642,8 @@ class StudentController extends Controller
             $student->classroom_id = $request->classroom;
             $student->save();
 
-            $sms = new NotificationController;
-            $sms->generalSMS($student, 'Carassignment');
+            //$sms = new NotificationController;
+            //$sms->generalSMS($student, 'Carassignment');
 
             // Notify success
             return response()->json('Success, student assigned to classroom', 200);
