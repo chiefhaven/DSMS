@@ -147,7 +147,7 @@
                         @endif
                     </tbody>
                 </table>
-                    {{--  {{ $student->links('pagination::bootstrap-4') }}  --}}
+                    {{ $student->links('pagination::bootstrap-4') }}
                 @else
                     <p class="p-5">No matching records found!</p>
                 @endif
