@@ -33,7 +33,7 @@
             <div class="col-lg-12 col-xl-12">
                 <form class="mb-5" action="{{ url('/store-invoice') }}" method="post" onsubmit="return true;">
                         @csrf
-                        <input type="text" class="form-control" id="student" name="student" placeholder="Student" value="{{$student->fname}} {{$student->mname}} {{$student->sname}}" hidden>
+                        <input type="text" class="form-control" id="student" name="student" placeholder="Student" value="{{$student->id}}" hidden>
 
                     <div class="row">
                         <div class="col-6 form-floating mb-4">

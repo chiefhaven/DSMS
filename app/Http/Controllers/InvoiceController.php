@@ -100,7 +100,7 @@ class InvoiceController extends Controller
             $discount = 0;
         }
 
-        $student_id = havenUtils::student($post['student'])->id;
+        $student_id = $post['student'];
         //$fleet_id = havenUtils::fleetID($post['fleet']);
         $invoice_total = havenUtils::invoiceDiscountedPrice($post['course'], $discount);
         $invoice_balance = havenUtils::invoiceBalance($post['paid_amount'], $invoice_total);
