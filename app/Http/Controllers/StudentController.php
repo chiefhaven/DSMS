@@ -582,7 +582,7 @@ class StudentController extends Controller
                 ->orWhere('phone', 'like', '%' . request('search') . '%')
                 ->orWhere('trn', 'like', '%' . request('search') . '%')
                 ->orwhereHas('User', function($q){$q->where('email','like', '%' . request('search') . '%');})->orderBy('fname', 'ASC');}
-            )->paginate(10);
+            )->paginate(20);
         }
         else{
             $fleet = Fleet::get();
@@ -593,7 +593,7 @@ class StudentController extends Controller
                 ->orWhere('phone', 'like', '%' . request('search') . '%')
                 ->orWhere('trn', 'like', '%' . request('search') . '%')
                 ->orwhereHas('User', function($q){
-                    $q->where('email','like', '%' . request('search') . '%');})->orderBy('fname', 'ASC')->paginate(10);
+                    $q->where('email','like', '%' . request('search') . '%');})->orderBy('fname', 'ASC')->paginate(20);
         }
 
 
