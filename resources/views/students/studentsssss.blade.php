@@ -91,12 +91,12 @@
                                                 <a class="dropdown-item" href="{{ url('/viewstudent', $students->id) }}">
                                                     <i class="fa fa-user"></i> Profile
                                                 </a>
-                                                @can('edit student')
+                                                @role(['superAdmin'])
                                                     <a class="dropdown-item" href="{{ url('/edit-student', $students->id) }}">
                                                         <i class="fa fa-pencil"></i> Edit
                                                     </a>
                                                 @endcan
-                                                @can('delete student')
+                                                @role(['superAdmin'])
                                                     <form method="POST" action="{{ url('student-delete', $students->id) }}">
                                                         @csrf
                                                         @method('DELETE')
