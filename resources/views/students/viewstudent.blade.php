@@ -16,14 +16,14 @@
                 </button>
                 <div class="dropdown-menu dropdown-menu-end p-0">
                     <div class="p-2">
-                    <form method="POST" action="/edit-student/{{$student->id}}">
+                    <form method="GET" action="/edit-student/{{$student->id}}">
                         {{ csrf_field() }}
                         <button class="dropdown-item nav-main-link" type="submit">
-                            <i class="nav-main-link-icon  fas fa-user"></i> profile
+                            <i class="nav-main-link-icon  fas fa-pencil"></i> Edit profile
                         </button>
                     </form>
                     <button class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#modal-block-vcenter">
-                        <i class="nav-main-link-icon  fas fa-invoice"></i> payment
+                        <i class="nav-main-link-icon  fas fa-file-invoice"></i> payment
                     </button>
                     <button class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#change-status">
                         <i class="nav-main-link-icon  fas fa-toggle-on"></i> Change status
