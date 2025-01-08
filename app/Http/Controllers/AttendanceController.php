@@ -84,7 +84,15 @@ class AttendanceController extends Controller
             }
 
             if (!$student->classroom) {
-                    Alert()->error('Student not found', 'Student belongs to '.$student->classroom->name.' '. $student->classroom->location.' with'.' '.$student->classroom->instructor->fname.' '.$student->classroom->instructor->sname.', scan another document or contact administrator');
+                Alert()->error('Student not found', 'Student does not belong to any classroom, please scan another document or contact administrator.');
+                return back();
+            } else {
+                $classroomName = $student->classroom->name ?? 'N/A';
+                $classroomLocation = $student->classroom->location ?? 'N/A';
+                $instructorFname = $student->classroom->instructor->fname ?? 'N/A';
+                $instructorSname = $student->classroom->instructor->sname ?? 'N/A';
+
+                Alert()->error('Student not found', 'Student belongs to ' . $classroomName . ' ' . $classroomLocation . ' with ' . $instructorFname . ' ' . $instructorSname . ', scan another document or contact administrator');
                 return back();
             }
 
