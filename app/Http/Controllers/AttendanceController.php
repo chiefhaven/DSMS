@@ -78,10 +78,11 @@ class AttendanceController extends Controller
                 return redirect()->back();
             }
 
-            if (!$this->attendanceLatest($instructor->instructor_id, $now)) {
-                    Alert()->error('Attendance can not be entered', 'You can only enter attendances every ' . $this->setting->time_between_attendances . ' minutes, for more information contact the admin!');
+            if (isset($instructor->instructor->department) && $instructor->instructor->department->name == 'practical' && !$this->attendanceLatest($instructor->instructor_id, $now)) {
+                Alert()->error('Attendance can not be entered', 'You can only enter attendances every ' . $this->setting->time_between_attendances . ' minutes, for more information contact the admin!');
                 return back();
             }
+
 
             if ($instructor->instructor->department->name == 'thoery' && !$student->classroom) {
                 Alert()->error('Student not found', 'Student does not belong to any classroom, please scan another document or contact administrator.');
