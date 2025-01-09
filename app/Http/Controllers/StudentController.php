@@ -90,52 +90,61 @@ class StudentController extends Controller
     public function index()
     {
         try {
+            // Initialize query to fetch students excluding those with 'Finished' status
             $studentQuery = Student::with('User')
-    ->where('status', '!=', 'Finished')
-    ->latest('created_at');
+                ->where('status', '!=', 'Finished')
+                ->latest('created_at');
 
-
+            // Check if the logged-in user is an instructor
             if (Auth::user()->hasRole('instructor')) {
-                $fleet = null; // Initialize fleet variable
-                $classrooms = collect(); // Initialize classrooms as an empty collection
+                $instructor = Auth::user()->instructor;
 
-                if (Auth::user()->instructor->department) {
-                    // Initialize the student query to avoid overwriting it in multiple conditions
-                    $studentQuery = $studentQuery ?? Student::query(); // Ensure $studentQuery is initialized
+                if ($instructor->department) {
+                    $departmentName = $instructor->department->name;
 
-                    // Practical department: Fetch fleet associated with the instructor
-                    if (Auth::user()->instructor->department->name == 'Practical') {
-                        $fleet = Fleet::where('instructor_id', Auth::user()->instructor_id)->firstOrFail();
-                        $studentQuery->Where('fleet_id', $fleet->id); // Correct typo: Use `orWhere`
+                    if ($departmentName === 'practical') {
+                        // Fetch fleet associated with the instructor
+                        $fleet = Fleet::where('instructor_id', $instructor->id)->first();
+
+                        if ($fleet) {
+                            $studentQuery->where('fleet_id', $fleet->id);
+                        } else {
+                            throw new ModelNotFoundException(__('You are not allocated a car.'));
+                        }
                     }
 
-                    // Theory department: Fetch classrooms associated with the instructor
-                    if (Auth::user()->instructor->department->name == 'Theory') {
-                        $classrooms = Auth::user()->instructor->classrooms;
-                        $classroomIds = $classrooms->pluck('id');
+                    if ($departmentName === 'theory') {
+                        // Fetch classrooms associated with the instructor
+                        $classroomIds = $instructor->classrooms->pluck('id');
 
-                        $studentQuery->whereIn('classroom_id', $classroomIds); // `whereIn` for classroom IDs
+                        if ($classroomIds->isNotEmpty()) {
+                            $studentQuery->whereIn('classroom_id', $classroomIds);
+                        } else {
+                            throw new ModelNotFoundException(__('You are not allocated to a class.'));
+                        }
                     }
-
-                    // Execute the query to fetch students
-                    $student = $studentQuery->paginate(10);
                 }
-
-            }
-            else {
-                $student = $studentQuery->paginate(10);
             }
 
-            // Fetch all fleets (can add filters if necessary)
-            $fleet = Fleet::all();
+            // Paginate the filtered student list
+            $student = $studentQuery->paginate(15);
 
-            return view('students.students', compact('student', 'fleet'));
+            // Fetch all fleets
+            $allFleets = Fleet::all();
+
+            // Return the view with data
+            return view('students.students', compact('student', 'allFleets'));
 
         } catch (ModelNotFoundException $e) {
-            Alert::error('No students', __('You are not allocated a car or class. Please contact the admin for assistance.'));
+            Alert::error(__('No students'), $e->getMessage());
+            return redirect('/');
+        } catch (\Exception $e) {
+            // Handle unexpected errors
+            Alert::error(__('Error'), __('An unexpected error occurred.'));
             return redirect('/');
         }
     }
+
 
     /**
      * Show the form for creating a new resource.
