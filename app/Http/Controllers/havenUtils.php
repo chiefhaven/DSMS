@@ -272,7 +272,7 @@
 
             // Retrieve the student and validate their fleet
             $student = Student::find($studentId);
-            return $student && $instructorFleet->id === $student->fleet_id;
+            return $student && $instructorFleet->id == $student->fleet_id;
         }
 
 
