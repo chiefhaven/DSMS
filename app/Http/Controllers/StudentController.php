@@ -130,10 +130,10 @@ class StudentController extends Controller
             $student = $studentQuery->paginate(15);
 
             // Fetch all fleets
-            $allFleets = Fleet::all();
+            $fleet = Fleet::all();
 
             // Return the view with data
-            return view('students.students', compact('student', 'allFleets'));
+            return view('students.students', compact('student', 'fleet'));
 
         } catch (ModelNotFoundException $e) {
             Alert::error(__('No students'), $e->getMessage());
