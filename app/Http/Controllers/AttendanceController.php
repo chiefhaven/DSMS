@@ -89,6 +89,8 @@ class AttendanceController extends Controller
                 return back();
             }
 
+            dd($token);
+
             if ($student->fleet && !havenUtils::checkStudentInstructor($token)) {
                 $fleetDetails = $student->fleet->car_registration_number . ' ' . $student->fleet->car_brand_model;
                 $instructorDetails = $student->fleet->instructor->fname . ' ' . $student->fleet->instructor->sname;
