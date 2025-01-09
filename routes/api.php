@@ -34,3 +34,5 @@ Route::get('invoice-view/{id}', [InvoiceController::class, 'show'])->middleware(
 Route::get('/studentProfile', [studentProfileController::class, 'show'])->middleware('auth:sanctum')->name('studentProfile');
 Route::get('/attendance', [studentProfileController::class, 'showAttendance'])->middleware('auth:sanctum')->name('attendance');
 Route::get('/students', [StudentController::class, 'fetchStudents'])->middleware('auth')->name('students');
+
+Route::get('/courses', [studentProfileController::class, 'courses'])->middleware('auth:sanctum')->name('courses');
