@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\Student;
 use App\Models\Attendance;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Course;
+
 
 class studentProfileController extends Controller
 {
@@ -73,5 +75,11 @@ class studentProfileController extends Controller
         $id = Auth::user()->student_id;
         $student = Attendance::With('Lesson', 'Instructor')->where('student_id', $id)->get();
         return response()->json($student);
+    }
+
+    public function courses()
+    {
+        $courses = Course::all();
+        return response()->json($courses);
     }
 }
