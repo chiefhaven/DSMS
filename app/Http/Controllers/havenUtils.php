@@ -259,6 +259,7 @@
         {
             // Ensure there is an authenticated user
             $user = Auth::user();
+
             if (!$user || !$user->instructor_id) {
                 return false;
             }
