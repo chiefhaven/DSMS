@@ -84,7 +84,7 @@ class AttendanceController extends Controller
             }
 
 
-            if ($instructor->instructor->department->name == 'thoery' && !$student->classroom) {
+            if ($instructor->instructor->department->name == 'theory' && !$student->classroom) {
                 Alert()->error('Student not found', 'Student does not belong to any classroom, please scan another document or contact administrator.');
                 return back();
             }
