@@ -43,9 +43,14 @@
             <input class="" name="student" v-model="state.student" hidden>
             <div class="form-floating mb-4">
               <select class="form-select" id="lesson" name="lesson" v-model="state.lesson">
-                @foreach ($lesson as $lesson)
-                   <option value="{{$lesson->name}}">{{$lesson->name}}</option>
-                @endforeach
+                @if($lessons)
+                    @foreach ($lessons as $lesson)
+                        <option value="{{$lesson->name}}">{{$lesson->name}}</option>
+                    @endforeach
+
+                @else
+                    <option disabled>No lessons added to this course</option>
+                @endif
               </select>
               <label for="lesson">Lesson attended</label>
             </div>
@@ -62,9 +67,31 @@
             </div>
           </form>
         </div>
-          </div>
+        </div>
       </div>
+      <div class="block block-rounded block-bordered p-2">
+        <div class="block-content">
+            <div class="row">
+                <div class="">
+                    <h5 class="text-uppercase">Lessons {{$student->fname}} must attend</h5>
+                    <table class="table table-responsive">
+                        <tbody>
+                            @foreach ($lessons as $lesson)
+                                <tr>
+                                    <td>{{ $lesson->id }}</td>
+                                    <td>{{ $lesson->name }}</td>
+                                    <td><input type="checkbox"></td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
     </div>
+    </div>
+
   <!-- END Hero -->
 
   <script type="text/javascript">

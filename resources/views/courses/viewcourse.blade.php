@@ -66,15 +66,15 @@
                             </tr>
                             <tr>
                                 <td>
-                                    Lessons
+                                  Lessons
                                 </td>
-                                <td>
-                                    <p @click="OpenCourseLessonsModal()" class="color-primary lessonsDetails">
-                                        Theory @{{ theoryCount }},
-                                        Practicals @{{ practicalCount }}
-                                    </p>
+                                <td class="lessonsDetails" @click="OpenCourseLessonsModal">
+                                  <p class="text-primary">
+                                    Theory @{{ theoryCount }},
+                                    Practicals @{{ practicalCount }}
+                                  </p>
                                 </td>
-                            </tr>
+                              </tr>
                         </tbody>
                     </table>
                     </div>

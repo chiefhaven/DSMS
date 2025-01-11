@@ -65,8 +65,12 @@ class AttendanceController extends Controller
 
         if ($instructor->hasRole('instructor')) {
 
-            $lesson = Lesson::where('department_id', $instructor->instructor->department_id)->get();
-            $student = Student::find($token);
+            // $lessons = Lesson::where('department_id', $instructor->instructor->department_id)->get();
+            $student = Student::With('Course')->find($token);
+
+            $lessons = $student->course->lessons->filter(function ($lesson) use ($instructor) {
+                return $lesson->department_id == $instructor->instructor->department_id;
+            });
 
             if (!$student) {
                 Alert()->error('Student not found', 'Scan another document or contact the admin');
@@ -127,7 +131,7 @@ class AttendanceController extends Controller
             }
 
             $date = Carbon::now()->timezone('Africa/Blantyre');
-            return view('attendances.addattendance', compact('student', 'lesson', 'instructor', 'date'));
+            return view('attendances.addattendance', compact('student', 'lessons', 'instructor', 'date'));
         } else {
             $student = havenUtils::invoiceQrCode($token);
             return view('qrCodeGuest', compact('student'));

@@ -120,7 +120,7 @@ class StudentController extends Controller
                         if ($classroomIds->isNotEmpty()) {
                             $studentQuery->whereIn('classroom_id', $classroomIds);
                         } else {
-                            throw new ModelNotFoundException(__('You are not allocated to a class.'));
+                            throw new ModelNotFoundException(__('You are not allocated a class room.'));
                         }
                     }
                 }
