@@ -45,17 +45,17 @@
                                 </button>
                                 <div class="dropdown-menu dropdown-menu-end p-0">
                                     <div class="p-2">
-                                        <a class="dropdown-item" href="{{ url('/view-invoice', $invoice->invoice_number) }}">
+                                        <a class="dropdown-item" href="{{ url('/view-invoice', $invoice->id) }}">
                                         View
                                         </a>
-                                        <form method="get" action="{{ url('/edit-invoice', $invoice->invoice_number) }}">
+                                        <form method="get" action="{{ url('/edit-invoice', $invoice->id) }}">
                                             {{ csrf_field() }}
                                             <button class="dropdown-item" type="submit"><i class="si si-edit-name"></i> Edit</button>
                                             </form>
                                         <a class="dropdown-item" href="javascript:void(0)">
                                             Add payment
                                         </a>
-                                        <a class="dropdown-item" href="{{ url('/invoice-pdf', $invoice->invoice_number) }}">
+                                        <a class="dropdown-item" href="{{ url('/invoice-pdf', $invoice->id) }}">
                                             <i class="si si-printer me-1"></i> Print Invoice
                                         </a>
                                         <form method="POST" action="{{ url('/invoice-delete', $invoice) }}">
