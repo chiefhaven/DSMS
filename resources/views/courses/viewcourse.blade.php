@@ -64,12 +64,12 @@
                                     <p>@{{ formattedPrice(course.price) }}</p>
                                 </td>
                             </tr>
-                            <tr @click="OpenCourseLessonsModal()">
+                            <tr>
                                 <td>
                                     Lessons
                                 </td>
                                 <td>
-                                    <p>
+                                    <p @click="OpenCourseLessonsModal()" class="color-primary lessonsDetails">
                                         Theory @{{ theoryCount }},
                                         Practicals @{{ practicalCount }}
                                     </p>
@@ -429,4 +429,30 @@
    viewCourse.mount('#viewCourse')
 
 </script>
+
+<style scoped>
+    /* Style the table row */
+    .lessonsDetails {
+      transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+
+    /* Change background color when hovering over the row */
+    .lessonsDetails:hover {
+      background-color: #f0f0f0;
+      cursor: pointer; /* Makes it clear that it's clickable */
+      transform: scale(1.02); /* Slightly zooms in the row on hover */
+    }
+
+    /* Style the text inside the table */
+    td p {
+      font-size: 14px;
+      color: #333;
+    }
+
+    td p span {
+      font-weight: bold;
+      color: #0a0092; /* Add a color for emphasis */
+    }
+  </style>
+
 @endsection
