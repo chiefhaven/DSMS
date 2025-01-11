@@ -80,7 +80,7 @@
                                 <tr>
                                     <td>{{ $lesson->id }}</td>
                                     <td>{{ $lesson->name }}</td>
-                                    <td><input type="checkbox"></td>
+                                    <td><input type="checkbox" disabled></td>
                                 </tr>
                             @endforeach
                         </tbody>
