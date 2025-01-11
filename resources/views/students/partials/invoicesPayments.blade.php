@@ -57,10 +57,10 @@
                                 </button>
                                 <div class="dropdown-menu dropdown-menu-end p-0">
                                     <div class="p-2">
-                                    <a class="dropdown-item" href="{{ url('/view-invoice', $student->invoice->invoice_number) }}">
+                                    <a class="dropdown-item" href="{{ url('/view-invoice', $student->invoice->id) }}">
                                         View
                                     </a>
-                                    <form method="get" action="{{ url('/edit-invoice', $student->invoice->invoice_number) }}">
+                                    <form method="get" action="{{ url('/edit-invoice', $student->invoice->id) }}">
                                             {{ csrf_field() }}
                                         <button class="dropdown-item" type="submit">Edit</button>
                                     </form>
@@ -69,7 +69,7 @@
                                             Add payment
                                         </button>
                                     @endcan
-                                    <a class="dropdown-item" href="{{ url('/invoice-pdf', $student->invoice->invoice_number) }}">
+                                    <a class="dropdown-item" href="{{ url('/invoice-pdf', $student->invoice->id) }}">
                                         Print Invoice
                                     </a>
                                     <form method="POST" action="{{ url('/invoice-delete', $student->invoice->id) }}">

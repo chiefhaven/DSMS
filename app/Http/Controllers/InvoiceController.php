@@ -200,7 +200,7 @@ class InvoiceController extends Controller
     public function show($id)
     {
         $setting= Setting::with('District')->find(1);
-        $invoice = Invoice::with('User', 'Course', 'Student')->where('invoice_number',$id)->firstOrFail();
+        $invoice = Invoice::with('User', 'Course', 'Student')->find($id);
         return view('invoices.viewinvoice', [ 'invoice' => $invoice ], compact('invoice', 'setting'));
     }
 
@@ -218,8 +218,7 @@ class InvoiceController extends Controller
             $fleets = Fleet::all();
 
             $invoice = Invoice::with(['user', 'course', 'student'])
-                ->where('invoice_number', $id)
-                ->firstOrFail();
+                ->find($id);
 
             return view('invoices.editinvoice', compact('invoice', 'courses', 'fleets', 'classrooms'));
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -334,7 +333,7 @@ class InvoiceController extends Controller
         $setting= Setting::with('District')->find(1);
         $date = date('j F, Y');
         $setting = Setting::find(1);
-        $invoice = Invoice::with('User', 'Course', 'Student')->where('invoice_number', $id)->firstOrFail();
+        $invoice = Invoice::with('User', 'Course', 'Student')->find($id);
 
         $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/e8704ed2-d90e-41ca-9143/'.$id);
 
