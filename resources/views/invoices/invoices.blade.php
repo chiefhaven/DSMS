@@ -73,7 +73,7 @@
                             </div>
                         </td>
                           <td class="font-w600">
-                              <a href="{{ url('/view-invoice', $invoice->invoice_number) }}">{{$invoice->invoice_number}}</a>
+                              <a href="{{ url('/view-invoice', $invoice->id) }}">{{$invoice->invoice_number}}</a>
                           </td>
                           <td class="text-uppercase">
                             {{$invoice->student->fname}} <b>{{$invoice->student->sname}}</b>
