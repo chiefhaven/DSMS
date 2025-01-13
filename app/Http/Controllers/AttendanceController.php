@@ -72,33 +72,33 @@ class AttendanceController extends Controller
                 // Group attendance records by lesson_id and count occurrences
                 $lessonCounts = $student->attendance
                     ->groupBy('lesson_id')
-                    ->map(function ($group) {
-                        return $group->count();
-                    });
+                    ->map(fn($group) => $group->count());
 
                 // Filter and map lessons
                 $lessons = $student->course->lessons
-                    ->filter(function ($lesson) use ($instructor, $lessonCounts) {
-                        // Check if the lesson belongs to the instructor's department
-                        if ($lesson->department_id != $instructor->instructor->department_id) {
-                            return false;
-                        }
+                ->filter(function ($lesson) use ($instructor, $lessonCounts) {
+                    // Verify the lesson belongs to the instructor's department
+                    if ($lesson->department_id !== $instructor->instructor->department_id) {
+                        return false;
+                    }
 
-                        // Get the attendance count for the lesson, default to 0 if not found
-                        $attendanceCount = $lessonCounts->get($lesson->id, 0);
+                    // Get attendance count or default to 0
+                    $attendanceCount = $lessonCounts->get($lesson->id, 0);
 
-                        // Include the lesson only if lesson_quantity > attendance count
-                        return $lesson->lesson_quantity >= $attendanceCount;
-                    })
-                    ->map(function ($lesson) use ($lessonCounts) {
-                        // Mark the lesson as attended if it exists in lessonCounts
-                        $lesson->attended = $lessonCounts->has($lesson->id);
-                        return $lesson;
-                    })
-                    ->sortBy('order'); // Sort lessons by 'order'
+                    // Include lessons with lesson_quantity > attendanceCount
+                    return $lesson->pivot->lesson_quantity > $attendanceCount;
+                })
+                ->map(function ($lesson) use ($lessonCounts) {
+                    // Add an 'attended' flag
+                    $lesson->attended = $lessonCounts->has($lesson->id);
+                    return $lesson;
+                })
+                ->values() // Reset collection keys
+                ->sortBy('order'); // Sort lessons by 'order'
             } else {
-                $lessons = collect(); // Empty collection if no student or course
+                $lessons = collect(); // Return an empty collection if student or course is missing
             }
+
 
             if (!$student) {
                 Alert()->error('Student not found', 'Scan another document or contact the admin');
