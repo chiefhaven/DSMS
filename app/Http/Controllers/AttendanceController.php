@@ -66,11 +66,39 @@ class AttendanceController extends Controller
         if ($instructor->hasRole('instructor')) {
 
             // $lessons = Lesson::where('department_id', $instructor->instructor->department_id)->get();
-            $student = Student::With('Course')->find($token);
+            $student = Student::with(['Course.lessons', 'Attendance'])->find($token);
 
-            $lessons = $student->course->lessons->filter(function ($lesson) use ($instructor) {
-                return $lesson->department_id == $instructor->instructor->department_id;
-            });
+            if ($student && $student->course) {
+                // Group attendance records by lesson_id and count occurrences
+                $lessonCounts = $student->attendance
+                    ->groupBy('lesson_id')
+                    ->map(function ($group) {
+                        return $group->count();
+                    });
+
+                // Filter and map lessons
+                $lessons = $student->course->lessons
+                    ->filter(function ($lesson) use ($instructor, $lessonCounts) {
+                        // Check if the lesson belongs to the instructor's department
+                        if ($lesson->department_id != $instructor->instructor->department_id) {
+                            return false;
+                        }
+
+                        // Get the attendance count for the lesson, default to 0 if not found
+                        $attendanceCount = $lessonCounts->get($lesson->id, 0);
+
+                        // Include the lesson only if lesson_quantity > attendance count
+                        return $lesson->lesson_quantity >= $attendanceCount;
+                    })
+                    ->map(function ($lesson) use ($lessonCounts) {
+                        // Mark the lesson as attended if it exists in lessonCounts
+                        $lesson->attended = $lessonCounts->has($lesson->id);
+                        return $lesson;
+                    })
+                    ->sortBy('order'); // Sort lessons by 'order'
+            } else {
+                $lessons = collect(); // Empty collection if no student or course
+            }
 
             if (!$student) {
                 Alert()->error('Student not found', 'Scan another document or contact the admin');
