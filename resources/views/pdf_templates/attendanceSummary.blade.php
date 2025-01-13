@@ -26,8 +26,13 @@
                         <tr>
                             <td style="border: solid #ffffff00; text-align:left; padding-left: 0px !important;">
                                 {{$instructor->instructor->fname}} {{$instructor->instructor->sname}}<br>
-                                {{$instructor->instructor->fleet->car_registration_number}}
-                                {{$instructor->instructor->fleet->car_brand_model}}
+                                @if ($instructor->instructor->fleet)
+                                    {{$instructor->instructor->fleet->car_registration_number}}
+                                    {{$instructor->instructor->fleet->car_brand_model}}
+                                @endif
+                                @if ($instructor->instructor->classroom)
+                                    {{$instructor->instructor->classroom->name}}
+                                @endif
                             </td>
                         </tr>
                     </tbody>
