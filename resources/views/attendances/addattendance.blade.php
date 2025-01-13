@@ -42,17 +42,17 @@
             @csrf
             <input class="" name="student" v-model="state.student" hidden>
             <div class="form-floating mb-4">
-              <select class="form-select" id="lesson" name="lesson" v-model="state.lesson">
-                @if($lessons)
-                    <option disabled selected value="">Select lesson</option>
-                    @foreach ($lessons as $lesson)
-                        <option value="{{$lesson->name}}">{{$lesson->name}}</option>
-                    @endforeach
+                @if($lessons->isNotEmpty())
+                    <select class="form-select" id="lesson" name="lesson" v-model="state.lesson">
+                        <option disabled selected value="">Select lesson</option>
+                        @foreach ($lessons as $lesson)
+                            <option value="{{ $lesson->name }}">{{ $lesson->name }}</option>
+                        @endforeach
+                </select>
+                <label for="lesson">Lesson attended</label>
                 @else
-                    <option disabled>No lessons added to this course</option>
+                    No lessons added to this course or no attendances left for this student
                 @endif
-              </select>
-              <label for="lesson">Lesson attended</label>
             </div>
             <br>
             <div class="form-group">
