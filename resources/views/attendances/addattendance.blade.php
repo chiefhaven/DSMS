@@ -54,6 +54,7 @@
                     No lessons added to this course or no attendances left for this student
                 @endif
             </div>
+            <p class="text-center text-danger">If some lessons are missing for any student, please ask the administrator to add them to the course the student is enrolled</p>
             <br>
             <div class="form-group">
                 <button type="submit" :disabled="state.isSubmitButtonDisabled" class="btn btn-primary">
