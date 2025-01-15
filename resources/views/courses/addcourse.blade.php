@@ -48,26 +48,26 @@
                             <input type="number" class="form-control @error('course_price') is-invalid @enderror" id="course_price" name="course_price" placeholder="Course price">
                             <label for="course_price">Price</label>
                         </div>
-                        <div class="form-floating mb-4">
+                        {{--  <div class="form-floating mb-4">
                             <input type="number" class="form-control @error('course_theory') is-invalid @enderror" id="course_theory" name="course_theory" placeholder="Theory days">
                             <label for="course_theory">Number of days for theory</label>
                         </div>
                         <div class="form-floating mb-4">
                             <input type="number" class="form-control @error('course_practicals') is-invalid @enderror" id="course_practicals" name="course_practicals" placeholder="Practicals number">
                             <label for="course_practicals">Number of days for practicals</label>
-                        </div>
+                        </div>  --}}
                         <div class="form-group mb-4">
                             <label for="course_image">Course Image</label>
                             <input type="file" class="form-control" id="course_image" name="course_image" placeholder="Course image">
                         </div>
-                        <div class="form-floating mb-4">
+                        {{--  <div class="form-floating mb-4">
                             <select class="form-select @error('instructor') is-invalid @enderror" id="instructor" name="instructor" placeholder="Select instructor">
                                 @foreach($instructor as $instructor)
                                     <option selected value="1">{{$instructor->fname}} {{$instructor->fname}}</option>
                                 @endforeach
                             </select>
                             <label for="instructor">Instructor</label>
-                        </div>
+                        </div>  --}}
                         <br>
                         <div class="form-group mb-4">
                             <button type="submit" class="btn btn-primary">Save</button>
