@@ -48,7 +48,7 @@
                                 </button>
                                 <div class="dropdown-menu dropdown-menu-end p-0">
                                 <div class="p-2">
-                                    <a class="dropdown-item" href="{{ url('/view-lesson') }}">
+                                    <a class="dropdown-item" href="{{ url('#') }}">
                                         View
                                     </a>
                                     <button class="dropdown-item" @click="openAddLessonModal(lesson.id)">
