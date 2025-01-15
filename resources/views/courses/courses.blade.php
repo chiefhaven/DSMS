@@ -70,9 +70,9 @@
                                     <a class="dropdown-item" href="{{ url('/view-course', $course->id) }}">
                                     View
                                     </a>
-                                    <form method="POST" action="{{ url('/edit-course', $course->id) }}">
-                                    {{ csrf_field() }}
-                                    <button class="dropdown-item" type="submit">Edit</button>
+                                    <form method="GET" action="{{ url('/edit-course', $course->id) }}">
+                                        {{ csrf_field() }}
+                                        <button class="dropdown-item" type="submit">Edit</button>
                                     </form>
                                     <form method="POST" action="{{ url('/delete-course', $course->id) }}">
                                     {{ csrf_field() }}
