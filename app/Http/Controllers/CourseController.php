@@ -81,10 +81,10 @@ class CourseController extends Controller
             'course_name.required' => 'Course name is required!',
             'course_description.required'   => 'Course description is required',
             'course_price.required' => 'Price is required!',
-            'course_practicals.required' => 'Practicals number of days is required',
-            'course_practicals.numeric' => 'Practicals number of days must be a number',
-            'course_theory.numeric' => 'Theory number of days must be a number',
-            'course_theory.required'   => 'Theory number of days is required',
+            //'course_practicals.required' => 'Practicals number of days is required',
+            //'course_practicals.numeric' => 'Practicals number of days must be a number',
+            //'course_theory.numeric' => 'Theory number of days must be a number',
+            //'course_theory.required'   => 'Theory number of days is required',
             'course_code.required'   => 'Course Code is required',
         ];
 
@@ -93,8 +93,8 @@ class CourseController extends Controller
             'course_name'  =>'required',
             'course_description' =>'required',
             'course_price'   =>'required | numeric|min:0',
-            'course_practicals' =>'required | numeric|min:0',
-            'course_theory' =>'required | numeric|min:0',
+            //'course_practicals' =>'required | numeric|min:0',
+            //'course_theory' =>'required | numeric|min:0',
             'course_code' =>'required', [Rule::enum('B','C1')]
 
         ], $messages);
@@ -107,9 +107,9 @@ class CourseController extends Controller
         $course->class = $post['course_code'];
         $course->short_description = $post['course_description'];
         $course->price = $post['course_price'];
-        $course->duration = $post['course_practicals'] + $post['course_theory'];
-        $course->practicals = $post['course_practicals'];
-        $course->theory = $post['course_theory'];
+        $course->duration = 0;
+        //$course->practicals = $post['course_practicals'];
+        //$course->theory = $post['course_theory'];
 
         $course->save();
         Alert::toast('New course added successifully', 'success');
@@ -179,10 +179,10 @@ class CourseController extends Controller
             'course_name.required' => 'Course name is required!',
             'course_description.required'   => 'Course description is required',
             'course_price.required' => 'Price is required!',
-            'course_practicals.required' => 'Practicals number of days is required',
-            'course_practicals.numeric' => 'Practicals number of days must be a number',
-            'course_theory.numeric' => 'Theory number of days must be a number',
-            'course_theory.required'   => 'Theory number of days is required',
+            //'course_practicals.required' => 'Practicals number of days is required',
+            //'course_practicals.numeric' => 'Practicals number of days must be a number',
+            //'course_theory.numeric' => 'Theory number of days must be a number',
+            //'course_theory.required'   => 'Theory number of days is required',
         ];
 
         // Validate the request
@@ -190,8 +190,8 @@ class CourseController extends Controller
             'course_name'  =>'required',
             'course_description' =>'required',
             'course_price'   =>'required | numeric|min:0',
-            'course_practicals' =>'required | numeric|min:0',
-            'course_theory' =>'required | numeric|min:0'
+            //'course_practicals' =>'required | numeric|min:0',
+            //'course_theory' =>'required | numeric|min:0'
 
         ], $messages);
 
@@ -203,9 +203,9 @@ class CourseController extends Controller
         $course->class = $post['course_code'];
         $course->short_description = $post['course_description'];
         $course->price = $post['course_price'];
-        $course->duration = $post['course_practicals'] + $post['course_theory'];
-        $course->practicals = $post['course_practicals'];
-        $course->theory = $post['course_theory'];
+        //$course->duration = $post['course_practicals'] + $post['course_theory'];
+        //$course->practicals = $post['course_practicals'];
+        //$course->theory = $post['course_theory'];
 
         $course->save();
 
