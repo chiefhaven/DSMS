@@ -34,7 +34,7 @@
     @endif
       <div class="block-content">
       <div class="row">
-        @foreach ($course as $course)
+        @foreach ($courses as $course)
         <div class="col-md-6 col-xl-3">
             <div class="block block-rounded block-link-shadow text-center">
                 <div class="block-content block-content-full p-5">
@@ -42,27 +42,28 @@
                 </div>
                 <div class="block-content block-content-full block-content-sm bg-body-light">
                     <p class="font-w600 mb-0">{{$course->name}}</p>
-                    <p class="font-size-sm font-italic text-muted mb-0">
+                    <p class="text-sm font-italic text-muted mb-0">
                         {{$course->short_description}}
                     </p>
-                    <p class="font-size-sm font-italic text-muted mb-0">
-                        {{$course->practicals}} days practicals plus {{$course->theory}} days theory.
+                    <p class="font-size-sm font-italic text-muted mt-3">
+                        {{$course->practical_count}} Practicals, {{$course->theory_count}} Theories.
                     </p>
                 </div>
                 <div class="block-content block-content-full overflow-visible">
                     <div class="row gutters-tiny">
-                        <div class="col-10">
+                        <div class="col-12">
                             <p class="mb-2">
 
                             </p>
                             <p class="font-size-sm text-muted mb-0">
-                                <b>{{$course->invoice->count()}}</b> Students all time enrolled
+                                Active students: <b>{{ $course->student()->where('status', '!=', 'Finished')->count() }}
+                                </b>
                             </p>
                         </div>
-                        <div class="col-2">
+                        <div class="col-12 pt-3">
                             <div class="dropdown d-inline-block">
-                                <button type="button" class="btn btn-clear" id="" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
+                                <button type="button" class="btn btn-primary" id="" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Actions
                                 </button>
                                 <div class="dropdown-menu dropdown-menu-end p-0">
                                 <div class="p-2">
