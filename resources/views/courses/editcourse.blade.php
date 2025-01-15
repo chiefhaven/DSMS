@@ -22,24 +22,24 @@
                         <input type="text" name="course_id" id="course_id" value="{{$course->id}}" hidden>
 
                         <div class="form-floating mb-4">
-                            <input type="text" class="form-control @error('course_name') is-invalid @enderror" id="course_name" name="course_name" placeholder="Course name" value="{{$course->name}}">
+                            <input type="text" class="form-control @error('course_name') is-invalid @enderror" id="course_name" name="course_name" placeholder="Course name" value="{{$course->name}}" required>
                             <label for="course_name">Course name</label>
                         </div>
                         <div class="form-floating mb-4">
-                            <select type="text" class="form-control @error('course_code') is-invalid @enderror" id="course_code" name="course_code" placeholder="Course code" value="{{$course->class}}">
+                            <select type="text" class="form-control @error('course_code') is-invalid @enderror" id="course_code" name="course_code" placeholder="Course code" value="{{$course->class}}" required>
                                 <option {{ $course->class == 'B' ? 'selected' : '' }}>B</option>
                                 <option {{ $course->class == 'C1' ? 'selected' : '' }}>C1</option>
                             </select>
                             <label for="course_code">Course Class</label>
                         </div>
                         <div class="form-floating mb-4">
-                            <textarea type="text" class="form-control @error('course_description') is-invalid @enderror" id="course_description" name="course_description" style="height: 100px" placeholder="Course description">
+                            <textarea type="text" class="form-control @error('course_description') is-invalid @enderror" id="course_description" name="course_description" style="height: 100px" placeholder="Course description" required>
                                 {{$course->short_description}}
                             </textarea>
                             <label for="course_description">Description</label>
                         </div>
                         <div class="form-floating mb-4">
-                            <input type="number" class="form-control @error('course_price') is-invalid @enderror" id="course_price" name="course_price" placeholder="Course price" value="{{$course->price}}">
+                            <input type="number" class="form-control @error('course_price') is-invalid @enderror" id="course_price" name="course_price" placeholder="Course price" value="{{$course->price}}" required>
                             <label for="course_price">Price</label>
                         </div>
                         {{--  <div class="form-floating mb-4">
