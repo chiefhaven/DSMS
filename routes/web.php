@@ -80,7 +80,7 @@ Route::get('/view-course/{id}', function ($courseId) {
 Route::get('/course-details/{id}', [CourseController::class, 'show'])->middleware('auth')->name('courseDetails');
 Route::get('/addcourse', [CourseController::class, 'create'])->middleware('auth')->name('addcourse');
 Route::post('/storecourse', [CourseController::class, 'store'])->middleware('auth')->name('editcourse');
-Route::post('/edit-course/{id}', [CourseController::class, 'edit'])->middleware('auth')->name('edit-course');
+Route::get('/edit-course/{id}', [CourseController::class, 'edit'])->middleware('auth')->name('edit-course');
 Route::delete('/delete-course/{id}', [CourseController::class, 'destroy'])->middleware('auth')->name('courses');
 Route::put('/updatecourse', [CourseController::class, 'update'])->middleware('auth')->name('update-courses');
 Route::put('/update-course-lesson', [CourseController::class, 'updateCourseLessons'])->middleware('auth')->name('update-course-lessons');
