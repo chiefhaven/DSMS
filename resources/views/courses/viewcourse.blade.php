@@ -19,7 +19,7 @@
                 <div class="col-sm-4" style="background: #ffffff; margin: 0 10px; border-radius: 5px; border: thin solid #cdcdcd;">
                 <div class="py-5">
                     <div class="block-content block-content-full">
-                        <i class="fa fa-fw fa-book fa-2xl fa-haven-size text-large"></i>
+                        <i class="fa-solid fa-book-open-reader fa-2xl fa-haven-size text-large"></i>
                     </div>
                 </div>
                 </div>
