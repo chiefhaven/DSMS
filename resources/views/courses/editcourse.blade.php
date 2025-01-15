@@ -42,14 +42,14 @@
                             <input type="number" class="form-control @error('course_price') is-invalid @enderror" id="course_price" name="course_price" placeholder="Course price" value="{{$course->price}}">
                             <label for="course_price">Price</label>
                         </div>
-                        <div class="form-floating mb-4">
+                        {{--  <div class="form-floating mb-4">
                             <input type="number" class="form-control @error('course_theory') is-invalid @enderror" id="course_theory" name="course_theory" placeholder="Theory days" value="{{$course->theory}}">
                             <label for="course_theory">Number of days for theory</label>
                         </div>
                         <div class="form-floating mb-4">
                             <input type="number" class="form-control @error('course_practicals') is-invalid @enderror" id="course_practicals" name="course_practicals" placeholder="Practicals number" value="{{$course->practicals}}">
                             <label for="course_practicals">Number of days for practicals</label>
-                        </div>
+                        </div>  --}}
                         <br>
                         <div class="form-group mb-4">
                             <button type="submit" class="btn btn-primary">Save</button>
