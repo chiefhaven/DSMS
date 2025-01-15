@@ -28,11 +28,33 @@ class CourseController extends Controller
      */
     public function index()
     {
-        $course = Course::with('Student', 'Invoice', 'Lessons')->get();
+        // Fetch all courses with their related lessons, students, and invoices
+        $courses = Course::with(['lessons', 'student', 'invoice'])->get();
 
+        // Add theory and practical lesson counts for each course
+        $courses = $courses->map(function ($course) {
+            // Count theory lessons
+            $theoryCount = $course->lessons
+                ->where('department.name', 'theory') // Filter lessons belonging to 'Theory' department
+                ->sum('pivot.lesson_quantity'); // Use pivot table field for lesson_quantity
+
+            // Count practical lessons
+            $practicalCount = $course->lessons
+                ->where('department.name', 'practical') // Filter lessons belonging to 'Practical' department
+                ->sum('pivot.lesson_quantity'); // Use pivot table field for lesson_quantity
+
+            // Add the counts as attributes to the course
+            $course->theory_count = $theoryCount;
+            $course->practical_count = $practicalCount;
+
+            return $course;
+        });
+
+        // Group invoices by course_id
         $invoiceCount = Invoice::all()->groupBy('course_id');
 
-        return view('courses.courses', compact('course', 'invoiceCount'));
+        // Pass the courses and invoice counts to the view
+        return view('courses.courses', compact('courses', 'invoiceCount'));
     }
 
     /**
