@@ -52,7 +52,7 @@
                     </li>
                     <li class="nav-main-item">
                         <a class="nav-main-link" href="{{ url('/classes') }}">
-                            <span class="nav-main-link-name">Classes</span>
+                            <span class="nav-main-link-name">Class rooms</span>
                         </a>
                     </li>
                     <li class="nav-main-item">
