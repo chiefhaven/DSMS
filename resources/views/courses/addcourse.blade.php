@@ -29,11 +29,11 @@
                     <form action="{{ url('/storecourse') }}" method="POST">
                         @csrf
                         <div class="form-floating mb-4">
-                            <input type="text" class="form-control @error('course_name') is-invalid @enderror" id="course_name" name="course_name" placeholder="Course name">
+                            <input type="text" class="form-control @error('course_name') is-invalid @enderror" id="course_name" name="course_name" placeholder="Course name" required>
                             <label for="course_name">Course name</label>
                         </div>
                         <div class="form-floating mb-4">
-                            <select type="text" class="form-control @error('course_code') is-invalid @enderror" id="course_code" name="course_code" placeholder="Course class">
+                            <select type="text" class="form-control @error('course_code') is-invalid @enderror" id="course_code" name="course_code" placeholder="Course class" required>
                                 <option value="null" disabled selected>Select code...</option>
                                 <option>B</option>
                                 <option>C1</option>
@@ -41,11 +41,11 @@
                             <label for="course_code">Course Class</label>
                         </div>
                         <div class="form-floating mb-4">
-                            <textarea type="text" class="form-control @error('course_description') is-invalid @enderror" id="course_description" name="course_description" style="height: 100px" placeholder="Course description"></textarea>
+                            <textarea type="text" class="form-control @error('course_description') is-invalid @enderror" id="course_description" name="course_description" style="height: 100px" placeholder="Course description" required></textarea>
                             <label for="course_description">Description</label>
                         </div>
                         <div class="form-floating mb-4">
-                            <input type="number" class="form-control @error('course_price') is-invalid @enderror" id="course_price" name="course_price" placeholder="Course price">
+                            <input type="number" class="form-control @error('course_price') is-invalid @enderror" id="course_price" name="course_price" placeholder="Course price" required>
                             <label for="course_price">Price</label>
                         </div>
                         {{--  <div class="form-floating mb-4">
