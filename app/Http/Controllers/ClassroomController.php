@@ -82,17 +82,10 @@ class ClassroomController extends Controller
      * @param  \App\Models\Classroom  $classroom
      * @return \Illuminate\Http\Response
      */
-    public function show($classroom)
+    public function show(Classroom $classroom)
     {
-        $classRoom = Classroom::find($classroom);
-
-        if (!$classRoom) {
-            return response()->json(['error' => 'Classroom not found'], 404);
-        }
-
-        return response()->json($classRoom);
+        //
     }
-
 
     /**
      * Show the form for editing the specified resource.
