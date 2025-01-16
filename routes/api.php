@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\studentController as ApiStudentController;
 use App\Http\Controllers\Api\studentProfileController;
 use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\StudentController;
@@ -34,7 +35,7 @@ Route::get('invoice-view/{id}', [InvoiceController::class, 'show'])->middleware(
 
 
 Route::get('/studentProfile', [studentProfileController::class, 'show'])->middleware('auth:sanctum')->name('studentProfile');
-Route::get('/classroomDetails/{id}', [ClassroomController::class, 'show'])->middleware('auth:sanctum')->name('studentProfile');
+Route::get('/classroomDetails/{id}', [ApiStudentController::class, 'showClassRoom'])->middleware('auth:sanctum')->name('classroomDetails');
 Route::get('/attendance', [studentProfileController::class, 'showAttendance'])->middleware('auth:sanctum')->name('attendance');
 Route::get('/students', [StudentController::class, 'fetchStudents'])->middleware('auth')->name('students');
 
