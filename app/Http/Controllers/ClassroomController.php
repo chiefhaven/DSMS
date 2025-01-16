@@ -86,8 +86,13 @@ class ClassroomController extends Controller
     {
         $classRoom = Classroom::find($classroom);
 
+        if (!$classRoom) {
+            return response()->json(['error' => 'Classroom not found'], 404);
+        }
+
         return response()->json($classRoom);
     }
+
 
     /**
      * Show the form for editing the specified resource.
