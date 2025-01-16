@@ -82,9 +82,11 @@ class ClassroomController extends Controller
      * @param  \App\Models\Classroom  $classroom
      * @return \Illuminate\Http\Response
      */
-    public function show(Classroom $classroom)
+    public function show($classroom)
     {
-        //
+        $classRoom = Classroom::find($classroom);
+
+        return response()->json($classRoom);
     }
 
     /**
