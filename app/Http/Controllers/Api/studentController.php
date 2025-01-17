@@ -19,15 +19,4 @@ class studentController extends Controller
 
         return response()->json($classRoom);
     }
-
-    public function showFleet($fleet)
-    {
-        $fleet = Fleet::with('instructor')->find($fleet);
-
-        if (!$fleet) {
-            return response()->json(['error' => 'Vehicle not found'], 404);
-        }
-
-        return response()->json($fleet);
-    }
 }
