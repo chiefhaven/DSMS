@@ -11,7 +11,7 @@ class studentController extends Controller
 {
     public function showClassRoom($classroom)
     {
-        $classRoom = Classroom::with('instructor')->find($classroom);
+        $classRoom = Classroom::with('instructors')->find($classroom);
 
         if (!$classRoom) {
             return response()->json(['error' => 'Classroom not found'], 404);
