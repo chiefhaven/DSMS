@@ -41,3 +41,6 @@ Route::get('/attendance', [studentProfileController::class, 'showAttendance'])->
 Route::get('/students', [StudentController::class, 'fetchStudents'])->middleware('auth')->name('students');
 
 Route::get('/courses', [studentProfileController::class, 'courses'])->middleware('auth:sanctum')->name('courses');
+
+Route::get('/student-mbira-version', [ApimbiraStudentVersion::class, 'index'])->middleware('auth:sanctum')->name('student-mbira-version');
+
