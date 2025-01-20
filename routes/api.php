@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\MbiraStudentVersion;
 use App\Http\Controllers\Api\studentController as ApiStudentController;
 use App\Http\Controllers\Api\studentProfileController;
 use App\Http\Controllers\ClassroomController;
@@ -42,5 +43,5 @@ Route::get('/students', [StudentController::class, 'fetchStudents'])->middleware
 
 Route::get('/courses', [studentProfileController::class, 'courses'])->middleware('auth:sanctum')->name('courses');
 
-Route::get('/student-mbira-version', [ApimbiraStudentVersion::class, 'index'])->middleware('auth:sanctum')->name('student-mbira-version');
+Route::get('/student-mbira-version', [MbiraStudentVersion::class, 'index'])->middleware('auth:sanctum')->name('student-mbira-version');
 
