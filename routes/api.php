@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\MbiraStudentVersion;
+use App\Http\Controllers\Api\mbiraStudentVersion;
 use App\Http\Controllers\Api\studentController as ApiStudentController;
 use App\Http\Controllers\Api\studentProfileController;
 use App\Http\Controllers\ClassroomController;
