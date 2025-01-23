@@ -188,6 +188,9 @@ Route::get('/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/{token}', [AttendanceControlle
     ->middleware('redirectIfUnauthenticated')
     ->name('attendanceQrCode');
 
+Route::get('/docs/{token}', [InvoiceController::class, 'unauthenticatedQrScan'])
+    ->name('docsQrCode');
+
 Route::get('/e8704ed2-d90e-41ca-9143/{token}', [InvoiceController::class, 'unauthenticatedInvoiceScan'])
     ->name('invoiceQrCode');
 
