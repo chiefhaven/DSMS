@@ -184,8 +184,12 @@ require __DIR__.'/auth.php';
 Auth::routes();
 
 //qrCode routes
-Route::get('/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/{token}', [AttendanceController::class, 'create'])->middleware('auth')->name('attendanceQrCode');
-Route::get('/e8704ed2-d90e-41ca-9143/{id}', [InvoiceController::class,'invoiceQrCode'])->name('invoiceQrCode');
+Route::get('/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/{token}', [AttendanceController::class, 'create'])
+    ->middleware('redirectIfUnauthenticated')
+    ->name('attendanceQrCode');
+Route::get('/e8704ed2-d90e-41ca-9143/{id}', [InvoiceController::class,'unauthenticatedQrScan'])
+->middleware('redirectIfUnauthenticated')
+->name('invoiceQrCode');
 
 Route::get("/scanqrcode", function(){
     return view("qrCodeScanner");
