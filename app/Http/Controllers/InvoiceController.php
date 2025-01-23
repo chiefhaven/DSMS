@@ -358,7 +358,7 @@ class InvoiceController extends Controller
         return view('invoices.invoices', compact('invoices'));
     }
 
-    public function unauthenticatedAction($id){
+    public function unauthenticatedQrScan($id){
         $student = havenUtils::invoiceQrCode($id);
         return view('qrCodeGuest', compact('student'));
     }

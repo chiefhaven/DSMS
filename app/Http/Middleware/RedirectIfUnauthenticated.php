@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Http\Controllers\Api\InvoiceController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\AttendanceController;
 use Closure;
 use Illuminate\Http\Request;
