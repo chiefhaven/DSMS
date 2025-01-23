@@ -3,7 +3,6 @@
 namespace App\Http\Middleware;
 
 use App\Http\Controllers\InvoiceController;
-use App\Http\Controllers\AttendanceController;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,10 +23,8 @@ class RedirectIfUnauthenticated
             // Retrieve the 'token' parameter from the route
             $token = $request->route('token');
 
-            return redirect()->action(
-                [InvoiceController::class, 'unauthenticatedQrScan'],
-                ['id' => $token]
-            );
+            // Redirect to the 'invoiceQrCode' route, passing the token
+            return redirect()->route('docsQrCode', ['token' => $token]);
         }
 
         // Allow the request to proceed if the user is authenticated
