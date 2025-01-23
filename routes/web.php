@@ -187,9 +187,9 @@ Auth::routes();
 Route::get('/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/{token}', [AttendanceController::class, 'create'])
     ->middleware('redirectIfUnauthenticated')
     ->name('attendanceQrCode');
-Route::get('/e8704ed2-d90e-41ca-9143/{token}', [InvoiceController::class,'unauthenticatedQrScan'])
-->middleware('redirectIfUnauthenticated')
-->name('invoiceQrCode');
+
+Route::get('/e8704ed2-d90e-41ca-9143/{token}', [InvoiceController::class, 'unauthenticatedQrScan'])
+    ->name('invoiceQrCode');
 
 Route::get("/scanqrcode", function(){
     return view("qrCodeScanner");

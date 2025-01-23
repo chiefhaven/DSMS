@@ -20,9 +20,11 @@ class RedirectIfUnauthenticated
     public function handle(Request $request, Closure $next)
     {
         if (!Auth::check()) {
-            // Pass the 'id' or 'token' parameter to the redirection action
+            // Get the 'token' parameter from the current route
             $token = $request->route('token');
-            return redirect()->action([InvoiceController::class, 'unauthenticatedQrScan'], ['token' => $token]);
+
+            // Redirect to the unauthenticated QR scan route
+            return redirect()->route('invoiceQrCode', ['token' => $token]);
         }
 
         return $next($request);
