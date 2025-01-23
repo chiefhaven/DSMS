@@ -301,6 +301,16 @@
 
 
         static function invoiceQrCode($id){
+            $invoice = Invoice::with('student')->find($id);
+            $student = $invoice->student;
+
+            if(!isset($student)){
+                abort(404);
+            }
+            return $student;
+        }
+
+        static function docsQrCode($id){
             $student = Student::find($id);
             if(!isset($student)){
                 abort(404);
