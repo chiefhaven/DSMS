@@ -1,6 +1,6 @@
 <x-guest-layout>
-    <div class="flex justify-center items-center min-h-screen bg-gray-100">
-        <div class="content text-center p-6 bg-white rounded shadow-lg">
+    <div class="block-content flex justify-center items-center min-h-screen">
+        <div class="content text-center p-6 rounded">
             <div class="text-uppercase font-bold text-lg mb-4">
                 @if(isset($student))
                     This is a valid document from Daron Driving School for
