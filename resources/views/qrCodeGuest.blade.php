@@ -1,5 +1,5 @@
 <x-guest-layout>
-    <div class="block-content flex justify-center items-center min-h-screen bg-gray-100">
+    <div class="flex justify-center items-center min-h-screen bg-gray-100">
         <div class="content text-center p-6 bg-white rounded shadow-lg">
             <div class="text-uppercase font-bold text-lg mb-4">
                 @if(isset($student))
