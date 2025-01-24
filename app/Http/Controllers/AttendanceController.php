@@ -123,14 +123,14 @@ class AttendanceController extends Controller
             }
 
 
-            if ($student->fleet && !havenUtils::checkStudentInstructor($token)) {
+            if ($student->fleet && !havenUtils::checkStudentInstructor($token) && isset($instructor->instructor->department) && $instructor->instructor->department->name == 'practical') {
                 $fleetDetails = $student->fleet->car_registration_number . ' ' . $student->fleet->car_brand_model;
                 $instructorDetails = $student->fleet->instructor->fname . ' ' . $student->fleet->instructor->sname;
                 Alert()->error('Student not found', "Student belongs to $fleetDetails with $instructorDetails. Scan another document or contact administrator.");
                 return back();
             }
 
-            if ($student->classroom && !havenUtils::checkClassRoom($token)) {
+            if ($student->classroom && !havenUtils::checkClassRoom($token) && isset($instructor->instructor->department) && $instructor->instructor->department->name == 'theory') {
                 $classroomDetails = $student->classroom->name . ' ' . $student->classroom->location;
 
                 // Get all instructors' full names
