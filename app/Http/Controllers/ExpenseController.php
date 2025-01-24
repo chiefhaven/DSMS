@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Expense;
 use App\Http\Requests\StoreexpenseRequest;
 use App\Http\Requests\UpdateexpenseRequest;
+use App\Models\Administrator;
 use App\Models\Setting;
 use App\Models\Student;
+use App\Models\User;
+use App\Notifications\ExpenseCreated;
 use Auth;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -72,13 +75,16 @@ class ExpenseController extends Controller
 
         $students = $post['students'];
 
+        $user = Auth::user();
+
+        $admin = Administrator::where('id', $user->administrator_id)->firstOrFail();
+
         $expense = new expense();
         $expense->group = $post['expenseGroupName'];
         $expense->group_type = $post['expenseGroupType'];
         $expense->description = $post['expenseDescription'];
-        // $expense->amount = $studentsCount * $post['expenseAmount'];
         $expense->amount = $post['expenseAmount'];
-        $expense->added_by = Auth::user()->administrator_id;
+        $expense->added_by = $user->administrator_id;
 
         $expense->save();
         //Get student id
@@ -90,6 +96,12 @@ class ExpenseController extends Controller
 
         if(!$expense->save()){
             return false;
+        }
+
+        $superAdmins = User::role('superAdmin')->get();
+
+        foreach ($superAdmins as $superAdmin) {
+            $superAdmin->notify(new ExpenseCreated($expense, $admin->fname));
         }
 
         $data = ['message' => 'Expense added successfuly'];

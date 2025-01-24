@@ -6,6 +6,7 @@ use GuzzleHttp\Client;
 use RealRashid\SweetAlert\Facades\Alert;
 use App\Models\Student;
 use App\Models\notification_template;
+use Auth;
 
 class NotificationController extends Controller
 {
@@ -185,5 +186,15 @@ class NotificationController extends Controller
         return back();
     }
 
+    public function markAsRead($notificationId)
+    {
+        // Find the notification by ID
+        $notification = Auth::user()->notifications()->findOrFail($notificationId);
 
+        // Mark the notification as read
+        $notification->markAsRead();
+
+        // Redirect to the URL stored in the notification data
+        return redirect($notification->data['url'] ?? '/');
+    }
 }

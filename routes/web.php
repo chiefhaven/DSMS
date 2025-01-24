@@ -218,3 +218,4 @@ Route::get('/lesson-search', [havenUtils::class, 'autocompleteLessonSearch'])->m
 Route::post('/check-class-fleet-assignment', [havenUtils::class, 'checkInstructorClassFleetAssignment'])->middleware('auth')->name('check-class-fleet-assignment');
 
 
+Route::patch('/notifications/{notificationId}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');

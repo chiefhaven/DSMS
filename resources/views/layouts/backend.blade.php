@@ -149,24 +149,9 @@
         <!-- END Left Section -->
 
         <!-- Right Section -->
-        <div class="space-x-1">
+        <div class="space-x-3">
           <!-- Notifications Dropdown -->
-          <div class="dropdown d-inline-block">
-            <button type="button" class="btn btn-alt-secondary" id="page-header-notifications-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="text-danger">New! </i><i class="fa fa-fw fa-bell shake"></i>
-            </button>
-            <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0" aria-labelledby="page-header-notifications-dropdown">
-              <div class="bg-primary fw-semibold text-white text-center p-3">
-                Notifications
-              </div>
-              <div class="bg-light p-3">
-                <p class="fw-bold">
-                    Coming soon!
-                </p>
-                <p>System and event notifications to notify users of what actions they must take; Expense need approval...
-              </div>
-            </div>
-          </div>
+          @include('/layouts/partials/notifications')
           <!-- END Notifications Dropdown -->
 
           <!-- User Dropdown -->

@@ -7,18 +7,17 @@
       <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
         <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Review expense</h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
-
-            @if(Session::has('message'))
-            <div class="alert alert-info">
-              {{Session::get('message')}}
-            </div>
-          @endif
+            <a href="/expenses" class="btn btn-primary">All expenses</a>
         </nav>
       </div>
     </div>
   </div>
-
 <div class="content content-full" id="expense">
+    @if(Session::has('message'))
+        <div class="alert alert-info">
+            {{Session::get('message')}}
+        </div>
+    @endif
 <div class="row">
     <div class="col-md-4 block-rounded block-bordered">
         <div class="block block-rounded block-themed block-transparent mb-0" style="background-color:#ffffff">
