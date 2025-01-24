@@ -195,7 +195,15 @@
         });
 
         $(document).ready(function() {
-            $('#expenses').DataTable();
+
+            $('#expenses').DataTable({
+                columnDefs: [
+                    {
+                        targets: [1],
+                    }
+                ],
+                order: [[1, 'desc']], // Default sort: Ascending on the first column
+            });
         });
 
     </script>

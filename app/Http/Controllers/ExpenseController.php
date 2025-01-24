@@ -9,6 +9,7 @@ use App\Models\Administrator;
 use App\Models\Setting;
 use App\Models\Student;
 use App\Models\User;
+use App\Notifications\ExpenseApproved;
 use App\Notifications\ExpenseCreated;
 use Auth;
 use Carbon\Carbon;
@@ -33,7 +34,7 @@ class ExpenseController extends Controller
     public function index()
     {
         if(Auth::user()->hasRole('admin')){
-            $expenses = Expense::where('added_by', Auth::user()->administrator_id)->with('Students')->orderBy('created_at', 'DESC')->paginate(10);
+            $expenses = Expense::where('added_by', Auth::user()->administrator_id)->with('Students')->orderBy('created_at', 'DESC')->get();
         }
         else{
             $expenses = Expense::with('Students')->orderBy('created_at', 'DESC')->get();
@@ -310,13 +311,19 @@ class ExpenseController extends Controller
     {
         $post = $request->all();
 
+        $user = Auth::user();
+
         $expense = Expense::find($post['expenseId']);
-        $expense->approved_by = Auth::user()->administrator_id;
+        $expense->approved_by = $user->administrator_id;
         $expense->approved_amount = $post['approvedAmount'];
         $expense->approved = !$expense->approved;
         $expense->date_approved = Carbon::now();
 
         $expense->save();
+
+        $admin = Administrator::with('user')->find($expense->added_by);
+
+        $admin->user->notify(new ExpenseApproved($expense, $user->administrator->fname));
 
         return response()->json($expense, 200);
     }

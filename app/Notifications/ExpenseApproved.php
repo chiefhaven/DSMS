@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -11,14 +12,20 @@ class ExpenseApproved extends Notification
 {
     use Queueable;
 
+    protected $expense;
+    protected $admin;
+    protected $formattedDate;
+
     /**
      * Create a new notification instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct($expense, string $admin)
     {
-        //
+        $this->expense = $expense;
+        $this->admin = $admin;
+        $this->formattedDate = Carbon::parse($this->expense->group)->format('d F, Y');
     }
 
     /**
@@ -29,7 +36,7 @@ class ExpenseApproved extends Notification
      */
     public function via($notifiable)
     {
-        return ['mail'];
+        return ['database'];
     }
 
     /**
@@ -52,10 +59,26 @@ class ExpenseApproved extends Notification
      * @param  mixed  $notifiable
      * @return array
      */
+    public function toDatabase($notifiable)
+    {
+        return [
+            'title' => 'Expense approved',
+            'body' => "An expense slated for {$this->formattedDate} has been approved by {$this->admin}.",
+            'expense_id' => $this->expense->id,
+            'url' => url("/expenses"),
+            'created_at' => now(),
+        ];
+    }
+
+    // Or use `toArray`:
     public function toArray($notifiable)
     {
         return [
-            //
+            'title' => 'Expense Added',
+            'body' => "An expense slated for {$this->formattedDate} has been approved by {$this->admin}.",
+            'expense_id' => $this->expense->id,
+            'url' => url("/review-expense/{$this->expense->id}"),
+            'created_at' => now(),
         ];
     }
 }
