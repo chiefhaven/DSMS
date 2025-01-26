@@ -42,9 +42,34 @@ class studentProfileController extends Controller
     public function show()
     {
         $id = Auth::user()->student_id;
-        $student = Student::with('User', 'Invoice', 'Course', 'Attendance', 'District', 'Fleet', 'Classroom')->find($id);
-        return response()->json($student);
+
+        // Retrieve the student along with related data
+        $student = Student::with([
+            'User',
+            'Invoice',
+            'Course.lessons', // Assuming Course has a lessons relationship
+            'Attendance',
+            'District',
+            'Fleet',
+            'Classroom',
+        ])->find($id);
+
+        if (!$student) {
+            return response()->json(['message' => 'Student not found'], 404);
+        }
+
+        // Count theory and practical lessons
+        $theoryCount = $student->Course->lessons->where('department_id', 'd9b6a9c9-b8ca-11ef-9fee-525400adf70e')->sum('pivot.lesson_quantity');
+        $practicalCount = $student->Course->lessons->where('department_id', 'd9b69664-b8ca-11ef-9fee-525400adf70e')->sum('pivot.lesson_quantity');
+
+        // Add counts to the response
+        $studentData = $student->toArray();
+        $studentData['theoryCount'] = $theoryCount;
+        $studentData['practicalCount'] = $practicalCount;
+
+        return response()->json($studentData);
     }
+
 
     /**
      * Show the form for editing the specified resource.
