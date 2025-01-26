@@ -9,6 +9,7 @@ use App\Models\Attendance;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Course;
 
+use function PHPUnit\Framework\isEmpty;
 
 class studentProfileController extends Controller
 {
@@ -75,14 +76,14 @@ class studentProfileController extends Controller
         $id = Auth::user()->student_id;
 
         // Retrieve the student along with related 'attendances' data
-        $student = Student::with('attendance')->find($id);
+        $attendances = Attendance::where('student_id')->get();
 
-        if (!$student) {
+        if ($attendances.isEmpty()) {
             return response()->json(['message' => 'Student not found'], 404);
         }
 
         // Return the attendances data directly
-        return response()->json($student['attendances']);
+        return response()->json($attendances);
     }
 
 
