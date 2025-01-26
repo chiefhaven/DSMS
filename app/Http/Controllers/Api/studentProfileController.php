@@ -76,7 +76,7 @@ class studentProfileController extends Controller
         $id = Auth::user()->student_id;
 
         // Retrieve the student along with related 'attendances' data
-        $attendances = Attendance::with('lesson')->where('student_id', $id)->get();
+        $attendances = Attendance::with('lesson','instructor')->where('student_id', $id)->get();
 
 
         // Return the attendances data directly
