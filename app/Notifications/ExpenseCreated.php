@@ -48,9 +48,11 @@ class ExpenseCreated extends Notification
     public function toMail($notifiable)
     {
         return (new MailMessage)
-                    ->line('The introduction to the notification.')
-                    ->action('Notification Action', url('/'))
-                    ->line('Thank you for using our application!');
+            ->subject('New expense created')
+            ->line('An expense slated for {$this->formattedDate} has been created by {$this->admin}.')
+            ->action('View Notification', url('/notifications'))
+            ->line('If you have any questions, feel free to reach out.')
+            ->salutation('Warm regards');
     }
 
     /**

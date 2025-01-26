@@ -83,7 +83,7 @@
                                             <button type="submit" @click="getFleet()" class="btn btn-warning" data-bs-toggle="modal" data-bs-target=".assignCar">Reassign</button>
                                         </div>
                                         <div class="col-sm-4">
-                                            <button type="submit" @click="assign()" class="btn btn-danger">Unassign</button>
+                                            <button type="submit" @click="unAssignCar()" class="btn btn-danger">Unassign</button>
                                         </div>
                                     @else
                                         <div class="col-sm-6 text-danger">
@@ -453,6 +453,26 @@
             NProgress.done();
         }
 
+        function unAssignCar(){
+
+            NProgress.start();
+
+            axios.post('/unAssignCar', { student: '{{ $student->id }}', fleet: fleetRegNumber.value  }).then(response => {
+                if(response.status==200){
+                    notification(response.data,'success')
+                    location.reload();
+                }
+                else if(error.response.data.errors){
+                    notification('error.response.data.errors.message','error')
+                }
+                else{
+                    return false
+                }
+            });
+
+            NProgress.done();
+        }
+
         const assignClassRoom = () => {
             NProgress.start();
 
@@ -505,7 +525,8 @@
             assignClassRoom,
             classRoom,
             classRooms,
-            getClassRooms
+            getClassRooms,
+            unAssignCar
         }
       }
     })

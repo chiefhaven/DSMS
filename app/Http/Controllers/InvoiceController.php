@@ -9,13 +9,17 @@ use App\Models\Course;
 use App\Models\Fleet;
 use App\Models\Student;
 use App\Models\Payment;
-use App\Models\Attendance;
 use App\Models\Setting;
-use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\UpdateInvoiceRequest;
+use App\Models\Administrator;
 use App\Models\Classroom;
+use App\Models\User;
+use App\Notifications\StudentEnrolled;
+use App\Notifications\StudentEnrollment;
 use Illuminate\Support\Str;
 use Auth;
+use Exception;
+use Illuminate\Support\Facades\Notification;
 use RealRashid\SweetAlert\Facades\Alert;
 use PDF;
 
@@ -87,6 +91,8 @@ class InvoiceController extends Controller
         $post = $request->All();
 
         $invoice = new Invoice;
+
+        $user = Auth::user();
 
         $discount = (float)$post['discount'];
 
@@ -183,7 +189,24 @@ class InvoiceController extends Controller
                 Alert::toast($student->fname.' successifully enrolled', 'success');
             }
 
-            $sms->balanceSMS($student->id, 'Enrollment');
+            $admins = User::role('admin')->get();
+            $superAdmin = Administrator::find($user->administrator_id);
+
+            if (!$superAdmin) {
+                throw new Exception("Super Admin not found.");
+            }
+
+            $superAdminName = $superAdmin->fname . ' ' . $superAdmin->sname;
+
+            // Notify all admins
+            Notification::send($admins, new StudentEnrolled($student, $superAdminName));
+
+            // Notify the student
+            if (method_exists($student->user, 'notify')) {
+                $student->user->notify(new StudentEnrollment($student, $superAdminName));
+            }
+
+            $sms->balanceSMS($student->id, 'enrollment');
         }
 
         $student = Student::with('User', 'Course', 'Enrollment', 'Invoice', 'Payment')->find($student_id);
@@ -212,6 +235,11 @@ class InvoiceController extends Controller
      */
     public function edit($id)
     {
+        if (!Auth::user()->hasRole('superAdmin')) {
+            Alert::toast('You do not have permission to edit invoice or student enrollment. Please contact the administrator for assistance.', 'warning');
+            return back();
+        }
+
         try {
             $courses = Course::all();
             $classrooms = Classroom::all();
@@ -310,9 +338,17 @@ class InvoiceController extends Controller
      */
     public function destroy(Invoice $Invoice)
     {
+        if (!Auth::user()->hasRole('superAdmin')) {
+            Alert::toast('You do not have permission to delete invoice or student enrollment. Please contact the administrator for assistance.', 'warning');
+            return back();
+        }
+
         $student_id = $Invoice->student_id;
         $student = Student::where('id', $student_id)->firstOrFail();
-        Payment::destroy('student_id', $student_id);
+
+        if (Payment::where('student_id', $student_id)->exists()) {
+            Payment::where('student_id', $student_id)->delete();
+        }
 
         try{
             $student->course_id = Null;
@@ -323,7 +359,7 @@ class InvoiceController extends Controller
         }
 
         catch(Exception $e){
-            Alert::toast('Invoice not deleted, somethingwent wrong', 'danger');
+            Alert::toast('Invoice not deleted, something went wrong', 'danger');
         }
         return back();
     }

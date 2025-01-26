@@ -10,10 +10,10 @@ use Auth;
 
 class NotificationController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware(['role:superAdmin|admin']);
-    }
+    // public function __construct()
+    // {
+    //     $this->middleware(['role:superAdmin|admin|student']);
+    // }
     /**
      * Update the resource.
      *

@@ -202,7 +202,7 @@
                         targets: [1],
                     }
                 ],
-                order: [[1, 'desc']], // Default sort: Ascending on the first column
+                order: [[1, 'desc']],
             });
         });
 

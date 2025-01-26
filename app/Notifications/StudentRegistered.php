@@ -8,26 +8,24 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class AttendanceAdded extends Notification
+class StudentRegistered extends Notification
 {
     use Queueable;
 
     protected $student;
     protected $admin;
-    protected $attendanceCreatedDate;
-    protected $attendance;
+    protected $studentCreatedDate;
 
     /**
      * Create a new notification instance.
      *
      * @return void
      */
-    public function __construct($student, $attendance, String $admin)
+    public function __construct($student, string $admin)
     {
         $this->student = $student;
         $this->admin = $admin;
-        $this->attendance = $attendance;
-        $this->attendanceCreatedDate = Carbon::parse($attendance->created_at)->format('d F, Y');
+        $this->studentCreatedDate = Carbon::parse($this->student->created_at)->format('d F, Y');
     }
 
     /**
@@ -58,10 +56,10 @@ class AttendanceAdded extends Notification
     public function toDatabase($notifiable)
     {
         return [
-            'title' => 'Attendance entered',
-            'body' => "Your attendance for lesson {$this->attendance->lesson->name} has been entered by {$this->admin}.",
+            'title' => 'Student registered',
+            'body' => "Student {$this->student->fname} {$this->student->mname} {$this->student->sname} has been registerd by {$this->admin}.",
             'student_id' => $this->student->id,
-            'url' => url("/"),
+            'url' => url("/viewstudent/{$this->student->id}"),
             'created_at' => now(),
         ];
     }
@@ -75,12 +73,11 @@ class AttendanceAdded extends Notification
     public function toArray($notifiable)
     {
         return [
-            'title' => 'Attendance entered',
-            'body' => "Your attendance; {$this->attendance->lesson->name} has been entered by {$this->attendance->administrator->fname}.",
+            'title' => 'Student registered',
+            'body' => "Student {$this->student->fname} {$this->student->mname} {$this->student->sname} has been registerd by {$this->admin}.",
             'student_id' => $this->student->id,
             'url' => url("/viewstudent/{$this->student->id}"),
             'created_at' => now(),
         ];
     }
 }
-

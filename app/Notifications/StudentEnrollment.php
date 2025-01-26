@@ -8,26 +8,22 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class AttendanceAdded extends Notification
+class StudentEnrollment extends Notification
 {
     use Queueable;
 
     protected $student;
-    protected $admin;
-    protected $attendanceCreatedDate;
-    protected $attendance;
+    protected $studentCreatedDate;
 
     /**
      * Create a new notification instance.
      *
      * @return void
      */
-    public function __construct($student, $attendance, String $admin)
+    public function __construct($student)
     {
         $this->student = $student;
-        $this->admin = $admin;
-        $this->attendance = $attendance;
-        $this->attendanceCreatedDate = Carbon::parse($attendance->created_at)->format('d F, Y');
+        $this->studentCreatedDate = Carbon::parse($this->student->created_at)->format('d F, Y');
     }
 
     /**
@@ -50,18 +46,20 @@ class AttendanceAdded extends Notification
     public function toMail($notifiable)
     {
         return (new MailMessage)
-                    ->line('The introduction to the notification.')
-                    ->action('Notification Action', url('/'))
-                    ->line('Thank you for using our application!');
+            ->subject('You have been enrolled')
+            ->line('You have been enrolled in {$this->student->course->name}.')
+            ->action('View', url('/notifications'))
+            ->line('If you have any questions, feel free to reach out.')
+            ->salutation('Warm regards');
     }
 
     public function toDatabase($notifiable)
     {
         return [
-            'title' => 'Attendance entered',
-            'body' => "Your attendance for lesson {$this->attendance->lesson->name} has been entered by {$this->admin}.",
+            'title' => 'You have been enrolled',
+            'body' => "You have been enrolled in {$this->student->course->name}.",
             'student_id' => $this->student->id,
-            'url' => url("/"),
+            'url' => url("/dashboard"),
             'created_at' => now(),
         ];
     }
@@ -75,12 +73,7 @@ class AttendanceAdded extends Notification
     public function toArray($notifiable)
     {
         return [
-            'title' => 'Attendance entered',
-            'body' => "Your attendance; {$this->attendance->lesson->name} has been entered by {$this->attendance->administrator->fname}.",
-            'student_id' => $this->student->id,
-            'url' => url("/viewstudent/{$this->student->id}"),
-            'created_at' => now(),
+            //
         ];
     }
 }
-

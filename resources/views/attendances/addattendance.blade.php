@@ -31,12 +31,15 @@
             </ul>
         </div>
     @endif
+    @php
+        $studentName = $student->fname.' '.$student->mname.' '.$student->sname;
+    @endphp
     <div class="block block-rounded block-bordered p-2" id="attendance">
           <div class="block-content">
           <div class="row">
             <p class="text-center">
                 Adding attendance for
-                <h2 class="text-center">{{$student->fname}} {{$student->mname}} {{$student->sname}}</h2>
+                <h2 class="text-center">{{ $studentName }}</h2>
             </p>
           <form ref="state.attendanceForm" class="mb-5" action="{{ url('/storeattendance') }}" method="post" @submit.prevent="handleButtonClick">
             @csrf
@@ -51,21 +54,29 @@
                 </select>
                 <label for="lesson">Lesson attended</label>
                 @else
-                    No lessons added to this course or no attendances left for this student
+
+                    <p class="text-center text-danger">
+                        <i class="fa fa-exclamation-triangle text-danger fa-4x"></i>
+                    </p>
+                    <p class="text-center">
+                        No lessons added to course or no attendances left for {{ $studentName }}, please contact the administrator!
+                    </p>
                 @endif
             </div>
-            <p class="text-center text-danger">If some lessons are missing for any student, please ask the administrator to add them to the course the student is enrolled</p>
-            <br>
-            <div class="form-group">
-                <button type="submit" :disabled="state.isSubmitButtonDisabled" class="btn btn-primary">
-                    <template v-if="state.isLoading">
-                        Processing...
-                      </template>
-                      <template v-else>
-                        @{{ state.buttonText }}
-                      </template>
-                </button>
-            </div>
+            @if($lessons->isNotEmpty())
+                <p class="text-center text-danger">If some lessons are missing for any student, please ask the administrator to add them to the course the student is enrolled</p>
+                <br>
+                <div class="form-group">
+                    <button type="submit" :disabled="state.isSubmitButtonDisabled" class="btn btn-primary">
+                        <template v-if="state.isLoading">
+                            Processing...
+                        </template>
+                        <template v-else>
+                            @{{ state.buttonText }}
+                        </template>
+                    </button>
+                </div>
+            @endif
           </form>
         </div>
         </div>

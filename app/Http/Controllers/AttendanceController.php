@@ -8,10 +8,14 @@ use App\Models\Lesson;
 use App\Models\Student;
 use App\Http\Requests\StoreAttendanceRequest;
 use App\Http\Requests\UpdateAttendanceRequest;
+use App\Models\Administrator;
+use App\Models\Instructor;
 use App\Models\Setting;
+use App\Notifications\AttendanceAdded;
 use Auth;
 use PDF;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use RealRashid\SweetAlert\Facades\Alert;
 
@@ -189,6 +193,8 @@ class AttendanceController extends Controller
 
         ], $messages);
 
+        $instructor_id = Auth::user()->instructor_id;
+
         $post = $request->all();
 
         $studentName = html_entity_decode($post['student']);
@@ -249,7 +255,7 @@ class AttendanceController extends Controller
 
         $attendance->attendance_date = Carbon::now()->tz('Africa/Blantyre');
         $attendance->lesson_id = $lesson_id;
-        $attendance->instructor_id = Auth::user()->instructor_id;
+        $attendance->instructor_id = $instructor_id;
 
         $attendance->save();
 
@@ -267,6 +273,20 @@ class AttendanceController extends Controller
 
             $sms = new NotificationController;
             $sms->generalSMS($student, 'Attendance');
+            $admin = Instructor::find($instructor_id);
+            if (!$admin) {
+                // Handle the error, e.g., log or throw an exception
+                throw new Exception('Administrator not found.');
+            }
+
+            $adminName = $admin->fname . ' ' . $admin->sname;
+
+            if (!$student || !$student->user) {
+                throw new Exception('Student or associated user not found.');
+            }
+
+            $student->user->notify(new AttendanceAdded($student, $attendance, $adminName));
+
 
             $student->save();
         }

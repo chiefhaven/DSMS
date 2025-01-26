@@ -15,8 +15,12 @@ use App\Models\Setting;
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\PdfStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
+use App\Models\Administrator;
 use App\Models\Classroom;
 use App\Models\Fleet;
+use App\Notifications\StudentCarAssigned;
+use App\Notifications\StudentClassAssignment;
+use App\Notifications\StudentRegistered;
 use Illuminate\Support\Str;
 use PDF;
 use RealRashid\SweetAlert\Facades\Alert;
@@ -208,6 +212,10 @@ class StudentController extends Controller
         // Create new student
         $student = new Student;
 
+        $user = Auth::user();
+
+        $admin = Administrator::where('id', $user->administrator_id)->firstOrFail();
+
         // Signature processing
         if ($request->file('signature')) {
             $signatureName = $request->file('signature')->getClientOriginalName();
@@ -224,6 +232,7 @@ class StudentController extends Controller
         $student->address = $post['address'];
         $student->date_of_birth = $post['date_of_birth'];
         $student->district_id = $district;
+        $student->added_by = $user->administrator_id;
 
         $student->save();
 
@@ -235,6 +244,12 @@ class StudentController extends Controller
         $user->password = bcrypt(Str::random(10)); // Encrypt the password
 
         $user->save();
+
+        $superAdmins = User::role('superAdmin')->get();
+
+        foreach ($superAdmins as $superAdmin) {
+            $superAdmin->notify(new StudentRegistered($student, $admin->fname.' '.$admin->sname));
+        }
 
         // Send notification SMS
         $sms = new NotificationController;
@@ -611,20 +626,47 @@ class StudentController extends Controller
 
     public function assignCar(Request $request, student $student)
     {
-        $fleet_id = havenUtils::fleetID($request['fleet']);
+        $fleet = Fleet::with('instructor')->where('car_registration_number', $request['fleet'])->firstOrFail();
+
+        //$fleet_id = havenUtils::fleetID($request['fleet']);
+
         $student = Student::find($request['student']);
-        $student->fleet_id = $fleet_id;
+        $student->fleet_id = $fleet->id;
         $student->save();
+
+
 
 
         $sms = new NotificationController;
         $sms->generalSMS($student, 'Carassignment');
+
+        $student->user->notify(new StudentCarAssigned($fleet, 'assign'));
+
 
         if(!$student->save()){
             return response()->json('Something wrong happened', 403);
         }
 
         return response()->json('Success, student assigned car', 200);
+
+    }
+
+    public function unAssignCar(Request $request, student $student)
+    {
+        $student = Student::with('fleet')->find($request['student']);
+        $fleet = $student->fleet;
+        $student->fleet_id = null;
+        $student->save();
+
+
+        $student->user->notify(new StudentCarAssigned($fleet, 'un-assign'));
+
+
+        if(!$student->save()){
+            return response()->json('Something wrong happened', 403);
+        }
+
+        return response()->json('Success, student un assigned car', 200);
 
     }
 
@@ -651,8 +693,13 @@ class StudentController extends Controller
             $student->classroom_id = $request->classroom;
             $student->save();
 
+            $classRoom = Classroom::find($student->classroom_id);
+
+
             //$sms = new NotificationController;
             //$sms->generalSMS($student, 'Carassignment');
+
+            $student->user->notify(new StudentClassAssignment($classRoom, 'assign'));
 
             // Notify success
             return response()->json('Success, student assigned to classroom', 200);
