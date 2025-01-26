@@ -78,7 +78,7 @@ class studentProfileController extends Controller
         // Retrieve the student along with related 'attendances' data
         $attendances = Attendance::where('student_id')->get();
 
-        if ($attendances.isEmpty()) {
+        if (!$attendances) {
             return response()->json(['message' => 'Student not found'], 404);
         }
 
