@@ -82,4 +82,10 @@ class studentProfileController extends Controller
         $courses = Course::all();
         return response()->json($courses);
     }
+
+    public function notifications()
+    {
+        $notifications = Auth::user()->notifications;
+        return response()->json($notifications);
+    }
 }

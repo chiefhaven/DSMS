@@ -45,3 +45,6 @@ Route::get('/courses', [studentProfileController::class, 'courses'])->middleware
 
 Route::get('/student-mbira-version', [mbiraStudentVersion::class, 'index'])->name('student-mbira-version');
 
+Route::get('/notifications', [studentProfileController::class, 'notifications'])->middleware('auth:sanctum')->name('studentProfile');
+
+

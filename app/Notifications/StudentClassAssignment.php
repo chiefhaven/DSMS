@@ -58,7 +58,7 @@ class StudentClassAssignment extends Notification
             'title' => $this->type == 'assign' ? 'You have been assigned a classroom' : 'You have been un-assigned from a class room',
             'body' => $this->type == 'un-assign'
                 ? "You have been un-assigned from class room: {$this->classRoom->name}." : "You have been assigned class room {$this->classRoom->name}.",
-            'fleet_id' => $this->classRoom ? $this->classRoom->id : null,
+            'student_id' => $this->classRoom ? $this->classRoom->id : null,
             'url' => url("/"),
             'created_at' => now(),
         ];
