@@ -83,6 +83,22 @@ class studentProfileController extends Controller
         return response()->json($attendances);
     }
 
+    public function courseDetails()
+    {
+        // Get the authenticated student's ID
+        $id = Auth::user()->student->course_id;
+
+        // Find the course for the student or fail with a custom error message
+        $course = Course::find($id);
+
+        if (!$course) {
+            // If no course is found, return a custom error message with a 404 status
+            return response()->json(['message' => 'Course not found'], 404);
+        }
+
+        // Return the course data in JSON format
+        return response()->json($course);
+    }
 
 
     /**
