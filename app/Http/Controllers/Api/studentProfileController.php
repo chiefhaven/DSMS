@@ -95,9 +95,17 @@ class studentProfileController extends Controller
             // If no course is found, return a custom error message with a 404 status
             return response()->json(['message' => 'Course not found'], 404);
         }
+        // Count theory and practical lessons
+        $theoryCount = $course->lessons->where('department_id', 'd9b69664-b8ca-11ef-9fee-525400adf70e')->sum('pivot.lesson_quantity');
+        $practicalCount = $course->lessons->where('department_id', 'd9b6a9c9-b8ca-11ef-9fee-525400adf70e')->sum('pivot.lesson_quantity');
+
+        // Add counts to the response
+        $courseData = $course->toArray();
+        $courseData['theoryCount'] = $theoryCount;
+        $courseData['practicalCount'] = $practicalCount;
 
         // Return the course data in JSON format
-        return response()->json($course);
+        return response()->json($courseData);
     }
 
 
