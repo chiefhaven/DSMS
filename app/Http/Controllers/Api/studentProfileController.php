@@ -70,6 +70,22 @@ class studentProfileController extends Controller
         return response()->json($studentData);
     }
 
+    public function attendances()
+    {
+        $id = Auth::user()->student_id;
+
+        // Retrieve the student along with related 'attendances' data
+        $student = Student::with('attendances')->find($id);
+
+        if (!$student) {
+            return response()->json(['message' => 'Student not found'], 404);
+        }
+
+        // Return the attendances data directly
+        return response()->json($student->attendances);
+    }
+
+
 
     /**
      * Show the form for editing the specified resource.
