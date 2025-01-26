@@ -29,6 +29,10 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class StudentController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['role:superAdmin|admin|instructor']);
+    }
     /**
      * Display a listing of the resource.
      *
