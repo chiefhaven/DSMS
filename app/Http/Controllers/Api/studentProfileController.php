@@ -82,7 +82,7 @@ class studentProfileController extends Controller
         }
 
         // Return the attendances data directly
-        return response()->json($student->attendances);
+        return response()->json($student['attendances']);
     }
 
 
