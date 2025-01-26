@@ -59,8 +59,8 @@ class studentProfileController extends Controller
         }
 
         // Count theory and practical lessons
-        $theoryCount = $student->Course->lessons->where('department_id', 'd9b6a9c9-b8ca-11ef-9fee-525400adf70e')->sum('pivot.lesson_quantity');
-        $practicalCount = $student->Course->lessons->where('department_id', 'd9b69664-b8ca-11ef-9fee-525400adf70e')->sum('pivot.lesson_quantity');
+        $theoryCount = $student->Course->lessons->where('department_id', 'd9b69664-b8ca-11ef-9fee-525400adf70e')->sum('pivot.lesson_quantity');
+        $practicalCount = $student->Course->lessons->where('department_id', 'd9b6a9c9-b8ca-11ef-9fee-525400adf70e')->sum('pivot.lesson_quantity');
 
         // Add counts to the response
         $studentData = $student->toArray();
