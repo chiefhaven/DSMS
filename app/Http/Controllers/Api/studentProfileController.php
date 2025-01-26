@@ -76,11 +76,8 @@ class studentProfileController extends Controller
         $id = Auth::user()->student_id;
 
         // Retrieve the student along with related 'attendances' data
-        $attendances = Attendance::where('student_id')->get();
+        $attendances = Attendance::where('student_id', $id)->get();
 
-        if (!$attendances) {
-            return response()->json(['message' => 'Student not found'], 404);
-        }
 
         // Return the attendances data directly
         return response()->json($attendances);
