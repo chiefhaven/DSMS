@@ -26,6 +26,7 @@ use PDF;
 use RealRashid\SweetAlert\Facades\Alert;
 use Auth;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Spatie\Activitylog\Models\Activity;
 
 class StudentController extends Controller
 {

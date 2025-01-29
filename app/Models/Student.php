@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Models;
 
@@ -7,14 +8,17 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
+
 class Student extends Model
 {
-    use HasUuids;
-    use HasFactory;
+    use HasUuids, HasFactory, LogsActivity, SoftDeletes;
     protected $keyType = 'string';
     public $incrementing = false;
 
-    protected $fillable = ['_token', 'fname', 'sname', 'trn', 'date_of_birth', 'phone', 'gender', 'address', 'district'];
+    protected $fillable = ['_token', 'fname', 'sname', 'trn', 'date_of_birth', 'phone', 'gender', 'address', 'district', 'name', 'text'];
 
     public function getFormattedStatusAttribute()
     {
@@ -81,5 +85,17 @@ class Student extends Model
         static::deleting(function(Student $student) {
              $student->attendance()->delete();
         });
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('user_activity')
+            ->logOnlyDirty()
+            ->setDescriptionForEvent(fn(string $eventName) =>
+                "Student {$this->fname} " .
+                ($this->mname ? "{$this->mname} " : "") .
+                "{$this->sname} has been {$eventName}."
+            );
     }
 }

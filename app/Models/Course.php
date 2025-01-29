@@ -6,10 +6,12 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Course extends Model
 {
-    use Notifiable, HasUuids, HasFactory;
+    use Notifiable, HasUuids, HasFactory, LogsActivity;
     protected $keyType = 'string';
     public $incrementing = false;
 
@@ -43,5 +45,16 @@ class Course extends Model
         return $this->belongsToMany(Lesson::class, 'course_lesson')
                 ->withPivot('lesson_quantity', 'order')
                 ->withTimestamps();
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('user_activity')
+            ->logOnlyDirty()
+            ->setDescriptionForEvent(fn(string $eventName) =>
+                "Course {$this->name} " .
+                "{$eventName}."
+            );
     }
 }

@@ -1,17 +1,21 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Permission\Traits\HasRoles;
 
 class Instructor extends Model
 {
-    use Notifiable, HasUuids, HasFactory;
+    use Notifiable, HasUuids, HasFactory, LogsActivity, SoftDeletes;
     protected $keyType = 'string';
     public $incrementing = false;
 
@@ -28,6 +32,11 @@ class Instructor extends Model
     public function user()
     {
         return $this->hasOne(User::class, 'instructor_id');
+    }
+
+    public function attendances()
+    {
+        return $this->hasMany(attendance::class, 'instructor_id');
     }
 
     public function Lesson()
@@ -49,5 +58,16 @@ class Instructor extends Model
     public function department()
     {
        return $this->belongsTo(Department::class);
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('user_activity')
+            ->logOnlyDirty()
+            ->setDescriptionForEvent(fn(string $eventName) =>
+                "Instructor {$this->fname} " .
+                "{$this->sname} {$eventName}."
+            );
     }
 }

@@ -68,7 +68,7 @@
                             <h1 class="my-2">{{$student->fname}} {{$student->mname}} {{$student->sname}}</h1>
                             <p>
                                 Gender: {{$student->gender}}<br>
-                                Address: {{$student->address}} <br>Phone: {{$student->phone}}<br>Email: {{$student->user->email}}<br>TRN: {{$student->trn}}
+                                Address: {{$student->address}} <br>Phone: {{$student->phone}}<br>Email: {{$student->user->email ?? '-'}}<br>TRN: {{$student->trn}}
                             </p>
                             @role(['superAdmin','admin'])
                                 <div class="row">

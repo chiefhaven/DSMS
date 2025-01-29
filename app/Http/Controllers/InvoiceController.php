@@ -202,7 +202,7 @@ class InvoiceController extends Controller
             Notification::send($admins, new StudentEnrolled($student, $superAdminName));
 
             // Notify the student
-            if (method_exists($student->user, 'notify')) {
+            if ($student->user && method_exists($student->user, 'notify')) {
                 $student->user->notify(new StudentEnrollment($student, $superAdminName));
             }
 

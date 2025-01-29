@@ -3,13 +3,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Attendance;
 use App\Models\Expense;
-
+use App\Models\Instructor;
 use Illuminate\Http\Request;
 use App\Models\Invoice;
 use App\Models\Student;
 use View;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Spatie\Activitylog\Models\Activity;
 
 class HomeController extends Controller
 {
@@ -120,12 +121,20 @@ class HomeController extends Controller
 
         $student = Student::with('Invoice', 'User')
             ->orderBy('created_at', 'DESC')
-            ->take(15)
+            ->take(10)
             ->get();
+
+        $activities = Activity::orderBy('created_at', 'DESC')->paginate(5);
+
+        $instructors = Instructor::where('status', 'active')
+        ->with(['attendances' => function ($query) {
+            $query->whereMonth('created_at', Carbon::now()->month)
+                ->whereYear('created_at', Carbon::now()->year);
+        }])->get();
 
         $invoiceCount = $invoice->count();
 
-        return View::make('dashboard', compact(['attendanceCount', 'expensesTotal', 'invoice', 'student', 'invoiceBalances', 'studentCount', 'earningsTotal', 'time']));
+        return view('dashboard', compact(['attendanceCount', 'instructors', 'activities', 'expensesTotal', 'invoice', 'student', 'invoiceBalances', 'studentCount', 'earningsTotal', 'time']));
     }
 
     public function summaryData()
