@@ -1,5 +1,5 @@
 <div class="row" id="app">
-    <div class="col-8">
+    <div class="col-md-8">
         <div class="p-3">
             <div class="row block">
                 <div class="col-md-12 mb-3">
@@ -259,7 +259,7 @@
             </div>
         </div>
     </div>
-    <div class="col-4">
+    <div class="col-md-4">
         <div class="p-3">
             <div class="row block">
                 @php
