@@ -55,6 +55,11 @@
                 <label class="form-label" for="fees_threshold">Road Test threshold (%)</label>
                 <p class="muted small"><em>Fees percent at which student can be selected for road test expense</em></p>
             </div>
+            <div class="mb-4 col-md-4 form-floating">
+                <input type="number" class="form-control @error('bonus') is-invalid @enderror" id="bonus" name="bonus" value="{{$setting->bonus}}" placeholder="Bonus (K)">
+                <label class="form-label" for="fees_threshold">Bonus (K)</label>
+                <p class="muted small"><em>Instructor's bonus per attendance</em></p>
+            </div>
           </div>
           <br>
           <div class="form-group">

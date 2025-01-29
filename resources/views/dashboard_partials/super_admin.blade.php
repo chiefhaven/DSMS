@@ -306,12 +306,23 @@
                                             @endif
                                         </td>
                                         <td class="text-end">
-                                            K{{ number_format($instructor->attendances->count() * 500), 2 }}
+                                            K{{ number_format($instructor->attendances->count() * $settings->bonus), 2 }}
                                         </td>
                                     </tr>
                                 @endforeach
                             </tbody>
                         </table>
+                    </div>
+                    <div class="block-footer pt-3 pb-3">
+                        <p>
+                            Bonus is paged at <b>K{{ number_format($settings->bonus, 2) }}</b> per attendance. <i><a href="/settings/#bonus">Edit</a></i>
+                        </p>
+                        <p class="text-warning">
+                            System will automatically pay bonuses on 28th
+                        </p>
+                        <p>
+                           <a href="#" class="btn btn-primary">Pay early</a>
+                        </p>
                     </div>
                 </div>
             </div>

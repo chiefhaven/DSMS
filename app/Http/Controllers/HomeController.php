@@ -6,6 +6,7 @@ use App\Models\Expense;
 use App\Models\Instructor;
 use Illuminate\Http\Request;
 use App\Models\Invoice;
+use App\Models\Setting;
 use App\Models\Student;
 use View;
 use Carbon\Carbon;
@@ -134,7 +135,9 @@ class HomeController extends Controller
 
         $invoiceCount = $invoice->count();
 
-        return view('dashboard', compact(['attendanceCount', 'instructors', 'activities', 'expensesTotal', 'invoice', 'student', 'invoiceBalances', 'studentCount', 'earningsTotal', 'time']));
+        $settings = Setting::find(1);
+
+        return view('dashboard', compact(['attendanceCount','settings', 'instructors', 'activities', 'expensesTotal', 'invoice', 'student', 'invoiceBalances', 'studentCount', 'earningsTotal', 'time']));
     }
 
     public function summaryData()

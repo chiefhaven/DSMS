@@ -198,6 +198,7 @@ class SettingController extends Controller
         $settings->fees_code_i_threshold =$post['fees_code_i_threshold'];
         $settings->fees_code_ii_threshold =$post['fees_code_ii_threshold'];
         $settings->fees_road_threshold = $post['fees_road_test_threshold'];
+        $settings->bonus = $post['bonus'];
         $settings->fees_trn_threshold = $post['fees_trn_threshold'];
 
         $settings->save();
