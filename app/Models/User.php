@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Models;
 
@@ -13,7 +14,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasUuids, HasApiTokens, HasFactory, Notifiable, HasRoles;
+    use HasUuids, HasApiTokens, HasFactory, Notifiable, HasRoles, SoftDeletes;
     protected $keyType = 'string'; // Ensure it's a string (UUID)
     public $incrementing = false; // Disable auto-incrementing
 
