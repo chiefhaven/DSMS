@@ -186,7 +186,8 @@
         //check for course Duration a students is enrolled in based on current invoice
         static function courseDuration($course_id){
 
-            $courseDuration = Course::where('id', $course_id)->firstOrFail()->duration;
+            $course = Course::where('id', $course_id)->firstOrFail();
+            $courseDuration = $course->lessons->sum('course_lesson.lesson_quantity');
             return $courseDuration;
         }
 
