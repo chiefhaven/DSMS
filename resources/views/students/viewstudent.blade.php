@@ -313,11 +313,18 @@
                             </div>
                         @endif
 
-                        @if(Session::has('message'))
+                        @if($errors->any())
                             <script>
                                 Swal.fire({
-                                    icon: '{{ Session::get('alert-type', 'info') }}',
-                                    title: '{{ Session::get('message') }}',
+                                    icon: '{{ Session::get('alert-type', 'error') }}',
+                                    title: 'Payment not entered',
+                                    html: `
+                                        <ul>
+                                            @foreach($errors->all() as $error)
+                                                <li>{{ $error }}</li>
+                                            @endforeach
+                                        </ul>
+                                    `,
                                     showConfirmButton: false,
                                     timer: 3000
                                 });
