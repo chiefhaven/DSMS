@@ -60,6 +60,7 @@
                             <th>Name</th>
                             <th style="min-width: 15rem;">Course Enrolled</th>
                             @role('superAdmin|admin')
+                                <th>Fees</th>
                                 <th>Balance</th>
                             @endrole
                             <th style="min-width: 10rem;">Registered on</th>
@@ -111,6 +112,9 @@
                                     <td>{{ $students->fname }} {{ $students->mname }} {{ $students->sname }}</td>
                                     <td>{{ optional($students->course)->name ?? 'Not enrolled yet.' }}</td>
                                     @role(['superAdmin','admin'])
+                                        <td>
+                                            K{{ number_format($students->invoice->invoice_total ?? 0, 2) }}
+                                        </td>
                                         <td>
                                             <strong>
                                                 <span class="{{ $invoiceBalance > 0 ? 'text-danger' : 'text-success' }}">

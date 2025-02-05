@@ -11,6 +11,7 @@ use PDF;
 use App\Models\Invoice;
 use App\Models\Course;
 use App\Models\Student;
+use Illuminate\Validation\Rule;
 
 class PaymentController extends Controller
 {
@@ -43,59 +44,81 @@ class PaymentController extends Controller
     public function store(Request $request)
     {
         $messages = [
-            'invoice_number.required' => 'No invoice os being paid for!',
+            'invoice_number.required' => 'No invoice is being paid for!',
             'paid_amount.numeric' => 'Amount Paid must be a number',
-            'paid_amount.min:0' => 'Amount Paid must be at least zero',
+            'paid_amount.min' => 'Amount Paid must be at least one',
+            'payment_method.exists' => 'Payment method you selected does not exist'
         ];
 
         // Validate the request
-        $this->validate($request, [
-            'invoice_number'   =>'required',
-            'paid_amount'   =>'numeric|min:0'
-        ], $messages);
+        $rules = [
+            'invoice_number'   => 'required',
+            'payment_method' => 'required|exists:payment_methods,id',
+            'paid_amount'     => [
+                'required',
+                'numeric',
+                'min:1',
+            ],
+        ];
 
-        $post = $request->All();
+        $validatedData = $request->validate($rules, $messages);
+        $post = $request->all();
 
-        if($post['paid_amount'] > 0){
+        // Fetch invoice once
+        $invoice = Invoice::where('invoice_number', $post['invoice_number'])->first();
 
-            $payment = new Payment;
-
-            $student = havenUtils::studentID_InvoiceNumber($post['invoice_number']);
-            $invoice_amount_paid = havenUtils::invoicePaid($post['invoice_number'], $post['paid_amount']);
-            $invoice_balance = Invoice::where('invoice_number', $post['invoice_number'])->first()->invoice_total - $invoice_amount_paid;
-
-            //payment reciept processing
-            if($request->file('payment_proof')){
-                $paymentProofName = time().$request->file('payment_proof')->getClientOriginalName();
-                $request->payment_proof->move(public_path('/../media/paymentProof'), $paymentProofName);
-                $payment->payment_proof = $paymentProofName;
-            }
-
-            //Payment method processing
-            $paymentMethod = havenUtils::paymentMethod($post['payment_method']);
-
-            $payment->amount_paid = $post['paid_amount'];
-            $payment->payment_method_id = $paymentMethod;
-            $payment->transaction_id = Str::random(14);
-            $payment->student_id = $student->student->id;
-            $payment->entered_by = Auth::user()->name;
-
-
-            $invoice = Invoice::where('invoice_number', $post['invoice_number'])->firstOrFail();
-            $invoice->invoice_amount_paid = $invoice_amount_paid;
-            $invoice->invoice_balance = $invoice_balance;
-
-            $payment->save();
-            $invoice->save();
-
-            $sms = new NotificationController;
-            $sms->balanceSMS($student->student->id, 'Payment');
-
+        if (!$invoice) {
+            return back()->withErrors(['invoice_number' => 'Invoice not found.']);
         }
 
-            Alert::toast('Payment added successifuly', 'success');
-        return back();
+        if ($post['paid_amount'] > $invoice->invoice_balance) {
+            Alert::error('Payment not entered', 'Payment amount cannot be more than the remaining balance');
+            return back()->with([
+                'message' => 'Payment amount cannot be more than the remaining balance!',
+                'alert-type' => 'danger'
+            ]);
+        }
 
+        $payment = new Payment;
+        $student = havenUtils::studentID_InvoiceNumber($post['invoice_number']);
+
+        if (!$student || !$student->student) {
+            return back()->withErrors(['invoice_number' => 'Invalid invoice number. Student not found.']);
+        }
+
+        $invoice_amount_paid = havenUtils::invoicePaid($post['invoice_number'], $post['paid_amount']);
+        $invoice_balance = $invoice->invoice_total - $invoice_amount_paid;
+
+        // Handle payment proof file
+        if ($request->hasFile('payment_proof')) {
+            $paymentProofPath = $request->file('payment_proof')->storeAs(
+                'paymentProofs',
+                time() . '_' . $request->file('payment_proof')->getClientOriginalName(),
+                'public'
+            );
+            $payment->payment_proof = $paymentProofPath;
+        }
+
+        // Assign payment details
+        $payment->amount_paid = $post['paid_amount'];
+        $payment->payment_method_id = $post['payment_method'];
+        $payment->transaction_id = Str::random(14);
+        $payment->student_id = $student->student->id;
+        $payment->entered_by = Auth::user()->name;
+
+        // Update invoice balance
+        $invoice->invoice_amount_paid = $invoice_amount_paid;
+        $invoice->invoice_balance = $invoice_balance;
+
+        $payment->save();
+        $invoice->save();
+
+        // Send SMS notification
+        $sms = new NotificationController;
+        $sms->balanceSMS($student->student->id, 'Payment');
+
+        Alert::toast('Payment added successfully', 'success');
+        return back();
     }
 
     /**

@@ -4,40 +4,45 @@
 <!-- Hero -->
 <div class=""  id="student">
     <div class="bg-body-light">
-    <div class="content content-full">
-        <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
-        <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">{{$student->fname}} {{$student->mname}} {{$student->sname}}</h1>
-        <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
-            <ol class="breadcrumb">
-            @role(['superAdmin'])
-                <div class="dropdown d-inline-block">
-                <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <span class="d-sm-inline-block">Action</span>
-                </button>
-                <div class="dropdown-menu dropdown-menu-end p-0">
-                    <div class="p-2">
-                    <form method="GET" action="/edit-student/{{$student->id}}">
-                        {{ csrf_field() }}
-                        <button class="dropdown-item nav-main-link" type="submit">
-                            <i class="nav-main-link-icon  fas fa-pencil"></i> Edit profile
+        <div class="content content-full">
+            <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
+            <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">{{$student->fname}} {{$student->mname}} {{$student->sname}}</h1>
+            <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                @role(['superAdmin'])
+                    <div class="dropdown d-inline-block">
+                    <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span class="d-sm-inline-block">Action</span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end p-0">
+                        <div class="p-2">
+                        <form method="GET" action="/edit-student/{{$student->id}}">
+                            {{ csrf_field() }}
+                            <button class="dropdown-item nav-main-link" type="submit">
+                                <i class="nav-main-link-icon  fas fa-pencil"></i>Edit profile
+                            </button>
+                        </form>
+                        <button class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#modal-block-vcenter">
+                            <i class="nav-main-link-icon  fas fa-file-invoice"></i>Add payment
                         </button>
-                    </form>
-                    <button class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#modal-block-vcenter">
-                        <i class="nav-main-link-icon  fas fa-file-invoice"></i> payment
-                    </button>
-                    <button class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#change-status">
-                        <i class="nav-main-link-icon  fas fa-toggle-on"></i> Change status
-                    </button>
+                        <button class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#change-status">
+                            <i class="nav-main-link-icon  fas fa-toggle-on"></i>Change status
+                        </button>
+                        </div>
                     </div>
-                </div>
-                </div>
-            @endcan
-            </ol>
-        </nav>
+                    </div>
+                @endcan
+                </ol>
+            </nav>
+            </div>
         </div>
     </div>
-    </div>
     <div class="content content-full">
+        @if (Session::has('message'))
+            <div class="alert alert-{{ Session::get('alert-type', 'info') }}">
+                {{ Session::get('message') }}
+            </div>
+        @endif
         <div class="block block-rounded">
         <ul class="nav nav-tabs nav-tabs-block" role="tablist">
             <li class="nav-item">
@@ -297,40 +302,83 @@
                 <div class="block-content">
                     <form class="mb-5" action="{{ url('/add-payment') }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
                         @csrf
+
+                        @if($errors->any())
+                            <div class="alert alert-danger">
+                                <ul>
+                                    @foreach($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
+                        @if(Session::has('message'))
+                            <script>
+                                Swal.fire({
+                                    icon: '{{ Session::get('alert-type', 'info') }}',
+                                    title: '{{ Session::get('message') }}',
+                                    showConfirmButton: false,
+                                    timer: 3000
+                                });
+                            </script>
+                        @endif
+
                         @if(isset($student->invoice->created_at))
                             <input type="text" class="form-control" id="invoice_number" name="invoice_number" value="{{$student->invoice->invoice_number}}" hidden>
                         @else
-
                         @endif
-                    <div class="col-md-12 form-floating mb-4">
-                        <input type="date" class="form-control" id="date_created" name="date_created" placeholder="Enter invoice date">
-                        <label for="invoice_discount">Date</label>
-                    </div>
-                    <div class="row">
-                        <div class="col-6 form-floating mb-4">
-                            <input type="number" class="form-control" id="paid_amount" name="paid_amount" value="0">
-                            <label for="invoice_discount">Amount</label>
+
+                        <!-- Date Created Field -->
+                        <div class="col-md-12 form-floating mb-4">
+                            <input type="date" class="form-control @error('date_created') is-invalid @enderror" id="date_created" name="date_created" placeholder="Enter invoice date" value="{{ old('date_created') }}">
+                            <label for="invoice_discount">Date</label>
+                            @error('date_created')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
-                        <div class="col-6 form-floating mb-4">
-                            <select class="form-select" id="payment_method" name="payment_method">
-                                <option value="Cash" selected>Cash</option>
-                                <option value="National Bank">National Bank</option>
-                                <option value="Airtel Money">Airtel Money</option>
-                                <option value="TNM Mpamba">TNM Mpamba</option>
-                                <option value="Other">Other</option>
-                            </select>
-                            <label for="district">Payment Method</label>
+
+                        <div class="row">
+                            <!-- Paid Amount Field -->
+                            <div class="col-6 form-floating mb-4">
+                                <input type="number" class="form-control @error('paid_amount') is-invalid @enderror" id="paid_amount" name="paid_amount" value="{{ old('paid_amount', 0) }}">
+                                <label for="invoice_discount">Amount</label>
+                                @error('paid_amount')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <!-- Payment Method Field -->
+                            <div class="col-6 form-floating mb-4">
+                                <select class="form-select @error('payment_method') is-invalid @enderror" id="payment_method" name="payment_method">
+                                    @foreach (App\Models\PaymentMethod::all() as $paymentMethod)
+                                        <option value="{{ $paymentMethod->id }}" {{ old('payment_method') == $paymentMethod->id ? 'selected' : '' }}>
+                                            {{ $paymentMethod->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <label for="district">Payment Method</label>
+                                @error('payment_method')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-12 form-floating mb-4">
-                        <input type="file" class="form-control" id="payment_proof" name="payment_proof" placeholder="Upload a reciept">
-                        <label for="invoice_discount">Payment proof</label>
-                    </div>
-                    <div class="block-content block-content-full text-end bg-body">
-                        <button type="submit" class="btn btn-primary">Save</button>
-                        <button type="button" class="btn btn-sm btn-alt-secondary" data-bs-dismiss="modal">Close</button>
-                    </div>
-                </form>
+
+                        <!-- Payment Proof Field -->
+                        <div class="col-12 form-floating mb-4">
+                            <input type="file" class="form-control @error('payment_proof') is-invalid @enderror" id="payment_proof" name="payment_proof" placeholder="Upload a receipt">
+                            <label for="invoice_discount">Payment proof</label>
+                            @error('payment_proof')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <!-- Submit and Close Buttons -->
+                        <div class="block-content block-content-full text-end bg-body">
+                            <button type="submit" class="btn btn-primary">Save</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </form>
                 </div>
             </div>
             </div>
