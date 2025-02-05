@@ -228,6 +228,12 @@ class InstructorController extends Controller
         $instructor->status = $post['status'];
         $instructor->date_of_birth = $post['date_of_birth'];
         $instructor->district_id = $district;
+        if ($instructor->department_id != $post['department']) {
+            if($instructor->fleet){
+                $instructor->fleet->instructor_id = null;
+                $instructor->fleet->save();
+            }
+        }
         $instructor->department_id = $post['department'];
         $instructor->save();
 
