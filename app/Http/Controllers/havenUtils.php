@@ -163,7 +163,7 @@
                 $courseDuration = self::courseDuration($course_id);
                 $attendanceCount = Attendance::where('student_id', $studentID)->count();
 
-                if($attendanceCount > 0){
+                if($attendanceCount > 0 && $courseDuration > 0){
 
                     $attendancePercent = $attendanceCount/$courseDuration*100;
                 }
