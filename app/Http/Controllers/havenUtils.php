@@ -188,7 +188,7 @@
 
             $course = Course::where('id', $course_id)->first();
             $courseDuration = $course->duration; //$course->lessons->sum('course_lesson.lesson_quantity');
-            dd($course->lessons, $courseDuration);
+            //dd($course->lessons, $courseDuration);
             return $courseDuration;
         }
 
