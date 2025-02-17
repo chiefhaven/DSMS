@@ -187,8 +187,9 @@
         static function courseDuration($course_id){
 
             $course = Course::where('id', $course_id)->first();
-            $courseDuration = $course->duration; //$course->lessons->sum('course_lesson.lesson_quantity');
-            //dd($course->lessons, $courseDuration);
+            //$courseDuration = $course->duration;
+            $courseDuration = $course->lessons->sum('pivot.lesson_quantity');
+            dd($courseDuration);
             return $courseDuration;
         }
 
