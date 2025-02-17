@@ -12,6 +12,7 @@ use View;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Models\Activity;
+use Auth;
 
 class HomeController extends Controller
 {
@@ -160,6 +161,61 @@ class HomeController extends Controller
         $countAttendance = DB::table('attendances')
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+
+        // Create an associative array to store the attendance counts by date
+        $arrayOfAttendances = [];
+
+        // Loop through the results to build the array
+        foreach ($countAttendance as $attendance) {
+            $arrayOfAttendances[$attendance->date] = $attendance->count;
+        }
+
+        // Add dates with zero counts to ensure all dates are included
+        foreach ($dates as $date => $value) {
+            if (!array_key_exists($date, $arrayOfAttendances)) {
+                $arrayOfAttendances[$date] = 0;
+            }
+        }
+
+        // Sort the array by date
+        ksort($arrayOfAttendances);
+
+        // Convert the associative array to a simple array of objects
+        $attendanceMonthlyInfo = collect($arrayOfAttendances)->map(function ($count, $date) {
+            $item = new \stdClass();
+            $item->date = $date;
+            $item->count = $count;
+            return $item;
+        })->values();
+
+        // Return the data as JSON
+        return response()->json($attendanceMonthlyInfo, 200);
+    }
+
+    public function instructorSummaryData()
+    {
+        // Get the first day of the current month and the last day of the current month
+        $startOfMonth = Carbon::now()->startOfMonth()->format('Y-m-d');
+        $endOfMonth = Carbon::now()->endOfMonth()->format('Y-m-d');
+
+        // Initialize the dates collection for the current month
+        $dates = collect();
+        $currentDate = Carbon::parse($startOfMonth);
+
+        // Populate the collection with dates for the current month and initialize counts to 0
+        while ($currentDate->lte($endOfMonth)) {
+            $dates->put($currentDate->format('Y-m-d'), 0);
+            $currentDate->addDay();
+        }
+
+        // Query to get the count of attendances per date for the current month
+        $countAttendance = DB::table('attendances')
+            ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->where('instructor_id', Auth::user()->instructor->id)
             ->groupBy('date')
             ->orderBy('date')
             ->get();

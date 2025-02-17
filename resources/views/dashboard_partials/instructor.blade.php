@@ -1,29 +1,179 @@
 <div class="row">
-        <div class="col-md-6 col-xl-6">
+        <div class="col-md-12">
             <h1>
                 Welcome <b>{{ Auth::user()->instructor->fname }}</b> {{ Auth::user()->instructor->sname }}
             </h1>
-            Department: {{ Auth::user()->instructor->department->name ?? '' }}
-            <p>
-                @if (Auth::user()->instructor->fleet)
-                    Assigned car: {{ Auth::user()->instructor->fleet->car_registration_number }}
-                @elseif (Auth::user()->instructor->classrooms && Auth::user()->instructor->classrooms->isNotEmpty())
-                    Assigned classrooms:
-                    @foreach (Auth::user()->instructor->classrooms as $classroom)
-                        {{ $classroom->name }}{{ !$loop->last ? ',' : '' }}
-                    @endforeach
-                @else
-                    Not yet assigned car or classroom
-                @endif
-            </p>
+            <hr>
+            <div class="row">
+                <div class="col-md-12 col-xl-12 mb-4">
+                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                        {!! \Illuminate\Foundation\Inspiring::quote() !!}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="block block-rounded block-link-shadow border">
+                        <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                            <div>
+                                <i class="fa fa-2x fa-building"></i>
+                            </div>
+                            <div class="ml-3 text-right">
+                                <p class="font-size-h2 font-w900 mb-0 text-uppercase">
+                                    {{ Auth::user()->instructor->department->name ?? '' }}
+                                </p>
+                                <p class="mb-0">Department</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="block block-rounded block-link-shadow border">
+                        <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                            <div>
+                                @if (Auth::user()->instructor->fleet)
+                                    <i class="fa fa-2x fa-car"></i>
+                                @else
+                                    <i class="fa fa-2x fa-chalkboard-teacher"></i>
+                                @endif
+                            </div>
+                            <div class="ml-3 text-right">
+                                <p class="font-size-h3 font-w900 mb-0 text-uppercase">
+                                    @if (Auth::user()->instructor->fleet)
+                                        {{ Auth::user()->instructor->fleet->car_registration_number }}
+                                    @elseif (Auth::user()->instructor->classrooms && Auth::user()->instructor->classrooms->isNotEmpty())
+                                        @foreach (Auth::user()->instructor->classrooms as $classroom)
+                                            {{ $classroom->name }}{{ !$loop->last ? ',' : '' }}
+                                        @endforeach
+                                    @else
+                                        Not yet assigned car or classroom
+                                    @endif
+                                </p>
+                                <p class="mb-0">Assigned</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="block block-rounded block-link-shadow border">
+                        <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                            <div>
+                                <i class="fa fa-2x fa-user-check"></i>
+                            </div>
+                            <div class="ml-3 text-right">
+                                <p class="font-size-h3 font-w900 mb-0 text-uppercase">
+                                    {{ $attendanceCount }}
+                                </p>
+                                <p class="mb-0">Todays Attendances</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="block block-rounded block-link-shadow border">
+                        <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                            <div>
+                                <i class="fa fa-2x fa-money-bill-wave"></i>
+                            </div>
+                            <div class="ml-3 text-right">
+                                <p class="font-size-h3 font-w900 mb-0 text-uppercase">
+                                    {{ $attendanceCount }}
+                                </p>
+                                <p class="mb-0">Expected Bonus</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12 mt-5">
+                    <div class="block ">
+                        <div class="block-conent block-rounded block-bordered">
+                            <canvas id="attendancesChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
 </div>
 
-<div class="block-content">
-    <div class="row">
-        <div class="col-md-8 col-xl-8 card p-5 mt-6">
-            {!! \Illuminate\Foundation\Inspiring::quote() !!}
-        </div>
-    </div>
-</div>
+<script>
+    const ctx = document.getElementById('attendancesChart');
+    $(function() {
+        getXlsxData();
+      });
+
+      function getXlsxData() {
+        var xlsxUrl =
+          "/instructorSummaryData"
+        var xlsxData = $.getJSON(xlsxUrl, function(data) {
+          $.each(data, function(i, el) {
+            labels.push(el.date);
+            Attendances.push(el.count);
+          });
+          load_chart();
+        });
+      }
+      var labels = [],
+        Attendances = []
+
+      function load_chart() {
+        var attendancesChart = new Chart('attendancesChart', {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Your Attendances ',
+              fill: false,
+              data: Attendances,
+              backgroundColor: 'rgb(255, 159, 64)',
+              borderColor: 'rgb(255, 159, 64, 0.8)',
+              borderWidth: 3,
+              radius: 0,
+            }, ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            legend: {
+              position: 'bottom',
+            },
+            layout: {
+              padding: {
+                top: 35,
+                right: 15,
+              }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        parser: 'YYYY-MM-DD', // Ensure this matches your data format
+                        unit: 'day', // Use 'day' for daily data
+                        displayFormats: {
+                            day: 'D MMM' // Format for daily tick marks
+                        },
+                        tooltipFormat: 'D MMM YYYY' // Tooltip format
+                    },
+                    ticks: {
+                        source: 'data', // Ensures ticks are based on data
+                        autoSkip: false, // Disable automatic skipping
+                        stepSize: 1, // Display every day (adjust if necessary)
+                        maxRotation: 60, // Prevent tick label rotation
+                        minRotation: 60
+                    },
+                    title: {
+                        display: true,
+                        text: 'Date' // Optional: Add title for the x-axis
+                    }
+                },
+                y: {
+                    beginAtZero: true
+                }
+            }
+          }
+        });
+    }
+</script>
