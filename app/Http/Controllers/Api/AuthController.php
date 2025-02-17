@@ -4,12 +4,11 @@ namespace App\Http\Controllers\Api;
 use Illuminate\Cache\RateLimiter;
 
 use App\Models\User;
-use App\Models\Student;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Password;
 
 class AuthController extends Controller
 {
@@ -37,6 +36,7 @@ class AuthController extends Controller
         $response = ['token' => $token->plainTextToken];
         return response($response, 200);
     }
+
     public function login(Request $request, RateLimiter $rateLimiter)
     {
         $key = 'login-attempts:' . $request->ip();
@@ -80,6 +80,51 @@ class AuthController extends Controller
             'status' => 'error',
             'message' => 'Invalid login credentials',
         ], 422);
+    }
+
+    // Handle Forgot Password Request
+    public function forgotPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
+        }
+
+        $status = Password::sendResetLink($request->only('email'));
+
+        return $status === Password::RESET_LINK_SENT
+            ? response()->json(['status' => 'success', 'message' => 'Password reset link sent.'])
+            : response()->json(['status' => 'error', 'message' => 'Unable to send reset link.'], 500);
+    }
+
+    // Handle Password Reset
+    public function resetPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
+            'token' => 'required',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
+        }
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                ])->save();
+            }
+        );
+
+        return $status === Password::PASSWORD_RESET
+            ? response()->json(['status' => 'success', 'message' => 'Password reset successful.'])
+            : response()->json(['status' => 'error', 'message' => 'Invalid token or email.'], 500);
     }
 
 }

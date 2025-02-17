@@ -42,6 +42,7 @@
         "pusher/pusher-php-server": "^5.0",
         "razorpay/razorpay": "2.*",
         "realrashid/sweet-alert": "^7.1",
+        "sadiqsalau/laravel-otp": "^1.0",
         "simplesoftwareio/simple-qrcode": "^4.2",
         "spatie/flysystem-dropbox": "^2.0",
         "spatie/laravel-activitylog": "^4.4",

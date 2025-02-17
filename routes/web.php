@@ -36,6 +36,7 @@ use Illuminate\Support\Facades\Artisan;
 
 Route::post('/', [HomeController::class,'index'])->middleware(['auth'])->name('dashboard');
 Route::get('/summaryData', [HomeController::class,'summaryData'])->middleware(['auth'])->name('summaryData');
+Route::get('/instructorSummaryData', [HomeController::class,'instructorSummaryData'])->middleware(['auth'])->name('instructorSummaryData');
 Route::get('/', [HomeController::class,'index'])->middleware(['auth'])->name('dashboard');
 
 Auth::routes();

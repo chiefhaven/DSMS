@@ -4,11 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Attendance;
 use App\Models\Invoice;
-use App\Models\Lesson;
 use App\Models\Student;
 use App\Http\Requests\StoreAttendanceRequest;
 use App\Http\Requests\UpdateAttendanceRequest;
-use App\Models\Administrator;
 use App\Models\Instructor;
 use App\Models\Setting;
 use App\Notifications\AttendanceAdded;
@@ -223,9 +221,10 @@ class AttendanceController extends Controller
             Alert()->error('Attendance can not be entered', $student->fname.' not enrolled to any course yet!');
         }
 
-        $courseDuration = havenUtils::courseDuration($courseID);
+        $studentCourseDuration = havenUtils::courseDuration($courseID);
 
-        if(self::attendanceCount($student_id) >= $courseDuration){
+        if(self::attendanceCount($student_id) >= $studentCourseDuration){
+            dd(self::attendanceCount($student_id), $studentCourseDuration);
             Alert()->error('Attendance not entered','You can not enter more attendances than course duration a student enrolled!');
             return redirect('/attendances');
         }
