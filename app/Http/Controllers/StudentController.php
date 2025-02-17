@@ -250,6 +250,8 @@ class StudentController extends Controller
 
         $user->save();
 
+        $user->assignRole('student');
+
         $superAdmins = User::role('superAdmin')->get();
 
         foreach ($superAdmins as $superAdmin) {
