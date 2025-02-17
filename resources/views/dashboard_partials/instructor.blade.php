@@ -80,7 +80,7 @@
                                 <p class="font-size-h3 font-w900 mb-0 text-uppercase">
                                     {{ $attendanceCount }}
                                 </p>
-                                <p class="mb-0">Expected Bonus</p>
+                                <p class="mb-0">Expected Payment</p>
                             </div>
                         </div>
                     </div>
