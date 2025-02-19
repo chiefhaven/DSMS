@@ -29,7 +29,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::post('register', [AuthController::class, 'register'])->name('register.api'); // Signup
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('resetPassword.api'); // password reset
-Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('resetPassword.api'); // password reset
+Route::post('/otp', [AuthController::class, 'otp']);
 Route::post('login', [AuthController::class, 'login'])->name('login.api'); // Login
 
 Route::get('invoicesHome', [HomeController::class],'index')->middleware('auth');
