@@ -78,7 +78,7 @@ class AuthController extends Controller
         $rateLimiter->hit($key);
         return response()->json([
             'status' => 'error',
-            'message' => 'Invalid login credentials',
+            'message' => 'Invalid email address or password',
         ], 422);
     }
 
@@ -87,6 +87,23 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:users,email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
+        }
+
+        $status = Password::sendResetLink($request->only('email'));
+
+        return $status === Password::RESET_LINK_SENT
+            ? response()->json(['status' => 'success', 'message' => 'Password reset link sent.'])
+            : response()->json(['status' => 'error', 'message' => 'Unable to send reset link.'], 500);
+    }
+
+    public function otp(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'phonenumber' => 'required|tel|exists:students,phone',
         ]);
 
         if ($validator->fails()) {
