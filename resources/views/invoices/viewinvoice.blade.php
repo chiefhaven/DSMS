@@ -29,7 +29,7 @@
                               Street Address: {{$invoice->student->address}}<br>
                               District: {{$invoice->student->district->name}}<br>
                               Phone: {{$invoice->student->phone}}<br>
-                              Email: {{$invoice->student->user->email}}
+                              Email: {{ $invoice->student->user->email ?? '' }}
                             </address>
                           </div>
                           <div class="col-6 text-end">
