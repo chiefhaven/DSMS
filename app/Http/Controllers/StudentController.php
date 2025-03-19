@@ -326,7 +326,7 @@ class StudentController extends Controller
         $messages = [
             'fname.required' => 'First name is required!',
             'sname.required'   => 'Sir name is required!',
-            'email.required' => 'Email is required!',
+            'email.required' => 'Email address is required!',
             'gender.required'   => 'Gender is required!',
             'phone.required'   => 'Gender is required!',
         ];
