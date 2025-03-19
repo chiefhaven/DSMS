@@ -181,6 +181,8 @@ class StudentController extends Controller
     {
         // Custom error messages
         $messages = [
+            'username.required' => 'Username is required!',
+            'username.unique' => 'Username already taken!',
             'fname.required' => 'Firstname is required!',
             'sname.required' => 'Sirname is required!',
             'email.required' => 'Email address is required!',
@@ -194,6 +196,7 @@ class StudentController extends Controller
 
         // Validation rules
         $rules = [
+            'username' => 'required|unique:users,username',
             'fname' => 'required',
             'sname' => 'required',
             'email' => 'required|unique:users',
@@ -243,7 +246,7 @@ class StudentController extends Controller
 
         // Create new user
         $user = new User;
-        $user->name = Str::random(10);
+        $user->name = $post['username']; //Str::random(10);
         $user->student_id = $student->id;
         $user->email = $post['email'];
         $user->password = bcrypt(Str::random(10)); // Encrypt the password
@@ -318,6 +321,8 @@ class StudentController extends Controller
      */
     public function update(UpdateStudentRequest $request, Student $student)
     {
+        $post = $request->All();
+
         $messages = [
             'fname.required' => 'First name is required!',
             'sname.required'   => 'Sir name is required!',
@@ -328,6 +333,7 @@ class StudentController extends Controller
 
         // Validate the request
         $this->validate($request, [
+            'username' => 'required|unique:users,username,' . $student->user->id,
             'fname'  =>'required',
             'sname' =>'required',
             'email'   =>'required',
@@ -338,8 +344,6 @@ class StudentController extends Controller
             'phone' =>'required'
 
         ], $messages);
-
-        $post = $request->All();
 
         $student = Student::find($post['student_id']);
         $district = havenUtils::selectDistrict($post['district']);
