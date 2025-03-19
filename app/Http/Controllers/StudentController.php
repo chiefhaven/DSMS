@@ -333,7 +333,6 @@ class StudentController extends Controller
 
         // Validate the request
         $this->validate($request, [
-            'username' => 'required|unique:users,username,' . $student->user->id,
             'fname'  =>'required',
             'sname' =>'required',
             'email'   =>'required',
