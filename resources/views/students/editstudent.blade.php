@@ -44,7 +44,7 @@
                   <div class="col-lg-8 col-xl-5">
                     <div class="row">
                       <div class="col-4 form-floating mb-4">
-                        <input type="text" class="form-control @error('First name') is-invalid @enderror" id="fname" name="fname" placeholder="haven" value="{{$student->fname}}">
+                        <input type="text" class="form-control @error('fname') is-invalid @enderror" id="fname" name="fname" placeholder="haven" value="{{$student->fname}}">
                         <label class="form-label" for="fname">First name</label>
                       </div>
                       <div class="col-4 form-floating mb-4">
@@ -61,7 +61,7 @@
                       <label class="form-label" for="signature">Student Signature</label>
                     </div>
                     <div class="col-4 form-floating mb-4">
-                        <select class="form-select" id="gender" name="gender">
+                        <select class="form-select @error('gender') is-invalid @enderror" id="gender" name="gender">
                           <option value="{{$student->gender}}" selected>{{$student->gender}}</option>
                           <option value="female">Female</option>
                           <option value="female">Male</option>
@@ -70,27 +70,27 @@
                         <label for="district">Gender</label>
                     </div>
                     <div class="mb-4 form-floating">
-                      <input type="text" class="form-control" id="trn" name="trn" placeholder="TRN" value="{{$student->trn}}">
+                      <input type="text" class="form-control @error('trn') is-invalid @enderror" id="trn" name="trn" placeholder="TRN" value="{{$student->trn}}">
                       <label class="form-label" for="trn">TRN</label>
                     </div>
                     <div class="mb-4 form-floating">
-                      <input type="text" class="form-control" id="phone" name="phone" placeholder="+265" value="{{$student->phone}}">
+                      <input type="text" class="form-control @error('phone') is-invalid @enderror" id="phone" name="phone" placeholder="+265" value="{{$student->phone}}">
                         <label class="form-label" for="phone">Phone</label>
                     </div>
                     <div class="mb-4 form-floating">
-                        <input type="email" class="form-control" id="email" name="email" placeholder="john.doe@example.com" value="{{ $student->user->email ?? '' }}">
+                        <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" placeholder="john.doe@example.com" value="{{ $student->user->email ?? '' }}">
                         <label class="form-label" for="email">Email address</label>
                     </div>
                     <div class="mb-4 form-floating">
-                      <input type="text" class="form-control" id="date_of_birth" name="date_of_birth" placeholder="DDMMYY" value="{{$student->date_of_birth}}">
+                      <input type="text" class="form-control @error('date_of_birth') is-invalid @enderror" id="date_of_birth" name="date_of_birth" placeholder="DDMMYY" value="{{$student->date_of_birth}}">
                         <label class="form-label" for="email">Date of birth</label>
                     </div>
                     <div class="mb-4 form-floating">
-                      <input type="text" class="form-control" id="address" name="address" placeholder="Area 49, Dubai, M2" value="{{$student->address}}">
+                      <input type="text" class="form-control @error('address') is-invalid @enderror" id="address" name="address" placeholder="Area 49, Dubai, M2" value="{{$student->address}}">
                         <label class="form-label" for="address">Street address</label>
                     </div>
                     <div class="form-floating mb-4">
-                      <select class="form-select" id="district" name="district">
+                      <select class="form-select @error('disctrict') is-invalid @enderror" id="district" name="district">
                         @foreach ($district as $district)
                            <option value="{{$district->name}}" {{ $district->id == $student->district_id ? 'selected' : '' }}>{{$district->name}}</option>
                         @endforeach
