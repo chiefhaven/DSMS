@@ -196,7 +196,7 @@ class StudentController extends Controller
 
         // Validation rules
         $rules = [
-            'username' => 'required|unique:users,username',
+            'username' => 'required|unique:users,name',
             'fname' => 'required',
             'sname' => 'required',
             'email' => 'required|unique:users',
