@@ -13,20 +13,19 @@
                 <form action="{{ url('/attendanceSummary') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <b>Download Summary</b> &nbsp;
-                    <select class="btn btn-primary dropdown-toggle" id="period" name="period" onchange="this.form.submit()" onsubmit="this.form.reset()">
-                        <div class="dropdown-menu">
-                            <option>Choose date...</option>
-                            <option value="today">Today</option>
-                            <option value="yesterday">Yesterday</option>
-                            <option value="thisweek">This Week</option>
-                            <option value="thismonth">This Month</option>
-                            <option value="lastmonth">Last Month</option>
-                            <option value="thisyear">This Year</option>
-                            <option value="lastyear">Last Year</option>
-                            <option value="alltime">All Time</option>
-                        </div>
+                    <select class="btn btn-light" id="period" name="period" onchange="this.form.submit()">
+                        <option value="">Choose date...</option>
+                        <option value="today">Today</option>
+                        <option value="yesterday">Yesterday</option>
+                        <option value="thisweek">This Week</option>
+                        <option value="thismonth">This Month</option>
+                        <option value="lastmonth">Last Month</option>
+                        <option value="thisyear">This Year</option>
+                        <option value="lastyear">Last Year</option>
+                        <option value="alltime">All Time</option>
                     </select>
                 </form>
+
             </div>
             @endcan
             </ol>
@@ -52,10 +51,8 @@
                   <table id="attendances" class="table table-bordered table-striped table-vcenter">
                       <thead>
                           <tr>
-                            @role(['superAdmin', 'admin'])
-                                <th class="text-center" >Actions</th>
-                            @endcan
-                            <th style="min-width: 100px;">Date</th>
+                            <th class="text-center" >Actions</th>
+                            <th style="min-width: 50px;">Date</th>
                             <th>Student</th>
                             <th style="width: 20%;">Lesson</th>
                             @role(['superAdmin', 'admin'])
@@ -66,7 +63,6 @@
                       <tbody>
                         @foreach ($attendance as $attend)
                           <tr>
-                            @role(['superAdmin'])
                             <td class="text-center">
                                 <div class="dropdown d-inline-block">
                                     <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -74,22 +70,24 @@
                                     </button>
                                     <div class="dropdown-menu dropdown-menu-end p-0">
                                     <div class="p-2">
-                                        <form method="POST" action="{{ url('/editattendance', $attend->id) }}">
-                                        {{ csrf_field() }}
-                                        <button class="dropdown-item" type="submit">Edit</button>
-                                        </form>
-                                        <form method="POST" action="{{ url('/deleteattendance', $attend->id) }}">
-                                        {{ csrf_field() }}
-                                        {{ method_field('DELETE') }}
-                                        <button class="dropdown-item" onclick="return confirm('Are you sure you want to delete attendance?')" type="submit">Delete</button>
-                                        </form>
+                                        <button class="dropdown-item" type="submit" disabled>View</button>
+                                        @role(['superAdmin'])
+                                            <form method="POST" action="{{ url('/editattendance', $attend->id) }}">
+                                                {{ csrf_field() }}
+                                                <button class="dropdown-item" type="submit">Edit</button>
+                                            </form>
+                                            <form method="POST" action="{{ url('/deleteattendance', $attend->id) }}">
+                                                {{ csrf_field() }}
+                                                {{ method_field('DELETE') }}
+                                                <button class="dropdown-item" onclick="return confirm('Are you sure you want to delete attendance?')" type="submit">Delete</button>
+                                            </form>
+                                        @endcan
                                     </div>
                                     </div>
                                 </div>
                             </td>
-                            @endcan
                               <td class="font-w600">
-                                  {{$attend->attendance_date->format('j F, Y, H:i:s' )}}
+                                  {{$attend->attendance_date->format('j F, Y, H:i:s')}}
                               </td>
                               <td>
                                   {{$attend->student->fname}} <strong>{{$attend->student->sname}}</strong>
@@ -144,8 +142,34 @@
         </div>
     </div>
     <script>
-        $(document).ready(function() {
-            $('#attendances').DataTable();
+        $(document).ready(function () {
+            $.extend($.fn.dataTable.ext.type.order, {
+                "custom-date-pre": function (data) {
+                    // Parse '9 May, 2024, 02:00:00' format
+                    const parts = data.split(/[\s,]+/);
+                    const day = parseInt(parts[0], 10);
+                    const month = [
+                        "January", "February", "March", "April", "May", "June",
+                        "July", "August", "September", "October", "November", "December"
+                    ].indexOf(parts[1]);
+                    const year = parseInt(parts[2], 10);
+                    const timeParts = parts[3].split(':');
+                    const hours = parseInt(timeParts[0], 10);
+                    const minutes = parseInt(timeParts[1], 10);
+                    const seconds = parseInt(timeParts[2], 10);
+
+                    return new Date(year, month, day, hours, minutes, seconds).getTime();
+                }
+            });
+
+
+            $('#attendances').DataTable({
+                order: [[1, 'desc']], // Sort by Date column (0 index)
+                columnDefs: [
+                    { targets: 1, type: 'custom-date' }, // Apply custom date sorting
+                    { targets: 0, orderable: false },
+                ]
+            });
         });
     </script>
 <!-- END Hero -->
