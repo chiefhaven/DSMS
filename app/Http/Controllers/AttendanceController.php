@@ -42,7 +42,7 @@ class AttendanceController extends Controller
         }
         else{
             $attendance = Attendance::with('Student', 'Lesson')
-            ->orderBy('attendance_date', 'DESC')->take(1000)->get();
+            ->orderBy('attendance_date', 'DESC')->get();
         }
 
         return view('attendances.attendances', compact('attendance'));
