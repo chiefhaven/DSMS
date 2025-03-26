@@ -193,39 +193,41 @@
         }
 
         //Generate invoice number
-        static function generateInvoiceNumber(){
+        public static function generateInvoiceNumber()
+        {
+            // Fetch invoice settings once to avoid multiple queries
+            $invoiceSettings = Invoice_Setting::find(1);
+            $prefix = $invoiceSettings->prefix ?? 'Invoice';
+            $useYear = $invoiceSettings->year ?? 0;
 
-            $LatestInvoice = Invoice::whereMonth('created_at', Carbon::now())->max('id');
+            // Build the query for the latest invoice
+            $query = Invoice::whereMonth('created_at', Carbon::now());
 
-            if(isset($LatestInvoice)){
-
-                $highestInvoiceNumber = Invoice::where('id', $LatestInvoice)->firstOrFail()->invoice_number;
-                $invoiceNumberOnly = substr(strrchr($highestInvoiceNumber, '-'), 1) ;
-                $newInvoiceNumberPlus =++ $invoiceNumberOnly;
-                $newInvoiceNumber = sprintf("%05d", $newInvoiceNumberPlus);
+            if ($useYear) {
+                $query->whereYear('created_at', Carbon::now());
             }
 
-            else{
+            $latestInvoice = $query->orderBy('id', 'desc')->first();
 
+            // Extract and increment the invoice number
+            if ($latestInvoice) {
+                $highestInvoiceNumber = $latestInvoice->invoice_number;
+                $invoiceNumberOnly = (int)substr(strrchr($highestInvoiceNumber, '-'), 1);
+                $newInvoiceNumber = sprintf("%05d", $invoiceNumberOnly + 1);
+            } else {
                 $newInvoiceNumber = sprintf("%05d", 1);
-
             }
 
-
-            $prefix = Invoice_Setting::find(1)->prefix;
-
-            $useYear = Invoice_Setting::find(1)->year;
-
-            if(isset($prefix) && $useYear == 1){
-                $invoiceNumber = $prefix.'-'.date('Y').'-'.date('m').'-'.$newInvoiceNumber;
-            }
-
-            else {
-                $invoiceNumber = 'Invoice-'.$newInvoiceNumber;
+            // Generate the invoice number based on settings
+            if ($useYear) {
+                $invoiceNumber = "{$prefix}-" . date('Y') . '-' . date('m') . "-{$newInvoiceNumber}";
+            } else {
+                $invoiceNumber = "{$prefix}-{$newInvoiceNumber}";
             }
 
             return $invoiceNumber;
         }
+
 
         //Get a payment method
         static function paymentMethod($paymentMethod){
