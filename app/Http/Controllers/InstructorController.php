@@ -34,8 +34,8 @@ class InstructorController extends Controller
      */
     public function index()
     {
-        $instructor = Instructor::with('User', 'Lesson', 'Fleet')->get();
-        return view('instructors.instructors', compact('instructor'));
+        $instructors = Instructor::with('User', 'Lesson', 'Fleet')->get();
+        return view('instructors.instructors', compact('instructors'));
     }
 
     public function indexInstructors(Request $request)
@@ -145,9 +145,10 @@ class InstructorController extends Controller
      * @param  \App\Models\Instructor  $instructor
      * @return \Illuminate\Http\Response
      */
-    public function show(Instructor $instructor)
+    public function show($instructor)
     {
-        return view('instructors.viewinstructor', [ 'instructor' => $instructor ], compact('instructor'));
+        $instructor = Instructor::with('User', 'Lesson', 'Fleet.student', 'classrooms.students')->find($instructor);
+        return view('instructors.viewinstructor', compact('instructor'));
     }
 
     /**
