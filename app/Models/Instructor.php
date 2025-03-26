@@ -34,9 +34,9 @@ class Instructor extends Model
         return $this->hasOne(User::class, 'instructor_id');
     }
 
-    public function attendances()
+    public function Attendances()
     {
-        return $this->hasMany(attendance::class, 'instructor_id');
+        return $this->hasMany(Attendance::class, 'instructor_id');
     }
 
     public function Lesson()
