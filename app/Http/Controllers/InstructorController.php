@@ -152,6 +152,18 @@ class InstructorController extends Controller
     }
 
     /**
+     * Display the specified resource.
+     *
+     * @param  \App\Models\Instructor  $instructor
+     * @return \Illuminate\Http\Response
+     */
+    public function instructorData($instructor)
+    {
+        $instructor = Instructor::with('Fleet.student', 'classrooms.students', 'attendances.student', 'attendances.lesson')->find($instructor);
+        return response()->json($instructor);
+    }
+
+    /**
      * Display own profile.
      *
      * @param  \App\Models\Instructor  $instructor
