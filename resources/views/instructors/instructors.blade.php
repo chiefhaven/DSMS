@@ -48,7 +48,7 @@
                     </div>
 
                     <div class="block-content block-content-full block-content-sm bg-body-light text-center py-3">
-                        <a href="#">
+                        <a href="{{ route('viewinstructor', $instructor->id) }}">
                             <h3 class="font-w600 mb-1">{{$instructor->fname}} {{$instructor->sname}}</h3>
                         </a>
                         <p class="text-muted mb-0">
