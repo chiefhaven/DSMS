@@ -3,21 +3,19 @@
         <div class="p-3">
             <div class="row block">
                 <div class="col-md-12 mb-3">
-                    <div class="col-md-12 block-rounded block-bordered p-4 dropdown d-inline-block">
+                    <div class="col-md-12 block-rounded block-bordered p-4 d-inline-block">
                         <form action="{{ url('/') }}" method="POST" enctype="multipart/form-data">
                             @csrf
-                            Filter
+                            <label for="filter">Filter</label>
                             <select class="btn border dropdown-toggle" id="filter" name="filter" onchange="this.form.submit()">
-                                <div class="dropdown-menu">
-                                    <option class="text-left" value="today">Today</option>
-                                    <option class="" value="yesterday">Yesterday</option>
-                                    <option class="" value="thisweek">This Week</option>
-                                    <option class="" value="thismonth">This Month</option>
-                                    <option class="" value="lastmonth">Last Month</option>
-                                    <option class="" value="thisyear">This Year</option>
-                                    <option class="" value="lastyear">Last Year</option>
-                                    <option class="" value="alltime">All Time</option>
-                                </div>
+                                <option value="today">Today</option>
+                                <option value="yesterday">Yesterday</option>
+                                <option value="thisweek">This Week</option>
+                                <option value="thismonth">This Month</option>
+                                <option value="lastmonth">Last Month</option>
+                                <option value="thisyear">This Year</option>
+                                <option value="lastyear">Last Year</option>
+                                <option value="alltime">All Time</option>
                             </select>
                         </form>
                     </div>
