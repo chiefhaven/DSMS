@@ -2,17 +2,17 @@
 
 @section('content')
 <!-- Hero -->
-  <div class="bg-body-light">
+    <div class="bg-body-light">
     <div class="content content-full">
-      <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
+        <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
         <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">{{$instructor->fname}} {{$instructor->sname}}</h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
-          <ol class="breadcrumb">
+            <ol class="breadcrumb">
             <div class="dropdown d-inline-block">
-              <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <span class="d-sm-inline-block">Action</span>
-              </button>
-              <div class="dropdown-menu dropdown-menu-end p-0">
+                </button>
+                <div class="dropdown-menu dropdown-menu-end p-0">
                 <div class="p-2">
                     <form method="GET" action="{{ url('/editinstructor', $instructor->id) }}">
                         {{ csrf_field() }}
@@ -24,15 +24,15 @@
                         <button class="dropdown-item delete-confirm" type="submit">Delete</button>
                     </form>
                 </div>
-              </div>
+                </div>
             </div>
-          </ol>
+            </ol>
         </nav>
-      </div>
+        </div>
     </div>
-  </div>
+    </div>
 
-    <div class="content content-full">
+    <div class="content content-full" id="instructor">
         <div class="block block-rounded">
             <ul class="nav nav-tabs nav-tabs-block" role="tablist">
                 <li class="nav-item">
@@ -100,22 +100,394 @@
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-md-6">
-                <div class="block block-rounded p-4">
-                    Assigned students
-                    <h6>Coming soon....</h6>
-                </div>
-            </div>
 
-            <div class="col-md-6">
-                <div class="block block-rounded p-4">
-                    Latest attendances
-                    <h6>Coming soon....</h6>
+        <div class="row">
+            <div class="col-12">
+                <div class="block block-content block-rounded block-bordered p-4">
+                    <!-- Loading Spinner -->
+                    <div v-if="isLoading" class="text-center">
+                        <span class="spinner-border text-primary" role="status"></span>
+                        <p>Loading chart...</p>
+                    </div>
+                    <div>
+                        <canvas id="attendancesChart" height="200"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="block block-rounded p-4 h-60 d-flex flex-column overflow-auto">
+                    <h5>Assigned students</h5>
+                    <hr>
+
+                    <!-- Show loading spinner when data is fetching -->
+                    <div v-if="isLoading" class="text-center">
+                        <span class="spinner-border text-primary" role="status"></span>
+                        <p>Loading students...</p>
+                    </div>
+
+                    <!-- Show table when data is loaded -->
+                    <table v-else class="table table-responsive table-striped" id="studentsTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(student, index) in studentsData" :key="student.id">
+                                <td class="text-uppercase">@{{ student.fname }} @{{ student.mname }} @{{ student.sname }}</td>
+                                <td class="text-uppercase">@{{ student.status }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="block block-rounded p-4 h-60 d-flex flex-column overflow-auto">
+                    <h5>Latest attendances</h5>
+                    <hr>
+
+                    <!-- Show loading spinner when data is fetching -->
+                    <div v-if="isLoading" class="text-center">
+                        <span class="spinner-border text-primary" role="status"></span>
+                        <p>Loading attendances...</p>
+                    </div>
+
+                    <!-- Show table when data is loaded -->
+                    <table v-else class="table table-responsive table-striped" id="attendancesTable">
+                        <thead>
+                            <tr>
+                                <th style="min-width: 200px">Date</th>
+                                <th style="min-width: 200px">Student</th>
+                                <th style="min-width: 200px">Lesson</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(attendance, index) in attendanceData" :key="attendance.id">
+                                <td>@{{ attendance.created_at }}</td>
+                                <td class="text-title">@{{ attendance.student.fname }} @{{ attendance.student.mname ?? '' }} @{{ attendance.student.sname }}</td>
+                                <td class="text">@{{ attendance.lesson.name }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <script>
+        const { createApp, ref, computed, onMounted, watch, onBeforeUnmount, reactive, nextTick } = Vue;
+
+        const instructor = createApp({
+            setup() {
+                // Reactive references
+                const error = ref(null);
+                const studentsData = ref([]);
+                const attendanceData = ref([]);
+                const instructorId = '{{ $instructor->id ?? null }}';
+                const isLoading = ref(false);
+
+                const formatCurrency = (value) => {
+                    return `K ${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                };
+
+                const formatDate = (date) => {
+                    if (!date) return '';
+                    return new Intl.DateTimeFormat('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    }).format(new Date(date));
+                };
+
+
+                // Fetch instructor's students when the component mounts
+                onMounted(() => {
+                    data(instructorId);
+                });
+
+                const notification = ($text, $icon) =>{
+                    Swal.fire({
+                        toast: true,
+                        position: "top-end",
+                        html: $text,
+                        showConfirmButton: false,
+                        timer: 5500,
+                        timerProgressBar: true,
+                        icon: $icon,
+                        didOpen: (toast) => {
+                            toast.onmouseenter = Swal.stopTimer;
+                            toast.onmouseleave = Swal.resumeTimer;
+                          }
+                      });
+                }
+
+                // Chart Data
+                const labels = ref([]);
+                const Attendances = ref([]);
+                let attendancesChart = null;
+                const chartLoading = ref(false);
+
+                const getXlsxData = async () => {
+                    try {
+                        const data = attendanceData.value;
+
+                        // Get the current date details
+                        const currentMonth = new Date().getMonth(); // Get current month (0 - 11)
+                        const currentYear = new Date().getFullYear(); // Get current year (YYYY)
+
+                        // Group by date and count attendances, but filter by current month and year
+                        const dailyData = data.reduce((acc, curr) => {
+                            const attendanceDate = new Date(curr.attendance_date);
+                            const date = attendanceDate.toISOString().split('T')[0]; // Extract date (YYYY-MM-DD)
+
+                            // Check if the attendance date is within this month and year
+                            if (attendanceDate.getMonth() === currentMonth && attendanceDate.getFullYear() === currentYear) {
+                                if (!acc[date]) {
+                                    acc[date] = 0;
+                                }
+                                acc[date] += 1; // Count attendance per date
+                            }
+
+                            return acc;
+                        }, {});
+
+                        // Prepare labels (dates) and attendances (counts)
+                        labels.value = Object.keys(dailyData).map(date => {
+                            const formattedDate = new Date(date);
+                            const options = { day: 'numeric', month: 'long' };
+                            return new Intl.DateTimeFormat('en-GB', options).format(formattedDate); // 'en-GB' ensures the month is in English
+                        });
+
+                        // Convert date strings to Date objects
+                        Attendances.value = Object.values(dailyData);  // Extract attendance counts per date
+                        console.log('Filtered Data:', labels.value, Attendances.value);
+
+                        // Wait until the DOM is updated and then load the chart
+                        nextTick(() => {
+                            loadChart(); // Render the chart after the DOM is updated
+                        });
+                    } catch (err) {
+                        console.error("Error fetching attendance data:", err);
+                    }
+                };
+
+                // Load Chart
+                const loadChart = () => {
+                    chartLoading.value = false;
+                    const ctx = document.getElementById("attendancesChart");
+
+                    if (!ctx) {
+                        console.error("Canvas element not found");
+                        return; // Exit if the canvas element is not found
+                    }
+
+                    if (attendancesChart) {
+                        attendancesChart.destroy(); // Destroy existing chart before reloading
+                    }
+
+                    attendancesChart = new Chart(ctx, {
+                        type: "line",
+                        data: {
+                            labels: labels.value,
+                            datasets: [
+                                {
+                                    label: "Instructor attendances",
+                                    fill: false,
+                                    data: Attendances.value,
+                                    backgroundColor: "rgb(255, 159, 64)",
+                                    borderColor: "rgba(255, 159, 64, 0.8)",
+                                    borderWidth: 3,
+                                    radius: 0,
+                                    datalabels: {
+                                        anchor: 'end',
+                                        align: 'top',
+                                        font: {
+                                            size: 14,
+                                            weight: 'light',
+                                        },
+                                        color: 'grey',
+                                        formatter: (value) => value, // Display the attendance count value
+                                    },
+                                },
+                            ],
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                datalabels: {
+                                    display: true, // Ensure datalabels are shown
+                                },
+                            },
+                            scales: {
+                                x: {
+                                    type: "time",
+                                    time: {
+                                        unit: "day",
+                                        tooltipFormat: "ll", // Better date format for tooltip
+                                        displayFormats: {
+                                            day: "D MMM", // Display date format
+                                        },
+                                    },
+                                    title: { display: true, text: "Date" },
+                                    ticks: {
+                                        autoSkip: false,
+                                        stepSize: 1,
+                                        maxRotation: 60,
+                                        minRotation: 60,
+                                    },
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return value; // Display the y-axis values
+                                        }
+                                    }
+                                },
+                            },
+                        },
+                        plugins: [ChartDataLabels], // Use the datalabels plugin
+                    });
+                };
+
+
+
+                const data = async (instructor) => {
+                    NProgress.start();
+                    error.value = null; // Reset error state
+                    isLoading.value = true;
+
+
+                    try {
+                        const response = await axios.get(`/instructor-data/${instructor}`);
+
+                        if (response.status === 200) {
+                            const data = response.data;
+                            console.log("Fetched Data:", data);
+
+                            // Reset arrays before updating
+                            studentsData.value = [];
+                            attendanceData.value = [];
+
+                            // Process classrooms
+                            if (data.classrooms && Array.isArray(data.classrooms)) {
+                                data.classrooms.forEach((classroom, index) => {
+                                    if (Array.isArray(classroom.students)) {
+                                        studentsData.value.push(...classroom.students);
+                                        console.log(`Classroom ${index + 1}:`, classroom.students);
+                                    }
+                                });
+                            }
+
+                            // Process fleet students (Merging instead of overwriting)
+                            if (data.fleet && Array.isArray(data.fleet.student)) {
+                                studentsData.value.push(...data.fleet.student);
+                                console.log("Fleet students added:", data.fleet.student);
+                            }
+
+                            // Process attendance
+                            if (data.attendances && Array.isArray(data.attendances)) {
+                                attendanceData.value = data.attendances;
+                                getXlsxData();
+
+                                console.log("Attendances:", attendanceData.value);
+                            }
+
+                            // Apply DataTables after ensuring elements exist
+                            setTimeout(() => {
+                                if ($.fn.DataTable.isDataTable("#studentsTable")) {
+                                    $("#studentsTable").DataTable().destroy();
+                                }
+                                if ($.fn.DataTable.isDataTable("#attendancesTable")) {
+                                    $("#attendancesTable").DataTable().destroy();
+                                }
+
+                                $.extend($.fn.dataTable.ext.type.order, {
+                                    "custom-date-pre": function (data) {
+                                        // Handle ISO 8601 date format: "2023-08-05T17:09:47.000000Z"
+                                        const parsedDate = new Date(data);
+                                        return parsedDate.getTime(); // Convert to timestamp for sorting
+                                    }
+                                });
+
+                                // Function to format date to "9 March, 2025 23:22:00"
+                                function formatDate(dateString) {
+                                    const date = new Date(dateString);
+
+                                    // Define month names
+                                    const months = [
+                                        "January", "February", "March", "April", "May", "June",
+                                        "July", "August", "September", "October", "November", "December"
+                                    ];
+
+                                    const day = date.getDate();
+                                    const month = months[date.getMonth()];
+                                    const year = date.getFullYear();
+
+                                    const hours = String(date.getHours()).padStart(2, '0');
+                                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                                    const seconds = String(date.getSeconds()).padStart(2, '0');
+
+                                    return `${day} ${month}, ${year} ${hours}:${minutes}:${seconds}`;
+                                }
+
+                                // Initialize DataTable
+                                $("#studentsTable").DataTable();
+
+                                $("#attendancesTable").DataTable({
+                                    order: [[0, 'desc']], // Sort by Date column
+                                    columnDefs: [
+                                        { targets: 0, type: 'custom-date' } // Apply custom date sorting
+                                    ],
+                                    drawCallback: function () {
+                                        // Format all visible date cells on pagination change
+                                        $("#attendancesTable tbody tr").each(function () {
+                                            const cell = $(this).find("td:first");
+                                            const originalDate = cell.text().trim();
+                                            if (originalDate) {
+                                                cell.text(formatDate(originalDate));
+                                            }
+                                        });
+                                    }
+                                });
+
+                            }, 500);
+                        } else {
+                            throw new Error("Unexpected response status");
+                        }
+                    } catch (err) {
+                        console.error("Error fetching students:", err);
+                        error.value = "Failed to fetch data";
+                    } finally {
+                        NProgress.done();
+                        isLoading.value = false;
+                    }
+
+
+                };
+
+                return {
+                    data,
+                    studentsData,
+                    attendanceData,
+                    error,
+                    formatDate,
+                    isLoading,
+                    Attendances,
+                    labels,
+                    chartLoading
+                };
+            }
+        });
+
+        instructor.mount('#instructor');
+    </script>
 
 @endsection
