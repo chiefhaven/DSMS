@@ -125,10 +125,13 @@ Route::get('/instructors-json', [InstructorController::class, 'indexInstructors'
 Route::get('/viewinstructor/{instructor}', [InstructorController::class, 'show'])->name('viewinstructor');
 Route::get('/addinstructor', [InstructorController::class, 'create'])->middleware('auth')->name('addinstructor');
 Route::post('/storeinstructor', [InstructorController::class, 'store'])->middleware('auth')->name('storeinstructor');
-Route::get('/editinstructor/{id}', [InstructorController::class, 'edit'])->middleware('auth')->name('updateinstructor');
+Route::get('/editinstructor/{id}', [InstructorController::class, 'edit'])->middleware('auth')->name('editinstructor');
 Route::post('/updateinstructor', [InstructorController::class, 'update'])->middleware('auth')->name('updateinstructor');
 Route::delete('/deleteinstructor/{id}', [InstructorController::class, 'destroy'])->middleware('auth')->name('deleteinstructor');
 Route::get('/instructor-search', [InstructorController::class, 'instructorSearch'])->name('instructorSearch');
+
+Route::get('/instructor-data/{instructor}', [InstructorController::class, 'instructorData'])->middleware('auth')->name('instructor-students');
+
 
 Route::get('/administrators', [AdministratorController::class, 'index'])->middleware('auth')->name('adminitrators');
 Route::get('/viewadministrator', [AdministratorController::class, 'show'])->middleware('auth')->name('viewadministrator');
