@@ -168,13 +168,14 @@
                 const period = ref('today');
                 const startDate = ref('');
                 const endDate = ref('');
+                const instructorId = '{{ $instructor->id ?? null }}';
 
                 const handlePeriodChange = () => {
                     if (period.value === 'custom') {
                         let modal = new bootstrap.Modal(document.getElementById('customDateModal'));
                         modal.show();
                     } else {
-                        downloadSummary('{{ $instructor->id }}');
+                        downloadSummary('instructorId.value');
                     }
                 };
 
