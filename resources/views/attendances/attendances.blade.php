@@ -175,7 +175,7 @@
                         let modal = new bootstrap.Modal(document.getElementById('customDateModal'));
                         modal.show();
                     } else {
-                        downloadSummary('instructorId.value');
+                        downloadSummary(instructorId);
                     }
                 };
 
