@@ -21,6 +21,7 @@
                     <table class="table">
                         <thead>
                             <th style="width:70%;"></th>
+                            <th style="width:70%;"></th>
                         </thead>
                         <tbody>
                             <tr>
@@ -33,6 +34,9 @@
                                     @if ($instructor->classroom)
                                         {{$instructor->classroom->name}}
                                     @endif
+                                </td>
+                                <td>
+                                    Total attendances: {{ $attendances->count() }}
                                 </td>
                             </tr>
                         </tbody>
