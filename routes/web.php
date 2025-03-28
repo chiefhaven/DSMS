@@ -71,8 +71,9 @@ Route::post('/storeattendance', [AttendanceController::class, 'store'])->middlew
 Route::post('/editattendance/{id}', [AttendanceController::class, 'edit'])->middleware('auth')->name('editattendance');
 Route::post('/updateattendance', [AttendanceController::class, 'update'])->middleware('auth')->name('updateattendance');
 Route::delete('/deleteattendance/{id}', [AttendanceController::class, 'destroy'])->middleware('auth')->name('deleteattendance');
-Route::get('/attendance-student-search', [AttendanceController::class, 'autocompletestudentSearch'])->name('attendance-student-search');
-Route::post('/attendanceSummary', [AttendanceController::class, 'attendanceSummary'])->name('attendanceSummary');
+Route::get('/attendance-student-search', [AttendanceController::class, 'autocompletestudentSearch'])->middleware('auth')->name('attendance-student-search');
+Route::get('/attendanceSummary/{id}', [AttendanceController::class, 'attendanceSummary'])->middleware('auth')->name('attendanceSummary');
+
 
 Route::get('/courses', [CourseController::class, 'index'])->middleware('auth')->name('courses');
 Route::get('/view-course/{id}', function ($courseId) {
