@@ -226,7 +226,7 @@
                         let modal = new bootstrap.Modal(document.getElementById('customDateModal'));
                         modal.show();
                     } else {
-                        downloadSummary('{{ $instructor->id }}');
+                        downloadSummary('instructorId.value');
                     }
                 };
 
