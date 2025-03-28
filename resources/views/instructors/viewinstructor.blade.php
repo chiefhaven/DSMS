@@ -226,7 +226,8 @@
                         let modal = new bootstrap.Modal(document.getElementById('customDateModal'));
                         modal.show();
                     } else {
-                        downloadSummary('instructorId.value');
+                        console.log(instructorId);
+                        downloadSummary(instructorId);
                     }
                 };
 
@@ -245,7 +246,6 @@
                         }
                         url += `&start_date=${startDate.value}&end_date=${endDate.value}`;
                     }
-
                     NProgress.start();
                     try {
                         window.open(url, '_blank');
