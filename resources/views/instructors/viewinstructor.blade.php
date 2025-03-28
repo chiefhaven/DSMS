@@ -119,62 +119,75 @@
 
         <div class="row">
             <div class="col-md-6">
-                <div class="block block-rounded p-4 h-60 d-flex flex-column overflow-auto">
-                    <h5>Assigned students</h5>
-                    <hr>
+                <div class="block block-rounded">
+                    <div class="p-4 m-4 h-60 d-flex flex-column overflow-auto">
 
-                    <!-- Show loading spinner when data is fetching -->
-                    <div v-if="isLoading" class="text-center">
-                        <span class="spinner-border text-primary" role="status"></span>
-                        <p>Loading students...</p>
+                        <h5>Assigned students</h5>
+                        <hr>
+
+                        <!-- Show loading spinner when data is fetching -->
+                        <div v-if="isLoading" class="text-center">
+                            <span class="spinner-border text-primary" role="status"></span>
+                            <p>Loading students...</p>
+                        </div>
+
+                        <!-- Show table when data is loaded -->
+                        <table v-else class="table table-responsive table-striped" id="studentsTable">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(student, index) in studentsData" :key="student.id">
+                                    <td class="text-uppercase">@{{ student.fname }} @{{ student.mname }} @{{ student.sname }}</td>
+                                    <td class="text-uppercase">@{{ student.status }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-
-                    <!-- Show table when data is loaded -->
-                    <table v-else class="table table-responsive table-striped" id="studentsTable">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="(student, index) in studentsData" :key="student.id">
-                                <td class="text-uppercase">@{{ student.fname }} @{{ student.mname }} @{{ student.sname }}</td>
-                                <td class="text-uppercase">@{{ student.status }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
                 </div>
             </div>
 
             <div class="col-md-6">
-                <div class="block block-rounded p-4 h-60 d-flex flex-column overflow-auto">
-                    <h5>Latest attendances</h5>
-                    <hr>
+                <div class="block block-rounded">
+                    <div class="p-4 m-4 h-60 d-flex flex-column overflow-auto">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h5>Attendances</h5>
+                            </div>
+                            <div class="col-md-8">
+                                @include('attendances.partials.reportSummary')
 
-                    <!-- Show loading spinner when data is fetching -->
-                    <div v-if="isLoading" class="text-center">
-                        <span class="spinner-border text-primary" role="status"></span>
-                        <p>Loading attendances...</p>
+                            </div>
+                        </div>
+                        <hr>
+
+                        <!-- Show loading spinner when data is fetching -->
+                        <div v-if="isLoading" class="text-center">
+                            <span class="spinner-border text-primary" role="status"></span>
+                            <p>Loading attendances...</p>
+                        </div>
+
+                        <!-- Show table when data is loaded -->
+                        <table v-else class="table table-responsive table-striped" id="attendancesTable">
+                            <thead>
+                                <tr>
+                                    <th style="min-width: 200px">Date</th>
+                                    <th style="min-width: 200px">Student</th>
+                                    <th style="min-width: 200px">Lesson</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(attendance, index) in attendanceData" :key="attendance.id">
+                                    <td>@{{ attendance.created_at }}</td>
+                                    <td class="text-title">@{{ attendance.student.fname }} @{{ attendance.student.mname ?? '' }} @{{ attendance.student.sname }}</td>
+                                    <td class="text">@{{ attendance.lesson.name }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-
-                    <!-- Show table when data is loaded -->
-                    <table v-else class="table table-responsive table-striped" id="attendancesTable">
-                        <thead>
-                            <tr>
-                                <th style="min-width: 200px">Date</th>
-                                <th style="min-width: 200px">Student</th>
-                                <th style="min-width: 200px">Lesson</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="(attendance, index) in attendanceData" :key="attendance.id">
-                                <td>@{{ attendance.created_at }}</td>
-                                <td class="text-title">@{{ attendance.student.fname }} @{{ attendance.student.mname ?? '' }} @{{ attendance.student.sname }}</td>
-                                <td class="text">@{{ attendance.lesson.name }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
                 </div>
             </div>
         </div>
@@ -191,6 +204,9 @@
                 const attendanceData = ref([]);
                 const instructorId = '{{ $instructor->id ?? null }}';
                 const isLoading = ref(false);
+                const period = ref('');
+                const startDate = ref('');
+                const endDate = ref('');
 
                 const formatCurrency = (value) => {
                     return `K ${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -205,6 +221,41 @@
                     }).format(new Date(date));
                 };
 
+                const handlePeriodChange = () => {
+                    if (period.value === 'custom') {
+                        let modal = new bootstrap.Modal(document.getElementById('customDateModal'));
+                        modal.show();
+                    } else {
+                        downloadSummary('{{ $instructor->id }}');
+                    }
+                };
+
+                const downloadSummary = async (instructor) => {
+                    if (!period.value) {
+                        notification("Please select a period.", "error");
+                        return;
+                    }
+
+                    let url = `/attendanceSummary/${instructor}?period=${period.value}`;
+
+                    if (period.value === 'custom') {
+                        if (!startDate.value || !endDate.value) {
+                            notification("Please select both start and end dates.", "error");
+                            return;
+                        }
+                        url += `&start_date=${startDate.value}&end_date=${endDate.value}`;
+                    }
+
+                    NProgress.start();
+                    try {
+                        window.open(url, '_blank');
+                        document.getElementById('customDateModal').querySelector('.btn-close').click(); // Close modal
+                    } catch (err) {
+                        console.error("Failed to fetch data", err);
+                    } finally {
+                        NProgress.done();
+                    }
+                };
 
                 // Fetch instructor's students when the component mounts
                 onMounted(() => {
@@ -482,7 +533,12 @@
                     isLoading,
                     Attendances,
                     labels,
-                    chartLoading
+                    chartLoading,
+                    period,
+                    startDate,
+                    endDate,
+                    handlePeriodChange,
+                    downloadSummary
                 };
             }
         });
