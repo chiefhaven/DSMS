@@ -43,6 +43,7 @@ class AttendanceController extends Controller
             $instructor = Auth::user()->instructor;
         }
         else{
+            $instructor = null;
             $attendance = Attendance::with('Student', 'Lesson')
             ->orderBy('attendance_date', 'DESC')->take(5000)->get();
         }
