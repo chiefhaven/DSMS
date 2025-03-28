@@ -1,5 +1,5 @@
 <div class="content-side content-side-full">
-          
+
           <ul class="nav-main Sidebar">
             <li>
               <a class="nav-main-link" class="fw-semibold text-white tracking-wide" href="{{ url('/') }}">
@@ -107,7 +107,7 @@
                 </ul>
                 <ul class="nav-main-submenu">
                   <li class="nav-main-item">
-                      
+
                     </li>
                 </ul>
             </li>
@@ -130,5 +130,6 @@
                 <span class="nav-main-link-name">Settings</span>
               </a>
             </li>
+            @include('layouts.partials.knowledgeNav')
           </ul>
         </div>

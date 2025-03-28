@@ -185,5 +185,8 @@
                     </a>
                 </li>
             @endcan
+
+            @include('layouts.partials.knowledgeNav')
+
           </ul>
         </div>

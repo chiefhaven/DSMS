@@ -1,5 +1,5 @@
 <div class="content-side content-side-full">
-          
+
           <ul class="nav-main Sidebar">
             <li>
               <a class="nav-main-link" class="fw-semibold text-white tracking-wide" href="{{ url('/') }}">
@@ -13,4 +13,5 @@
                     <span class="nav-main-link-name">Attendances</span>
                 </a>
             </li>
+            @include('layouts.partials.knowledgeNav')
         </div>

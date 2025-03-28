@@ -40,5 +40,7 @@
                     </li>
                 </ul>
             </li>
+            @include('layouts.partials.knowledgeNav')
+
           </ul>
         </div>

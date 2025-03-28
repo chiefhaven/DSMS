@@ -19,8 +19,10 @@ use App\Http\Controllers\NotificationTemplateController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\havenUtils;
+use App\Http\Controllers\knowledgeController;
 use App\Http\Controllers\QrCodeController;
 use App\Models\Announcement;
+use App\Models\knowledge;
 use Illuminate\Support\Facades\Artisan;
 
 /*
@@ -224,3 +226,5 @@ Route::post('/check-class-fleet-assignment', [havenUtils::class, 'checkInstructo
 
 
 Route::patch('/notifications/{notificationId}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+
+Route::get('/knowledge', [knowledgeController::class, 'index'])->middleware('auth')->name('knolwedge');
