@@ -39,13 +39,15 @@ class AttendanceController extends Controller
             $attendance = Attendance::with('Student', 'Lesson')
             ->where('instructor_id', Auth::user()->instructor_id)
             ->orderBy('attendance_date', 'DESC')->take(5000)->get();
+
+            $instructor = Auth::user()->instructor;
         }
         else{
             $attendance = Attendance::with('Student', 'Lesson')
             ->orderBy('attendance_date', 'DESC')->take(5000)->get();
         }
 
-        return view('attendances.attendances', compact('attendance'));
+        return view('attendances.attendances', compact('attendance', 'instructor'));
     }
 
     /**
@@ -414,76 +416,94 @@ class AttendanceController extends Controller
         return false;
     }
 
-    public function attendanceSummary(request $request)
+    public function attendanceSummary(Request $request, $id)
     {
-        $instructor = Auth::user();
-        $period = $request['period'];
-        switch($period) {
-            case 'today':
-                $attendances = Attendance::whereDate('created_at', Carbon::today())
-                    ->where('instructor_id', $instructor->instructor_id)
-                    ->get();
-                break;
+        $instructor = Instructor::find($id);
 
-            case 'yesterday':
-                $attendances = Attendance::whereDate('created_at', Carbon::yesterday())
-                    ->where('instructor_id', $instructor->instructor_id)
-                    ->get();
-                break;
-
-            case 'thisweek':
-                $startOfWeek = Carbon::now()->startOfWeek();
-                $endOfWeek = Carbon::now()->endOfWeek();
-                $attendances = Attendance::whereBetween('created_at', [$startOfWeek, $endOfWeek])
-                    ->where('instructor_id', $instructor->instructor_id)
-                    ->get();
-                break;
-
-            case 'lastweek':
-                $startOfLastWeek = Carbon::now()->subWeek()->startOfWeek();
-                $endOfLastWeek = Carbon::now()->subWeek()->endOfWeek();
-                $attendances = Attendance::whereBetween('created_at', [$startOfLastWeek, $endOfLastWeek])
-                    ->where('instructor_id', $instructor->instructor_id)
-                    ->get();
-                break;
-
-            case 'thismonth':
-                $currentMonth = Carbon::now()->month;
-                $attendances = Attendance::whereMonth('created_at', $currentMonth)
-                    ->where('instructor_id', $instructor->instructor_id)
-                    ->get();
-                break;
-
-            case 'thisyear':
-                $currentYear = Carbon::now()->year;
-                $attendances = Attendance::whereYear('created_at', $currentYear)
-                    ->where('instructor_id', $instructor->instructor_id)
-                    ->get();
-                break;
-
-            case 'lastyear':
-                $lastYear = Carbon::now()->subYear()->year;
-                $attendances = Attendance::whereYear('created_at', $lastYear)
-                    ->where('instructor_id', $instructor->instructor_id)
-                    ->get();
-                break;
-
-            default:
-                Alert::error('No selection made', 'Make another selection');
-                return back();
-        }
-
-        $setting = $this->setting;
-
-        $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/e8704ed2-d90e-41ca/' . $instructor->instructor_id);
-
-        if($attendances->count() == 0){
-            Alert::error('Empty', 'No attendances for your selection');
+        if (!$instructor) {
+            Alert::error('Error', 'Instructor not found.');
             return back();
         }
 
-        $pdf = PDF::loadView('pdf_templates.attendanceSummary', compact('instructor', 'setting', 'qrCode', 'attendances'));
-        return $pdf->download('Daron Driving School-' . $instructor->instructor->fname . ' ' . $instructor->instructor->sname . ' Attendance Summary.pdf');
-    }
+        $period = $request->input('period');
+        $query = Attendance::where('instructor_id', $instructor->id);
 
+        switch ($period) {
+            case 'today':
+                $query->whereDate('created_at', Carbon::today());
+                break;
+
+            case 'yesterday':
+                $query->whereDate('created_at', Carbon::yesterday());
+                break;
+
+            case 'thisweek':
+                $query->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+                break;
+
+            case 'lastweek':
+                $query->whereBetween('created_at', [Carbon::now()->subWeek()->startOfWeek(), Carbon::now()->subWeek()->endOfWeek()]);
+                break;
+
+            case 'thismonth':
+                $query->whereMonth('created_at', Carbon::now()->month)->whereYear('created_at', Carbon::now()->year);
+                break;
+
+            case 'lastmonth':
+                $query->whereMonth('created_at', Carbon::now()->subMonth()->month)->whereYear('created_at', Carbon::now()->subMonth()->year);
+                break;
+
+            case 'thisyear':
+                $query->whereYear('created_at', Carbon::now()->year);
+                break;
+
+            case 'lastyear':
+                $query->whereYear('created_at', Carbon::now()->subYear()->year);
+                break;
+
+            case 'custom':
+                $startDate = $request->input('start_date');
+                $endDate = $request->input('end_date');
+
+                if (!$startDate || !$endDate) {
+                    Alert::error('Invalid Date', 'Please select both start and end dates.');
+                    return back();
+                }
+
+                // Ensure dates are valid
+                try {
+                    $start = Carbon::parse($startDate)->startOfDay();
+                    $end = Carbon::parse($endDate)->endOfDay();
+
+                    if ($start->greaterThan($end)) {
+                        Alert::error('Invalid Date Range', 'Start date cannot be after the end date.');
+                        return back();
+                    }
+
+                    $query->whereBetween('created_at', [$start, $end]);
+                } catch (\Exception $e) {
+                    Alert::error('Invalid Date Format', 'Please enter valid dates.');
+                    return back();
+                }
+                break;
+
+            default:
+                Alert::error('No selection made', 'Please make a valid selection.');
+                return back();
+        }
+
+        $attendances = $query->get();
+
+        if ($attendances->isEmpty()) {
+            Alert::error('Empty', 'No attendances found for the selected period.');
+            return back();
+        }
+
+        $setting = $this->setting;
+        $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/e8704ed2-d90e-41ca/' . $instructor->id);
+
+        $pdf = PDF::loadView('pdf_templates.attendanceSummary', compact('instructor', 'setting', 'qrCode', 'attendances'));
+
+        return $pdf->download('Daron Driving School-' . $instructor->fname . ' ' . $instructor->sname . ' Attendance Summary.pdf');
+    }
 }
