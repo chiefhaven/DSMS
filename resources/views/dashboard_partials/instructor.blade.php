@@ -131,9 +131,9 @@
                                         </div>
                                         <div class="ms-3 text-right">
                                             <p class="font-size-h3 font-w900 mb-0 text-uppercase">
-                                                {{ $attendanceCount * $settings->bonus }}
+                                                K{{ number_format($attendanceCount * $settings->bonus, 2) }}
                                             </p>
-                                            <p class="mb-0">Expected Pay</p>
+                                            <p class="mb-0">This month's expected pay</p>
                                         </div>
                                     </div>
                                 </div>
