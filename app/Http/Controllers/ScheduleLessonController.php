@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\scheduleLesson;
 use App\Http\Requests\StorescheduleLessonRequest;
 use App\Http\Requests\UpdatescheduleLessonRequest;
+use App\Models\ScheduleLesson as ModelsScheduleLesson;
 use Auth;
 
 class ScheduleLessonController extends Controller
@@ -92,10 +93,36 @@ class ScheduleLessonController extends Controller
      * @param  \App\Models\scheduleLesson  $scheduleLesson
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdatescheduleLessonRequest $request, scheduleLesson $scheduleLesson)
+    public function update(UpdatescheduleLessonRequest $request, $id)
     {
-        //
+        $scheduleLesson = ScheduleLesson::find($id);
+
+        try {
+            // Validate request (handled by UpdatescheduleLessonRequest)
+            $validatedData = $request->validated();
+
+            $scheduleLesson->update([
+                'student_id' => $request['student_id'],
+                'lesson_id' => $request['lesson_id'],
+                'start_time' => $request['start_time'],
+                'finish_time' => $request['finish_time'],
+                'location' => $request['location'],
+                'comments' => $request['comments'],
+            ]);
+
+            return response()->json([
+                'message' => 'Schedule updated successfully',
+                'schedule' => $scheduleLesson
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update schedule',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
+
 
     /**
      * Remove the specified resource from storage.
