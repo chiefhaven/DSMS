@@ -324,35 +324,6 @@ class AttendanceController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Attendance  $attendance
-     * @return \Illuminate\Http\Response
-     */
-    public function scheduleLesson()
-    {
-        $events = [];
-
-        $lessonSchedules = scheduleLesson::with(['student', 'instructor', 'lesson'])->get();
-
-        foreach ($lessonSchedules as $schedule) {
-            $studentName = $schedule->student->fname.' '.$schedule->student->sname ?? 'Unknown Student';
-            $lessonName = $schedule->lesson->name ?? 'Unknown Instructor';
-
-            $events[] = [
-                'id'=> $schedule->id,
-                'title' => "$studentName ($lessonName)",
-                'lesson' => $schedule->lesson,
-                'location' => $schedule->location,
-                'student' => $schedule->student,
-                'start' => $schedule->start_time->format('Y-m-d H:i:s'),
-                'end' => $schedule->finish_time->format('Y-m-d H:i:s'),
-            ];
-        }
-        return response()->json($events, 200);
-    }
-
-    /**
      * Update the specified resource in storage.
      *
      * @param  \App\Http\Requests\UpdateAttendanceRequest  $request

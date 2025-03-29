@@ -185,7 +185,7 @@
                     </a>
                 </li>
                 <li>
-                    <a class="nav-main-link" href="{{ url('/schedule-lesson') }}">
+                    <a class="nav-main-link" href="{{ url('/schedule-lesson-index') }}">
                         <i class="nav-main-link-icon fa fa-calendar-alt"></i>
                         <span class="nav-main-link-name">Schedule lesson</span>
                         <span class="badge bg-danger ms-1">New</span>

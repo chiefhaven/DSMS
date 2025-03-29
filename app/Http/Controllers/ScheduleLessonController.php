@@ -17,7 +17,8 @@ class ScheduleLessonController extends Controller
      */
     public function index()
     {
-        //
+        return view('attendances.scheduleLesson');
+
     }
 
     /**
@@ -145,5 +146,32 @@ class ScheduleLessonController extends Controller
             return response()->json(['error' => 'Failed to delete schedule', 'exception' => $e->getMessage()], 500);
         }
     }
+
+
+    public function scheduleLesson()
+    {
+        $events = [];
+
+        $lessonSchedules = scheduleLesson::with(['student', 'instructor', 'lesson'])->get();
+
+        foreach ($lessonSchedules as $schedule) {
+            // Ensure student name and lesson name are always properly set
+            $studentName = ($schedule->student->fname ?? 'Unknown') . ' ' . ($schedule->student->sname ?? 'Student');
+            $lessonName = $schedule->lesson->name ?? 'Unknown Lesson';
+
+            $events[] = [
+                'id' => $schedule->id,
+                'title' => "$studentName ($lessonName)",
+                'lesson' => $schedule->lesson,
+                'location' => $schedule->location,
+                'student' => $schedule->student,
+                'start' => $schedule->start_time->format('Y-m-d H:i:s'),
+                'end' => $schedule->finish_time->format('Y-m-d H:i:s'),
+            ];
+        }
+
+        return response()->json($events, 200);
+    }
+
 
 }

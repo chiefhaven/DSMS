@@ -36,7 +36,7 @@
 
                                     <!-- Schedule Attendance -->
                                     <div class="col-md-6">
-                                        <a href="{{ url('/schedule-lesson') }}" class="text-decoration-none">
+                                        <a href="{{ url('/schedule-lesson-index') }}" class="text-decoration-none">
                                             <div class="block block-rounded block-link-shadow border p-3 hover-effect">
                                                 <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                                                     <div>

@@ -222,7 +222,7 @@
                     finish_time: finishTime.value,
                     location: location.value,
                     comments: comments.value,
-                    lessonScheduleId: lessonSchedule.value.id
+                    lessonScheduleId: lessonSchedule.value?.id ?? null,
                 };
 
                 try {
@@ -233,10 +233,9 @@
                     }
 
                     notification("Lesson schedule saved successfully!", "success");
-                    eventItems.value = eventItems.value.filter(event => event.id !== eventId);
-                    events.value = events.value.filter(event => event.id !== eventId);
 
-                    calendarInitialization();
+                    fetchSchedules();
+
                 } catch (error) {
                     notification(error.response?.data?.message || "An error occurred!", "error");
                 } finally {
@@ -290,7 +289,7 @@
 
             const handleDateClick = (info) => {
 
-                
+
                 clickedDate.value = moment(info.date).format("YYYY-MM-DD");
 
                 // Check if events exist for the clicked date
@@ -335,12 +334,38 @@
                 modal.show();
             };
 
-            onMounted(() => {
-                events.value = @json($events) || [];
+            onMounted(async () => {
 
-                calendarInitialization()
+                calendarInitialization();
+                fetchSchedules();
 
             });
+
+            const fetchSchedules = async () => {
+                NProgress.start();  // Start loading indicator
+
+                try {
+                    // Fetching data from your API endpoint
+                    const response = await axios.get('schedule-lessons');
+
+                    // Validate if response.data is an array
+                    if (Array.isArray(response.data)) {
+                        events.value = response.data || [];  // Update events with the data from the API
+                    } else {
+                        console.error('Unexpected data format:', response.data);
+                        events.value = [];
+                    }
+
+                } catch (error) {
+                    console.error('Error fetching schedule lessons:', error);
+                    events.value = [];
+                    alert('An error occurred while fetching schedules. Please try again later.');
+                } finally{
+                    calendarInitialization();  // Initialize calendar once data is fetched
+                    NProgress.done();  // End loading indicator
+                }
+
+            };
 
             const calendarInitialization = () => {
                 // Initialize FullCalendar
@@ -412,10 +437,7 @@
                         // Send DELETE request to server
                         const response = await axios.delete(`/schedule-lesson/${eventId}`);
 
-                        eventItems.value = eventItems.value.filter(event => event.id !== eventId);
-                        events.value = events.value.filter(event => event.id !== eventId);
-
-                        calendarInitialization()
+                        fetchSchedules()
 
                         notification("Lesson deleted successfully!", "success");
 
