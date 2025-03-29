@@ -9,10 +9,17 @@
             Schedule lessons <span class="badge bg-danger ms-2">New</span>
         </h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
-            <!-- Modal Button to Trigger the Form -->
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#lessonScheduleModal">
-                Schedule Lesson
+
+            <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span class="d-sm-inline-block">Action</span>
             </button>
+            <div class="dropdown-menu dropdown-menu-end p-0">
+                <div class="p-2">
+                    <button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#lessonScheduleModal">
+                        Schedule Lesson
+                    </button>
+                </div>
+            </div>
         </nav>
       </div>
     </div>
@@ -21,75 +28,125 @@
 <div class="content content-full" id="lessonSchedule">
     @include('components.alert')
 
-    <div class="block block-rounded">
-        <div class="p-4">
+    <div class="block block-rounded p-4">
+        <div class="overflow-auto">
             <div id="calendar"></div>
         </div>
     </div>
 
     <!-- Modal -->
     <div class="modal fade" id="lessonScheduleModal" tabindex="-1" aria-labelledby="lessonScheduleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-        <div class="modal-header">
-            <h5 class="modal-title" id="lessonScheduleModalLabel">{{ isset($lessonSchedule) ? 'Edit Lesson Schedule' : 'Create Lesson Schedule' }}</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-            <form @submit.prevent="submitForm">
-                @csrf
-                <!-- Student -->
-                <div class="form-group mb-3">
-                    <label for="student_id" class="form-label">Search student</label>
-                    <input name="student_id" id="student_id" class="form-control" @input="searchStudent()" required>
-                </div>
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="lessonScheduleModalLabel">@{{ selectedEvent ? 'Edit Lesson Schedule' : 'Create Lesson Schedule' }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form @submit.prevent="submitForm">
+                    @csrf
+                    <!-- Student -->
+                    <div class="form-group mb-3">
+                        <label for="student_id" class="form-label">Search student</label>
+                        <input name="student_id" id="student_id" v-model="student" class="form-control" @input="searchStudent()" required>
+                    </div>
 
-                <!-- Lesson -->
-                <div class="form-group mb-3">
-                    <label for="lesson_id" class="form-label">Lesson</label>
-                    <select v-model="lessonId" id="lesson_id" class="form-control" required>
-                        <option value="">Select Lesson</option>
-                        <option v-for="lesson in lessons" :key="lesson.id" :value="lesson.id">
-                            @{{ lesson.name }}
-                        </option>
-                    </select>
-                </div>
+                    <!-- Lesson -->
+                    <div class="form-group mb-3">
+                        <label for="lesson_id" class="form-label">Lesson</label>
+                        <select v-model="lessonId" id="lesson_id" class="form-control" required>
+                            <option value="">Select Lesson</option>
+                            <option v-for="lesson in lessons" :key="lesson.id" :value="lesson.id">
+                                @{{ lesson.name }}
+                            </option>
+                        </select>
+                    </div>
 
-                <!-- Start Time -->
-                <div class="form-group mb-3">
-                    <label for="start_time" class="form-label">Start Time</label>
-                    <input type="datetime-local" v-model="startTime" id="start_time" class="form-control" required />
-                </div>
+                    <!-- Start Time -->
+                    <div class="form-group mb-3">
+                        <label for="start_time" class="form-label">Start Time</label>
+                        <input type="datetime-local" v-model="startTime" id="start_time" class="form-control" required />
+                    </div>
 
-                <!-- Finish Time -->
-                <div class="form-group mb-3">
-                    <label for="finish_time" class="form-label">Finish Time</label>
-                    <input type="datetime-local" v-model="finishTime" id="finish_time" class="form-control" required />
-                </div>
+                    <div class="form-group mb-3">
+                        <label for="start_time" class="form-label text-success">Finish time will be @{{ formatDate(finishTime) }}</label>
+                    </div>
 
-                <!-- Location -->
-                <div class="form-group mb-3">
-                    <label for="location" class="form-label">Location</label>
-                    <input type="text" v-model="location" id="location" class="form-control" placeholder="Enter location" />
-                </div>
+                    {{--  <!-- Finish Time -->
+                    <div class="form-group mb-3">
+                        <label for="finish_time" class="form-label">Finish Time</label>
+                        <input type="datetime-local" v-model="finishTime" id="finish_time" class="form-control" required />
+                    </div>  --}}
 
-                <!-- Comments -->
-                <div class="form-group mb-3">
-                    <label for="comments" class="form-label">Comments</label>
-                    <textarea v-model="comments" id="comments" class="form-control" rows="3" placeholder="Additional notes..."></textarea>
-                </div>
+                    <!-- Location -->
+                    <div class="form-group mb-3">
+                        <label for="location" class="form-label">Location</label>
+                        <input type="text" v-model="location" id="location" class="form-control" placeholder="Enter location" />
+                    </div>
 
-                <!-- Submit Button -->
-                <div class="form-group">
-                    <button type="submit" class="btn btn-primary">
-                        @{{ lessonSchedule ? "Update Schedule" : "Create Schedule" }}
-                    </button>
-                </div>
-            </form>
-        </div>
+                    <!-- Comments -->
+                    <div class="form-group mb-3">
+                        <label for="comments" class="form-label">Comments</label>
+                        <textarea v-model="comments" id="comments" class="form-control" rows="3" placeholder="Additional notes..."></textarea>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">
+                            @{{ selectedEvent ? "Update Schedule" : "Create Schedule" }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+            </div>
         </div>
     </div>
+
+    <div v-show="isLessonsModalVisible" class="modal fade" id="lessonsModal" tabindex="-1" aria-labelledby="lessonScheduleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Scheduled Lessons</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div v-if="eventItems.length > 0" class="table-responsive">
+                        <table class="table table striped">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Lesson</th>
+                                    <th>Date/Time</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="event in eventItems" :key="event.id">
+                                    <td>@{{ event.student.fname }} @{{ event.student.mname ?? '' }} @{{ event.student.sname }}</td>
+                                    <td>@{{ event.lesson.name }}</td>
+                                    <td>@{{ formatDate(event.start) }}</td>
+                                    <td>
+                                        <button class="btn btn-sm me-1" @click="editEvent(event)">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+
+                                        <button class="btn btn-sm" @click="deleteEvent(event.id)">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div v-else>
+                        No schedules attendances this day!
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+
 </div>
 
 <script>
@@ -106,17 +163,41 @@
             const comments = ref("");
             const lessons = ref([]);
             let studentsData = [];
+            let events = ref([]);
+            const eventItems = ref([]);
+            const selectedEvent = ref(null);
+            const isLessonsModalVisible = ref(false);
+            const isLessonScheduleModalVisible = ref(false);
 
             // Define the fetchLessons function
             const fetchLessons = async (studentId) => {
                 try {
                     const response = await axios.get(`/student-lessons/${studentId}`);
                     lessons.value = response.data;
-                    console.log(lessons.value);
                 } catch (error) {
                     console.error("Error fetching lessons:", error);
                 }
             };
+
+            function formatDate(dateString) {
+                const date = new Date(dateString);
+
+                // Define month names
+                const months = [
+                    "January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"
+                ];
+
+                const day = date.getDate();
+                const month = months[date.getMonth()];
+                const year = date.getFullYear();
+
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                const seconds = String(date.getSeconds()).padStart(2, '0');
+
+                return `${day} ${month}, ${year} ${hours}:${minutes}:${seconds}`;
+            }
 
             const finishTime = computed(() => {
                 if (startTime.value) {
@@ -138,8 +219,6 @@
                     location: location.value,
                     comments: comments.value,
                 };
-
-                console.log(payload);
 
                 try {
                     if (lessonSchedule.value && lessonSchedule.value.id) {
@@ -182,41 +261,56 @@
             };
 
             const handleDateClick = (info) => {
-                // Log the clicked date
-                console.log("Date clicked:", info);
+                // Get the clicked date as a moment object and format it to "YYYY-MM-DD"
+                const clickedDate = moment(info.date).format("YYYY-MM-DD");
 
-                // Get the clicked date (you can use it to set values in the form)
-                const clickedDate = info.dateStr;
+                // Check if events exist for the clicked date
+                const eventsOnClickedDate = events.value.filter(event => moment(event.start).format('YYYY-MM-DD') === clickedDate);
 
-                // Set the start time field to the clicked date
-                startTime.value = clickedDate; // Assuming you want to set the start time to the clicked date
+                if (eventsOnClickedDate.length > 0) {
+                    // If events exist, show the list of events
+                    showEventList(eventsOnClickedDate);
+                } else {
+                    // If no events, show the modal
+                    startTime.value = clickedDate;
+                    const modal = new bootstrap.Modal(document.getElementById('lessonScheduleModal'));
+                    modal.show();
+                }
+            };
 
-                // Open the modal programmatically
-                const modal = new bootstrap.Modal(document.getElementById('lessonScheduleModal'));
+            // Function to display the event list for the clicked date
+            const showEventList = (events) => {
+
+                eventItems.value = events;
+
+                // Display the event list container
+                const modal = new bootstrap.Modal(document.getElementById('lessonsModal'));
                 modal.show();
-
-
             };
 
               onMounted(() => {
-                // Check if events are being passed properly
-                const events = @json($events) || [];
-                console.log('Events:', events);
+                events.value = @json($events) || [];
+
+                calendarInitialization()
+
+            });
+
+            const calendarInitialization = () => {
                 // Initialize FullCalendar
                 var calendarEl = document.getElementById('calendar');
                 var calendar = new FullCalendar.Calendar(calendarEl, {
                     initialView: 'dayGridMonth',
-                    slotMinTime: '00:00:00', // Start time
-                    slotMaxTime: '23:59:00', // End time
+                    slotMinTime: '06:00:00', // Start time
+                    slotMaxTime: '18:30:00', // End time
                     slotDuration: '00:30:00',
                     slotLabelInterval: '00:30:00',
                     allDaySlot: false,
                     nowIndicator: true,
-                    dateClick: handleDateClick, // Use the handleDateClick method
-                    events: events, // Pass the validated events
+                    dateClick: handleDateClick,
+                    events: events.value,
                 });
                 calendar.render();
-            });
+            }
 
             const notification = ($text, $icon) =>{
                 Swal.fire({
@@ -234,6 +328,65 @@
                   });
             }
 
+            const closeLessonsModal = () => {
+                isLessonsModalVisible.value = false;  // Hide the lessons modal
+            };
+
+            const closeLessonScheduleModal = () => {
+                isLessonScheduleModalVisible.value = false;  // Hide the edit modal
+            };
+
+            const editEvent = (event) => {
+
+                NProgress.start();
+
+                isLessonScheduleModalVisible.value = true;
+
+                selectedEvent.value = { ...event };
+                student.value = `${event.student.fname} ${event.student.mname} ${event.student.sname}`;
+                studentId.value = event.student.id;
+                lessonId.value = event.lesson.id;
+                comments.value = event.comments;
+                startTime.value = moment(event.start).format("YYYY-MM-DDTHH:mm");
+                fetchLessons(studentId.value);
+
+                isLessonsModalVisible.value = false;
+
+                // Show the modal for editing
+                const eventEditModal = new bootstrap.Modal(document.getElementById('lessonScheduleModal'));
+                eventEditModal.show();
+
+                NProgress.done();
+
+            };
+
+
+            const deleteEvent = async (eventId) => {
+                // Confirm deletion
+                if (confirm("Are you sure you want to delete this lesson?")) {
+                    try {
+
+                        NProgress.start();
+
+                        // Send DELETE request to server
+                        const response = await axios.delete(`/schedule-lesson/${eventId}`);
+
+                        eventItems.value = eventItems.value.filter(event => event.id !== eventId);
+                        events.value = events.value.filter(event => event.id !== eventId);
+
+                        calendarInitialization()
+
+                        notification("Lesson deleted successfully!", "success");
+
+                    } catch (error) {
+                        notification("Failed to delete the lesson. Please try again.", "error");
+                    } finally{
+                        NProgress.done();
+                    }
+                }
+            };
+
+
             return {
                 student,
                 lessons,
@@ -246,6 +399,13 @@
                 submitForm,
                 lessonSchedule,
                 studentId,
+                eventItems,
+                formatDate,
+                deleteEvent,
+                editEvent,
+                selectedEvent,
+                isLessonScheduleModalVisible,
+                isLessonsModalVisible
             };
         }
     });

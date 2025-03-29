@@ -79,6 +79,7 @@ Route::get('/attendance-student-search', [AttendanceController::class, 'autocomp
 Route::get('/attendanceSummary/{id}', [AttendanceController::class, 'attendanceSummary'])->middleware('auth')->name('attendanceSummary');
 Route::get('/schedule-lesson', [AttendanceController::class, 'schedulelesson'])->middleware('auth')->name('schedulelesson');
 Route::post('/store-lesson-schedule', [ScheduleLessonController::class, 'store'])->middleware('auth')->name('storeschedulelesson');
+Route::delete('schedule-lesson/{id}', [ScheduleLessonController::class, 'destroy'])->middleware('auth')->name('destroyschedulelesson');
 
 
 Route::get('/courses', [CourseController::class, 'index'])->middleware('auth')->name('courses');

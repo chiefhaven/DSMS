@@ -103,8 +103,20 @@ class ScheduleLessonController extends Controller
      * @param  \App\Models\scheduleLesson  $scheduleLesson
      * @return \Illuminate\Http\Response
      */
-    public function destroy(scheduleLesson $scheduleLesson)
+    public function destroy($id)
     {
-        //
+        $scheduleLesson = scheduleLesson::find($id);
+
+        if (!$scheduleLesson) {
+            return response()->json(['error' => 'Schedule not found'], 404); // Return a 404 if not found
+        }
+
+        try {
+            $scheduleLesson->delete();
+            return response()->json(['message' => 'Schedule deleted successfully'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to delete schedule', 'exception' => $e->getMessage()], 500);
+        }
     }
+
 }

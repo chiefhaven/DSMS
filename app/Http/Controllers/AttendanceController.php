@@ -333,14 +333,18 @@ class AttendanceController extends Controller
     {
         $events = [];
 
-        $lessonSchedules = scheduleLesson::with(['student', 'instructor'])->get();
+        $lessonSchedules = scheduleLesson::with(['student', 'instructor', 'lesson'])->get();
 
         foreach ($lessonSchedules as $schedule) {
             $studentName = $schedule->student->fname.' '.$schedule->student->sname ?? 'Unknown Student';
             $lessonName = $schedule->lesson->name ?? 'Unknown Instructor';
 
             $events[] = [
+                'id'=> $schedule->id,
                 'title' => "$studentName ($lessonName)",
+                'lesson' => $schedule->lesson,
+                'location' => $schedule->location,
+                'student' => $schedule->student,
                 'start' => $schedule->start_time->format('Y-m-d H:i:s'),
                 'end' => $schedule->finish_time->format('Y-m-d H:i:s'),
             ];
