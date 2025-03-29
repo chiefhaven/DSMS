@@ -108,16 +108,16 @@
             </div>
 
             <div class="row block">
-                <div class="col-8">
+                <div class="col-12">
                     <div class="block-conent block-rounded block-bordered">
                         <canvas id="attendancesChart" height="200"></canvas>
                     </div>
                 </div>
-                <div class="col-4">
+                {{--  <div class="col-4">
                     <div class="block-conent block-rounded block-bordered">
                         <canvas id="coursesChart" width="400" height="400"></canvas>
                     </div>
-                </div>
+                </div>  --}}
             </div>
 
             <div class="row mt-2 p-0">
@@ -390,77 +390,127 @@
     $(function() {
         getXlsxData();
       });
-
       function getXlsxData() {
-        var xlsxUrl =
-          "/summaryData"
-        var xlsxData = $.getJSON(xlsxUrl, function(data) {
-          $.each(data, function(i, el) {
-            labels.push(el.date);
-            Attendances.push(el.count);
-          });
-          load_chart();
-        });
-      }
-      var labels = [],
-        Attendances = []
+        var xlsxUrl = "/summaryData";
 
-      function load_chart() {
-        var attendancesChart = new Chart('attendancesChart', {
-          type: 'line',
-          data: {
-            labels: labels,
-            datasets: [{
-              label: 'Attendances ',
-              fill: false,
-              data: Attendances,
-              backgroundColor: 'rgb(255, 159, 64)',
-              borderColor: 'rgb(255, 159, 64, 0.8)',
-              borderWidth: 3,
-              radius: 0,
-            }, ]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            legend: {
-              position: 'bottom',
-            },
-            layout: {
-              padding: {
-                top: 35,
-                right: 15,
-              }
-            },
-            scales: {
-                x: {
-                    type: 'time',
-                    time: {
-                        parser: 'YYYY-MM-DD', // Ensure this matches your data format
-                        unit: 'day', // Use 'day' for daily data
-                        displayFormats: {
-                            day: 'D MMM' // Format for daily tick marks
-                        },
-                        tooltipFormat: 'D MMM YYYY' // Tooltip format
+        $.getJSON(xlsxUrl, function(data) {
+            console.log("Raw Data:", data); // Debugging output
+
+            var labelsSet = new Set();
+            var attendancesMap = {};
+            var schedulesMap = {};
+
+            // Ensure data exists
+            if (!data || !data.attendances || !data.schedules) {
+                console.error("Unexpected data structure:", data);
+                return;
+            }
+
+            // Process attendances
+            data.attendances.forEach(el => {
+                if (el.date) {
+                    labelsSet.add(el.date);
+                    attendancesMap[el.date] = el.count || 0;
+                }
+            });
+
+            // Process schedules
+            data.schedules.forEach(el => {
+                if (el.date) {
+                    labelsSet.add(el.date);
+                    schedulesMap[el.date] = el.count || 0;
+                }
+            });
+
+            // Convert Set to sorted array
+            var labels = Array.from(labelsSet).sort();
+
+            // Create final arrays ensuring all dates exist
+            var attendances = labels.map(date => attendancesMap[date] || 0);
+            var schedules = labels.map(date => schedulesMap[date] || 0);
+
+            console.log("Labels:", labels);
+            console.log("Attendance Counts:", attendances);
+            console.log("Schedule Counts:", schedules);
+
+            load_chart(labels, attendances, schedules);
+        }).fail(function(jqXHR, textStatus, errorThrown) {
+            console.error("Error fetching data:", textStatus, errorThrown);
+        });
+    }
+
+    function load_chart(labels, Attendances, Schedules) {
+        var ctx = document.getElementById('attendancesChart').getContext('2d');
+
+        var attendancesChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Attendances',
+                        fill: false,
+                        data: Attendances,
+                        backgroundColor: 'rgb(255, 159, 64)',
+                        borderColor: 'rgb(255, 159, 64, 0.8)',
+                        borderWidth: 1,
+                        radius: 0,
                     },
-                    ticks: {
-                        source: 'data', // Ensures ticks are based on data
-                        autoSkip: false, // Disable automatic skipping
-                        stepSize: 1, // Display every day (adjust if necessary)
-                        maxRotation: 60, // Prevent tick label rotation
-                        minRotation: 60
-                    },
-                    title: {
-                        display: true,
-                        text: 'Date' // Optional: Add title for the x-axis
+                    {
+                        label: 'Schedules',
+                        fill: false,
+                        data: Schedules,
+                        backgroundColor: 'rgb(54, 162, 235)',
+                        borderColor: 'rgb(54, 162, 235, 0.8)',
+                        borderWidth: 1,
+                        radius: 0,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
                     }
                 },
-                y: {
-                    beginAtZero: true
+                layout: {
+                    padding: {
+                        top: 35,
+                        right: 15
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            parser: 'YYYY-MM-DD',
+                            unit: 'day',
+                            displayFormats: {
+                                day: 'D MMM'
+                            },
+                            tooltipFormat: 'D MMM YYYY'
+                        },
+                        ticks: {
+                            source: 'data',
+                            autoSkip: false,
+                            stepSize: 1,
+                            maxRotation: 60,
+                            minRotation: 60
+                        },
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true
+                    }
                 }
             }
-          }
         });
+
 
         var ctx1 = document.getElementById('coursesChart');
 
