@@ -64,6 +64,11 @@ class ScheduleLessonController extends Controller
         }
     }
 
+    public function schedules()
+    {
+        return view('schedules.schedules');
+
+    }
 
     /**
      * Display the specified resource.
@@ -148,21 +153,31 @@ class ScheduleLessonController extends Controller
     }
 
 
-    public function ScheduleLesson()
+    public function scheduleLesson()
     {
         $events = [];
 
-        $lessonSchedules = ScheduleLesson::with(['student', 'instructor', 'lesson'])->get();
+        if (Auth::user()->hasRole('instructor')) {
+            // Fetch only lessons for the logged-in instructor
+            $lessonSchedules = ScheduleLesson::with(['student', 'instructor', 'lesson'])
+                ->where('instructor_id', Auth::user()->instructor_id)
+                ->get();
+        } else {
+            // Fetch all lessons for other roles
+            $lessonSchedules = ScheduleLesson::with(['student', 'instructor', 'lesson'])->get();
+        }
 
         foreach ($lessonSchedules as $schedule) {
-            // Ensure student name and lesson name are always properly set
-            $studentName = ($schedule->student->fname ?? 'Unknown') . ' ' . ($schedule->student->sname ?? 'Student');
+            // Ensure student name and lesson name are properly set
+            $studentName = ($schedule->student->fname ?? 'Unknown') . ' ' .($schedule->student->mname ?? '') . ' ' . ($schedule->student->sname ?? 'Student');
+            $instructorName = ($schedule->instructor->fname ?? 'Unknown') . ' ' . ($schedule->instructor->sname ?? 'Student');
             $lessonName = $schedule->lesson->name ?? 'Unknown Lesson';
 
             $events[] = [
                 'id' => $schedule->id,
                 'title' => "$studentName ($lessonName)",
                 'lesson' => $schedule->lesson,
+                'instructor'=> $instructorName,
                 'location' => $schedule->location,
                 'student' => $schedule->student,
                 'start' => $schedule->start_time->format('Y-m-d H:i:s'),
@@ -172,6 +187,7 @@ class ScheduleLessonController extends Controller
 
         return response()->json($events, 200);
     }
+
 
 
 }
