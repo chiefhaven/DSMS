@@ -102,7 +102,7 @@
         </div>
     </div>
 
-    <div v-show="isLessonsModalVisible" class="modal fade" id="lessonsModal" tabindex="-1" aria-labelledby="lessonScheduleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="lessonsModal" tabindex="-1" aria-labelledby="lessonScheduleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -143,6 +143,11 @@
                         No schedules attendances this day!
                     </div>
                 </div>
+                <div class="modal-footer">
+                    <button class="btn btn-light" @click="handleAddSchedule()">
+                        Add Schedule
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -166,8 +171,7 @@
             let events = ref([]);
             const eventItems = ref([]);
             const selectedEvent = ref(null);
-            const isLessonsModalVisible = ref(false);
-            const isLessonScheduleModalVisible = ref(false);
+            const clickedDate = ref();
 
             // Define the fetchLessons function
             const fetchLessons = async (studentId) => {
@@ -218,23 +222,46 @@
                     finish_time: finishTime.value,
                     location: location.value,
                     comments: comments.value,
+                    lessonScheduleId: lessonSchedule.value.id
                 };
 
                 try {
                     if (lessonSchedule.value && lessonSchedule.value.id) {
-                        await axios.put(`/lesson-schedules/${lessonSchedule.value.id}`, payload);
+                        await axios.put(`/update-lesson-schedule/${lessonSchedule.value.id}`, payload);
                     } else {
                         await axios.post("/store-lesson-schedule", payload);
                     }
 
                     notification("Lesson schedule saved successfully!", "success");
-                    window.location.reload();
+                    eventItems.value = eventItems.value.filter(event => event.id !== eventId);
+                    events.value = events.value.filter(event => event.id !== eventId);
+
+                    calendarInitialization();
                 } catch (error) {
                     notification(error.response?.data?.message || "An error occurred!", "error");
                 } finally {
 
+                    clearForm();
+
+                    // Get existing modal instance
+                    const lessonsModalEl = document.getElementById('lessonScheduleModal');
+                    const lessonsModal = bootstrap.Modal.getInstance(lessonsModalEl);
+
+                    if (lessonsModal) {
+                        lessonsModal.hide(); // Properly hide the modal
+                    }
                 }
 
+            };
+
+            const clearForm = () => {
+                studentId.value = '';
+                student.value = '';
+                lessonId.value = '';
+                startTime.value = '';
+                location.value = '';
+                comments.value = '';
+                lessonSchedule.value = {};
             };
 
             const searchStudent = () => {
@@ -243,16 +270,17 @@
                 $('#student_id').typeahead({
                     source: function (query, process) {
                         return $.get(path, { search: query }, function (data) {
-                            studentsData = data; // Store data globally
+                            studentsData = data; // Store globally
                             return process(data.map(student => student.full_name));
                         });
                     },
                     updater: function (selectedName) {
-                        // Find the selected student from the fetched data
+                        // Find the selected student
                         const selectedStudent = studentsData.find(student => student.full_name === selectedName);
 
                         if (selectedStudent) {
                             studentId.value = selectedStudent.id;
+                            student.value = selectedStudent.full_name;
                             fetchLessons(selectedStudent.id);
                         }
                         return selectedName;
@@ -261,21 +289,40 @@
             };
 
             const handleDateClick = (info) => {
-                // Get the clicked date as a moment object and format it to "YYYY-MM-DD"
-                const clickedDate = moment(info.date).format("YYYY-MM-DD");
+
+                
+                clickedDate.value = moment(info.date).format("YYYY-MM-DD");
 
                 // Check if events exist for the clicked date
-                const eventsOnClickedDate = events.value.filter(event => moment(event.start).format('YYYY-MM-DD') === clickedDate);
+                const eventsOnClickedDate = events.value.filter(event => moment(event.start).format('YYYY-MM-DD') === clickedDate.value);
 
                 if (eventsOnClickedDate.length > 0) {
                     // If events exist, show the list of events
                     showEventList(eventsOnClickedDate);
                 } else {
                     // If no events, show the modal
-                    startTime.value = clickedDate;
+                    startTime.value = moment(clickedDate.value).format("YYYY-MM-DDTHH:mm");
                     const modal = new bootstrap.Modal(document.getElementById('lessonScheduleModal'));
                     modal.show();
                 }
+            };
+
+            const handleAddSchedule = () => {
+
+                    // If no events, show the modal
+                    startTime.value = moment(clickedDate.value).format("YYYY-MM-DDTHH:mm");
+
+                    // Get existing modal instance
+                    const lessonsModalEl = document.getElementById('lessonsModal');
+                    const lessonsModal = bootstrap.Modal.getInstance(lessonsModalEl);
+
+                    if (lessonsModal) {
+                        lessonsModal.hide(); // Properly hide the modal
+                    }
+
+                    const modal = new bootstrap.Modal(document.getElementById('lessonScheduleModal'));
+                    modal.show();
+
             };
 
             // Function to display the event list for the clicked date
@@ -288,7 +335,7 @@
                 modal.show();
             };
 
-              onMounted(() => {
+            onMounted(() => {
                 events.value = @json($events) || [];
 
                 calendarInitialization()
@@ -328,36 +375,30 @@
                   });
             }
 
-            const closeLessonsModal = () => {
-                isLessonsModalVisible.value = false;  // Hide the lessons modal
-            };
-
-            const closeLessonScheduleModal = () => {
-                isLessonScheduleModalVisible.value = false;  // Hide the edit modal
-            };
-
             const editEvent = (event) => {
-
                 NProgress.start();
-
-                isLessonScheduleModalVisible.value = true;
-
                 selectedEvent.value = { ...event };
                 student.value = `${event.student.fname} ${event.student.mname} ${event.student.sname}`;
                 studentId.value = event.student.id;
                 lessonId.value = event.lesson.id;
                 comments.value = event.comments;
                 startTime.value = moment(event.start).format("YYYY-MM-DDTHH:mm");
+                lessonSchedule.value = event;
                 fetchLessons(studentId.value);
 
-                isLessonsModalVisible.value = false;
+                // Get existing modal instance
+                const lessonsModalEl = document.getElementById('lessonsModal');
+                const lessonsModal = bootstrap.Modal.getInstance(lessonsModalEl);
+
+                if (lessonsModal) {
+                    lessonsModal.hide(); // Properly hide the modal
+                }
 
                 // Show the modal for editing
-                const eventEditModal = new bootstrap.Modal(document.getElementById('lessonScheduleModal'));
-                eventEditModal.show();
+                const modal = new bootstrap.Modal(document.getElementById('lessonScheduleModal'));
+                modal.show();
 
                 NProgress.done();
-
             };
 
 
@@ -404,8 +445,9 @@
                 deleteEvent,
                 editEvent,
                 selectedEvent,
-                isLessonScheduleModalVisible,
-                isLessonsModalVisible
+                handleDateClick,
+                handleAddSchedule,
+
             };
         }
     });
