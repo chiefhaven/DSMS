@@ -150,7 +150,6 @@ class HomeController extends Controller
 
     public function summaryData()
     {
-        // Get the first day of the current month and the last day of the current month
         $startOfMonth = Carbon::now()->startOfMonth()->format('Y-m-d');
         $endOfMonth = Carbon::now()->endOfMonth()->format('Y-m-d');
 
@@ -158,13 +157,12 @@ class HomeController extends Controller
         $dates = collect();
         $currentDate = Carbon::parse($startOfMonth);
 
-        // Populate the collection with dates for the current month and initialize counts to 0
         while ($currentDate->lte($endOfMonth)) {
             $dates->put($currentDate->format('Y-m-d'), 0);
             $currentDate->addDay();
         }
 
-        // Query to get the count of attendances per date for the current month
+        // Get attendance count per date
         $countAttendance = DB::table('attendances')
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
@@ -172,35 +170,41 @@ class HomeController extends Controller
             ->orderBy('date')
             ->get();
 
-        // Create an associative array to store the attendance counts by date
-        $arrayOfAttendances = [];
+        // Get schedule count per date
+        $countSchedules = DB::table('schedule_lessons')
+            ->select(DB::raw('DATE(start_time) as date'), DB::raw('count(*) as count')) // FIXED: Using start_time instead of created_at
+            ->whereBetween('start_time', [$startOfMonth, $endOfMonth])
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
 
-        // Loop through the results to build the array
+        // Convert attendance data to associative array
+        $arrayOfAttendances = $dates->toArray();
         foreach ($countAttendance as $attendance) {
             $arrayOfAttendances[$attendance->date] = $attendance->count;
         }
 
-        // Add dates with zero counts to ensure all dates are included
-        foreach ($dates as $date => $value) {
-            if (!array_key_exists($date, $arrayOfAttendances)) {
-                $arrayOfAttendances[$date] = 0;
-            }
+        // Convert schedule data to associative array
+        $arrayOfSchedules = $dates->toArray();
+        foreach ($countSchedules as $schedule) {
+            $arrayOfSchedules[$schedule->date] = $schedule->count;
         }
 
-        // Sort the array by date
-        ksort($arrayOfAttendances);
-
-        // Convert the associative array to a simple array of objects
+        // Convert associative arrays to simple arrays of objects
         $attendanceMonthlyInfo = collect($arrayOfAttendances)->map(function ($count, $date) {
-            $item = new \stdClass();
-            $item->date = $date;
-            $item->count = $count;
-            return $item;
+            return (object) ['date' => $date, 'count' => $count];
         })->values();
 
-        // Return the data as JSON
-        return response()->json($attendanceMonthlyInfo, 200);
+        $schedulesMonthlyInfo = collect($arrayOfSchedules)->map(function ($count, $date) {
+            return (object) ['date' => $date, 'count' => $count];
+        })->values();
+
+        return response()->json([
+            'attendances' => $attendanceMonthlyInfo,
+            'schedules' => $schedulesMonthlyInfo
+        ], 200);
     }
+
 
     public function instructorSummaryData()
     {
