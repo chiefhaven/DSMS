@@ -78,6 +78,7 @@ Route::delete('/deleteattendance/{id}', [AttendanceController::class, 'destroy']
 Route::get('/attendance-student-search', [AttendanceController::class, 'autocompletestudentSearch'])->middleware('auth')->name('attendance-student-search');
 Route::get('/attendanceSummary/{id}', [AttendanceController::class, 'attendanceSummary'])->middleware('auth')->name('attendanceSummary');
 
+Route::get('/schedules', [ScheduleLessonController::class, 'schedules'])->middleware('auth')->name('schedules');
 Route::get('/schedule-lesson-index', [ScheduleLessonController::class, 'index'])->middleware('auth')->name('schedulelesson-index');
 Route::get('/schedule-lessons', [ScheduleLessonController::class, 'schedulelesson'])->middleware('auth')->name('schedulelesson');
 Route::post('/store-lesson-schedule', [ScheduleLessonController::class, 'store'])->middleware('auth')->name('storeschedulelesson');
