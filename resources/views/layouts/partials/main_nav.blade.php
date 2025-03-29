@@ -31,10 +31,25 @@
                         @endcan
                 </li>
                 <li class="nav-main-item">
-                    <a class="nav-main-link" href="{{ url('/attendances') }}">
+                    <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="">
                         <i class="nav-main-link-icon fa fa-user-clock"></i>
                         <span class="nav-main-link-name">Attendances</span>
                     </a>
+                    <ul class="nav-main-submenu">
+                        <li class="nav-main-item">
+                            <a class="nav-main-link" href="{{ url('/attendances') }}">
+                                <span class="nav-main-link-name">All attendances</span>
+                            </a>
+                        </li>
+                        @role(['superAdmin', 'admin'])
+                            <li>
+                                <a class="nav-main-link" href="{{ url('/schedules') }}">
+                                    <span class="nav-main-link-name">Schedules</span>
+                                    <span class="badge bg-danger ms-1">New</span>
+                                </a>
+                            </li>
+                        @endrole
+                    </ul>
                 </li>
             @endcan
 
