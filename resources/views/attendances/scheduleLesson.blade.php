@@ -117,7 +117,7 @@
                                     <th>Student</th>
                                     <th>Lesson</th>
                                     <th>Date/Time</th>
-                                    <th>Action</th>
+                                    <th style="min-width: 100px;">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
