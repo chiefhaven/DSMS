@@ -45,7 +45,7 @@ class Student extends Model
        return $this->belongsTo(Fleet::class);
     }
 
-    public function course()
+    public function Course()
     {
         return $this->belongsTo(Course::class);
     }

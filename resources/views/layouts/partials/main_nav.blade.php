@@ -184,7 +184,15 @@
                         <span class="nav-main-link-name">Scan for attendance</span>
                     </a>
                 </li>
-            @endcan
+                <li>
+                    <a class="nav-main-link" href="{{ url('/schedule-lesson') }}">
+                        <i class="nav-main-link-icon fa fa-calendar-alt"></i>
+                        <span class="nav-main-link-name">Schedule lesson</span>
+                        <span class="badge bg-danger ms-1">New</span>
+                    </a>
+                </li>
+            @endrole
+
 
             @include('layouts.partials.knowledgeNav')
 

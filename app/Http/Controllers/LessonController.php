@@ -7,6 +7,7 @@ use App\Http\Requests\StoreLessonRequest;
 use App\Http\Requests\UpdateLessonRequest;
 use App\Models\Attendance;
 use App\Models\Department;
+use App\Models\Student;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class LessonController extends Controller
@@ -14,7 +15,7 @@ class LessonController extends Controller
     public function __construct()
     {
 
-        $this->middleware(['role:superAdmin|admin']);
+        $this->middleware(['role:superAdmin|admin|instructor']);
 
     }
 
@@ -34,6 +35,20 @@ class LessonController extends Controller
         $lessons = Lesson::with('department')->get();
         $departments = Department::get();
         return response()->json(['lessons' => $lessons, 'departments' => $departments], 200);
+    }
+
+    public function studentLessons($id)
+    {
+        $student = Student::with('course.lessons')->find($id);
+
+        if (!$student) {
+            return response()->json(['message' => 'Student not found'], 404);
+        }
+
+        // Access lessons via the related course
+        $lessons = $student->course ? $student->course->lessons : [];
+
+        return response()->json($lessons, 200);
     }
 
     /**

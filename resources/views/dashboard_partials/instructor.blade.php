@@ -10,79 +10,135 @@
                         {!! \Illuminate\Foundation\Inspiring::quote() !!}
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="block block-rounded block-link-shadow border">
-                        <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                            <div>
-                                <i class="fa fa-2x fa-building"></i>
-                            </div>
-                            <div class="ml-3 text-right">
-                                <p class="font-size-h2 font-w900 mb-0 text-uppercase">
-                                    {{ Auth::user()->instructor->department->name ?? '' }}
-                                </p>
-                                <p class="mb-0">Department</p>
+
+                <div class="col-md-12 col-xl-12 mb-4">
+                    <h5>Actions</h5>
+                    <hr>
+                    <div class="block block-content">
+                        <div class="row">
+                            <div class="block block-content">
+                                <div class="row">
+                                    <!-- Scan for Attendance -->
+                                    <div class="col-md-6">
+                                        <a href="{{ url('/scanqrcode') }}" class="text-decoration-none">
+                                            <div class="block block-rounded block-link-shadow border p-3 hover-effect">
+                                                <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                                                    <div>
+                                                        <i class="fa fa-4x fa-qrcode text-primary"></i>
+                                                    </div>
+                                                    <div class="ms-3 text-end">
+                                                        <p class="font-size-h4 font-w700 mb-0 text-dark">Scan for Attendance</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </div>
+
+                                    <!-- Schedule Attendance -->
+                                    <div class="col-md-6">
+                                        <a href="{{ url('/schedule-lesson') }}" class="text-decoration-none">
+                                            <div class="block block-rounded block-link-shadow border p-3 hover-effect">
+                                                <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                                                    <div>
+                                                        <i class="fa fa-4x fa-calendar-alt text-success"></i>
+                                                    </div>
+                                                    <div class="ms-3 text-end">
+                                                        <p class="font-size-h4 font-w700 mb-0 text-dark">Schedule lesson</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-md-4">
-                    <div class="block block-rounded block-link-shadow border">
-                        <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                            <div>
-                                @if (Auth::user()->instructor->fleet)
-                                    <i class="fa fa-2x fa-car"></i>
-                                @else
-                                    <i class="fa fa-2x fa-chalkboard-teacher"></i>
-                                @endif
-                            </div>
-                            <div class="ml-3 text-right">
-                                <p class="font-size-h3 font-w900 mb-0 text-uppercase">
-                                    @if (Auth::user()->instructor->fleet)
-                                        {{ Auth::user()->instructor->fleet->car_registration_number }}
-                                    @elseif (Auth::user()->instructor->classrooms && Auth::user()->instructor->classrooms->isNotEmpty())
-                                        @foreach (Auth::user()->instructor->classrooms as $classroom)
-                                            {{ $classroom->name }}{{ !$loop->last ? ',' : '' }}
-                                        @endforeach
-                                    @else
-                                        Not yet assigned car or classroom
-                                    @endif
-                                </p>
-                                <p class="mb-0">Assigned</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <h5>Your Summary</h5>
+                        <hr>
 
-                <div class="col-md-4">
-                    <div class="block block-rounded block-link-shadow border">
-                        <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                            <div>
-                                <i class="fa fa-2x fa-user-check"></i>
+                        <div class="row">
+                            <!-- Department -->
+                            <div class="col-md-4">
+                                <div class="block block-rounded block-link-shadow border">
+                                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <i class="fa fa-2x fa-building"></i>
+                                        </div>
+                                        <div class="ms-3 text-right">
+                                            <p class="font-size-h2 font-w900 mb-0 text-uppercase">
+                                                {{ Auth::user()->instructor->department->name ?? '' }}
+                                            </p>
+                                            <p class="mb-0">Department</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="ml-3 text-right">
-                                <p class="font-size-h3 font-w900 mb-0 text-uppercase">
-                                    {{ $attendanceCount }}
-                                </p>
-                                <p class="mb-0">Todays Attendances</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="col-md-4">
-                    <div class="block block-rounded block-link-shadow border">
-                        <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                            <div>
-                                <i class="fa fa-2x fa-money-bill-wave"></i>
+                            <!-- Assigned Fleet or Classroom -->
+                            <div class="col-md-4">
+                                <div class="block block-rounded block-link-shadow border">
+                                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                                        <div>
+                                            @if (Auth::user()->instructor->fleet)
+                                                <i class="fa fa-2x fa-car"></i>
+                                            @else
+                                                <i class="fa fa-2x fa-chalkboard-teacher"></i>
+                                            @endif
+                                        </div>
+                                        <div class="ms-3 text-right">
+                                            <p class="font-size-h3 font-w900 mb-0 text-uppercase">
+                                                @if (Auth::user()->instructor->fleet)
+                                                    {{ Auth::user()->instructor->fleet->car_registration_number }}
+                                                @elseif (Auth::user()->instructor->classrooms && Auth::user()->instructor->classrooms->isNotEmpty())
+                                                    {{ Auth::user()->instructor->classrooms->pluck('name')->join(', ') }}
+                                                @else
+                                                    Not yet assigned car or classroom
+                                                @endif
+                                            </p>
+                                            <p class="mb-0">Assigned</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="ml-3 text-right">
-                                <p class="font-size-h3 font-w900 mb-0 text-uppercase">
-                                    {{ $attendanceCount }}
-                                </p>
-                                <p class="mb-0">Expected Payment</p>
+
+                            <!-- Today's Attendance -->
+                            <div class="col-md-4">
+                                <div class="block block-rounded block-link-shadow border">
+                                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <i class="fa fa-2x fa-user-check"></i>
+                                        </div>
+                                        <div class="ms-3 text-right">
+                                            <p class="font-size-h3 font-w900 mb-0 text-uppercase">
+                                                {{ $attendanceCount }}
+                                            </p>
+                                            <p class="mb-0">Today's Attendances</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+
+                            <!-- Expected Pay -->
+                            <div class="col-md-4">
+                                <div class="block block-rounded block-link-shadow border">
+                                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <i class="fa fa-2x fa-money-bill-wave"></i>
+                                        </div>
+                                        <div class="ms-3 text-right">
+                                            <p class="font-size-h3 font-w900 mb-0 text-uppercase">
+                                                {{ $attendanceCount * $settings->bonus }}
+                                            </p>
+                                            <p class="mb-0">Expected Pay</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div> <!-- End Row -->
                     </div>
                 </div>
 

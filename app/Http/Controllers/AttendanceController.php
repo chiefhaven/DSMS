@@ -7,7 +7,9 @@ use App\Models\Invoice;
 use App\Models\Student;
 use App\Http\Requests\StoreAttendanceRequest;
 use App\Http\Requests\UpdateAttendanceRequest;
+use App\Models\Fleet;
 use App\Models\Instructor;
+use App\Models\ScheduleLesson;
 use App\Models\Setting;
 use App\Notifications\AttendanceAdded;
 use Auth;
@@ -322,6 +324,31 @@ class AttendanceController extends Controller
     }
 
     /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  \App\Models\Attendance  $attendance
+     * @return \Illuminate\Http\Response
+     */
+    public function scheduleLesson()
+    {
+        $events = [];
+
+        $lessonSchedules = scheduleLesson::with(['student', 'instructor'])->get();
+
+        foreach ($lessonSchedules as $schedule) {
+            $studentName = $schedule->student->fname.' '.$schedule->student->sname ?? 'Unknown Student';
+            $lessonName = $schedule->lesson->name ?? 'Unknown Instructor';
+
+            $events[] = [
+                'title' => "$studentName ($lessonName)",
+                'start' => $schedule->start_time->format('Y-m-d H:i:s'),
+                'end' => $schedule->finish_time->format('Y-m-d H:i:s'),
+            ];
+        }
+        return view('attendances.scheduleLesson', compact('events'));
+    }
+
+    /**
      * Update the specified resource in storage.
      *
      * @param  \App\Http\Requests\UpdateAttendanceRequest  $request
@@ -379,17 +406,44 @@ class AttendanceController extends Controller
 
     public function autocompletestudentSearch(Request $request)
     {
-        $datas = Student::select("fname", "mname", "sname")
-            ->where("fname","LIKE","%{$request->student}%")
-            ->orWhere("mname","LIKE","%{$request->student}%")
-            ->orWhere("sname","LIKE","%{$request->student}%")
-            ->get();
+        if (Auth::user()->hasRole('instructor')) {
+            $fleet_id = Fleet::where('instructor_id', Auth::user()->instructor_id)->firstOrFail()->id;
+            $students = Student::with('User')
+                ->where('fleet_id', $fleet_id)
+                ->where(function ($query) use ($request) {
+                    $query->where('fname', 'like', '%' . $request->search . '%')
+                        ->orWhere('mname', 'like', '%' . $request->search . '%')
+                        ->orWhere('sname', 'like', '%' . $request->search . '%')
+                        ->orWhere('phone', 'like', '%' . $request->search . '%')
+                        ->orWhere('trn', 'like', '%' . $request->search . '%')
+                        ->orWhereHas('User', function ($q) use ($request) {
+                            $q->where('email', 'like', '%' . $request->search . '%');
+                        });
+                })
+                ->orderBy('fname', 'ASC')
+                ->paginate(20);
+        } else {
+            $students = Student::with('User')
+                ->where('fname', 'like', '%' . $request->search . '%')
+                ->orWhere('mname', 'like', '%' . $request->search . '%')
+                ->orWhere('sname', 'like', '%' . $request->search . '%')
+                ->orWhere('phone', 'like', '%' . $request->search . '%')
+                ->orWhere('trn', 'like', '%' . $request->search . '%')
+                ->orWhereHas('User', function ($q) use ($request) {
+                    $q->where('email', 'like', '%' . $request->search . '%');
+                })
+                ->orderBy('fname', 'ASC')
+                ->paginate(20);
+        }
 
-        $dataModified = array();
-
-        foreach ($datas as $data){
-           $dataModified[] = $data->fname.' '.$data->mname.' '.$data->sname;
-         }
+        // Modify data structure to include ID
+        $dataModified = [];
+        foreach ($students as $student) {
+            $dataModified[] = [
+                'id' => $student->id,
+                'full_name' => trim("{$student->fname} {$student->mname} {$student->sname}")
+            ];
+        }
 
         return response()->json($dataModified);
     }

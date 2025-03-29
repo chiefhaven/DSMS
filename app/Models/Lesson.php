@@ -30,7 +30,7 @@ class Lesson extends Model
         return $this->belongsToMany(Instructor::class);
     }
 
-    public function department()
+    public function Department()
     {
        return $this->belongsTo(Department::class);
     }

@@ -21,8 +21,10 @@ use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\havenUtils;
 use App\Http\Controllers\knowledgeController;
 use App\Http\Controllers\QrCodeController;
+use App\Http\Controllers\ScheduleLessonController;
 use App\Models\Announcement;
 use App\Models\knowledge;
+use App\Models\ScheduleLesson;
 use Illuminate\Support\Facades\Artisan;
 
 /*
@@ -75,6 +77,8 @@ Route::post('/updateattendance', [AttendanceController::class, 'update'])->middl
 Route::delete('/deleteattendance/{id}', [AttendanceController::class, 'destroy'])->middleware('auth')->name('deleteattendance');
 Route::get('/attendance-student-search', [AttendanceController::class, 'autocompletestudentSearch'])->middleware('auth')->name('attendance-student-search');
 Route::get('/attendanceSummary/{id}', [AttendanceController::class, 'attendanceSummary'])->middleware('auth')->name('attendanceSummary');
+Route::get('/schedule-lesson', [AttendanceController::class, 'schedulelesson'])->middleware('auth')->name('schedulelesson');
+Route::post('/store-lesson-schedule', [ScheduleLessonController::class, 'store'])->middleware('auth')->name('storeschedulelesson');
 
 
 Route::get('/courses', [CourseController::class, 'index'])->middleware('auth')->name('courses');
@@ -90,6 +94,7 @@ Route::put('/updatecourse', [CourseController::class, 'update'])->middleware('au
 Route::put('/update-course-lesson', [CourseController::class, 'updateCourseLessons'])->middleware('auth')->name('update-course-lessons');
 
 Route::get('/lessons', [LessonController::class, 'index'])->middleware('auth')->name('lessons');
+Route::get('/student-lessons/{student}', [LessonController::class, 'studentLessons'])->middleware('auth')->name('studentLessons');
 Route::get('/getLessons', [LessonController::class, 'getLessons'])->middleware('auth')->name('getLessons');
 Route::get('/view-lesson/{id}', [LessonController::class, 'show'])->middleware('auth')->name('viewlessons');
 Route::get('/addlesson', [LessonController::class, 'create'])->middleware('auth')->name('addlessons');
