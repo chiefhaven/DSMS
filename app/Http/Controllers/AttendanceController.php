@@ -349,7 +349,7 @@ class AttendanceController extends Controller
                 'end' => $schedule->finish_time->format('Y-m-d H:i:s'),
             ];
         }
-        return view('attendances.scheduleLesson', compact('events'));
+        return response()->json($events, 200);
     }
 
     /**
