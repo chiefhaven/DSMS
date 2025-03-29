@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\scheduleLesson;
+use App\Models\ScheduleLesson;
 use App\Http\Requests\StorescheduleLessonRequest;
 use App\Http\Requests\UpdatescheduleLessonRequest;
 use App\Models\ScheduleLesson as ModelsScheduleLesson;
@@ -40,7 +40,7 @@ class ScheduleLessonController extends Controller
     public function store(StorescheduleLessonRequest $request)
     {
         try {
-            $schedule = scheduleLesson::create([
+            $schedule = ScheduleLesson::create([
                 'course_id' => $request->course_id,
                 'lesson_id' => $request->lesson_id,
                 'instructor_id' => Auth::user()->instructor_id,
@@ -68,10 +68,10 @@ class ScheduleLessonController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\scheduleLesson  $scheduleLesson
+     * @param  \App\Models\ScheduleLesson  $ScheduleLesson
      * @return \Illuminate\Http\Response
      */
-    public function show(scheduleLesson $scheduleLesson)
+    public function show(ScheduleLesson $ScheduleLesson)
     {
         //
     }
@@ -79,10 +79,10 @@ class ScheduleLessonController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\scheduleLesson  $scheduleLesson
+     * @param  \App\Models\ScheduleLesson  $ScheduleLesson
      * @return \Illuminate\Http\Response
      */
-    public function edit(scheduleLesson $scheduleLesson)
+    public function edit(ScheduleLesson $ScheduleLesson)
     {
         //
     }
@@ -91,7 +91,7 @@ class ScheduleLessonController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \App\Http\Requests\UpdatescheduleLessonRequest  $request
-     * @param  \App\Models\scheduleLesson  $scheduleLesson
+     * @param  \App\Models\ScheduleLesson  $ScheduleLesson
      * @return \Illuminate\Http\Response
      */
     public function update(UpdatescheduleLessonRequest $request, $id)
@@ -128,19 +128,19 @@ class ScheduleLessonController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\scheduleLesson  $scheduleLesson
+     * @param  \App\Models\ScheduleLesson  $ScheduleLesson
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
     {
-        $scheduleLesson = scheduleLesson::find($id);
+        $ScheduleLesson = ScheduleLesson::find($id);
 
-        if (!$scheduleLesson) {
+        if (!$ScheduleLesson) {
             return response()->json(['error' => 'Schedule not found'], 404); // Return a 404 if not found
         }
 
         try {
-            $scheduleLesson->delete();
+            $ScheduleLesson->delete();
             return response()->json(['message' => 'Schedule deleted successfully'], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to delete schedule', 'exception' => $e->getMessage()], 500);
@@ -148,11 +148,11 @@ class ScheduleLessonController extends Controller
     }
 
 
-    public function scheduleLesson()
+    public function ScheduleLesson()
     {
         $events = [];
 
-        $lessonSchedules = scheduleLesson::with(['student', 'instructor', 'lesson'])->get();
+        $lessonSchedules = ScheduleLesson::with(['student', 'instructor', 'lesson'])->get();
 
         foreach ($lessonSchedules as $schedule) {
             // Ensure student name and lesson name are always properly set
