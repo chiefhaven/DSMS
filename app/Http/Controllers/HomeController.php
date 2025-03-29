@@ -115,6 +115,13 @@ class HomeController extends Controller
                 break;
         }
 
+        if (Auth::user()->hasRole('instructor')) {
+            $attendanceCount = Attendance::whereMonth('created_at', Carbon::now()->month)
+                ->whereYear('created_at', Carbon::now()->year)
+                ->where('instructor_id', Auth::user()->instructor_id)
+                ->count();
+        }
+
         $invoice = Invoice::with('Student', 'User')
             ->where('invoice_balance', '>', 0.00)
             ->orderBy('date_created', 'DESC')
