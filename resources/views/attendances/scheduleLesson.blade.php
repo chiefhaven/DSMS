@@ -79,9 +79,21 @@
                     </div>  --}}
 
                     <!-- Location -->
-                    <div class="form-group mb-3">
+                    {{--  <div class="form-group mb-3">
                         <label for="location" class="form-label">Location</label>
                         <input type="text" v-model="location" id="location" class="form-control" placeholder="Enter location" />
+                    </div>  --}}
+                    <!-- Location -->
+                    <div class="form-group mb-3">
+                    <label class="form-label">Location</label>
+                    <select v-model="location" id="location" class="form-select">
+                        <option value="">Select location</option>
+                        <option>Area 4</option>
+                        <option>Area 49</option>
+                        <option>City center</option>
+                        <option>Students Home</option>
+                        <option>Other</option>
+                    </select>
                     </div>
 
                     <!-- Comments -->
@@ -90,10 +102,19 @@
                         <textarea v-model="comments" id="comments" class="form-control" rows="3" placeholder="Additional notes..."></textarea>
                     </div>
 
-                    <!-- Submit Button -->
                     <div class="form-group">
-                        <button type="submit" class="btn btn-primary">
-                            @{{ selectedEvent ? "Update Schedule" : "Create Schedule" }}
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                            :disabled="isSubmitting"
+                        >
+                            <span v-if="isSubmitting">
+                                <span class="spinner-border spinner-border-sm" role="status"></span>
+                                @{{ selectedEvent ? "Updating..." : "Creating..." }}
+                            </span>
+                            <span v-else>
+                                @{{ selectedEvent ? "Update Schedule" : "Create Schedule" }}
+                            </span>
                         </button>
                     </div>
                 </form>
@@ -155,326 +176,339 @@
 </div>
 
 <script>
-    const { createApp, ref, onMounted, computed } = Vue;
+    const { createApp, ref, onMounted, computed, watch } = Vue;
 
     const lessonSchedule = createApp({
-        setup() {
-            const student = ref('');
-            const lessonSchedule = ref(null);
-            const studentId = ref("");
-            const lessonId = ref("");
-            const startTime = ref("");
-            const location = ref("");
-            const comments = ref("");
-            const lessons = ref([]);
-            let studentsData = [];
-            let events = ref([]);
-            const eventItems = ref([]);
-            const selectedEvent = ref(null);
-            const clickedDate = ref();
+      setup() {
+        // Reactive state
+        const student = ref('');
+        const studentId = ref("");
+        const lessonId = ref("");
+        const startTime = ref("");
+        const location = ref("");
+        const comments = ref("");
+        const lessons = ref([]);
+        const studentsData = ref([]);
+        const events = ref([]);
+        const eventItems = ref([]);
+        const selectedEvent = ref(null);
+        const clickedDate = ref("");
+        const calendarInstance = ref(null);
+        const isSubmitting = ref(false);
 
-            // Define the fetchLessons function
-            const fetchLessons = async (studentId) => {
-                try {
-                    const response = await axios.get(`/student-lessons/${studentId}`);
-                    lessons.value = response.data;
-                } catch (error) {
-                    console.error("Error fetching lessons:", error);
-                }
-            };
+        // Computed properties
+        const finishTime = computed(() => {
+          if (!startTime.value) return "";
+          return moment(startTime.value, "YYYY-MM-DDTHH:mm")
+                 .add(30, "minutes")
+                 .format("YYYY-MM-DDTHH:mm");
+        });
 
-            function formatDate(dateString) {
-                const date = new Date(dateString);
-
-                // Define month names
-                const months = [
-                    "January", "February", "March", "April", "May", "June",
-                    "July", "August", "September", "October", "November", "December"
-                ];
-
-                const day = date.getDate();
-                const month = months[date.getMonth()];
-                const year = date.getFullYear();
-
-                const hours = String(date.getHours()).padStart(2, '0');
-                const minutes = String(date.getMinutes()).padStart(2, '0');
-                const seconds = String(date.getSeconds()).padStart(2, '0');
-
-                return `${day} ${month}, ${year} ${hours}:${minutes}:${seconds}`;
+        // Methods
+        const fetchLessons = async (studentId) => {
+          try {
+            const response = await axios.get(`/student-lessons/${studentId}`);
+            lessons.value = response.data;
+            if (lessons.value.length === 0) {
+              notification('No lessons available for this student', 'error');
             }
+          } catch (error) {
+            console.error("Error fetching lessons:", error);
+            notification('Failed to fetch lessons', 'error');
+          }
+        };
 
-            const finishTime = computed(() => {
-                if (startTime.value) {
-                    // Parse startTime, add 30 minutes, and return the result in "YYYY-MM-DDTHH:mm" format
-                    return moment(startTime.value, "YYYY-MM-DDTHH:mm")
-                        .add(30, "minutes")
-                        .format("YYYY-MM-DDTHH:mm");
+        const formatDate = (dateString) => {
+          const date = new Date(dateString);
+          return date.toLocaleString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+          });
+        };
+
+        const validateForm = () => {
+          if (!studentId.value || !lessonId.value || !startTime.value) {
+            notification("Please fill in all required fields!", "error");
+            return false;
+          }
+
+          if (new Date(finishTime.value) <= new Date(startTime.value)) {
+            notification("Finish time must be after start time!", "error");
+            return false;
+          }
+
+          return true;
+        };
+
+        const submitForm = async () => {
+          if (!validateForm()) return;
+
+          isSubmitting.value = true;
+          NProgress.start();
+
+          const payload = {
+            student_id: studentId.value,
+            lesson_id: lessonId.value,
+            start_time: startTime.value,
+            finish_time: finishTime.value,
+            location: location.value,
+            comments: comments.value,
+            lessonScheduleId: selectedEvent.value?.id ?? null,
+          };
+
+          try {
+            const endpoint = selectedEvent.value?.id
+              ? `/update-lesson-schedule/${selectedEvent.value.id}`
+              : "/store-lesson-schedule";
+
+            const method = selectedEvent.value?.id ? "put" : "post";
+            const response = await axios[method](endpoint, payload);
+
+            notification(response.data.message || "Lesson schedule saved successfully!", "success");
+            await fetchSchedules();
+            closeModal('lessonScheduleModal');
+            clearForm();
+          } catch (error) {
+            handleApiError(error);
+          } finally {
+            isSubmitting.value = false;
+          }
+        };
+
+        const handleApiError = (error) => {
+          const errorMessage = error.response?.data?.message ||
+                             error.message ||
+                             "Failed to save lesson schedule. Please try again.";
+          notification(errorMessage, "error");
+          console.error("API Error:", {
+            status: error.response?.status,
+            data: error.response?.data,
+            stack: error.stack,
+          });
+        };
+
+        const clearForm = () => {
+          student.value = '';
+          studentId.value = '';
+          lessonId.value = '';
+          startTime.value = '';
+          location.value = '';
+          comments.value = '';
+          selectedEvent.value = null;
+        };
+
+        const searchStudent = () => {
+          $('#student_id').typeahead({
+            source: (query, process) => {
+              return $.get('/attendance-student-search', { search: query }, (data) => {
+                studentsData.value = data;
+                return process(data.map(student => student.full_name));
+              });
+            },
+            updater: (selectedName) => {
+              const selectedStudent = studentsData.value.find(s => s.full_name === selectedName);
+              if (selectedStudent) {
+                studentId.value = selectedStudent.id;
+                student.value = selectedStudent.full_name;
+                fetchLessons(selectedStudent.id);
+              }
+              return selectedName;
+            }
+          });
+        };
+
+        const handleDateClick = (info) => {
+            const clickedMoment = moment(info.date);
+            const today = moment().startOf('day');
+            clickedDate.value = clickedMoment;
+
+            // Format for comparison
+            const clickedDateStr = clickedMoment.format("YYYY-MM-DD");
+
+            // Check for events on this date
+            const hasEvents = events.value.some(event =>
+              moment(event.start).format('YYYY-MM-DD') === clickedDateStr
+            );
+
+            // Only proceed if no events exist
+            if (!hasEvents) {
+                // Validate date is today or in future
+                if (clickedMoment.isBefore(today)) {
+                    notification("Please select today's date or a future date", "error");
+                    return;
                 }
-                return ""; // Default value if startTime is not set
+              // Set smart default time (next hour if today, 9am if future)
+              const defaultTime = clickedMoment.isSame(today, 'day')
+                ? moment().add(1, 'hour').startOf('hour') // Next full hour
+                : clickedMoment.set({ hour: 9, minute: 0 }); // 9:00 AM
+
+              startTime.value = defaultTime.format("YYYY-MM-DDTHH:mm");
+              showModal('lessonScheduleModal');
+            } else {
+              // Optional: Show existing events if needed
+              eventItems.value = events.value.filter(event =>
+                moment(event.start).format('YYYY-MM-DD') === clickedDateStr
+              );
+              showModal('lessonsModal');
+            }
+          };
+
+        const handleAddSchedule = () => {
+
+            const today = moment().startOf('day');
+
+            // Validate date is today or in future
+            if (clickedDate.value.isBefore(today)) {
+                notification("Please select today's date or a future date", "error");
+                return;
+              }
+
+            closeModal('lessonsModal');
+            console.log(clickedDate.value);
+            startTime.value = moment(clickedDate.value).format("YYYY-MM-DDTHH:mm");
+            showModal('lessonScheduleModal');
+        };
+
+        const showModal = (modalId) => {
+            const modal = new bootstrap.Modal(document.getElementById(modalId));
+            modal.show();
+        };
+
+        const closeModal = (modalId) => {
+            const modal = bootstrap.Modal.getInstance(document.getElementById(modalId));
+            if (modal) modal.hide();
+        };
+
+        const fetchSchedules = async () => {
+          NProgress.start();
+          try {
+            const response = await axios.get('schedule-lessons');
+            events.value = Array.isArray(response.data) ? response.data : [];
+            refreshCalendar();
+          } catch (error) {
+            console.error('Error fetching schedules:', error);
+            notification('Failed to fetch schedules', 'error');
+          } finally {
+            NProgress.done();
+          }
+        };
+
+        const calendarInitialization = () => {
+          const calendarEl = document.getElementById('calendar');
+          if (calendarEl) {
+            calendarInstance.value = new FullCalendar.Calendar(calendarEl, {
+              initialView: 'dayGridMonth',
+              slotMinTime: '06:00:00',
+              slotMaxTime: '18:30:00',
+              slotDuration: '00:30:00',
+              slotLabelInterval: '00:30:00',
+              allDaySlot: false,
+              nowIndicator: true,
+              dateClick: handleDateClick,
+              events: events.value,
+              eventClick: (info) => {
+                info.jsEvent.preventDefault();
+                editEvent(info.event);
+              }
             });
+            calendarInstance.value.render();
+          }
+        };
 
-            // Handle form submission
-            const submitForm = async () => {
-                const payload = {
-                    student_id: studentId.value,
-                    lesson_id: lessonId.value,
-                    start_time: startTime.value,
-                    finish_time: finishTime.value,
-                    location: location.value,
-                    comments: comments.value,
-                    lessonScheduleId: lessonSchedule.value?.id ?? null,
-                };
+        const refreshCalendar = () => {
+          if (calendarInstance.value) {
+            calendarInstance.value.removeAllEvents();
+            calendarInstance.value.addEventSource(events.value);
+          }
+        };
 
-                try {
-                    if (lessonSchedule.value && lessonSchedule.value.id) {
-                        await axios.put(`/update-lesson-schedule/${lessonSchedule.value.id}`, payload);
-                    } else {
-                        await axios.post("/store-lesson-schedule", payload);
-                    }
-
-                    notification("Lesson schedule saved successfully!", "success");
-
-                    fetchSchedules();
-
-                } catch (error) {
-                    notification(error.response?.data?.message || "An error occurred!", "error");
-                } finally {
-
-                    clearForm();
-
-                    // Get existing modal instance
-                    const lessonsModalEl = document.getElementById('lessonScheduleModal');
-                    const lessonsModal = bootstrap.Modal.getInstance(lessonsModalEl);
-
-                    if (lessonsModal) {
-                        lessonsModal.hide(); // Properly hide the modal
-                    }
-                }
-
-            };
-
-            const clearForm = () => {
-                studentId.value = '';
-                student.value = '';
-                lessonId.value = '';
-                startTime.value = '';
-                location.value = '';
-                comments.value = '';
-                lessonSchedule.value = {};
-            };
-
-            const searchStudent = () => {
-                const path = '/attendance-student-search';
-
-                $('#student_id').typeahead({
-                    source: function (query, process) {
-                        return $.get(path, { search: query }, function (data) {
-                            studentsData = data; // Store globally
-                            return process(data.map(student => student.full_name));
-                        });
-                    },
-                    updater: function (selectedName) {
-                        // Find the selected student
-                        const selectedStudent = studentsData.find(student => student.full_name === selectedName);
-
-                        if (selectedStudent) {
-                            studentId.value = selectedStudent.id;
-                            student.value = selectedStudent.full_name;
-                            fetchLessons(selectedStudent.id);
-                        }
-                        return selectedName;
-                    }
-                });
-            };
-
-            const handleDateClick = (info) => {
-
-
-                clickedDate.value = moment(info.date).format("YYYY-MM-DD");
-
-                // Check if events exist for the clicked date
-                const eventsOnClickedDate = events.value.filter(event => moment(event.start).format('YYYY-MM-DD') === clickedDate.value);
-
-                if (eventsOnClickedDate.length > 0) {
-                    // If events exist, show the list of events
-                    showEventList(eventsOnClickedDate);
-                } else {
-                    // If no events, show the modal
-                    startTime.value = moment(clickedDate.value).format("YYYY-MM-DDTHH:mm");
-                    const modal = new bootstrap.Modal(document.getElementById('lessonScheduleModal'));
-                    modal.show();
-                }
-            };
-
-            const handleAddSchedule = () => {
-
-                    // If no events, show the modal
-                    startTime.value = moment(clickedDate.value).format("YYYY-MM-DDTHH:mm");
-
-                    // Get existing modal instance
-                    const lessonsModalEl = document.getElementById('lessonsModal');
-                    const lessonsModal = bootstrap.Modal.getInstance(lessonsModalEl);
-
-                    if (lessonsModal) {
-                        lessonsModal.hide(); // Properly hide the modal
-                    }
-
-                    const modal = new bootstrap.Modal(document.getElementById('lessonScheduleModal'));
-                    modal.show();
-
-            };
-
-            // Function to display the event list for the clicked date
-            const showEventList = (events) => {
-
-                eventItems.value = events;
-
-                // Display the event list container
-                const modal = new bootstrap.Modal(document.getElementById('lessonsModal'));
-                modal.show();
-            };
-
-            onMounted(async () => {
-
-                calendarInitialization();
-                fetchSchedules();
-
-            });
-
-            const fetchSchedules = async () => {
-                NProgress.start();  // Start loading indicator
-
-                try {
-                    // Fetching data from your API endpoint
-                    const response = await axios.get('schedule-lessons');
-
-                    // Validate if response.data is an array
-                    if (Array.isArray(response.data)) {
-                        events.value = response.data || [];  // Update events with the data from the API
-                    } else {
-                        console.error('Unexpected data format:', response.data);
-                        events.value = [];
-                    }
-
-                } catch (error) {
-                    console.error('Error fetching schedule lessons:', error);
-                    events.value = [];
-                    alert('An error occurred while fetching schedules. Please try again later.');
-                } finally{
-                    calendarInitialization();  // Initialize calendar once data is fetched
-                    NProgress.done();  // End loading indicator
-                }
-
-            };
-
-            const calendarInitialization = () => {
-                // Initialize FullCalendar
-                var calendarEl = document.getElementById('calendar');
-                var calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: 'dayGridMonth',
-                    slotMinTime: '06:00:00', // Start time
-                    slotMaxTime: '18:30:00', // End time
-                    slotDuration: '00:30:00',
-                    slotLabelInterval: '00:30:00',
-                    allDaySlot: false,
-                    nowIndicator: true,
-                    dateClick: handleDateClick,
-                    events: events.value,
-                });
-                calendar.render();
+        const notification = (text, icon) => {
+          Swal.fire({
+            toast: true,
+            position: "top-end",
+            html: text,
+            showConfirmButton: false,
+            timer: 5500,
+            timerProgressBar: true,
+            icon: icon,
+            didOpen: (toast) => {
+              toast.onmouseenter = Swal.stopTimer;
+              toast.onmouseleave = Swal.resumeTimer;
             }
+          });
+        };
 
-            const notification = ($text, $icon) =>{
-                Swal.fire({
-                    toast: true,
-                    position: "top-end",
-                    html: $text,
-                    showConfirmButton: false,
-                    timer: 5500,
-                    timerProgressBar: true,
-                    icon: $icon,
-                    didOpen: (toast) => {
-                        toast.onmouseenter = Swal.stopTimer;
-                        toast.onmouseleave = Swal.resumeTimer;
-                      }
-                  });
+        const editEvent = (event) => {
+          NProgress.start();
+          selectedEvent.value = {
+            id: event.id,
+            ...event.extendedProps
+          };
+          student.value = `${event.extendedProps.student.fname} ${event.extendedProps.student.mname} ${event.extendedProps.student.sname}`;
+          studentId.value = event.extendedProps.student.id;
+          lessonId.value = event.extendedProps.lesson.id;
+          comments.value = event.extendedProps.comments;
+          startTime.value = moment(event.start).format("YYYY-MM-DDTHH:mm");
+          fetchLessons(studentId.value);
+
+          closeModal('lessonsModal');
+          showModal('lessonScheduleModal');
+          NProgress.done();
+        };
+
+        const deleteEvent = async (eventId) => {
+          if (confirm("Are you sure you want to delete this lesson?")) {
+            try {
+              NProgress.start();
+              await axios.delete(`/schedule-lesson/${eventId}`);
+              await fetchSchedules();
+              notification("Lesson deleted successfully!", "success");
+            } catch (error) {
+              notification("Failed to delete the lesson. Please try again.", "error");
+            } finally {
+              NProgress.done();
             }
+          }
+        };
 
-            const editEvent = (event) => {
-                NProgress.start();
-                selectedEvent.value = { ...event };
-                student.value = `${event.student.fname} ${event.student.mname} ${event.student.sname}`;
-                studentId.value = event.student.id;
-                lessonId.value = event.lesson.id;
-                comments.value = event.comments;
-                startTime.value = moment(event.start).format("YYYY-MM-DDTHH:mm");
-                lessonSchedule.value = event;
-                fetchLessons(studentId.value);
+        // Lifecycle hooks
+        onMounted(() => {
+          calendarInitialization();
+          fetchSchedules();
+        });
 
-                // Get existing modal instance
-                const lessonsModalEl = document.getElementById('lessonsModal');
-                const lessonsModal = bootstrap.Modal.getInstance(lessonsModalEl);
+        // Watchers
+        watch(events, () => {
+          refreshCalendar();
+        }, { deep: true });
 
-                if (lessonsModal) {
-                    lessonsModal.hide(); // Properly hide the modal
-                }
-
-                // Show the modal for editing
-                const modal = new bootstrap.Modal(document.getElementById('lessonScheduleModal'));
-                modal.show();
-
-                NProgress.done();
-            };
-
-
-            const deleteEvent = async (eventId) => {
-                // Confirm deletion
-                if (confirm("Are you sure you want to delete this lesson?")) {
-                    try {
-
-                        NProgress.start();
-
-                        // Send DELETE request to server
-                        const response = await axios.delete(`/schedule-lesson/${eventId}`);
-
-                        fetchSchedules()
-
-                        notification("Lesson deleted successfully!", "success");
-
-                    } catch (error) {
-                        notification("Failed to delete the lesson. Please try again.", "error");
-                    } finally{
-                        NProgress.done();
-                    }
-                }
-            };
-
-
-            return {
-                student,
-                lessons,
-                lessonId,
-                startTime,
-                finishTime,
-                location,
-                comments,
-                searchStudent,
-                submitForm,
-                lessonSchedule,
-                studentId,
-                eventItems,
-                formatDate,
-                deleteEvent,
-                editEvent,
-                selectedEvent,
-                handleDateClick,
-                handleAddSchedule,
-
-            };
-        }
+        return {
+          student,
+          studentId,
+          lessonId,
+          lessons,
+          startTime,
+          finishTime,
+          location,
+          comments,
+          eventItems,
+          selectedEvent,
+          isSubmitting,
+          searchStudent,
+          submitForm,
+          formatDate,
+          handleDateClick,
+          handleAddSchedule,
+          editEvent,
+          deleteEvent
+        };
+      }
     });
 
-    // Mount the Vue app to the DOM element
     lessonSchedule.mount('#lessonSchedule');
-</script>
+    </script>
 @endsection
