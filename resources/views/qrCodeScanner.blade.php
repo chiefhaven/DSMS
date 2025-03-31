@@ -25,97 +25,59 @@
   <!-- END Hero -->
 
   <script>
-    document.addEventListener('DOMContentLoaded', async () => {
-        // Verify ZXing is loaded
-        if (typeof ZXing === 'undefined') {
-            await Swal.fire('Error', 'Scanner library failed to load', 'error');
-            return;
+    var url = '';
+    const codeReader = new ZXing.BrowserQRCodeReader();
+
+    codeReader.decodeFromVideoDevice(null, 'webcam-preview', (result, err) => {
+        if (result) {
+            codeReader.stopContinuousDecode()
+            url = result.text
+            Swal.fire(
+                'Scan complete!',
+                'Checking student and redirecting...'
+        )
+
+        if(url.includes('https://www.dsms.darondrivingschool.com')){
+            var ret = url.replace('https://www.dsms.darondrivingschool.com','')
+            window.location.replace(ret)
         }
 
-        const DOMAIN = 'https://www.dsms.darondrivingschool.com';
-        let isScanning = false;
-        const codeReader = new ZXing.BrowserQRCodeReader();
-        const videoElement = document.getElementById('webcam-preview');
-
-        // Check camera permissions first
-
-        async function startScanning() {
-            if (isScanning) return;
-            isScanning = true;
-
-            try {
-                await codeReader.decodeFromVideoDevice(null, videoElement, async (result, err) => {
-                    if (result) {
-                        try {
-                            await handleScanResult(result.text);
-                        } catch (error) {
-                            console.error('Result handling error:', error);
-                        }
-                    }
-
-                    if (err && !isExpectedError(err)) {
-                        console.error('Scanning error:', err);
-                        stopScanning();
-                    }
-                });
-            } catch (error) {
-                console.error('Scanner initialization error:', error);
-                await Swal.fire('Scanner Error', 'Failed to initialize scanner', 'error');
-                stopScanning();
-            }
+        else{
+            Swal.fire(
+                'Invalid Document',
+                'QR code doesn\'t belong to Daron\'s documents...'
+            )
         }
 
-        function stopScanning() {
-            codeReader.reset();
-            isScanning = false;
+
         }
 
-        function isExpectedError(err) {
-            return err instanceof ZXing.NotFoundException ||
-                   err instanceof ZXing.ChecksumException ||
-                   err instanceof ZXing.FormatException;
-        }
+        if (err) {
+        // As long as this error belongs into one of the following categories
+        // the code reader is going to continue as excepted. Any other error
+        // will stop the decoding loop.
+        //
+        // Excepted Exceptions:
+        //
+        //  - NotFoundException
+        //  - ChecksumException
+        //  - FormatException
 
-        async function handleScanResult(url) {
-            stopScanning();
+            if (err instanceof ZXing.NotFoundException) {
 
-            if (!url) {
-                await Swal.fire('Invalid QR Code', 'No data found', 'warning');
-                return;
             }
 
-            await Swal.fire({
-                title: 'Scan Complete!',
-                text: 'Checking student and redirecting...',
-                icon: 'success'
-            });
+            if (err instanceof ZXing.ChecksumException) {
 
-            if (url.includes(DOMAIN)) {
-                const redirectPath = url.replace(DOMAIN, '');
+            }
 
-                // Security check for valid path
-                if (isValidPath(redirectPath)) {
-                    window.location.href = redirectPath;
-                } else {
-                    await Swal.fire('Security Alert', 'Invalid redirect path detected', 'error');
-                }
-            } else {
-                await Swal.fire(
-                    'Invalid Document',
-                    'QR code doesn\'t belong to Daron\'s documents',
-                    'error'
-                );
+            if (err instanceof ZXing.FormatException) {
+
             }
         }
+    })
 
-        function isValidPath(path) {
-            // Add your path validation logic here
-            return path.startsWith('/') && !path.includes('..');
-        }
 
-        // Start scanning automatically or add a start button
-        startScanning();
-    });
-</script>
+    </script>
 
 @endsection
