@@ -25,59 +25,125 @@
   <!-- END Hero -->
 
   <script>
-    var url = '';
-    const codeReader = new ZXing.BrowserQRCodeReader();
+    // Wait for DOM and libraries to load
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Configuration
+        const ALLOWED_DOMAIN = 'https://www.dsms.darondrivingschool.com';
+        const videoElement = document.getElementById('webcam-preview');
+        let isScanning = false;
+        let codeReader;
 
-    codeReader.decodeFromVideoDevice(null, 'webcam-preview', (result, err) => {
-        if (result) {
-            codeReader.stopContinuousDecode()
-            url = result.text
-            Swal.fire(
-                'Scan complete!',
-                'Checking student and redirecting...'
-        )
-
-        if(url.includes('https://www.dsms.darondrivingschool.com')){
-            var ret = url.replace('https://www.dsms.darondrivingschool.com','')
-            window.location.replace(ret)
+        // Verify ZXing loaded
+        if (!window.ZXing) {
+            await Swal.fire({
+                icon: 'error',
+                title: 'Scanner Error',
+                text: 'QR scanner library failed to load. Please refresh the page.'
+            });
+            return;
         }
 
-        else{
-            Swal.fire(
-                'Invalid Document',
-                'QR code doesn\'t belong to Daron\'s documents...'
-            )
+        // Initialize scanner
+        try {
+            codeReader = new ZXing.BrowserQRCodeReader();
+
+            // Start scanning automatically
+            startScanning();
+        } catch (error) {
+            console.error('Scanner init error:', error);
+            await showError('Failed to initialize scanner');
         }
 
+        async function startScanning() {
+            if (isScanning) return;
+            isScanning = true;
 
-        }
+            try {
+                await codeReader.decodeFromVideoDevice(null, videoElement, async (result, err) => {
+                    if (result) {
+                        await handleScanResult(result.text);
+                    }
 
-        if (err) {
-        // As long as this error belongs into one of the following categories
-        // the code reader is going to continue as excepted. Any other error
-        // will stop the decoding loop.
-        //
-        // Excepted Exceptions:
-        //
-        //  - NotFoundException
-        //  - ChecksumException
-        //  - FormatException
-
-            if (err instanceof ZXing.NotFoundException) {
-
+                    if (err && !isExpectedError(err)) {
+                        console.error('Scanning error:', err);
+                        await showError('Scanner encountered an error');
+                        stopScanning();
+                    }
+                });
+            } catch (error) {
+                console.error('Scanner error:', error);
+                await showError('Failed to start camera');
+                stopScanning();
             }
+        }
 
-            if (err instanceof ZXing.ChecksumException) {
-
+        function stopScanning() {
+            if (codeReader) {
+                codeReader.reset();
             }
+            isScanning = false;
+        }
 
-            if (err instanceof ZXing.FormatException) {
+        function isExpectedError(err) {
+            return err instanceof ZXing.NotFoundException ||
+                   err instanceof ZXing.ChecksumException ||
+                   err instanceof ZXing.FormatException;
+        }
 
+        async function handleScanResult(scannedUrl) {
+            stopScanning();
+
+            try {
+                await Swal.fire({
+                    title: 'Scan Complete!',
+                    text: 'Verifying document...',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
+                if (scannedUrl.includes(ALLOWED_DOMAIN)) {
+                    const redirectPath = scannedUrl.replace(ALLOWED_DOMAIN, '');
+
+                    // Security check for valid path
+                    if (isValidPath(redirectPath)) {
+                        window.location.href = redirectPath;
+                    } else {
+                        await showError('Invalid document path');
+                    }
+                } else {
+                    await Swal.fire({
+                        title: 'Invalid Document',
+                        text: 'This QR code is not from Daron\'s system',
+                        icon: 'error'
+                    });
+                    startScanning(); // Resume scanning
+                }
+            } catch (error) {
+                console.error('Result handling error:', error);
+                startScanning(); // Resume scanning after error
             }
         }
-    })
 
+        function isValidPath(path) {
+            // Basic security check - modify as needed
+            return path && path.startsWith('/') &&
+                   !path.includes('..') &&
+                   !path.includes('//');
+        }
 
+        async function showError(message) {
+            await Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: message,
+                confirmButtonText: 'OK'
+            });
+        }
+
+        // Restart scanning if needed
+        document.getElementById('rescan-btn')?.addEventListener('click', startScanning);
+    });
     </script>
 
 @endsection
