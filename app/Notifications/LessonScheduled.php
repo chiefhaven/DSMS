@@ -57,7 +57,7 @@ class LessonScheduled extends Notification implements ShouldQueue
             return (new MailMessage)
                 ->subject('Lesson Scheduled: ' . $this->schedule->lesson?->name)
                 ->greeting('Hello ' . $this->student->name . '!')
-                ->line('Your lesson has been scheduled with ' . $this->instructor->fname)
+                ->line('Your lesson has been scheduled with ' . $this->instructor->fname.' '.$this->instructor->sname)
                 ->line('Lesson: ' . $this->schedule->lesson?->name)
                 ->line('Date: ' . $this->scheduleDate->format('l, F j, Y'))
                 ->line('Time: ' . $this->scheduleDate->format('g:i A'))
