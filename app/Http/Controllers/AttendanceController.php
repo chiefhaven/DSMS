@@ -7,6 +7,7 @@ use App\Models\Invoice;
 use App\Models\Student;
 use App\Http\Requests\StoreAttendanceRequest;
 use App\Http\Requests\UpdateAttendanceRequest;
+use App\Models\Classroom;
 use App\Models\Fleet;
 use App\Models\Instructor;
 use App\Models\ScheduleLesson;
@@ -17,6 +18,7 @@ use PDF;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class AttendanceController extends Controller
@@ -381,46 +383,83 @@ class AttendanceController extends Controller
 
     public function autocompletestudentSearch(Request $request)
     {
-        if (Auth::user()->hasRole('instructor')) {
-            $fleet_id = Fleet::where('instructor_id', Auth::user()->instructor_id)->firstOrFail()->id;
-            $students = Student::with('User')
-                ->where('fleet_id', $fleet_id)
+        $request->validate([
+            'search' => 'required|string|min:2|max:50'
+        ]);
+
+        try {
+            $query = Student::with('user')
+                ->when(Auth::user()->hasRole('instructor'), function ($query) {
+                    $instructorId = Auth::user()->instructor_id;
+
+                    // Get related fleet and classrooms in single queries
+                    $fleetId = Fleet::where('instructor_id', $instructorId)->value('id');
+                    $classroomIds = DB::table('classroom_instructor')
+                        ->where('instructor_id', $instructorId)
+                        ->pluck('classroom_id');
+
+                    // Students must belong to EITHER the instructor's fleet OR classrooms
+                    $query->where(function($q) use ($fleetId, $classroomIds) {
+                        if ($fleetId) {
+                            $q->where('fleet_id', $fleetId);
+                        }
+                        if ($classroomIds->isNotEmpty()) {
+                            $q->orWhereIn('classroom_id', '$classroomIds');
+                        }
+                    });
+                })
                 ->where(function ($query) use ($request) {
-                    $query->where('fname', 'like', '%' . $request->search . '%')
-                        ->orWhere('mname', 'like', '%' . $request->search . '%')
-                        ->orWhere('sname', 'like', '%' . $request->search . '%')
-                        ->orWhere('phone', 'like', '%' . $request->search . '%')
-                        ->orWhere('trn', 'like', '%' . $request->search . '%')
-                        ->orWhereHas('User', function ($q) use ($request) {
-                            $q->where('email', 'like', '%' . $request->search . '%');
-                        });
+                    $searchTerm = '%' . $request->search . '%';
+                    $query->where(function($q) use ($searchTerm) {
+                        $q->where('fname', 'like', $searchTerm)
+                        ->orWhere('mname', 'like', $searchTerm)
+                        ->orWhere('sname', 'like', $searchTerm)
+                        ->orWhere('phone', 'like', $searchTerm)
+                        ->orWhere('trn', 'like', $searchTerm);
+                    })->orWhereHas('user', function ($q) use ($searchTerm) {
+                        $q->where('email', 'like', $searchTerm);
+                    });
                 })
-                ->orderBy('fname', 'ASC')
-                ->paginate(20);
-        } else {
-            $students = Student::with('User')
-                ->where('fname', 'like', '%' . $request->search . '%')
-                ->orWhere('mname', 'like', '%' . $request->search . '%')
-                ->orWhere('sname', 'like', '%' . $request->search . '%')
-                ->orWhere('phone', 'like', '%' . $request->search . '%')
-                ->orWhere('trn', 'like', '%' . $request->search . '%')
-                ->orWhereHas('User', function ($q) use ($request) {
-                    $q->where('email', 'like', '%' . $request->search . '%');
+                ->orderBy('fname');
+
+            $students = $query->get();
+
+            return response()->json(
+                $students->map(function ($student) {
+                    return [
+                        'id' => $student->id,
+                        'text' => trim(implode(' ', array_filter([
+                            $student->fname,
+                            $student->mname,
+                            $student->sname
+                        ]))),
+                        'display' => sprintf('%s (TRN: %s)',
+                            trim(implode(' ', array_filter([
+                                $student->fname,
+                                $student->mname,
+                                $student->sname
+                            ]))),
+                            $student->trn
+                        ),
+                        'email' => optional($student->user)->email,
+                        'phone' => $student->phone,
+                        'trn' => $student->trn
+                    ];
                 })
-                ->orderBy('fname', 'ASC')
-                ->paginate(20);
-        }
+            );
 
-        // Modify data structure to include ID
-        $dataModified = [];
-        foreach ($students as $student) {
-            $dataModified[] = [
-                'id' => $student->id,
-                'full_name' => trim("{$student->fname} {$student->mname} {$student->sname}")
-            ];
-        }
+        } catch (\Exception $e) {
+            Log::error('Student search failed', [
+                'error' => $e->getMessage(),
+                'search' => $request->search,
+                'user' => Auth::id()
+            ]);
 
-        return response()->json($dataModified);
+            return response()->json([
+                'message' => 'Search failed. Please try again.',
+                'error' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
     }
 
     public function attendanceCount($student_id){

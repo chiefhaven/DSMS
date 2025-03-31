@@ -1,4 +1,4 @@
-@extends('layouts.backend')
+    @extends('layouts.backend')
 
 @section('content')
   <!-- Hero -->

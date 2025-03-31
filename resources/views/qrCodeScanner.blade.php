@@ -56,7 +56,7 @@
 
         async function startScanning() {
             if (isScanning) return;
-            isScanning = true;
+                isScanning = true;
 
             try {
                 await codeReader.decodeFromVideoDevice(null, videoElement, async (result, err) => {

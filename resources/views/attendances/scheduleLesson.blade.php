@@ -302,23 +302,44 @@
         };
 
         const searchStudent = () => {
-          $('#student_id').typeahead({
-            source: (query, process) => {
-              return $.get('/attendance-student-search', { search: query }, (data) => {
-                studentsData.value = data;
-                return process(data.map(student => student.full_name));
-              });
-            },
-            updater: (selectedName) => {
-              const selectedStudent = studentsData.value.find(s => s.full_name === selectedName);
-              if (selectedStudent) {
-                studentId.value = selectedStudent.id;
-                student.value = selectedStudent.full_name;
-                fetchLessons(selectedStudent.id);
-              }
-              return selectedName;
-            }
-          });
+            $('#student_id').typeahead({
+                minLength: 2,
+                highlight: true,
+                source: function(query, process) {
+                    return $.ajax({
+                        url: '/api/students/search',
+                        data: { search: query },
+                        dataType: 'json'
+                    }).done(function(data) {
+                        if (data.length === 0) {
+                            notification('No students found matching your search', 'info');
+                        }
+                        return process(data.map(student => ({
+                            id: student.id,
+                            name: student.name,
+                            display: `${student.name} (${student.trn})`
+                        })));
+                    }).fail(function(jqXHR, textStatus, errorThrown) {
+                        console.error('Search failed:', textStatus, errorThrown, jqXHR);
+
+                        let errorMsg = 'Search failed';
+                        if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
+                            errorMsg += `: ${jqXHR.responseJSON} ${jqXHR.responseJSON.message}`;
+                        }
+
+                        notification(errorMsg, 'error');
+                        return process([]);
+                    });
+                },
+                displayText: function(item) {
+                    return item ? item.display : '';
+                },
+                afterSelect: function(item) {
+                    // Handle selection
+                    $('#student_id').val(item.id);
+                    loadStudentDetails(item.id);
+                }
+            });
         };
 
         const handleDateClick = (info) => {
@@ -338,7 +359,7 @@
             if (!hasEvents) {
                 // Validate date is today or in future
                 if (clickedMoment.isBefore(today)) {
-                    notification("Please select today's date or a future date", "error");
+                    showError("Can't select date", "Please select today's date or a future date");
                     return;
                 }
               // Set smart default time (next hour if today, 9am if future)
@@ -363,7 +384,7 @@
 
             // Validate date is today or in future
             if (clickedDate.value.isBefore(today)) {
-                notification("Please select today's date or a future date", "error");
+                showError("Can't select date", "Please select today's date or a future date");
                 return;
               }
 
@@ -391,7 +412,7 @@
             refreshCalendar();
           } catch (error) {
             console.error('Error fetching schedules:', error);
-            notification('Failed to fetch schedules', 'error');
+            showError('Failed to fetch schedules', 'error');
           } finally {
             NProgress.done();
           }
@@ -440,6 +461,44 @@
               toast.onmouseleave = Swal.resumeTimer;
             }
           });
+        };
+
+        const showSuccess = (message) => {
+            Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'success',
+              title: message,
+              showConfirmButton: false,
+              timer: 3000
+            });
+          };
+
+          const showError = (
+            message,
+            detail,
+            {
+                confirmText = 'OK',
+                icon = 'error',
+            } = {}
+            ) => {
+            const baseOptions = {
+                icon,
+                title: message,
+                text: detail,
+                confirmButtonText: confirmText,
+                didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+                }
+            };
+
+            // Clean up undefined options
+            const cleanOptions = Object.fromEntries(
+                Object.entries(baseOptions).filter(([_, v]) => v !== undefined)
+            );
+
+            return Swal.fire(cleanOptions);
         };
 
         const editEvent = (event) => {
@@ -510,5 +569,5 @@
     });
 
     lessonSchedule.mount('#lessonSchedule');
-    </script>
+</script>
 @endsection
