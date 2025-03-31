@@ -6,7 +6,11 @@ use App\Models\ScheduleLesson;
 use App\Http\Requests\StorescheduleLessonRequest;
 use App\Http\Requests\UpdatescheduleLessonRequest;
 use App\Models\ScheduleLesson as ModelsScheduleLesson;
+use App\Notifications\LessonScheduled;
 use Auth;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class ScheduleLessonController extends Controller
 {
@@ -42,27 +46,76 @@ class ScheduleLessonController extends Controller
      */
     public function store(StorescheduleLessonRequest $request)
     {
+        // 1. Validate the request data
+        $validator = Validator::make($request->all(), [
+            'lesson_id'    => 'required|exists:lessons,id',
+            'student_id'   => 'required|exists:students,id',
+            'start_time'   => 'required|date|after_or_equal:now',
+            'finish_time'  => 'required|date|after:start_time',
+            'comments'     => 'nullable|string|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors'  => $validator->errors(),
+            ], 422);
+        }
+
+        // 3. Check if the time slot is available (no overlapping lessons)
+        $isSlotTaken = ScheduleLesson::where('instructor_id', Auth::user()->instructor_id)
+            ->where(function ($query) use ($request) {
+                $query->whereBetween('start_time', [$request->start_time, $request->finish_time])
+                    ->orWhereBetween('finish_time', [$request->start_time, $request->finish_time])
+                    ->orWhere(function ($query) use ($request) {
+                        $query->where('start_time', '<', $request->start_time)
+                                ->where('finish_time', '>', $request->finish_time);
+                    });
+            })
+            ->exists();
+
+        if ($isSlotTaken) {
+            return response()->json([
+                'message' => 'This time slot is already booked.',
+            ], 409);
+        }
+
+        // 4. Use a database transaction to ensure data consistency
+        DB::beginTransaction();
+
         try {
             $schedule = ScheduleLesson::create([
-                'course_id' => $request->course_id,
-                'lesson_id' => $request->lesson_id,
+                'lesson_id'    => $request->lesson_id,
                 'instructor_id' => Auth::user()->instructor_id,
-                'student_id' => $request->student_id,
-                'start_time' => $request->start_time,
-                'finish_time' => $request->finish_time,
-                'status' => 'scheduled',
-                'comments' => $request->comments,
+                'student_id'    => $request->student_id,
+                'start_time'   => $request->start_time,
+                'finish_time'  => $request->finish_time,
+                'status'       => 'scheduled',
+                'location' => $request->location,
+                'comments'     => $request->comments,
             ]);
 
+            // 5. Send notification to the student
+            Notification::send(
+                $schedule->student->user,
+                new LessonScheduled(
+                    $schedule
+                )
+            );
+
+            DB::commit(); // Commit if everything succeeds
+
             return response()->json([
-                'message' => 'Lesson scheduled successfully',
-                'schedule' => $schedule
+                'message'  => 'Lesson scheduled successfully',
+                'schedule' => $schedule,
             ], 201);
 
         } catch (\Exception $e) {
+            DB::rollBack(); // Rollback on error
+
             return response()->json([
-                'message' => 'Error scheduling lesson',
-                'error' => $e->getMessage()
+                'message' => 'Failed to schedule lesson',
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }
