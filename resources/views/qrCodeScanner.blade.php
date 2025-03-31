@@ -38,12 +38,6 @@
         const videoElement = document.getElementById('webcam-preview');
 
         // Check camera permissions first
-        try {
-            await navigator.mediaDevices.getUserMedia({ video: true });
-        } catch (error) {
-            await Swal.fire('Camera Access Required', 'Please enable camera permissions', 'warning');
-            return;
-        }
 
         async function startScanning() {
             if (isScanning) return;
