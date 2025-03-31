@@ -56,7 +56,7 @@
   <script src="https://unpkg.com/vue@3.2.47/dist/vue.global.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vee-validate/4.13.2/vee-validate.min.js" integrity="sha512-YcI8fPTMiV2A8dj/SYpXjnVl2seJIe5yBK96pVVczOkZZ3Ogh+yFcuTeSsBUwrG4ZkCtUIY47cGgR2fDk46ddg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
-  <script src="https://unpkg.com/vuejs-paginate-next@latest/dist/vuejs-paginate-next.umd.js"></script>
+  <script src="https://unpkg.com/vuejs-paginate-next@1.0.7/dist/vuejs-paginate-next.umd.js"></script>
   <script src="https://unpkg.com/@zxing/library@0.19.5/dist/umd/zxing-library.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://unpkg.com/axios@1.8.4/dist/axios.min.js"></script>
