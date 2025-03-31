@@ -453,7 +453,7 @@
                         data: Attendances,
                         backgroundColor: 'rgb(255, 159, 64)',
                         borderColor: 'rgb(255, 159, 64, 0.8)',
-                        borderWidth: 1,
+                        borderWidth: 2,
                         radius: 0,
                     },
                     {
@@ -462,7 +462,7 @@
                         data: Schedules,
                         backgroundColor: 'rgb(54, 162, 235)',
                         borderColor: 'rgb(54, 162, 235, 0.8)',
-                        borderWidth: 1,
+                        borderWidth: 2,
                         radius: 0,
                     }
                 ]
