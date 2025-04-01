@@ -384,7 +384,7 @@ class AttendanceController extends Controller
     public function autocompletestudentSearch(Request $request)
     {
         $request->validate([
-            'search' => 'required|string|min:2|max:50'
+            'search' => 'required|string|max:50'
         ]);
 
         try {
@@ -404,12 +404,17 @@ class AttendanceController extends Controller
                             $q->where('fleet_id', $fleetId);
                         }
                         if ($classroomIds->isNotEmpty()) {
-                            $q->orWhereIn('classroom_id', '$classroomIds');
+                            $q->orWhere('classroom_id', $classroomIds); // Fixed variable reference
+                        }
+
+                        // If instructor has neither fleet nor classrooms, return no students
+                        if (!$fleetId && $classroomIds->isEmpty()) {
+                            $q->whereRaw('1 = 0'); // Force empty result
                         }
                     });
                 })
                 ->where(function ($query) use ($request) {
-                    $searchTerm = '%' . $request->search . '%';
+                    $searchTerm = '%' . addcslashes($request->search, '%_\\') . '%'; // Escape special characters
                     $query->where(function($q) use ($searchTerm) {
                         $q->where('fname', 'like', $searchTerm)
                         ->orWhere('mname', 'like', $searchTerm)
@@ -422,7 +427,7 @@ class AttendanceController extends Controller
                 })
                 ->orderBy('fname');
 
-            $students = $query->get();
+            $students = $query->limit(50)->get(); // Added limit for performance
 
             return response()->json(
                 $students->map(function ($student) {

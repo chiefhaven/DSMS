@@ -302,44 +302,29 @@
         };
 
         const searchStudent = () => {
-            $('#student_id').typeahead({
-                minLength: 2,
-                highlight: true,
-                source: function(query, process) {
-                    return $.ajax({
-                        url: '/api/students/search',
-                        data: { search: query },
-                        dataType: 'json'
-                    }).done(function(data) {
-                        if (data.length === 0) {
-                            notification('No students found matching your search', 'info');
-                        }
-                        return process(data.map(student => ({
-                            id: student.id,
-                            name: student.name,
-                            display: `${student.name} (${student.trn})`
-                        })));
-                    }).fail(function(jqXHR, textStatus, errorThrown) {
-                        console.error('Search failed:', textStatus, errorThrown, jqXHR);
+          $('#student_id').typeahead({
+            source: (query, process) => {
+              return $.get('/attendance-student-search', { search: query }, (data) => {
 
-                        let errorMsg = 'Search failed';
-                        if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
-                            errorMsg += `: ${jqXHR.responseJSON} ${jqXHR.responseJSON.message}`;
-                        }
-
-                        notification(errorMsg, 'error');
-                        return process([]);
-                    });
-                },
-                displayText: function(item) {
-                    return item ? item.display : '';
-                },
-                afterSelect: function(item) {
-                    // Handle selection
-                    $('#student_id').val(item.id);
-                    loadStudentDetails(item.id);
+                if(data.length > 0){
+                    studentsData.value = data;
+                }else{
+                    notification('Student not found, please rephrase', 'error')
                 }
-            });
+
+                return process(data.map(student => student.text));
+              });
+            },
+            updater: (selectedName) => {
+              const selectedStudent = studentsData.value.find(s => s.text === selectedName);
+              if (selectedStudent) {
+                studentId.value = selectedStudent.id;
+                student.value = selectedStudent.text;
+                fetchLessons(selectedStudent.id);
+              }
+              return selectedName;
+            }
+          });
         };
 
         const handleDateClick = (info) => {
