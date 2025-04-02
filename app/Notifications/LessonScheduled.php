@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Notifications\Channels\SmsChannel;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
@@ -20,11 +21,6 @@ class LessonScheduled extends Notification implements ShouldQueue
 
     /**
      * Create a new notification instance.
-     *
-     * @param  mixed  $student
-     * @param  mixed  $instructor
-     * @param  mixed  $schedule
-     * @return void
      */
     public function __construct($schedule)
     {
@@ -36,28 +32,22 @@ class LessonScheduled extends Notification implements ShouldQueue
 
     /**
      * Get the notification's delivery channels.
-     *
-     * @param  mixed  $notifiable
-     * @return array
      */
     public function via($notifiable)
     {
-        return ['mail', 'database'];
+        return ['mail', 'database', SmsChannel::class]; // Add SMS Channel
     }
 
     /**
      * Get the mail representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     * @return \Illuminate\Notifications\Messages\MailMessage
      */
     public function toMail($notifiable)
     {
         try {
             return (new MailMessage)
                 ->subject('Lesson Scheduled: ' . $this->schedule->lesson?->name)
-                ->greeting('Hello ' . $this->student->name . '!')
-                ->line('Your lesson has been scheduled with ' . $this->instructor->fname.' '.$this->instructor->sname)
+                ->greeting('Hello ' . $this->student->fname . '!')
+                ->line('Your lesson has been scheduled with ' . $this->instructor->fname . ' ' . $this->instructor->sname)
                 ->line('Lesson: ' . $this->schedule->lesson?->name)
                 ->line('Date: ' . $this->scheduleDate->format('l, F j, Y'))
                 ->line('Time: ' . $this->scheduleDate->format('g:i A'))
@@ -72,10 +62,22 @@ class LessonScheduled extends Notification implements ShouldQueue
     }
 
     /**
+     * Get the SMS representation of the notification.
+     */
+    public function toSms($notifiable)
+    {
+        return sprintf(
+            "Lesson Scheduled: %s with %s on %s at %s. Check schedule: %s",
+            $this->schedule->lesson?->name ?? 'N/A',
+            $this->instructor->fname ?? 'Instructor',
+            $this->scheduleDate->format('F j, Y'),
+            $this->scheduleDate->format('g:i A'),
+            url('/student/schedule')
+        );
+    }
+
+    /**
      * Get the database representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     * @return array
      */
     public function toDatabase($notifiable)
     {
@@ -102,9 +104,6 @@ class LessonScheduled extends Notification implements ShouldQueue
 
     /**
      * Get the array representation of the notification (for broadcasting).
-     *
-     * @param  mixed  $notifiable
-     * @return array
      */
     public function toArray($notifiable)
     {
