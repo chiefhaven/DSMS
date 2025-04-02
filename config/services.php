@@ -31,4 +31,9 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'clickmobile' => [
+            'url' => env('CLICKMOBILE_API_URL'),
+            'token' => env('CLICKMOBILE_BEARER_TOKEN'),
+        ],
+
 ];
