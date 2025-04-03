@@ -610,6 +610,7 @@
                     data,
                     studentsData,
                     attendanceData,
+                    schedulesData,
                     error,
                     formatDate,
                     isLoading,
