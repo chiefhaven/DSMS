@@ -253,6 +253,7 @@
                 const error = ref(null);
                 const studentsData = ref([]);
                 const attendanceData = ref([]);
+                const schedulesData = ref([]);
                 const instructorId = '{{ $instructor->id ?? null }}';
                 const isLoading = ref(false);
                 const period = ref('');
