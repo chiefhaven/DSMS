@@ -538,10 +538,10 @@
                                 studentsData.value.push(...data.fleet.student);
                             }
 
-                            // Process attendance
                             if (data.attendances && Array.isArray(data.attendances)) {
                                 attendanceData.value = data.attendances;
                                 schedulesData.value = data.schedulesMonthlyInfo;
+                                console.log(schedulesData.value);
                                 getXlsxData();
                             }
 
