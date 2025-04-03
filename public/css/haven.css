@@ -208,3 +208,8 @@
     display: block;
     margin-bottom: 2px;
 }
+
+.table-container {
+    overflow: auto;
+    max-height: 500px; /* Adjust as needed */
+}

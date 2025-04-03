@@ -24,7 +24,7 @@ class ScheduleLessonController extends Controller
         if (!Auth::user()->hasRole('instructor')) {
             return redirect()->route('dashboard')->with('error', 'Access denied');
         }
-        return view('attendances.scheduleLesson');
+        return view('schedules.scheduleLesson');
 
     }
 
@@ -238,6 +238,7 @@ class ScheduleLessonController extends Controller
                 'lesson' => $schedule->lesson,
                 'instructor'=> $instructorName,
                 'location' => $schedule->location,
+                'comments' => $schedule->comments,
                 'student' => $schedule->student,
                 'start' => $schedule->start_time->format('Y-m-d H:i:s'),
                 'end' => $schedule->finish_time->format('Y-m-d H:i:s'),

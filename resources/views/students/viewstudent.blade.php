@@ -9,29 +9,30 @@
             <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">{{$student->fname}} {{$student->mname}} {{$student->sname}}</h1>
             <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                @role(['superAdmin'])
+
                     <div class="dropdown d-inline-block">
                     <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <span class="d-sm-inline-block">Action</span>
                     </button>
                     <div class="dropdown-menu dropdown-menu-end p-0">
                         <div class="p-2">
-                        <form method="GET" action="/edit-student/{{$student->id}}">
-                            {{ csrf_field() }}
-                            <button class="dropdown-item nav-main-link" type="submit">
-                                <i class="nav-main-link-icon  fas fa-pencil"></i>Edit profile
+                        @role(['superAdmin'])
+                            <form method="GET" action="/edit-student/{{$student->id}}">
+                                {{ csrf_field() }}
+                                <button class="dropdown-item nav-main-link" type="submit">
+                                    <i class="nav-main-link-icon  fas fa-pencil"></i>Edit profile
+                                </button>
+                            </form>
+                            <button class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#modal-block-vcenter">
+                                <i class="nav-main-link-icon  fas fa-file-invoice"></i>Add payment
                             </button>
-                        </form>
-                        <button class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#modal-block-vcenter">
-                            <i class="nav-main-link-icon  fas fa-file-invoice"></i>Add payment
-                        </button>
+                        @endrole
                         <button class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#change-status">
                             <i class="nav-main-link-icon  fas fa-toggle-on"></i>Change status
                         </button>
                         </div>
                     </div>
                     </div>
-                @endcan
                 </ol>
             </nav>
             </div>
@@ -65,221 +66,221 @@
         </ul>
         <div class="block-content tab-content">
             <div class="tab-pane fade active show" id="student-details" role="tabpanel" aria-labelledby="student-details-tab">
-            <div class="content-full">
-                <div class="row">
-                    <div class="col-md-6 py-4">
-                        <div class="card p-4">
-                            <img class="img-avatar img-avatar96 img-avatar-thumb" src="/../media/avatars/avatar2.jpg" alt="">
-                            <h1 class="my-2">{{$student->fname}} {{$student->mname}} {{$student->sname}}</h1>
-                            <p>
-                                Gender: {{$student->gender}}<br>
-                                Address: {{$student->address}} <br>Phone: {{$student->phone}}<br>Email: {{$student->user->email ?? '-'}}<br>TRN: {{$student->trn}}
-                            </p>
-                            @role(['superAdmin','admin'])
-                                <div class="row">
-                                    @if(isset($student->fleet->car_brand_model))
-                                        <h3 class="">Car assigned</h3>
-                                        <hr>
-                                        <div class="col-sm-4">
-                                            {{$student->fleet->car_registration_number}}
-                                            <div style="font-size: 10px">{{$student->fleet->car_brand_model}}</div>
-                                        </div>
-                                        <div class="col-sm-4">
-                                            <button type="submit" @click="getFleet()" class="btn btn-warning" data-bs-toggle="modal" data-bs-target=".assignCar">Reassign</button>
-                                        </div>
-                                        <div class="col-sm-4">
-                                            <button type="submit" @click="unAssignCar()" class="btn btn-danger">Unassign</button>
-                                        </div>
-                                    @else
-                                        <div class="col-sm-6 text-danger">
-                                            <strong>Unassigned car</strong>
-                                        </div>
-                                        <div class="col-sm-4">
-                                            <button type="submit" @click="getFleet()" class="btn btn-primary" data-bs-toggle="modal" data-bs-target=".assignCar">Assign</button>
-                                        </div>
-                                    @endif
-                                </div>
-                            @endrole
+                <div class="content-full">
+                    <div class="row">
+                        <div class="col-md-6 py-4">
+                            <div class="card p-4">
+                                <img class="img-avatar img-avatar96 img-avatar-thumb" src="/../media/avatars/avatar2.jpg" alt="">
+                                <h1 class="my-2">{{$student->fname}} {{$student->mname}} {{$student->sname}}</h1>
+                                <p>
+                                    Gender: {{$student->gender}}<br>
+                                    Address: {{$student->address}} <br>Phone: {{$student->phone}}<br>Email: {{$student->user->email ?? '-'}}<br>TRN: {{$student->trn}}
+                                </p>
+                                @role(['superAdmin','admin'])
+                                    <div class="row">
+                                        @if(isset($student->fleet->car_brand_model))
+                                            <h3 class="">Car assigned</h3>
+                                            <hr>
+                                            <div class="col-sm-4">
+                                                {{$student->fleet->car_registration_number}}
+                                                <div style="font-size: 10px">{{$student->fleet->car_brand_model}}</div>
+                                            </div>
+                                            <div class="col-sm-4">
+                                                <button type="submit" @click="getFleet()" class="btn btn-warning" data-bs-toggle="modal" data-bs-target=".assignCar">Reassign</button>
+                                            </div>
+                                            <div class="col-sm-4">
+                                                <button type="submit" @click="unAssignCar()" class="btn btn-danger">Unassign</button>
+                                            </div>
+                                        @else
+                                            <div class="col-sm-6 text-danger">
+                                                <strong>Unassigned car</strong>
+                                            </div>
+                                            <div class="col-sm-4">
+                                                <button type="submit" @click="getFleet()" class="btn btn-primary" data-bs-toggle="modal" data-bs-target=".assignCar">Assign</button>
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endrole
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-md-6 py-4">
-                        <div class="card p-4">
-                            <p><strong>General Information</strong></p>
-                            <table class="table table-bordered table-responsive">
-                                <thead>
-                                </thead>
-                                <tbody>
-                                    @role(['superAdmin', 'admin'])
-                                        <tr>
-                                            <td>
-                                                Enrolled on
-                                            </td>
-                                            <td>
-                                                @if(isset($student->invoice->created_at))
-                                                    {{$student->invoice->created_at->format('j F, Y')}}
-                                                @else
-                                                    <a href="{{ url('/addinvoice', $student->id) }}">Enroll Course</a>
-                                                @endif
-                                            </td>
-                                        </tr>
-                                    @endcan
-                                    <tr>
-                                        <td>
-                                            Course
-                                        </td>
-                                        <td>
-                                            @if(isset($student->invoice) && isset($student->course))
-                                                {{$student->course->name}}<br>{{$student->course->duration}} days
-                                            @else
-                                                -
-                                            @endif
-                                        </td>
-                                    </tr>
-                                    @role(['superAdmin', 'admin'])
-                                        <tr>
-                                            <td>
-                                                Classroom
-                                            </td>
-                                            <td>
-                                                @if(isset($student->classroom))
-                                                    <a data-bs-toggle="collapse" href="#collapseButton" role="button" aria-expanded="false" aria-controls="collapseButton">
-                                                        {{ $student->classroom->name }}<br>{{ $student->classroom->location }}
-                                                    </a>
-                                                    <div class="collapse mt-2" id="collapseButton">
-                                                            <button type="button" @click="getClassRooms()" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target=".assignClassRoom">
-                                                                Re-assign
-                                                            </button>
-                                                    </div>
-                                                @else
-                                                    <button type="button" @click="getClassRooms()" class="btn btn-primary" data-bs-toggle="modal" data-bs-target=".assignClassRoom">
-                                                        Assign
-                                                    </button>
-                                                @endif
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                Fees
-                                            </td>
-                                            <td>
-                                                @if(isset($student->invoice->created_at))
-                                                K{{number_format($student->invoice->invoice_total)}}
-                                                @else
-
-                                                @endif
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                Paid
-                                            </td>
-                                            <td>
-                                                @if(isset($student->invoice->created_at))
-                                                K{{number_format($student->invoice->invoice_amount_paid)}}
-                                                @else
-                                                    -
-                                                @endif
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                Balance
-                                            </td>
-                                            <td>
-                                                @if(isset($student->invoice->created_at))
-                                                K{{number_format($student->invoice->invoice_balance)}}
-                                                @else
-                                                    -
-                                                @endif
-                                            </td>
-                                        </tr>
+                        <div class="col-md-6 py-4">
+                            <div class="card p-4">
+                                <p><strong>General Information</strong></p>
+                                <table class="table table-bordered table-responsive">
+                                    <thead>
+                                    </thead>
+                                    <tbody>
+                                        @role(['superAdmin', 'admin'])
+                                            <tr>
+                                                <td>
+                                                    Enrolled on
+                                                </td>
+                                                <td>
+                                                    @if(isset($student->invoice->created_at))
+                                                        {{$student->invoice->created_at->format('j F, Y')}}
+                                                    @else
+                                                        <a href="{{ url('/addinvoice', $student->id) }}">Enroll Course</a>
+                                                    @endif
+                                                </td>
+                                            </tr>
                                         @endcan
-                                </tbody>
-                            </table>
-                            <div class="mb-4">
-                                <h4 class="mb-4">Attendande progress</h4>
-                                <div class="progress push">
-                                    <div class="progress-bar progress-bar-striped" role="progressbar" style="width: {{$attendancePercent}}%;" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100">
-                                        <span class="fs-sm fw-semibold">{{$attendancePercent}}%</span>
+                                        <tr>
+                                            <td>
+                                                Course
+                                            </td>
+                                            <td>
+                                                @if(isset($student->invoice) && isset($student->course))
+                                                    {{$student->course->name}}<br>{{$student->course->duration}} days
+                                                @else
+                                                    -
+                                                @endif
+                                            </td>
+                                        </tr>
+                                        @role(['superAdmin', 'admin'])
+                                            <tr>
+                                                <td>
+                                                    Classroom
+                                                </td>
+                                                <td>
+                                                    @if(isset($student->classroom))
+                                                        <a data-bs-toggle="collapse" href="#collapseButton" role="button" aria-expanded="false" aria-controls="collapseButton">
+                                                            {{ $student->classroom->name }}<br>{{ $student->classroom->location }}
+                                                        </a>
+                                                        <div class="collapse mt-2" id="collapseButton">
+                                                                <button type="button" @click="getClassRooms()" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target=".assignClassRoom">
+                                                                    Re-assign
+                                                                </button>
+                                                        </div>
+                                                    @else
+                                                        <button type="button" @click="getClassRooms()" class="btn btn-primary" data-bs-toggle="modal" data-bs-target=".assignClassRoom">
+                                                            Assign
+                                                        </button>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    Fees
+                                                </td>
+                                                <td>
+                                                    @if(isset($student->invoice->created_at))
+                                                    K{{number_format($student->invoice->invoice_total)}}
+                                                    @else
+
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    Paid
+                                                </td>
+                                                <td>
+                                                    @if(isset($student->invoice->created_at))
+                                                    K{{number_format($student->invoice->invoice_amount_paid)}}
+                                                    @else
+                                                        -
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    Balance
+                                                </td>
+                                                <td>
+                                                    @if(isset($student->invoice->created_at))
+                                                    K{{number_format($student->invoice->invoice_balance)}}
+                                                    @else
+                                                        -
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                            @endcan
+                                    </tbody>
+                                </table>
+                                <div class="mb-4">
+                                    <h4 class="mb-4">Attendande progress</h4>
+                                    <div class="progress push">
+                                        <div class="progress-bar progress-bar-striped" role="progressbar" style="width: {{$attendancePercent}}%;" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100">
+                                            <span class="fs-sm fw-semibold">{{$attendancePercent}}%</span>
+                                        </div>
+                                    </div>
+                                    <div class="push">
+                                        <p>{{$attendanceTheoryCount}} days of Theory done, {{$attendancePracticalCount}} Practicals done</p>
                                     </div>
                                 </div>
-                                <div class="push">
-                                    <p>{{$attendanceTheoryCount}} days of Theory done, {{$attendancePracticalCount}} Practicals done</p>
+                                <div class="mb-1">
+                                    Course Status:
+                                    <strong class="">{{ $student->status }}</strong>
                                 </div>
                             </div>
-                            <div class="mb-1">
-                                Course Status:
-                                <strong class="">{{ $student->status }}</strong>
-                            </div>
                         </div>
-                    </div>
-                    <div class="col-md-12 py-4">
-                        <div class="card p-4">
-                            <h3>Downloads</h3>
-                            <table class="table table-responsive table-striped">
-                                <thead>
-                                    <th>#</th>
-                                    <th style="width:90%">Description</th>
-                                    <th>Action</th>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                    <td>1</td>
-                                    <td>Traffic Register Card-Reference</td>
-                                    <td>
-                                        <form method="POST" action="{{ url('/trafic-card-reference-letter', $student->id) }}">
-                                        {{ csrf_field() }}
-                                        <button class="btn btn-primary" type="submit">Download</button>
-                                        </form>
-                                    </td>
-                                    </tr>
-                                    <tr>
-                                    <td>2</td>
-                                    <td>Highway code 1 Aptitude Reference Letter</td>
-                                    <td>
-                                        <form method="POST" action="{{ url('/aptitude-test-reference-letter', $student->id) }}">
-                                        {{ csrf_field() }}
-                                        <button class="btn btn-primary" type="submit">Download</button>
-                                        </form>
-                                    </td>
-                                    </tr>
-                                    <tr>
-                                    <td>3</td>
-                                    <td>Highway code 2 Aptitude Reference Letter</td>
-                                    <td>
-                                        <form method="POST" action="{{ url('/second-aptitude-test-reference-letter', $student->id) }}">
-                                        {{ csrf_field() }}
-                                        <button class="btn btn-primary" type="submit">Download</button>
-                                        </form>
-                                    </td>
-                                    </tr>
-                                    <tr>
-                                    <td>4</td>
-                                    <td>Final Reference Letter</td>
-                                    <td>
-                                        <form method="POST" action="{{ url('/final-test-reference-letter', $student->id) }}">
-                                        {{ csrf_field() }}
-                                        <button class="btn btn-primary" type="submit">Download</button>
-                                        </form>
-                                    </td>
-                                    </tr>
-                                    <tr>
-                                    <td>5</td>
-                                    <td>Lesson Attendance Report</td>
-                                    <td>
-                                        <form method="POST" action="{{ url('/lesson-report', $student->id) }}">
-                                        {{ csrf_field() }}
-                                        <button class="btn btn-primary" type="submit">Download</button>
-                                        </form>
-                                    </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div class="col-md-12 py-4">
+                            <div class="card p-4">
+                                <h3>Downloads</h3>
+                                <table class="table table-responsive table-striped">
+                                    <thead>
+                                        <th>#</th>
+                                        <th style="width:90%">Description</th>
+                                        <th>Action</th>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                        <td>1</td>
+                                        <td>Traffic Register Card-Reference</td>
+                                        <td>
+                                            <form method="POST" action="{{ url('/trafic-card-reference-letter', $student->id) }}">
+                                            {{ csrf_field() }}
+                                            <button class="btn btn-primary" type="submit">Download</button>
+                                            </form>
+                                        </td>
+                                        </tr>
+                                        <tr>
+                                        <td>2</td>
+                                        <td>Highway code 1 Aptitude Reference Letter</td>
+                                        <td>
+                                            <form method="POST" action="{{ url('/aptitude-test-reference-letter', $student->id) }}">
+                                            {{ csrf_field() }}
+                                            <button class="btn btn-primary" type="submit">Download</button>
+                                            </form>
+                                        </td>
+                                        </tr>
+                                        <tr>
+                                        <td>3</td>
+                                        <td>Highway code 2 Aptitude Reference Letter</td>
+                                        <td>
+                                            <form method="POST" action="{{ url('/second-aptitude-test-reference-letter', $student->id) }}">
+                                            {{ csrf_field() }}
+                                            <button class="btn btn-primary" type="submit">Download</button>
+                                            </form>
+                                        </td>
+                                        </tr>
+                                        <tr>
+                                        <td>4</td>
+                                        <td>Final Reference Letter</td>
+                                        <td>
+                                            <form method="POST" action="{{ url('/final-test-reference-letter', $student->id) }}">
+                                            {{ csrf_field() }}
+                                            <button class="btn btn-primary" type="submit">Download</button>
+                                            </form>
+                                        </td>
+                                        </tr>
+                                        <tr>
+                                        <td>5</td>
+                                        <td>Lesson Attendance Report</td>
+                                        <td>
+                                            <form method="POST" action="{{ url('/lesson-report', $student->id) }}">
+                                            {{ csrf_field() }}
+                                            <button class="btn btn-primary" type="submit">Download</button>
+                                            </form>
+                                        </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
         @include('students.partials.invoicesPayments')
     </div>
     </div>
@@ -397,43 +398,8 @@
     @include('students.partials.assignClassRoomModal')
 </div>
 
-@role(['superAdmin', 'admin'])
-    <div class="modal" id="change-status" tabindex="-1" aria-labelledby="modal-block-vcenter" style="display: none;" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="block block-rounded block-themed block-transparent mb-0">
-            <div class="block-header bg-primary-dark">
-                <h3 class="block-title">Change students status</h3>
-                <div class="block-options">
-                    <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
-                        <i class="fa fa-fw fa-times"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="block-content">
-                <form class="mb-5" action="{{ url('/updateStudentStatus', $student->id) }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
-                    @csrf
-                    <div class="row">
-                        <div class="col-sm-12 mb-4">
-                            <label for="invoice_discount">Date</label>
-                            <select class="form-select dropdown-toggle" id="status" name="status">
-                                <option value="Pending" {{ $student->status == 'Pending' ? 'selected' : '' }}>Pending</option>
-                                <option value="In progress" {{ $student->status == 'In progress' ? 'selected' : '' }}>In progress</option>
-                                <option value="Finished" {{ $student->status == 'Finished' ? 'selected' : '' }}>Finished</option>
-                            </select>
-                        </div>
-                        <div class="block-content block-content-full text-end bg-body">
-                            <button type="submit" class="btn btn-primary">Save</button>
-                            <button type="button" class="btn btn-alt-secondary" data-bs-dismiss="modal">Close</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-        </div>
-        </div>
-    </div>
-    @endcan
+@include('students.partials.changeStatus')
+
 <script setup>
     const { createApp, ref, reactive } = Vue
 

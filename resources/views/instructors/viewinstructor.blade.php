@@ -121,7 +121,6 @@
             <div class="col-md-6">
                 <div class="block block-rounded">
                     <div class="p-4 m-4 h-60 d-flex flex-column overflow-auto">
-
                         <h5>Assigned students</h5>
                         <hr>
 
@@ -131,21 +130,73 @@
                             <p>Loading students...</p>
                         </div>
 
-                        <!-- Show table when data is loaded -->
-                        <table v-else class="table table-responsive table-striped" id="studentsTable">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="(student, index) in studentsData" :key="student.id">
-                                    <td class="text-uppercase">@{{ student.fname }} @{{ student.mname }} @{{ student.sname }}</td>
-                                    <td class="text-uppercase">@{{ student.status }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div v-if="!isLoading" class="block-content tab-content">
+
+                            <ul class="nav nav-tabs nav-tabs-block" role="tablist">
+                                <li class="nav-item">
+                                    <button class="nav-link active" id="pending-in-progress-tab" data-bs-toggle="tab" data-bs-target="#pending-in-progress" role="tab" aria-controls="pending-in-progress" aria-selected="true">
+                                        Active
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed" role="tab" aria-controls="completed" aria-selected="false">
+                                        Finished
+                                    </button>
+                                </li>
+                            </ul>
+
+                            <!-- Pending/In Progress Tab -->
+                            <div class="tab-pane fade show active" id="pending-in-progress" role="tabpanel" aria-labelledby="pending-in-progress-tab">
+                                <div class="content-full">
+                                    <div class="row">
+                                        <div class="col-md-12 py-4">
+                                            <table id="studentsTable" class="table table-responsive table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="min-width: 300px">Name</th>
+                                                        <th style="min-width: 200px">Status</th>
+                                                        <th class="text-center" style="min-width: 150px">Fees Balance</th>
+                                                        <th class="text-center" style="min-width: 150px">Attendance status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-for="student in activeStudents" :key="student.id">
+                                                        <td class="text-uppercase">@{{ student.fname }} @{{ student.mname ?? '' }} @{{ student.sname }}</td>
+                                                        <td class="text-uppercase">@{{ student.status }}</td>
+                                                        <td class="text-center">K00.00</td>
+                                                        <td class="text-center">0%</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Completed Tab -->
+                            <div class="tab-pane fade" id="completed" role="tabpanel" aria-labelledby="completed-tab">
+                                <div class="content-full">
+                                    <div class="row">
+                                        <div class="col-md-12 py-4">
+                                            <table id="completedStudentsTable" class="table table-responsive table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="min-width: 300px">Name</th>
+                                                        <th class="" style="min-width: 150px">Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-for="student in completedStudents" :key="student.id">
+                                                        <td class="text-uppercase">@{{ student.fname }} @{{ student.mname ?? '' }} @{{ student.sname }}</td>
+                                                        <td class="text-uppercase">@{{ student.status }}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div> <!-- End of tab-content -->
                     </div>
                 </div>
             </div>
@@ -159,7 +210,6 @@
                             </div>
                             <div class="col-md-8">
                                 @include('attendances.partials.reportSummary')
-
                             </div>
                         </div>
                         <hr>
@@ -171,16 +221,16 @@
                         </div>
 
                         <!-- Show table when data is loaded -->
-                        <table v-else class="table table-responsive table-striped" id="attendancesTable">
+                        <table v-if="!isLoading" class="table table-responsive table-striped" id="attendancesTable">
                             <thead>
                                 <tr>
                                     <th style="min-width: 200px">Date</th>
                                     <th style="min-width: 200px">Student</th>
-                                    <th style="min-width: 200px">Lesson</th>
+                                    <th style="min-width: 100px">Lesson</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="(attendance, index) in attendanceData" :key="attendance.id">
+                                <tr v-for="attendance in attendanceData" :key="attendance.id">
                                     <td>@{{ attendance.created_at }}</td>
                                     <td class="text-title">@{{ attendance.student.fname }} @{{ attendance.student.mname ?? '' }} @{{ attendance.student.sname }}</td>
                                     <td class="text">@{{ attendance.lesson.name }}</td>
@@ -192,6 +242,7 @@
             </div>
         </div>
 
+
     </div>
     <script>
         const { createApp, ref, computed, onMounted, watch, onBeforeUnmount, reactive, nextTick } = Vue;
@@ -202,6 +253,7 @@
                 const error = ref(null);
                 const studentsData = ref([]);
                 const attendanceData = ref([]);
+                const schedulesData = ref([]);
                 const instructorId = '{{ $instructor->id ?? null }}';
                 const isLoading = ref(false);
                 const period = ref('');
@@ -262,6 +314,14 @@
                     data(instructorId);
                 });
 
+                const completedStudents = computed(() => {
+                    return studentsData.value.filter(student => student.status === 'Finished');
+                });
+
+                const activeStudents = computed(() => {
+                    return studentsData.value.filter(student => student.status != 'Finished');
+                });
+
                 const notification = ($text, $icon) =>{
                     Swal.fire({
                         toast: true,
@@ -286,129 +346,172 @@
 
                 const getXlsxData = async () => {
                     try {
-                        const data = attendanceData.value;
+                        // Destructure reactive data
+                        const [attendancesMonthly, schedulesMonthly] = [
+                            attendanceData.value,
+                            schedulesData.value
+                        ];
 
-                        // Get the current date details
-                        const currentMonth = new Date().getMonth(); // Get current month (0 - 11)
-                        const currentYear = new Date().getFullYear(); // Get current year (YYYY)
+                        // Get current date details more efficiently
+                        const now = new Date();
+                        const currentMonth = now.getMonth();
+                        const currentYear = now.getFullYear();
 
-                        // Group by date and count attendances, but filter by current month and year
-                        const dailyData = data.reduce((acc, curr) => {
-                            const attendanceDate = new Date(curr.attendance_date);
-                            const date = attendanceDate.toISOString().split('T')[0]; // Extract date (YYYY-MM-DD)
+                        // Process attendance data with better performance
+                        const dailyData = attendancesMonthly.reduce((acc, { attendance_date }) => {
+                            const date = new Date(attendance_date);
 
-                            // Check if the attendance date is within this month and year
-                            if (attendanceDate.getMonth() === currentMonth && attendanceDate.getFullYear() === currentYear) {
-                                if (!acc[date]) {
-                                    acc[date] = 0;
-                                }
-                                acc[date] += 1; // Count attendance per date
+                            // Filter by current month/year and count attendances
+                            if (date.getMonth() === currentMonth && date.getFullYear() === currentYear) {
+                                const dateKey = date.toISOString().split('T')[0];
+                                acc[dateKey] = (acc[dateKey] || 0) + 1;
                             }
 
                             return acc;
                         }, {});
 
-                        // Prepare labels (dates) and attendances (counts)
-                        labels.value = Object.keys(dailyData).map(date => {
-                            const formattedDate = new Date(date);
-                            const options = { day: 'numeric', month: 'long' };
-                            return new Intl.DateTimeFormat('en-GB', options).format(formattedDate); // 'en-GB' ensures the month is in English
+                        // Format labels with proper date handling
+                        const dateFormatter = new Intl.DateTimeFormat('en-GB', {
+                            day: 'numeric',
+                            month: 'long'
                         });
 
-                        // Convert date strings to Date objects
-                        Attendances.value = Object.values(dailyData);  // Extract attendance counts per date
-                        console.log('Filtered Data:', labels.value, Attendances.value);
+                        // Sort dates chronologically before processing
+                        const sortedDates = Object.keys(dailyData).sort((a, b) => new Date(a) - new Date(b));
 
-                        // Wait until the DOM is updated and then load the chart
-                        nextTick(() => {
-                            loadChart(); // Render the chart after the DOM is updated
+                        // Prepare chart data
+                        labels.value = sortedDates.map(date => dateFormatter.format(new Date(date)));
+                        Attendances.value = sortedDates.map(date => dailyData[date]);
+
+                        console.log('Processed Chart Data:', {
+                            labels: labels.value,
+                            attendances: Attendances.value,
+                            schedules: schedulesMonthly
                         });
+
+                        // Use requestAnimationFrame for smoother chart rendering
+                        requestAnimationFrame(() => {
+                            loadChart(labels.value, Attendances.value, schedulesMonthly);
+                        });
+
                     } catch (err) {
-                        console.error("Error fetching attendance data:", err);
+                        console.error("Error processing attendance data:", err);
+                        // Consider adding user-facing error notification here
                     }
                 };
 
-                // Load Chart
-                const loadChart = () => {
-                    chartLoading.value = false;
-                    const ctx = document.getElementById("attendancesChart");
-
+                // Enhanced Chart Loading Function
+                function loadChart(labels, attendances, schedules) {
+                    const ctx = document.getElementById('attendancesChart');
                     if (!ctx) {
-                        console.error("Canvas element not found");
-                        return; // Exit if the canvas element is not found
+                        console.error('Chart canvas element not found');
+                        return;
                     }
 
-                    if (attendancesChart) {
-                        attendancesChart.destroy(); // Destroy existing chart before reloading
+                    // Destroy previous chart instance if exists
+                    if (window.attendancesChartInstance) {
+                        window.attendancesChartInstance.destroy();
                     }
 
-                    attendancesChart = new Chart(ctx, {
-                        type: "line",
+                    // Chart configuration with improved options
+                    const chartConfig = {
+                        type: 'line',
                         data: {
-                            labels: labels.value,
+                            labels: labels,
                             datasets: [
                                 {
-                                    label: "Instructor attendances",
-                                    fill: false,
-                                    data: Attendances.value,
-                                    backgroundColor: "rgb(255, 159, 64)",
-                                    borderColor: "rgba(255, 159, 64, 0.8)",
-                                    borderWidth: 3,
-                                    radius: 0,
-                                    datalabels: {
-                                        anchor: 'end',
-                                        align: 'top',
-                                        font: {
-                                            size: 14,
-                                            weight: 'light',
-                                        },
-                                        color: 'grey',
-                                        formatter: (value) => value, // Display the attendance count value
-                                    },
+                                    label: 'Daily Attendances',
+                                    data: attendances,
+                                    backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                                    borderColor: 'rgba(255, 159, 64, 0.8)',
+                                    borderWidth: 2,
+                                    tension: 0.1,
+                                    pointRadius: 3,
+                                    pointHoverRadius: 5,
+                                    fill: true
                                 },
-                            ],
+                                {
+                                    label: 'Scheduled Sessions',
+                                    data: schedules,
+                                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                    borderColor: 'rgba(54, 162, 235, 0.8)',
+                                    borderWidth: 2,
+                                    tension: 0.1,
+                                    pointRadius: 3,
+                                    pointHoverRadius: 5,
+                                    fill: true
+                                }
+                            ]
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
+                            interaction: {
+                                intersect: false,
+                                mode: 'index'
+                            },
                             plugins: {
-                                datalabels: {
-                                    display: true, // Ensure datalabels are shown
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        usePointStyle: true,
+                                        padding: 20
+                                    }
                                 },
+                                tooltip: {
+                                    backgroundColor: 'rgba(0,0,0,0.7)',
+                                    titleFont: { size: 14 },
+                                    bodyFont: { size: 12 },
+                                    padding: 12,
+                                    cornerRadius: 4,
+                                    displayColors: true,
+                                    callbacks: {
+                                        label: function(context) {
+                                            return `${context.dataset.label}: ${context.raw}`;
+                                        }
+                                    }
+                                }
                             },
                             scales: {
                                 x: {
-                                    type: "time",
-                                    time: {
-                                        unit: "day",
-                                        tooltipFormat: "ll", // Better date format for tooltip
-                                        displayFormats: {
-                                            day: "D MMM", // Display date format
-                                        },
+                                    grid: {
+                                        display: false
                                     },
-                                    title: { display: true, text: "Date" },
                                     ticks: {
-                                        autoSkip: false,
-                                        stepSize: 1,
-                                        maxRotation: 60,
-                                        minRotation: 60,
+                                        maxRotation: 45,
+                                        minRotation: 45,
+                                        autoSkip: true,
+                                        maxTicksLimit: 15
                                     },
+                                    title: {
+                                        display: true,
+                                        text: 'Date',
+                                        padding: { top: 10 }
+                                    }
                                 },
                                 y: {
                                     beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Count',
+                                        padding: { bottom: 10 }
+                                    },
                                     ticks: {
-                                        callback: function(value) {
-                                            return value; // Display the y-axis values
-                                        }
+                                        stepSize: 1,
+                                        precision: 0
                                     }
-                                },
+                                }
                             },
-                        },
-                        plugins: [ChartDataLabels], // Use the datalabels plugin
-                    });
-                };
+                            animation: {
+                                duration: 1000,
+                                easing: 'easeOutQuart'
+                            }
+                        }
+                    };
 
-
+                    // Create and store chart instance
+                    window.attendancesChartInstance = new Chart(ctx, chartConfig);
+                }
 
                 const data = async (instructor) => {
                     NProgress.start();
@@ -432,7 +535,6 @@
                                 data.classrooms.forEach((classroom, index) => {
                                     if (Array.isArray(classroom.students)) {
                                         studentsData.value.push(...classroom.students);
-                                        console.log(`Classroom ${index + 1}:`, classroom.students);
                                     }
                                 });
                             }
@@ -440,21 +542,22 @@
                             // Process fleet students (Merging instead of overwriting)
                             if (data.fleet && Array.isArray(data.fleet.student)) {
                                 studentsData.value.push(...data.fleet.student);
-                                console.log("Fleet students added:", data.fleet.student);
                             }
 
                             // Process attendance
                             if (data.attendances && Array.isArray(data.attendances)) {
                                 attendanceData.value = data.attendances;
+                                schedulesData.value = data.attendances;
                                 getXlsxData();
-
-                                console.log("Attendances:", attendanceData.value);
                             }
 
                             // Apply DataTables after ensuring elements exist
                             setTimeout(() => {
                                 if ($.fn.DataTable.isDataTable("#studentsTable")) {
                                     $("#studentsTable").DataTable().destroy();
+                                }
+                                if ($.fn.DataTable.isDataTable("#completedStudentsTable")) {
+                                    $("#completedStudentsTable").DataTable().destroy();
                                 }
                                 if ($.fn.DataTable.isDataTable("#attendancesTable")) {
                                     $("#attendancesTable").DataTable().destroy();
@@ -489,14 +592,20 @@
                                     return `${day} ${month}, ${year} ${hours}:${minutes}:${seconds}`;
                                 }
 
-                                // Initialize DataTable
-                                $("#studentsTable").DataTable();
+                                $("#studentsTable").DataTable({
+                                    fixedHeader: true
+                                });
+
+                                $("#completedStudentsTable").DataTable({
+                                    fixedHeader: true
+                                });
 
                                 $("#attendancesTable").DataTable({
                                     order: [[0, 'desc']], // Sort by Date column
                                     columnDefs: [
                                         { targets: 0, type: 'custom-date' } // Apply custom date sorting
                                     ],
+                                    fixedHeader: true, // Enable sticky headers
                                     drawCallback: function () {
                                         // Format all visible date cells on pagination change
                                         $("#attendancesTable tbody tr").each(function () {
@@ -538,7 +647,9 @@
                     startDate,
                     endDate,
                     handlePeriodChange,
-                    downloadSummary
+                    downloadSummary,
+                    completedStudents,
+                    activeStudents
                 };
             }
         });

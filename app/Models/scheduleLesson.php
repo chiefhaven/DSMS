@@ -19,6 +19,7 @@ class ScheduleLesson extends Model
         'start_time',
         'finish_time',
         'comments',
+        'location',
         'instructor_id',
         'lesson_id',
         'student_id',

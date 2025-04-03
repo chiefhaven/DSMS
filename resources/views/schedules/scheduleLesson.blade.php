@@ -496,7 +496,9 @@
           studentId.value = event.extendedProps.student.id;
           lessonId.value = event.extendedProps.lesson.id;
           comments.value = event.extendedProps.comments;
+          location.value = event.extendedProps.location;
           startTime.value = moment(event.start).format("YYYY-MM-DDTHH:mm");
+          console.log(comments.value);
           fetchLessons(studentId.value);
 
           closeModal('lessonsModal');

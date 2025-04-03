@@ -429,10 +429,6 @@
             var attendances = labels.map(date => attendancesMap[date] || 0);
             var schedules = labels.map(date => schedulesMap[date] || 0);
 
-            console.log("Labels:", labels);
-            console.log("Attendance Counts:", attendances);
-            console.log("Schedule Counts:", schedules);
-
             load_chart(labels, attendances, schedules);
         }).fail(function(jqXHR, textStatus, errorThrown) {
             console.error("Error fetching data:", textStatus, errorThrown);
