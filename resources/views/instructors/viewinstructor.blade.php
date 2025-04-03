@@ -383,12 +383,6 @@
                         labels.value = sortedDates.map(date => dateFormatter.format(new Date(date)));
                         Attendances.value = sortedDates.map(date => dailyData[date]);
 
-                        console.log('Processed Chart Data:', {
-                            labels: labels.value,
-                            attendances: Attendances.value,
-                            schedules: schedulesMonthly
-                        });
-
                         // Use requestAnimationFrame for smoother chart rendering
                         requestAnimationFrame(() => {
                             loadChart(labels.value, Attendances.value, schedulesMonthly);
@@ -547,7 +541,7 @@
                             // Process attendance
                             if (data.attendances && Array.isArray(data.attendances)) {
                                 attendanceData.value = data.attendances;
-                                schedulesData.value = data.attendances;
+                                schedulesData.value = data.schedulesMonthlyInfo;
                                 getXlsxData();
                             }
 
