@@ -155,7 +155,7 @@ class InstructorController extends Controller
             'user',
             'lesson',
             'fleet.student.invoice',
-            'classrooms.student.invoice'
+            'classrooms.students.invoice'
         ])->findOrFail($instructor);
 
         // Initialize the dates collection for the current month
