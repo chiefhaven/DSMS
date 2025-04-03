@@ -500,6 +500,7 @@
                             // Reset arrays before updating
                             studentsData.value = [];
                             attendanceData.value = [];
+                            schedulesData.value = [];
 
                             // Process classrooms
                             if (data.classrooms && Array.isArray(data.classrooms)) {
@@ -518,6 +519,7 @@
                             // Process attendance
                             if (data.attendances && Array.isArray(data.attendances)) {
                                 attendanceData.value = data.attendances;
+                                schedulesData.value = data.attendances;
                                 getXlsxData();
 
                             }
