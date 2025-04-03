@@ -150,7 +150,7 @@ class InstructorController extends Controller
         $instructor = Instructor::with([
             'user',
             'lesson',
-            'fleet.students.invoice', 
+            'fleet.student.invoice',
             'classrooms.students.invoice'
         ])->findOrFail($instructor);
 
