@@ -12,7 +12,6 @@ use App\Http\Requests\StoreInstructorRequest;
 use App\Http\Requests\UpdateInstructorRequest;
 use App\Models\Administrator;
 use App\Models\Department;
-use Carbon\Carbon;
 use Session;
 use Illuminate\Support\Str;
 use PDF;
@@ -148,44 +147,14 @@ class InstructorController extends Controller
      */
     public function show($instructor)
     {
-        $startOfMonth = Carbon::now()->startOfMonth()->format('Y-m-d');
-        $endOfMonth = Carbon::now()->endOfMonth()->format('Y-m-d');
-
         $instructor = Instructor::with([
             'user',
             'lesson',
-            'fleet.student.invoice',
+            'fleet.students.invoice', 
             'classrooms.students.invoice'
         ])->findOrFail($instructor);
 
-        // Initialize the dates collection for the current month
-        $dates = collect();
-        $currentDate = Carbon::parse($startOfMonth);
-
-        while ($currentDate->lte($endOfMonth)) {
-            $dates->put($currentDate->format('Y-m-d'), 0);
-            $currentDate->addDay();
-        }
-
-        // Get schedule count per date
-        $countSchedules = DB::table('schedule_lessons')
-            ->select(DB::raw('DATE(start_time) as date'), DB::raw('count(*) as count')) // FIXED: Using start_time instead of created_at
-            ->whereBetween('start_time', [$startOfMonth, $endOfMonth])
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get();
-
-               // Convert schedule data to associative array
-        $arrayOfSchedules = $dates->toArray();
-        foreach ($countSchedules as $schedule) {
-            $arrayOfSchedules[$schedule->date] = $schedule->count;
-        }
-
-        $schedulesMonthlyInfo = collect($arrayOfSchedules)->map(function ($count, $date) {
-            return (object) ['date' => $date, 'count' => $count];
-        })->values();
-
-        return view('instructors.viewinstructor', compact('instructor', 'schedulesMonthlyInfo'));
+        return view('instructors.viewinstructor', compact('instructor'));
     }
 
     /**
@@ -196,7 +165,7 @@ class InstructorController extends Controller
      */
     public function instructorData($instructor)
     {
-        $instructor = Instructor::with('Fleet.student', 'classrooms.students', 'attendances.student', 'attendances.lesson')->find($instructor);
+        $instructor = Instructor::with('Fleet.student', 'classrooms.students', 'attendances.student', 'attendances.lesson', 'Schedules')->find($instructor);
         return response()->json($instructor);
     }
 

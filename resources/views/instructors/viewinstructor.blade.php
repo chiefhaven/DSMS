@@ -253,7 +253,6 @@
                 const error = ref(null);
                 const studentsData = ref([]);
                 const attendanceData = ref([]);
-                const schedulesData = ref([]);
                 const instructorId = '{{ $instructor->id ?? null }}';
                 const isLoading = ref(false);
                 const period = ref('');
@@ -346,166 +345,143 @@
 
                 const getXlsxData = async () => {
                     try {
-                        // Destructure reactive data
-                        const [attendancesMonthly, schedulesMonthly] = [
-                            attendanceData.value,
-                            schedulesData.value
-                        ];
+                        const data = attendanceData.value;
+                        const schedulesData = schedulesData.value;
 
-                        // Get current date details more efficiently
-                        const now = new Date();
-                        const currentMonth = now.getMonth();
-                        const currentYear = now.getFullYear();
+                        const currentMonth = new Date().getMonth();
+                        const currentYear = new Date().getFullYear();
 
-                        // Process attendance data with better performance
-                        const dailyData = attendancesMonthly.reduce((acc, { attendance_date }) => {
-                            const date = new Date(attendance_date);
+                        // Group attendance by date
+                        const dailyData = data.reduce((acc, curr) => {
+                            const attendanceDate = new Date(curr.attendance_date);
+                            const date = attendanceDate.toISOString().split('T')[0];
 
-                            // Filter by current month/year and count attendances
-                            if (date.getMonth() === currentMonth && date.getFullYear() === currentYear) {
-                                const dateKey = date.toISOString().split('T')[0];
-                                acc[dateKey] = (acc[dateKey] || 0) + 1;
+                            if (attendanceDate.getMonth() === currentMonth && attendanceDate.getFullYear() === currentYear) {
+                                acc[date] = (acc[date] || 0) + 1;
                             }
-
                             return acc;
                         }, {});
 
-                        // Format labels with proper date handling
-                        const dateFormatter = new Intl.DateTimeFormat('en-GB', {
-                            day: 'numeric',
-                            month: 'long'
+                        // Group schedules by date
+                        const dailySchedules = schedulesData.reduce((acc, curr) => {
+                            const scheduleDate = new Date(curr.start_time);
+                            const date = scheduleDate.toISOString().split('T')[0];
+
+                            if (scheduleDate.getMonth() === currentMonth && scheduleDate.getFullYear() === currentYear) {
+                                acc[date] = (acc[date] || 0) + 1;
+                            }
+                            return acc;
+                        }, {});
+
+                        // Merge all unique dates from both data sources
+                        const allDates = Array.from(new Set([...Object.keys(dailyData), ...Object.keys(dailySchedules)]));
+
+                        // Format labels properly
+                        labels.value = allDates.map(date => {
+                            const formattedDate = new Date(date);
+                            return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long' }).format(formattedDate);
                         });
 
-                        // Sort dates chronologically before processing
-                        const sortedDates = Object.keys(dailyData).sort((a, b) => new Date(a) - new Date(b));
+                        // Ensure attendance and schedule values align with the sorted dates
+                        Attendances.value = allDates.map(date => dailyData[date] || 0);
+                        Schedules.value = allDates.map(date => dailySchedules[date] || 0);
 
-                        // Prepare chart data
-                        labels.value = sortedDates.map(date => dateFormatter.format(new Date(date)));
-                        Attendances.value = sortedDates.map(date => dailyData[date]);
+                        console.log('Filtered Data:', labels.value, Attendances.value, Schedules.value);
 
-                        // Use requestAnimationFrame for smoother chart rendering
-                        requestAnimationFrame(() => {
-                            loadChart(labels.value, Attendances.value, schedulesMonthly);
+                        nextTick(() => {
+                            loadChart();
                         });
-
                     } catch (err) {
-                        console.error("Error processing attendance data:", err);
-                        // Consider adding user-facing error notification here
+                        console.error("Error fetching attendance data:", err);
                     }
                 };
 
-                // Enhanced Chart Loading Function
-                function loadChart(labels, attendances, schedules) {
-                    const ctx = document.getElementById('attendancesChart');
+
+                // Load Chart
+                const loadChart = () => {
+                    chartLoading.value = false;
+                    const ctx = document.getElementById("attendancesChart");
+
                     if (!ctx) {
-                        console.error('Chart canvas element not found');
+                        console.error("Canvas element not found");
                         return;
                     }
 
-                    // Destroy previous chart instance if exists
-                    if (window.attendancesChartInstance) {
-                        window.attendancesChartInstance.destroy();
+                    if (attendancesChart) {
+                        attendancesChart.destroy(); // Destroy existing chart before reloading
                     }
 
-                    // Chart configuration with improved options
-                    const chartConfig = {
-                        type: 'line',
+                    attendancesChart = new Chart(ctx, {
+                        type: "line",
                         data: {
-                            labels: labels,
+                            labels: labels.value,
                             datasets: [
                                 {
-                                    label: 'Daily Attendances',
-                                    data: attendances,
-                                    backgroundColor: 'rgba(255, 159, 64, 0.2)',
-                                    borderColor: 'rgba(255, 159, 64, 0.8)',
+                                    label: "Attendances",
+                                    fill: false,
+                                    data: Attendances.value, // Ensure it's reactive
+                                    backgroundColor: "rgba(255, 159, 64, 0.5)",
+                                    borderColor: "rgba(255, 159, 64, 1)",
                                     borderWidth: 2,
-                                    tension: 0.1,
-                                    pointRadius: 3,
-                                    pointHoverRadius: 5,
-                                    fill: true
                                 },
                                 {
-                                    label: 'Scheduled Sessions',
-                                    data: schedules,
-                                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                                    borderColor: 'rgba(54, 162, 235, 0.8)',
+                                    label: "Schedules",
+                                    fill: false,
+                                    data: Schedules.value, // Fixed to use Schedules
+                                    backgroundColor: "rgba(54, 162, 235, 0.5)",
+                                    borderColor: "rgba(54, 162, 235, 1)",
                                     borderWidth: 2,
-                                    tension: 0.1,
-                                    pointRadius: 3,
-                                    pointHoverRadius: 5,
-                                    fill: true
-                                }
-                            ]
+                                },
+                            ],
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
-                            interaction: {
-                                intersect: false,
-                                mode: 'index'
-                            },
                             plugins: {
                                 legend: {
-                                    position: 'bottom',
-                                    labels: {
-                                        usePointStyle: true,
-                                        padding: 20
-                                    }
+                                    display: true,
+                                    position: "top",
                                 },
-                                tooltip: {
-                                    backgroundColor: 'rgba(0,0,0,0.7)',
-                                    titleFont: { size: 14 },
-                                    bodyFont: { size: 12 },
-                                    padding: 12,
-                                    cornerRadius: 4,
-                                    displayColors: true,
-                                    callbacks: {
-                                        label: function(context) {
-                                            return `${context.dataset.label}: ${context.raw}`;
-                                        }
-                                    }
-                                }
+                                datalabels: {
+                                    display: true,
+                                    color: "#000",
+                                    align: "top",
+                                    formatter: (value) => (value > 0 ? value : ""), // Only show non-zero values
+                                },
                             },
                             scales: {
                                 x: {
-                                    grid: {
-                                        display: false
+                                    type: "time",
+                                    time: {
+                                        parser: "yyyy-MM-dd",
+                                        unit: "day",
+                                        displayFormats: {
+                                            day: "d MMM",
+                                        },
+                                        tooltipFormat: "d MMM yyyy",
                                     },
                                     ticks: {
+                                        autoSkip: true,
                                         maxRotation: 45,
                                         minRotation: 45,
-                                        autoSkip: true,
-                                        maxTicksLimit: 15
                                     },
                                     title: {
                                         display: true,
-                                        text: 'Date',
-                                        padding: { top: 10 }
-                                    }
+                                        text: "Date",
+                                    },
                                 },
                                 y: {
                                     beginAtZero: true,
                                     title: {
                                         display: true,
-                                        text: 'Count',
-                                        padding: { bottom: 10 }
+                                        text: "Count",
                                     },
-                                    ticks: {
-                                        stepSize: 1,
-                                        precision: 0
-                                    }
-                                }
+                                },
                             },
-                            animation: {
-                                duration: 1000,
-                                easing: 'easeOutQuart'
-                            }
-                        }
-                    };
+                        },
+                    });
+                };
 
-                    // Create and store chart instance
-                    window.attendancesChartInstance = new Chart(ctx, chartConfig);
-                }
 
                 const data = async (instructor) => {
                     NProgress.start();
@@ -538,11 +514,11 @@
                                 studentsData.value.push(...data.fleet.student);
                             }
 
+                            // Process attendance
                             if (data.attendances && Array.isArray(data.attendances)) {
                                 attendanceData.value = data.attendances;
-                                schedulesData.value = data.schedulesMonthlyInfo;
-                                console.log(schedulesData.value);
                                 getXlsxData();
+
                             }
 
                             // Apply DataTables after ensuring elements exist

@@ -55,6 +55,11 @@ class Instructor extends Model
             ->using(ClassroomInstructor::class);
     }
 
+    public function schedules()
+    {
+        return $this->hasMany(ScheduleLesson::class, 'instructor_id');
+    }
+
     public function department()
     {
        return $this->belongsTo(Department::class);

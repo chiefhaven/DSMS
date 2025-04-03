@@ -394,7 +394,6 @@
         var xlsxUrl = "/summaryData";
 
         $.getJSON(xlsxUrl, function(data) {
-            console.log("Raw Data:", data); // Debugging output
 
             var labelsSet = new Set();
             var attendancesMap = {};
