@@ -46,6 +46,12 @@ class ScheduleLessonController extends Controller
      */
     public function store(StorescheduleLessonRequest $request)
     {
+        if (!Auth::user()->hasRole('instructor')) {
+            return response()->json([
+                'message'  => 'You are not eligible to edit or add a schedule',
+            ], 409);
+        }
+
         // 1. Validate the request data
         $validator = Validator::make($request->all(), [
             'lesson_id'    => 'required|exists:lessons,id',
@@ -160,6 +166,12 @@ class ScheduleLessonController extends Controller
      */
     public function update(UpdatescheduleLessonRequest $request, $id)
     {
+        if (!Auth::user()->hasRole('instructor')) {
+            return response()->json([
+                'message'  => 'You are not eligible to edit or add a schedule',
+            ], 409);
+        }
+
         $scheduleLesson = ScheduleLesson::find($id);
 
         try {
