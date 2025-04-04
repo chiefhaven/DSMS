@@ -209,6 +209,12 @@ class ScheduleLessonController extends Controller
      */
     public function destroy($id)
     {
+        if (!Auth::user()->hasRole('instructor')) {
+            return response()->json([
+                'message'  => 'You are not eligible to delte schedule',
+            ], 409);
+        }
+
         $ScheduleLesson = ScheduleLesson::find($id);
 
         if (!$ScheduleLesson) {

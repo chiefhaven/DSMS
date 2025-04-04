@@ -566,11 +566,11 @@
                                 }
 
                                 $("#studentsTable").DataTable({
-                                    fixedHeader: true
+
                                 });
 
                                 $("#completedStudentsTable").DataTable({
-                                    fixedHeader: true
+
                                 });
 
                                 $("#attendancesTable").DataTable({
@@ -578,7 +578,6 @@
                                     columnDefs: [
                                         { targets: 0, type: 'custom-date' } // Apply custom date sorting
                                     ],
-                                    fixedHeader: true, // Enable sticky headers
                                     drawCallback: function () {
                                         // Format all visible date cells on pagination change
                                         $("#attendancesTable tbody tr").each(function () {

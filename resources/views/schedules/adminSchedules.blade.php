@@ -285,11 +285,6 @@
                              error.message ||
                              "Failed to save lesson schedule. Please try again.";
           notification(errorMessage, "error");
-          console.error("API Error:", {
-            status: error.response?.status,
-            data: error.response?.data,
-            stack: error.stack,
-          });
         };
 
         const clearForm = () => {
