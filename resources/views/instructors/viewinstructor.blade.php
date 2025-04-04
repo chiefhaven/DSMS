@@ -200,7 +200,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="col-md-6">
                 <div class="block block-rounded">
                     <div class="p-4 m-4 h-60 d-flex flex-column overflow-auto">
@@ -241,8 +240,6 @@
                 </div>
             </div>
         </div>
-
-
     </div>
     <script>
         const { createApp, ref, computed, onMounted, watch, onBeforeUnmount, reactive, nextTick } = Vue;

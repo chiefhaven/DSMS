@@ -99,9 +99,17 @@ class StudentController extends Controller
     public function index()
     {
         try {
-            // Initialize query to fetch students excluding those with 'Finished' status
-            $studentQuery = Student::with('User')
+            // Fetch all fleets
+            $fleet = Fleet::all();
+
+            // Base query for active students (not finished)
+            $activeQuery = Student::with('User')
                 ->where('status', '!=', 'Finished')
+                ->latest('created_at');
+
+            // Base query for finished students
+            $finishedQuery = Student::with('User')
+                ->where('status', 'Finished')
                 ->latest('created_at');
 
             // Check if the logged-in user is an instructor
@@ -112,22 +120,20 @@ class StudentController extends Controller
                     $departmentName = $instructor->department->name;
 
                     if ($departmentName === 'practical') {
-                        // Fetch fleet associated with the instructor
-                        $fleet = Fleet::where('instructor_id', $instructor->id)->first();
-
-                        if ($fleet) {
-                            $studentQuery->where('fleet_id', $fleet->id);
+                        $fleetAssigned = Fleet::where('instructor_id', $instructor->id)->first();
+                        if ($fleetAssigned) {
+                            $activeQuery->where('fleet_id', $fleetAssigned->id);
+                            $finishedQuery->where('fleet_id', $fleetAssigned->id);
                         } else {
                             throw new ModelNotFoundException(__('You are not allocated a car.'));
                         }
                     }
 
                     if ($departmentName === 'theory') {
-                        // Fetch classrooms associated with the instructor
                         $classroomIds = $instructor->classrooms->pluck('id');
-
                         if ($classroomIds->isNotEmpty()) {
-                            $studentQuery->whereIn('classroom_id', $classroomIds);
+                            $activeQuery->whereIn('classroom_id', $classroomIds);
+                            $finishedQuery->whereIn('classroom_id', $classroomIds);
                         } else {
                             throw new ModelNotFoundException(__('You are not allocated a class room.'));
                         }
@@ -135,25 +141,20 @@ class StudentController extends Controller
                 }
             }
 
-            // Paginate the filtered student list
-            $student = $studentQuery->paginate(15);
+            // Paginate both queries
+            $activeStudents = $activeQuery->paginate(15, ['*'], 'active_page');
+            $finishedStudents = $finishedQuery->paginate(15, ['*'], 'finished_page');
 
-            // Fetch all fleets
-            $fleet = Fleet::all();
-
-            // Return the view with data
-            return view('students.students', compact('student', 'fleet'));
+            return view('students.students', compact('activeStudents', 'finishedStudents', 'fleet'));
 
         } catch (ModelNotFoundException $e) {
             Alert::error(__('No students'), $e->getMessage());
             return redirect('/');
         } catch (\Exception $e) {
-            // Handle unexpected errors
             Alert::error(__('Error'), __('An unexpected error occurred.'));
             return redirect('/');
         }
     }
-
 
     /**
      * Show the form for creating a new resource.

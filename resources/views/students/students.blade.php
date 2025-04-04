@@ -51,111 +51,131 @@
                     </form>
                 </div>
             </div>
-            <div class="m-4 table-responsive">
-                @if( !$student->isEmpty())
-                <table class="table table-bordered table-striped table-vcenter">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th class="text-center" style="width: 100px;">Actions</th>
-                            <th>Name</th>
-                            <th style="min-width: 15rem;">Course Enrolled</th>
-                            @role('superAdmin|admin')
-                                <th>Fees</th>
-                                <th>Balance</th>
-                            @endrole
-                            <th style="min-width: 10rem;">Registered on</th>
-                            @role(['superAdmin','admin'])
-                                <th style="min-width: 10rem;">Car assigned</th>
-                            @endrole
-                            <th>Attendance</th>
-                            <th style="min-width: 10rem;">Course Status</th>
-                            <th>Phone</th>
-                            <th>Email</th>
-                            <th>TRN</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if($student->isNotEmpty())
-                            @foreach ($student as $students)
-                            @php
-                                $attendancePercentage = $students->course && $students->course->duration > 0
-                                    ? number_format($students->attendance->count() / $students->course->duration * 100)
-                                    : 0;
-                                $invoiceBalance = $students->invoice->invoice_balance ?? 0;
-                            @endphp
-                                <tr>
-                                    <td class="text-center">
-                                        <!-- Actions Dropdown -->
-                                        <div class="dropdown d-inline-block">
-                                            <button class="btn btn-primary" data-bs-toggle="dropdown">Actions</button>
-                                            <div class="dropdown-menu dropdown-menu-end">
-                                                <a class="dropdown-item" href="{{ url('/viewstudent', $students->id) }}">
-                                                    <i class="fa fa-user"></i> Profile
-                                                </a>
-                                                @role(['superAdmin'])
-                                                    <a class="dropdown-item" href="{{ url('/edit-student', $students->id) }}">
-                                                        <i class="fa fa-pencil"></i> Edit
-                                                    </a>
-                                                @endcan
-                                                @role(['superAdmin'])
-                                                    <form method="POST" action="{{ url('student-delete', $students->id) }}">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="dropdown-item delete-confirm">
-                                                            <i class="fa fa-trash"></i> Delete
-                                                        </button>
-                                                    </form>
-                                                @endcan
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>{{ $students->fname }} {{ $students->mname }} {{ $students->sname }}</td>
-                                    <td>{{ optional($students->course)->name ?? 'Not enrolled yet.' }}</td>
-                                    @role(['superAdmin','admin'])
-                                        <td>
-                                            K{{ number_format($students->invoice->invoice_total ?? 0, 2) }}
-                                        </td>
-                                        <td>
-                                            <strong>
-                                                <span class="{{ $invoiceBalance > 0 ? 'text-danger' : 'text-success' }}">
-                                                    K{{ number_format($invoiceBalance, 2) }}
-                                                </span>
-                                            </strong>
-                                        </td>
-                                    @endrole
-                                    <td>{{ $students->created_at->format('j F, Y') }}</td>
-                                    @role(['superAdmin','admin'])
-                                        <td>
-                                            {{ optional($students->fleet)->car_registration_number ?? 'Not assigned yet' }}
-                                        </td>
-                                    @endrole
-                                    <td class="text-center">
-                                        @if($attendancePercentage >= 100)
-                                            <span class="badge bg-success">Completed</span>
-                                        @elseif($attendancePercentage >= 50)
-                                            <span class="badge bg-info">{{ $attendancePercentage }}%</span>
-                                        @else
-                                            <span class="badge bg-warning">{{ $attendancePercentage }}%</span>
-                                        @endif
-                                    </td>
-                                    <td>{{ $students->status }}</td>
-                                    <td>{{ $students->phone }}</td>
-                                    <td>{{ optional($students->user)->email ?? '-' }}</td>
-                                    <td>{{ $students->trn }}</td>
-                                </tr>
-                            @endforeach
-                        @else
-                            <tr>
-                                <td colspan="12" class="text-center">No students found.</td>
-                            </tr>
-                        @endif
-                    </tbody>
-                </table>
-                    {{ $student->links('pagination::bootstrap-5') }}
-                @else
-                    <p class="p-5">No matching records found!</p>
-                @endif
+            <div class="col-md-12">
+                <ul class="nav nav-tabs nav-tabs-block" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" id="active-tab" data-bs-toggle="tab" data-bs-target="#active" role="tab" aria-controls="active" aria-selected="true">
+                            Active
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed" role="tab" aria-controls="completed" aria-selected="false">
+                            Finished
+                        </button>
+                    </li>
+                </ul>
             </div>
+
+            <div class="tab-content">
+                @foreach (['active' => $activeStudents, 'completed' => $finishedStudents] as $key => $studentsList)
+                    <div class="tab-pane {{ $key === 'active' ? 'show active' : 'fade' }}" id="{{ $key }}" role="tabpanel" aria-labelledby="{{ $key }}-tab">
+                        <div class="content-full">
+                            <div class="row">
+                                <div class="col-md-12 py-4">
+                                    <div class="m-4 table-responsive">
+                                        @if (!$studentsList->isEmpty())
+                                            <table class="table table-bordered table-striped table-vcenter">
+                                                <thead class="thead-dark">
+                                                    <tr>
+                                                        <th class="text-center" style="width: 100px;">Actions</th>
+                                                        <th>Name</th>
+                                                        <th style="min-width: 15rem;">Course Enrolled</th>
+                                                        @role('superAdmin|admin')
+                                                            <th>Fees</th>
+                                                            <th>Balance</th>
+                                                        @endrole
+                                                        <th style="min-width: 10rem;">Registered on</th>
+                                                        @role('superAdmin|admin')
+                                                            <th style="min-width: 10rem;">Car assigned</th>
+                                                        @endrole
+                                                        <th>Attendance</th>
+                                                        <th style="min-width: 10rem;">Course Status</th>
+                                                        <th>Phone</th>
+                                                        <th>Email</th>
+                                                        <th>TRN</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @forelse ($studentsList as $students)
+                                                        @php
+                                                            $attendancePercentage = $students->course && $students->course->duration > 0
+                                                                ? number_format($students->attendance->count() / $students->course->duration * 100)
+                                                                : 0;
+                                                            $invoiceBalance = $students->invoice->invoice_balance ?? 0;
+                                                        @endphp
+                                                        <tr>
+                                                            <td class="text-center">
+                                                                <div class="dropdown d-inline-block">
+                                                                    <button class="btn btn-primary" data-bs-toggle="dropdown">Actions</button>
+                                                                    <div class="dropdown-menu dropdown-menu-end">
+                                                                        <a class="dropdown-item" href="{{ url('/viewstudent', $students->id) }}">
+                                                                            <i class="fa fa-user"></i> Profile
+                                                                        </a>
+                                                                        @role('superAdmin')
+                                                                            <a class="dropdown-item" href="{{ url('/edit-student', $students->id) }}">
+                                                                                <i class="fa fa-pencil"></i> Edit
+                                                                            </a>
+                                                                            <form method="POST" action="{{ url('student-delete', $students->id) }}">
+                                                                                @csrf
+                                                                                @method('DELETE')
+                                                                                <button type="submit" class="dropdown-item delete-confirm">
+                                                                                    <i class="fa fa-trash"></i> Delete
+                                                                                </button>
+                                                                            </form>
+                                                                        @endrole
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td>{{ $students->fname }} {{ $students->mname }} {{ $students->sname }}</td>
+                                                            <td>{{ optional($students->course)->name ?? 'Not enrolled yet.' }}</td>
+                                                            @role('superAdmin|admin')
+                                                                <td>K{{ number_format($students->invoice->invoice_total ?? 0, 2) }}</td>
+                                                                <td>
+                                                                    <strong>
+                                                                        <span class="{{ $invoiceBalance > 0 ? 'text-danger' : 'text-success' }}">
+                                                                            K{{ number_format($invoiceBalance, 2) }}
+                                                                        </span>
+                                                                    </strong>
+                                                                </td>
+                                                            @endrole
+                                                            <td>{{ $students->created_at->format('j F, Y') }}</td>
+                                                            @role('superAdmin|admin')
+                                                                <td>{{ optional($students->fleet)->car_registration_number ?? 'Not assigned yet' }}</td>
+                                                            @endrole
+                                                            <td class="text-center">
+                                                                @if ($attendancePercentage >= 100)
+                                                                    <span class="badge bg-success">Completed</span>
+                                                                @elseif ($attendancePercentage >= 50)
+                                                                    <span class="badge bg-info">{{ $attendancePercentage }}%</span>
+                                                                @else
+                                                                    <span class="badge bg-warning">{{ $attendancePercentage }}%</span>
+                                                                @endif
+                                                            </td>
+                                                            <td>{{ $students->status }}</td>
+                                                            <td>{{ $students->phone }}</td>
+                                                            <td>{{ optional($students->user)->email ?? '-' }}</td>
+                                                            <td>{{ $students->trn }}</td>
+                                                        </tr>
+                                                    @empty
+                                                        <tr>
+                                                            <td colspan="12" class="text-center">No students found.</td>
+                                                        </tr>
+                                                    @endforelse
+                                                </tbody>
+                                            </table>
+
+                                            {{ $studentsList->links('pagination::bootstrap-5') }}
+                                        @else
+                                            <p class="p-5">No matching records found!</p>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
         </div>
     </div>
 
