@@ -275,6 +275,7 @@
           } catch (error) {
             handleApiError(error);
           } finally {
+            NProgress.done();
             isSubmitting.value = false;
           }
         };
