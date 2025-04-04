@@ -125,7 +125,7 @@ class ScheduleLessonController extends Controller
         if (Auth::user()->hasRole('instructor')) {
             return redirect()->route('dashboard')->with('error', 'Access denied');
         }
-        return view('schedules.schedules');
+        return view('schedules.adminSchedules');
 
     }
 
