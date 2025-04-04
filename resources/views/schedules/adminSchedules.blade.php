@@ -158,11 +158,11 @@
                         No schedules attendances this day!
                     </div>
                 </div>
-                <div class="modal-footer">
+                {{--  <div class="modal-footer">
                     <button class="btn btn-light" @click="handleAddSchedule()">
                         Add Schedule
                     </button>
-                </div>
+                </div>  --}}
             </div>
         </div>
     </div>
@@ -332,18 +332,13 @@
 
             // Only proceed if no events exist
             if (!hasEvents) {
-                // Validate date is today or in future
-                if (clickedMoment.isBefore(today)) {
-                    showError("Can't select date", "Please select today's date or a future date");
-                    return;
-                }
               // Set smart default time (next hour if today, 9am if future)
               const defaultTime = clickedMoment.isSame(today, 'day')
                 ? moment().add(1, 'hour').startOf('hour') // Next full hour
                 : clickedMoment.set({ hour: 9, minute: 0 }); // 9:00 AM
 
               startTime.value = defaultTime.format("YYYY-MM-DDTHH:mm");
-              showModal('lessonScheduleModal');
+              showModal('lessonsModal');
             } else {
               // Optional: Show existing events if needed
               eventItems.value = events.value.filter(event =>
