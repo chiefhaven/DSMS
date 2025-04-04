@@ -138,7 +138,7 @@
                                     <th>Student</th>
                                     <th>Lesson</th>
                                     <th>Date/Time</th>
-                                    <th style="min-width: 100px;">Action</th>
+                                    <th style="min-width: 100px;">Instructor</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -147,13 +147,7 @@
                                     <td>@{{ event.lesson.name }}</td>
                                     <td>@{{ formatDate(event.start) }}</td>
                                     <td>
-                                        <button class="btn btn-sm me-1" @click="editEvent(event)">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-
-                                        <button class="btn btn-sm" @click="deleteEvent(event.id)">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
+                                        @{{ event.instructor }}
                                     </td>
                                 </tr>
                             </tbody>
@@ -370,7 +364,6 @@
               }
 
             closeModal('lessonsModal');
-            console.log(clickedDate.value);
             startTime.value = moment(clickedDate.value).format("YYYY-MM-DDTHH:mm");
             showModal('lessonScheduleModal');
         };
