@@ -602,82 +602,40 @@ class StudentController extends Controller
         return $pdf->download('Daron Driving School -'.$fleet_number.' Students Report.pdf');
     }
 
-    public function search(Request $request)
-    {
-        $searchTerm = $request->input('search');
+    public function search(Request $request){
 
-        if (Auth::user()->hasRole('instructor')) {
-            $fleet_id = Fleet::where('instructor_id', Auth::user()->instructor_id)->firstOrFail()->id;
-            $fleet = Fleet::where('instructor_id', Auth::user()->instructor_id)->get();
 
+        if(Auth::user()->hasRole('instructor')){
+            $fleet_id = Fleet::Where('instructor_id', Auth::user()->instructor_id)->firstOrFail()->id;
+            $fleet = Fleet::Where('instructor_id', Auth::user()->instructor_id)->get();
             $activeStudents = Student::with('User')
-                ->where('fleet_id', $fleet_id)
-                ->where('status', 'active')
-                ->where(function ($query) use ($searchTerm) {
-                    $query->where('fname', 'like', '%' . $searchTerm . '%')
-                        ->orWhere('mname', 'like', '%' . $searchTerm . '%')
-                        ->orWhere('sname', 'like', '%' . $searchTerm . '%')
-                        ->orWhere('phone', 'like', '%' . $searchTerm . '%')
-                        ->orWhere('trn', 'like', '%' . $searchTerm . '%')
-                        ->orWhereHas('User', function ($q) use ($searchTerm) {
-                            $q->where('email', 'like', '%' . $searchTerm . '%');
-                        });
-                })
-                ->orderBy('fname', 'ASC')
-                ->paginate(20);
-
-            $finishedStudents = Student::with('User')
-                ->where('fleet_id', $fleet_id)
-                ->where('status', 'finished')
-                ->where(function ($query) use ($searchTerm) {
-                    $query->where('fname', 'like', '%' . $searchTerm . '%')
-                        ->orWhere('mname', 'like', '%' . $searchTerm . '%')
-                        ->orWhere('sname', 'like', '%' . $searchTerm . '%')
-                        ->orWhere('phone', 'like', '%' . $searchTerm . '%')
-                        ->orWhere('trn', 'like', '%' . $searchTerm . '%')
-                        ->orWhereHas('User', function ($q) use ($searchTerm) {
-                            $q->where('email', 'like', '%' . $searchTerm . '%');
-                        });
-                })
-                ->orderBy('fname', 'ASC')
-                ->paginate(20);
-        } else {
-            $fleet = Fleet::all();
-
+            ->Where('fleet_id', $fleet_id)
+            ->where(function ($query) {$query
+                ->Where('fname', 'like', '%' . request('search') . '%')
+                ->orWhere('mname', 'like', '%' . request('search') . '%')
+                ->orWhere('sname', 'like', '%' . request('search') . '%')
+                ->orWhere('phone', 'like', '%' . request('search') . '%')
+                ->orWhere('trn', 'like', '%' . request('search') . '%')
+                ->orwhereHas('User', function($q){$q->where('email','like', '%' . request('search') . '%');})->orderBy('fname', 'ASC');}
+            )->paginate(20);
+        }
+        else{
+            $fleet = Fleet::get();
             $activeStudents = Student::with('User')
-                ->where('status', 'active')
-                ->where(function ($query) use ($searchTerm) {
-                    $query->where('fname', 'like', '%' . $searchTerm . '%')
-                        ->orWhere('mname', 'like', '%' . $searchTerm . '%')
-                        ->orWhere('sname', 'like', '%' . $searchTerm . '%')
-                        ->orWhere('phone', 'like', '%' . $searchTerm . '%')
-                        ->orWhere('trn', 'like', '%' . $searchTerm . '%')
-                        ->orWhereHas('User', function ($q) use ($searchTerm) {
-                            $q->where('email', 'like', '%' . $searchTerm . '%');
-                        });
-                })
-                ->orderBy('fname', 'ASC')
-                ->paginate(20);
-
-            $finishedStudents = Student::with('User')
-                ->where('status', 'finished')
-                ->where(function ($query) use ($searchTerm) {
-                    $query->where('fname', 'like', '%' . $searchTerm . '%')
-                        ->orWhere('mname', 'like', '%' . $searchTerm . '%')
-                        ->orWhere('sname', 'like', '%' . $searchTerm . '%')
-                        ->orWhere('phone', 'like', '%' . $searchTerm . '%')
-                        ->orWhere('trn', 'like', '%' . $searchTerm . '%')
-                        ->orWhereHas('User', function ($q) use ($searchTerm) {
-                            $q->where('email', 'like', '%' . $searchTerm . '%');
-                        });
-                })
-                ->orderBy('fname', 'ASC')
-                ->paginate(20);
+                ->where('fname', 'like', '%' . request('search') . '%')
+                ->orWhere('mname', 'like', '%' . request('search') . '%')
+                ->orWhere('sname', 'like', '%' . request('search') . '%')
+                ->orWhere('phone', 'like', '%' . request('search') . '%')
+                ->orWhere('trn', 'like', '%' . request('search') . '%')
+                ->orwhereHas('User', function($q){
+                    $q->where('email','like', '%' . request('search') . '%');})->orderBy('fname', 'ASC')->paginate(20);
         }
 
-        return view('students.students', compact('activeStudents', 'finishedStudents', 'fleet'));
-    }
+        $finishedStudents = $activeStudents;
 
+
+        return view('students.students', compact('activeStudents', 'fleet', 'finishedStudents'));
+    }
 
     public function assignCar(Request $request, student $student)
     {
