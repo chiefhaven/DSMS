@@ -608,7 +608,7 @@ class StudentController extends Controller
         if(Auth::user()->hasRole('instructor')){
             $fleet_id = Fleet::Where('instructor_id', Auth::user()->instructor_id)->firstOrFail()->id;
             $fleet = Fleet::Where('instructor_id', Auth::user()->instructor_id)->get();
-            $student = Student::with('User')
+            $activeStudents = Student::with('User')
             ->Where('fleet_id', $fleet_id)
             ->where(function ($query) {$query
                 ->Where('fname', 'like', '%' . request('search') . '%')
@@ -621,7 +621,7 @@ class StudentController extends Controller
         }
         else{
             $fleet = Fleet::get();
-            $student = Student::with('User')
+            $activeStudents = Student::with('User')
                 ->where('fname', 'like', '%' . request('search') . '%')
                 ->orWhere('mname', 'like', '%' . request('search') . '%')
                 ->orWhere('sname', 'like', '%' . request('search') . '%')
@@ -631,8 +631,10 @@ class StudentController extends Controller
                     $q->where('email','like', '%' . request('search') . '%');})->orderBy('fname', 'ASC')->paginate(20);
         }
 
+        $finishedStudents = $activeStudents;
 
-        return view('students.students', compact('student', 'fleet'));
+
+        return view('students.students', compact('activeStudents', 'fleet', 'finishedStudents'));
     }
 
     public function assignCar(Request $request, student $student)
