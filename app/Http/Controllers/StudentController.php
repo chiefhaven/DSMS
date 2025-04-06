@@ -45,7 +45,22 @@ class StudentController extends Controller
         // Capture the search keyword from the request if provided
         $search = $request->input('search.value'); // This is the global search input
 
+        $status = $request->status;
+
         $students = Student::with(['user', 'course', 'fleet', 'invoice'])
+            ->when($status === 'active', function ($query) {
+                // Active means students who are not yet finished
+                $query->where('status', '!=', 'Finished');
+            })
+            ->when($status === 'unassigned', function ($query) {
+                // Unassigned means no fleet or classroom assigned and not finished
+                $query->whereNull('fleet_id')
+                    ->whereNull('classroom_id')
+                    ->where('status', '!=', 'Finished');
+            })
+            ->when($status === 'finished', function ($query) {
+                $query->where('status', 'Finished');
+            })
             ->orderBy('created_at', 'desc');
 
         if (Auth::user()->hasRole('instructor')) {
@@ -92,7 +107,7 @@ class StudentController extends Controller
             ->addColumn('full_name', function ($student) {
                 $middle = $student->mname ? $student->mname . ' ' : '';
                 return '<span class="text-uppercase">' . e($student->fname) . ' ' . e($middle) . '<b>' . e($student->sname) . '</b></span>';
-            })      
+            })
             ->addColumn('course_enrolled', function ($student) {
                 return $student->course->name ?? 'Not enrolled yet';
             })
