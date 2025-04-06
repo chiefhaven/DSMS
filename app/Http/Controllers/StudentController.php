@@ -95,7 +95,7 @@ class StudentController extends Controller
 
         // Apply the search filter to the 'fname', 'mname', and 'sname' columns
         if ($search) {
-            $students->where('status', '!=', 'Finished')->where(function($query) use ($search) {
+            $students->where(function($query) use ($search) {
                 $query->where('fname', 'like', "%$search%")
                     ->orWhere('mname', 'like', "%$search%")
                     ->orWhere('sname', 'like', "%$search%")
