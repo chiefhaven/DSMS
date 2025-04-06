@@ -5,7 +5,7 @@
     <div class="bg-body-light">
     <div class="content content-full">
         <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
-        <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Active students</h1>
+        <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Students</h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
 
             @if(Session::has('message'))
@@ -41,7 +41,7 @@
     <div class="content content-full" id="students">
         <div class="row">
             <!-- Active Students -->
-            <div class="col-md-4 col-xl-4 col-sm-6">
+            <div class="col-md-4 col-xl-4 col-sm-4">
             <div class="block block-rounded block-link-shadow border" @click="reloadTable('active')" style="cursor: pointer;">
                 <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                 <div>
@@ -58,7 +58,7 @@
             </div>
 
             <!-- Unassigned Students -->
-            <div class="col-md-4 col-xl-4 col-sm-6">
+            <div class="col-md-4 col-xl-4 col-sm-4">
             <div class="block block-rounded block-link-shadow border" @click="reloadTable('unassigned')" style="cursor: pointer;">
                 <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                 <div>
@@ -75,7 +75,7 @@
             </div>
 
             <!-- Finished Students -->
-            <div class="col-md-4 col-xl-4 col-sm-6">
+            <div class="col-md-4 col-xl-4 col-sm-4">
             <div class="block block-rounded block-link-shadow border" @click="reloadTable('finished')" style="cursor: pointer;">
                 <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                 <div>
