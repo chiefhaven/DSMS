@@ -42,66 +42,56 @@
         <div class="row">
             <!-- Active Students -->
             <div class="col-md-4 col-xl-4 col-sm-6">
-                <div class="block block-rounded block-link-shadow border">
-                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                        <div>
-                            <!-- Active Students Icon -->
-                            <i class="fa fa-2x fa-check-circle text-success"></i>
-                        </div>
-                        <div class="ml-3 text-right">
-                            <p class="font-size-h3 font-w300 mb-0">
-                                {{ $students->where('status', '!=', 'Finished')->count() }}
-                            </p>
-                            <p class="mb-0">
-                                Active
-                            </p>
-                        </div>
-                    </div>
+            <div class="block block-rounded block-link-shadow border" @click="reloadTable('active')" style="cursor: pointer;">
+                <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                <div>
+                    <i class="fa fa-2x fa-check-circle text-success"></i>
+                </div>
+                <div class="ml-3 text-right">
+                    <p class="font-size-h3 font-w300 mb-0">
+                    {{ $students->where('status', '!=', 'Finished')->count() }}
+                    </p>
+                    <p class="mb-0">Active</p>
+                </div>
                 </div>
             </div>
-        
+            </div>
+
             <!-- Unassigned Students -->
             <div class="col-md-4 col-xl-4 col-sm-6">
-                <div class="block block-rounded block-link-shadow border">
-                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                        <div>
-                            <!-- Unassigned Students Icon -->
-                            <i class="fa fa-2x fa-times-circle text-danger"></i>
-                        </div>
-                        <div class="mr-3 text-right">
-                            <p class="font-size-h3 font-w900 mb-0">
-                                {{ $students->where('fleet_id', null)->where('classroom_id', null)->where('status', '!=', 'Finished')->count() }}
-                            </p>
-                            <p class="mb-0">
-                                Unassigned
-                            </p>
-                        </div>
-                    </div>
+            <div class="block block-rounded block-link-shadow border" @click="reloadTable('unassigned')" style="cursor: pointer;">
+                <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                <div>
+                    <i class="fa fa-2x fa-times-circle text-danger"></i>
                 </div>
+                <div class="mr-3 text-right">
+                    <p class="font-size-h3 font-w900 mb-0">
+                    {{ $students->where('fleet_id', null)->where('classroom_id', null)->where('status', '!=', 'Finished')->count() }}
+                    </p>
+                    <p class="mb-0">Unassigned</p>
+                </div>
+                </div>
+            </div>
             </div>
 
             <!-- Finished Students -->
             <div class="col-md-4 col-xl-4 col-sm-6">
-                <div class="block block-rounded block-link-shadow border">
-                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                        <div>
-                            <!-- Finished Students Icon -->
-                            <i class="fa fa-2x fa-check-circle text-primary"></i>
-                        </div>
-                        <div class="ml-3 text-right">
-                            <p class="font-size-h3 font-w900 mb-0">
-                                {{ $students->where('status', '==', 'Finished')->count() }}
-
-                            </p>
-                            <p class="mb-0">
-                                Finished/Cancelled
-                            </p>
-                        </div>
-                    </div>
+            <div class="block block-rounded block-link-shadow border" @click="reloadTable('finished')" style="cursor: pointer;">
+                <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                <div>
+                    <i class="fa fa-2x fa-check-circle text-primary"></i>
+                </div>
+                <div class="ml-3 text-right">
+                    <p class="font-size-h3 font-w900 mb-0">
+                    {{ $students->where('status', '==', 'Finished')->count() }}
+                    </p>
+                    <p class="mb-0">Finished/Cancelled</p>
+                </div>
                 </div>
             </div>
-        </div>           
-        
+            </div>
+        </div>
+
         <div class="block block-rounded block-bordered">
             <div class="content-full">
                 <div class="row">
@@ -198,71 +188,26 @@
             </div>
     @endcan
 
-
-    <script type="text/javascript">
-        $(document).ready(function () {
-            $('#studentsTable').DataTable({
-                serverSide: true,
-                processing: true,
-                scrollCollapse: true,
-                scrollX: true,
-                ajax: {
-                    url: '/api/students',
-                    type: 'GET',
-                    error: function(xhr, error, thrown) {
-                        alert('An error occurred while fetching data. Please try again later.');
-                    }
-                },
-                columns: [
-                    { data: 'actions', className: 'text-center', orderable: false },
-                    { data: 'full_name' },
-                    { data: 'course_enrolled', className: 'text-wrap' },
-                    @role('superAdmin|admin')
-                    { data: 'fees', className: 'text-right' },
-                    { data: 'balance', className: 'text-right' },
-                    @endrole
-                    { data: 'registered_on', className: 'text-center' },
-                    @role(['superAdmin','admin'])
-                    { data: 'car_assigned', className: 'text-center' },
-                    @endrole
-                    { data: 'attendance', className: 'text-center' },
-                    { data: 'course_status', className: 'text-wrap' },
-                    { data: 'phone' },
-                    { data: 'email' },
-                    { data: 'trn' },
-                ],
-                drawCallback: function () {
-                    // Rebind delete confirmation
-                    $('.delete-confirm').on('click', function (e) {
-                        e.preventDefault();
-                        var form = $(this).closest('form');
-                        Swal.fire({
-                            title: 'Delete Student',
-                            text: 'Do you want to delete this student?',
-                            icon: 'warning',
-                            showCancelButton: true,
-                            confirmButtonColor: '#d33',
-                            cancelButtonColor: '#3085d6',
-                            confirmButtonText: 'Delete!',
-                            cancelButtonText: 'Cancel'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                form.submit();
-                                $('#studentsTable').DataTable().ajax.reload();
-                            }
-                        });
-                    });
-                }
-            });
-        });
-    </script>
     <script setup>
-        const { createApp, ref, reactive, onMounted } = Vue
+        const { createApp, ref, reactive, onMounted, nextTick } = Vue
 
         const students = createApp({
         setup() {
 
+            const status = ref('active');
+
             onMounted(() => {
+                nextTick(() => {
+                  getStudents();
+                })
+              })
+
+              const reloadTable = (val) => {
+                status.value = val
+                $('#studentsTable').DataTable().ajax.reload()
+              }
+
+              const getStudents = () => {
                 $('#studentsTable').DataTable({
                   serverSide: true,
                   processing: true,
@@ -271,10 +216,14 @@
                   ajax: {
                     url: '/api/students',
                     type: 'GET',
+                    data: function (d) {
+                      d.status = status.value
+                    },
                     error: function (xhr, error, thrown) {
                       alert('An error occurred while fetching data. Please try again later.')
                     }
                   },
+
                   columns: [
                     { data: 'actions', className: 'text-center', orderable: false },
                     { data: 'full_name' },
@@ -291,8 +240,8 @@
                   ],
                   drawCallback: function () {
                     $('.delete-confirm').on('click', function (e) {
-                      e.preventDefault()
-                      var form = $(this).closest('form')
+                      e.preventDefault();
+                      var form = $(this).closest('form');
                       Swal.fire({
                         title: 'Delete Student',
                         text: 'Do you want to delete this student?',
@@ -304,17 +253,17 @@
                         cancelButtonText: 'Cancel'
                       }).then((result) => {
                         if (result.isConfirmed) {
-                          form.submit()
-                          $('#studentsTable').DataTable().ajax.reload()
+                          form.submit();
+                          $('#studentsTable').DataTable().ajax.reload();
                         }
-                      })
-                    })
+                      });
+                    });
                   }
-                })
-              })
+                });
+            };
 
             return {
-                
+                reloadTable,
             }
 
         }})
