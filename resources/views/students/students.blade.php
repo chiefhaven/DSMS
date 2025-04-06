@@ -109,7 +109,7 @@
                                         @endrole
                                         <th style="min-width: 10rem;">Registered on</th>
                                         @role('superAdmin|admin')
-                                            <th style="min-width: 10rem;">Car assigned</th>
+                                            <th style="min-width: 10rem;">Assigned</th>
                                         @endrole
                                         <th>Attendance</th>
                                         <th style="min-width: 10rem;">Course Status</th>
