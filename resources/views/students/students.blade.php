@@ -60,6 +60,26 @@
                 </div>
             </div>
         
+            <!-- Unassigned Students -->
+            <div class="col-md-4 col-xl-4 col-sm-6">
+                <div class="block block-rounded block-link-shadow border">
+                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                        <div>
+                            <!-- Unassigned Students Icon -->
+                            <i class="fa fa-2x fa-times-circle text-danger"></i>
+                        </div>
+                        <div class="mr-3 text-right">
+                            <p class="font-size-h3 font-w900 mb-0">
+                                {{ $students->where('fleet_id', null)->where('classroom_id', null)->where('status', '!=', 'Finished')->count() }}
+                            </p>
+                            <p class="mb-0">
+                                Unassigned
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Finished Students -->
             <div class="col-md-4 col-xl-4 col-sm-6">
                 <div class="block block-rounded block-link-shadow border">
@@ -75,26 +95,6 @@
                             </p>
                             <p class="mb-0">
                                 Finished/Cancelled
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        
-            <!-- Unassigned Students -->
-            <div class="col-md-4 col-xl-4 col-sm-6">
-                <div class="block block-rounded block-link-shadow border">
-                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                        <div>
-                            <!-- Unassigned Students Icon -->
-                            <i class="fa fa-2x fa-times-circle text-danger"></i>
-                        </div>
-                        <div class="mr-3 text-right">
-                            <p class="font-size-h3 font-w900 mb-0">
-                                {{ $students->where('fleet_id', null)->where('classroom_id', null)->where('status', '!=', 'Finished')->count() }}
-                            </p>
-                            <p class="mb-0">
-                                Unassigned
                             </p>
                         </div>
                     </div>
