@@ -103,172 +103,172 @@
 </div>
 </div>
 <!-- END Hero -->
-<script setup>
-    const { createApp, ref, reactive } = Vue
-    const { defineRule, configure, useForm, useField, ErrorMessage } = VeeValidate
+    <script setup>
+        const { createApp, ref, reactive } = Vue
+        const { defineRule, configure, useForm, useField, ErrorMessage } = VeeValidate
 
-    function isRequired(value) {
-        if (value && value.trim()) {
-          return true;
-        }
-        return 'This is required';
-      }
-
-
-    const app = createApp({
-      setup() {
-        const currentDate = new Date();
-        const options = { day: 'numeric', month: 'long', year: 'numeric'};
-        const state = ref({
-            amount: 0,                 // Represents the amount an expense
-            expenseGroupName: currentDate.toLocaleDateString(options),       // Name of the expense group or category
-            expenseGroupType: 'Theory',
-            expenseDescription: '',       // Name of the expense group or category
-            studentName: '', // Name of the student'
-            expenseType: '',            // Type of expense
-            selectedStudents: [],       // Array of selected students (possibly for group payments or expenses)
-            paymentMethod: 'Cash', // Preferred payment method (defaulting to 'Airtel Money')
-            errors: [],              // Array to store any validation or error messages
-            isSubmitButtonDisabled: false,
-            isLoading: false,
-            buttonText: 'Submit'
-        })
-
-        const paymentMethodOptions = ref([
-            { text: 'Cash', value: 'Cash' },
-            { text: 'Bank', value: 'Bank' },
-            { text: 'AirtelMoney', value: 'AirtelMoney' }
-        ])
-
-        const groupExpenseTypeOptions = ref([
-            { text: 'TRN', value: 'TRN' },
-            { text: 'Theory', value: 'Theory' },
-            { text: 'Road Test', value: 'Road Test' }
-        ])
-
-        function groupExpenseTypeChange(event){
-            if(event.target.selectedOptions[0].value === 'Theory'){
-                state.value.expenseType = 'Choose Highway Code...'
+        function isRequired(value) {
+            if (value && value.trim()) {
+            return true;
             }
-
-            state.value.expenseType = event.target.selectedOptions[0].value
+            return 'This is required';
         }
 
-        var hasError = ref(false)
 
-        function addStudentToGroup() {
-            if (!state.value.studentName) {
-                notification('Student name must be filled', 'error')
-                hasError.value = true
-                return hasError
-            }
+        const app = createApp({
+        setup() {
+            const currentDate = new Date();
+            const options = { day: 'numeric', month: 'long', year: 'numeric'};
+            const state = ref({
+                amount: 0,                 // Represents the amount an expense
+                expenseGroupName: currentDate.toLocaleDateString(options),       // Name of the expense group or category
+                expenseGroupType: 'Theory',
+                expenseDescription: '',       // Name of the expense group or category
+                studentName: '', // Name of the student'
+                expenseType: '',            // Type of expense
+                selectedStudents: [],       // Array of selected students (possibly for group payments or expenses)
+                paymentMethod: 'Cash', // Preferred payment method (defaulting to 'Airtel Money')
+                errors: [],              // Array to store any validation or error messages
+                isSubmitButtonDisabled: false,
+                isLoading: false,
+                buttonText: 'Submit'
+            })
 
-            if (!state.value.expenseType) {
-                notification('Expense Type must be filled', 'error')
-                hasError.value = true
-                return hasError
-            }
+            const paymentMethodOptions = ref([
+                { text: 'Cash', value: 'Cash' },
+                { text: 'Bank', value: 'Bank' },
+                { text: 'AirtelMoney', value: 'AirtelMoney' }
+            ])
 
-            if(!state.value.selectedStudents.some(item => item.studentName === state.value.studentName)){
-                axios.post('/checkStudent', {student:state.value.studentName, expenseType: state.value.expenseType}).then(response => {
-                    if(response.data.feedback == "success"){
-                        state.value.selectedStudents.push({studentName:state.value.studentName, expenseType:state.value.expenseType})
-                        state.value.studentName =''
-                        notification(response.data.message, 'success')
-                    }
-                    else{
-                        notification(response.data.message, 'error')
-                    }
-                })
-            }
-            else{
-                notification('Student already in list', 'error')
-                hasError.value = true
-                return hasError
-            }
-        }
+            const groupExpenseTypeOptions = ref([
+                { text: 'TRN', value: 'TRN' },
+                { text: 'Theory', value: 'Theory' },
+                { text: 'Road Test', value: 'Road Test' }
+            ])
 
-        function removeStudentFromGroup(index) {
-            state.value.selectedStudents.splice(index, 1)
-        }
-
-        function saveExpense(){
-            if(Object.keys( state.value.selectedStudents ).length == 0){
-                notification('Student list must not be empty', 'error')
-                return false
-            }
-
-            if( !state.value.expenseGroupName || !state.value.paymentMethod){
-                notification('Expense Group Name, Payment Method and Amount must be filled and Amount must be greater than 0', 'error')
-                return false
-            }
-            state.value.isSubmitButtonDisabled = true
-            state.value.isLoading = true
-            axios.post('/storeexpense', {students:state.value.selectedStudents, expenseGroupName:state.value.expenseGroupName, expenseDescription:state.value.expenseDescription, expenseGroupType:state.value.expenseGroupType, expenseAmount: state.value.amount}).then(response => {
-                if(response.status==200){
-                    notification('Expense added successfully','success')
-                    window.location.replace('/expenses')
+            function groupExpenseTypeChange(event){
+                if(event.target.selectedOptions[0].value === 'Theory'){
+                    state.value.expenseType = 'Choose Highway Code...'
                 }
-                else if(error.response.data.errors){
-                    notification('error.response.data.errors.message','error')
+
+                state.value.expenseType = event.target.selectedOptions[0].value
+            }
+
+            var hasError = ref(false)
+
+            function addStudentToGroup() {
+                if (!state.value.studentName) {
+                    notification('Student name must be filled', 'error')
+                    hasError.value = true
+                    return hasError
+                }
+
+                if (!state.value.expenseType) {
+                    notification('Expense Type must be filled', 'error')
+                    hasError.value = true
+                    return hasError
+                }
+
+                if(!state.value.selectedStudents.some(item => item.studentName === state.value.studentName)){
+                    axios.post('/checkStudent', {student:state.value.studentName, expenseType: state.value.expenseType}).then(response => {
+                        if(response.data.feedback == "success"){
+                            state.value.selectedStudents.push({studentName:state.value.studentName, expenseType:state.value.expenseType})
+                            state.value.studentName =''
+                            notification(response.data.message, 'success')
+                        }
+                        else{
+                            notification(response.data.message, 'error')
+                        }
+                    })
                 }
                 else{
+                    notification('Student already in list', 'error')
+                    hasError.value = true
+                    return hasError
+                }
+            }
+
+            function removeStudentFromGroup(index) {
+                state.value.selectedStudents.splice(index, 1)
+            }
+
+            function saveExpense(){
+                if(Object.keys( state.value.selectedStudents ).length == 0){
+                    notification('Student list must not be empty', 'error')
                     return false
                 }
-            });
 
-            //
-        }
-
-        function onStudentChange(event){
-            state.value.studentName = event.target.value;  // Now you should have access to your selected option.
-         }
-
-        function studentSearch() {
-            var path = "{{ route('expense-student-search') }}";
-            $('#student').typeahead({
-                source:  function (query, process) {
-                return $.get(path, { query: query }, function (data) {
-                        return process(data);
-                    });
+                if( !state.value.expenseGroupName || !state.value.paymentMethod){
+                    notification('Expense Group Name, Payment Method and Amount must be filled and Amount must be greater than 0', 'error')
+                    return false
                 }
-            });
-        }
+                state.value.isSubmitButtonDisabled = true
+                state.value.isLoading = true
+                axios.post('/storeexpense', {students:state.value.selectedStudents, expenseGroupName:state.value.expenseGroupName, expenseDescription:state.value.expenseDescription, expenseGroupType:state.value.expenseGroupType, expenseAmount: state.value.amount}).then(response => {
+                    if(response.status==200){
+                        notification('Expense added successfully','success')
+                        window.location.replace('/expenses')
+                    }
+                    else if(error.response.data.errors){
+                        notification('error.response.data.errors.message','error')
+                    }
+                    else{
+                        return false
+                    }
+                });
 
-        const notification = ($text, $icon) =>{
-            Swal.fire({
-                toast: true,
-                position: "top-end",
-                html: $text,
-                showConfirmButton: false,
-                timer: 5500,
-                timerProgressBar: true,
-                icon: $icon,
-                didOpen: (toast) => {
-                    toast.onmouseenter = Swal.stopTimer;
-                    toast.onmouseleave = Swal.resumeTimer;
-                  }
-              });
-        }
+                //
+            }
 
-        return {
-            addStudentToGroup,
-            removeStudentFromGroup,
-            saveExpense,
-            studentSearch,
-            onStudentChange,
-            state,
-            hasError,
-            paymentMethodOptions,
-            groupExpenseTypeOptions,
-            groupExpenseTypeChange,
-            isRequired,
+            function onStudentChange(event){
+                state.value.studentName = event.target.value;  // Now you should have access to your selected option.
+            }
+
+            function studentSearch() {
+                var path = "{{ route('expense-student-search') }}";
+                $('#student').typeahead({
+                    source:  function (query, process) {
+                    return $.get(path, { query: query }, function (data) {
+                            return process(data);
+                        });
+                    }
+                });
+            }
+
+            const notification = ($text, $icon) =>{
+                Swal.fire({
+                    toast: true,
+                    position: "top-end",
+                    html: $text,
+                    showConfirmButton: false,
+                    timer: 5500,
+                    timerProgressBar: true,
+                    icon: $icon,
+                    didOpen: (toast) => {
+                        toast.onmouseenter = Swal.stopTimer;
+                        toast.onmouseleave = Swal.resumeTimer;
+                    }
+                });
+            }
+
+            return {
+                addStudentToGroup,
+                removeStudentFromGroup,
+                saveExpense,
+                studentSearch,
+                onStudentChange,
+                state,
+                hasError,
+                paymentMethodOptions,
+                groupExpenseTypeOptions,
+                groupExpenseTypeChange,
+                isRequired,
+            }
         }
-      }
-    })
-    app.use(VeeValidate);
-    app.mount('#expense')
-</script>
+        })
+        app.use(VeeValidate);
+        app.mount('#expense')
+    </script>
 <script type="text/javascript">
 
 </script>

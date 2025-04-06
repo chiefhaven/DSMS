@@ -10,11 +10,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class ScheduleLesson extends Model
 {
-    use HasFactory, SoftDeletes; // Enables soft deletes
-
+    use HasFactory, SoftDeletes, LogsActivity;
     protected $fillable = [
         'start_time',
         'finish_time',
@@ -49,6 +50,24 @@ class ScheduleLesson extends Model
     public function lesson()
     {
         return $this->belongsTo(Lesson::class, 'lesson_id');
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+        ->useLogName('user_activity')
+        ->logOnlyDirty()
+        ->setDescriptionForEvent(function (string $eventName) {
+            $student = $this->student;
+            $lesson = optional($this->lesson)->name ?? 'Unknown Lesson';
+
+            $studentName = $student
+                ? trim("{$student->fname} {$student->mname} {$student->sname}")
+                : 'Unknown Student';
+
+            return "Schedule for {$studentName} for {$lesson} has been {$eventName}.";
+        });
+
     }
 }
 

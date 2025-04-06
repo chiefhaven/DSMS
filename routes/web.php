@@ -51,6 +51,7 @@ Route::post('/update-notification-templates/{template}', [NotificationTemplateCo
 
 
 Route::get('/students', [StudentController::class, 'index'])->middleware('auth')->name('students');
+Route::get('/finished-students', [StudentController::class, 'index'])->middleware('auth')->name('students');
 Route::get('/viewstudent/{id}', [StudentController::class, 'show'])->middleware('auth')->name('viewStudent');
 Route::get('/addstudent', [StudentController::class, 'create'])->middleware('auth')->name('addstudent');
 Route::post('/storestudent', [StudentController::class, 'store'])->middleware('auth')->name('storestudents');

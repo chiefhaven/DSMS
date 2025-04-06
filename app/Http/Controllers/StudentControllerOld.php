@@ -44,38 +44,10 @@ class StudentController extends Controller
     {
         // Capture the search keyword from the request if provided
         $search = $request->input('search.value'); // This is the global search input
-
+        
         $students = Student::with(['user', 'course', 'fleet', 'invoice'])
             ->orderBy('created_at', 'desc');
-
-        if (Auth::user()->hasRole('instructor')) {
-            $instructor = Auth::user()->instructor;
-
-            if ($instructor->department) {
-                $departmentName = $instructor->department->name;
-
-                switch ($departmentName) {
-                    case 'practical':
-                        $fleetAssigned = Fleet::where('instructor_id', $instructor->id)->first();
-                        if ($fleetAssigned) {
-                            $students->where('fleet_id', $fleetAssigned->id);
-                        } else {
-                            throw new ModelNotFoundException(__('You are not allocated a car.'));
-                        }
-                        break;
-
-                    case 'theory':
-                        $classroomIds = $instructor->classrooms->pluck('id');
-                        if ($classroomIds->isNotEmpty()) {
-                            $students->whereIn('classroom_id', $classroomIds);
-                        } else {
-                            throw new ModelNotFoundException(__('You are not allocated a class room.'));
-                        }
-                        break;
-                }
-            }
-        }
-
+        
         // Apply the search filter to the 'fname', 'mname', and 'sname' columns
         if ($search) {
             $students->where('status', '!=', 'Finished')->where(function($query) use ($search) {
@@ -90,9 +62,8 @@ class StudentController extends Controller
 
         return DataTables::of($students)
             ->addColumn('full_name', function ($student) {
-                $middle = $student->mname ? $student->mname . ' ' : '';
-                return '<span class="text-uppercase">' . e($student->fname) . ' ' . e($middle) . '<b>' . e($student->sname) . '</b></span>';
-            })      
+                return $student->fname . ' ' . $student->mname . ' <b>' . $student->sname . '</b>';
+            })
             ->addColumn('course_enrolled', function ($student) {
                 return $student->course->name ?? 'Not enrolled yet';
             })
@@ -100,15 +71,18 @@ class StudentController extends Controller
                 return 'K' . number_format($student->invoice->invoice_total ?? 0);
             })
             ->addColumn('balance', function ($student) {
-                $invoiceBalance = $student->invoice->invoice_balance ?? 0;
+                $invoiceBalance = $student->invoice->invoice_balance ?? 0; // Get invoice balance, default to 0 if null
+            
+                // Use a ternary operator to set the class based on balance
                 $balanceClass = $invoiceBalance > 0 ? 'text-danger' : 'text-success';
-
+            
+                // Return the formatted HTML with the class applied
                 return '<strong>
                             <span class="' . $balanceClass . '">
                                 K' . number_format($invoiceBalance, 2) . '
                             </span>
                         </strong>';
-            })
+            })            
             ->addColumn('registered_on', function ($student) {
                 return $student->created_at->format('d M, Y');
             })
@@ -118,15 +92,23 @@ class StudentController extends Controller
             ->addColumn('attendance', function ($student) {
                 $attendanceCount = $student->attendance ? $student->attendance->count() : 0;
                 $courseDuration = $student->course->duration ?? 0;
-                $percentage = ($courseDuration > 0) ? round(($attendanceCount / $courseDuration) * 100, 1) : 0;
+                $percentage = 0;
 
-                if ($percentage >= 100) {
-                    return '<span class="badge bg-success">Completed</span>';
-                } elseif ($percentage >= 50) {
-                    return '<span class="badge bg-info">' . $percentage . '%</span>';
-                } else {
-                    return '<span class="badge bg-warning">' . $percentage . '%</span>';
+                if ($courseDuration > 0) {
+                    $percentage = ($attendanceCount / $courseDuration) * 100;
                 }
+
+                $percentageRounded = round($percentage, 1);
+
+                if ($percentageRounded >= 100) {
+                    $badge = '<span class="badge bg-success">Completed</span>';
+                } elseif ($percentageRounded >= 50) {
+                    $badge = '<span class="badge bg-info">' . $percentageRounded . '%</span>';
+                } else {
+                    $badge = '<span class="badge bg-warning">' . $percentageRounded . '%</span>';
+                }
+
+                return $badge;
             })
             ->addColumn('course_status', function ($student) {
                 return ucfirst($student->status);
@@ -180,7 +162,15 @@ class StudentController extends Controller
             // Fetch all fleets
             $fleet = Fleet::all();
 
-            $students = Student::with('User')->latest('created_at');
+            // Base query for active students (not finished)
+            $activeQuery = Student::with('User')
+                ->where('status', '!=', 'Finished')
+                ->latest('created_at');
+
+            // Base query for finished students
+            $finishedQuery = Student::with('User')
+                ->where('status', 'Finished')
+                ->latest('created_at');
 
             // Check if the logged-in user is an instructor
             if (Auth::user()->hasRole('instructor')) {
@@ -192,7 +182,8 @@ class StudentController extends Controller
                     if ($departmentName === 'practical') {
                         $fleetAssigned = Fleet::where('instructor_id', $instructor->id)->first();
                         if ($fleetAssigned) {
-                            $students->where('fleet_id', $fleetAssigned->id);
+                            $activeQuery->where('fleet_id', $fleetAssigned->id);
+                            $finishedQuery->where('fleet_id', $fleetAssigned->id);
                         } else {
                             throw new ModelNotFoundException(__('You are not allocated a car.'));
                         }
@@ -201,7 +192,8 @@ class StudentController extends Controller
                     if ($departmentName === 'theory') {
                         $classroomIds = $instructor->classrooms->pluck('id');
                         if ($classroomIds->isNotEmpty()) {
-                            $students->whereIn('classroom_id', $classroomIds);
+                            $activeQuery->whereIn('classroom_id', $classroomIds);
+                            $finishedQuery->whereIn('classroom_id', $classroomIds);
                         } else {
                             throw new ModelNotFoundException(__('You are not allocated a class room.'));
                         }
@@ -210,9 +202,10 @@ class StudentController extends Controller
             }
 
             // Paginate both queries
-            $students = $students->get();
+            $activeStudents = $activeQuery->paginate(15, ['*'], 'active_page');
+            $finishedStudents = $finishedQuery->paginate(15, ['*'], 'finished_page');
 
-            return view('students.students', compact('students', 'fleet'));
+            return view('students.students', compact('activeStudents', 'finishedStudents', 'fleet'));
 
         } catch (ModelNotFoundException $e) {
             Alert::error(__('No students'), $e->getMessage());

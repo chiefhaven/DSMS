@@ -113,11 +113,6 @@
                         <canvas id="attendancesChart" height="200"></canvas>
                     </div>
                 </div>
-                {{--  <div class="col-4">
-                    <div class="block-conent block-rounded block-bordered">
-                        <canvas id="coursesChart" width="400" height="400"></canvas>
-                    </div>
-                </div>  --}}
             </div>
 
             <div class="row mt-2 p-0">
@@ -228,7 +223,7 @@
                     </div>
                     <div class="block-content h-100">
                         <div class="table-responsive">
-                        <table class="table table-striped table-hover table-borderless table-vcenter fs-sm">
+                        <table id="activitiesTable" class="table table-striped table-hover table-borderless table-vcenter fs-sm">
                             <thead>
                             <tr class="text-uppercase">
                                 <th class="fw-bold">Activity</th>
@@ -249,7 +244,7 @@
                             @endforeach
                             </tbody>
                         </table>
-                        {{ $activities->links('pagination::bootstrap-5') }}
+                            {{--  {{ $activities->links('pagination::bootstrap-5') }}  --}}
                         </div>
                     </div>
                     </div>
@@ -384,6 +379,38 @@
 
 <script>
     document.getElementById("filter").value = "{{ $time }}"
+
+    $(document).ready(function () {
+        $.extend($.fn.dataTable.ext.type.order, {
+            "custom-date-pre": function (data) {
+                // Handle "9 May, 2024, 02:00:00" format
+                const parts = data.trim().split(/[\s,]+/);
+                if (parts.length < 4) return 0;
+
+                const day = parseInt(parts[0], 10);
+                const monthNames = [
+                    "January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"
+                ];
+                const month = monthNames.indexOf(parts[1]);
+                const year = parseInt(parts[2], 10);
+                const timeParts = parts[3].split(':');
+                const hours = parseInt(timeParts[0], 10);
+                const minutes = parseInt(timeParts[1], 10);
+                const seconds = timeParts.length > 2 ? parseInt(timeParts[2], 10) : 0;
+
+                return new Date(year, month, day, hours, minutes, seconds).getTime();
+            }
+        });
+
+        $('#activitiesTable').DataTable({
+            order: [[1, 'desc']], // Sort by Date column
+            columnDefs: [
+                { targets: 1, type: 'custom-date' }, // Apply custom date sorting
+                { targets: 0, orderable: false },
+            ]
+        });
+    });
 </script>
 <script>
     const ctx = document.getElementById('attendancesChart');

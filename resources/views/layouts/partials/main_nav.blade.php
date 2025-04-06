@@ -14,10 +14,15 @@
                             <span class="nav-main-link-name">Students</span>
                         </a>
                         <ul class="nav-main-submenu">
-                        <li class="nav-main-item">
-                            <a class="nav-main-link" href="{{ url('/students') }}">
-                                <span class="nav-main-link-name">All students</span>
-                            </a>
+                            <li class="nav-main-item">
+                                <a class="nav-main-link" href="{{ url('/students') }}">
+                                    <span class="nav-main-link-name">Active students</span>
+                                </a>
+                            </li>
+                            <li class="nav-main-item">
+                                <a class="nav-main-link" href="{{ url('/finished-students') }}">
+                                    <span class="nav-main-link-name">Completed students</span>
+                                </a>
                             </li>
                         </ul>
                         @role(['superAdmin', 'admin'])

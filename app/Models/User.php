@@ -11,10 +11,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class User extends Authenticatable
 {
-    use HasUuids, HasApiTokens, HasFactory, Notifiable, HasRoles, SoftDeletes;
+    use HasUuids, HasApiTokens, HasFactory, Notifiable, HasRoles, SoftDeletes, LogsActivity;
     protected $keyType = 'string'; // Ensure it's a string (UUID)
     public $incrementing = false; // Disable auto-incrementing
 
@@ -76,5 +78,16 @@ class User extends Authenticatable
     public function Instructor()
     {
         return $this->belongsTo(Instructor::class);
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('user_activity')
+            ->logOnlyDirty()
+            ->setDescriptionForEvent(fn(string $eventName) =>
+                "User {$this->name} " .
+                "has been {$eventName}."
+            );
     }
 }
