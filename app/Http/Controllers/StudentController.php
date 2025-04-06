@@ -47,10 +47,12 @@ class StudentController extends Controller
 
         $status = $request->status;
 
-        $students = Student::with(['user', 'course', 'fleet', 'invoice'])
+        $students = Student::with(['user', 'course', 'fleet', 'invoice', 'classroom'])
             ->when($status === 'active', function ($query) {
-                // Active means students who are not yet finished
-                $query->where('status', '!=', 'Finished');
+                $query->where(function ($q) {
+                    $q->whereNotNull('fleet_id')
+                    ->orWhereNotNull('classroom_id');
+                })->where('status', '!=', 'Finished');
             })
             ->when($status === 'unassigned', function ($query) {
                 // Unassigned means no fleet or classroom assigned and not finished
@@ -128,7 +130,13 @@ class StudentController extends Controller
                 return $student->created_at->format('d M, Y');
             })
             ->addColumn('car_assigned', function ($student) {
-                return $student->fleet->name ?? 'Not assigned';
+                if ($student->fleet) {
+                    return $student->fleet->car_registration_number;
+                } elseif ($student->classroom) {
+                    return $student->classroom->name;
+                } else {
+                    return 'Not assigned';
+                }
             })
             ->addColumn('attendance', function ($student) {
                 $attendanceCount = $student->attendance ? $student->attendance->count() : 0;
