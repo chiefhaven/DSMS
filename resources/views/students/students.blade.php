@@ -205,8 +205,10 @@
             });
 
             const reloadTable = (val) => {
-            status.value = val
-            $('#studentsTable').DataTable().ajax.reload()
+                status.value = val
+                if ($.fn.DataTable.isDataTable('#studentsTable')) {
+                    $('#studentsTable').DataTable().ajax.reload();
+                  }
             }
 
             const getStudents = () => {
