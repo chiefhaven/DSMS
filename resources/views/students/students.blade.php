@@ -198,16 +198,22 @@
 
             onMounted(() => {
                 nextTick(() => {
-                  getStudents();
-                })
-              })
+                  setTimeout(() => {
+                    getStudents();
+                  }, 100); // quick fix for rendering delay
+                });
+            });
 
-              const reloadTable = (val) => {
-                status.value = val
-                $('#studentsTable').DataTable().ajax.reload()
-              }
+            const reloadTable = (val) => {
+            status.value = val
+            $('#studentsTable').DataTable().ajax.reload()
+            }
 
-              const getStudents = () => {
+            const getStudents = () => {
+                const table = $('#studentsTable').DataTable();
+                if ($.fn.DataTable.isDataTable('#studentsTable')) {
+                    table.destroy();
+                }
                 $('#studentsTable').DataTable({
                   serverSide: true,
                   processing: true,
