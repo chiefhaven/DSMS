@@ -103,14 +103,10 @@
                                         <th class="text-center" style="min-width: 100px;">Actions</th>
                                         <th style="min-width: 15rem;">Name</th>
                                         <th style="min-width: 15rem;">Course Enrolled</th>
-                                        @role('superAdmin|admin')
-                                            <th>Fees</th>
-                                            <th>Balance</th>
-                                        @endrole
+                                        <th>Fees</th>
+                                        <th>Balance</th>
                                         <th style="min-width: 10rem;">Registered on</th>
-                                        @role('superAdmin|admin')
-                                            <th style="min-width: 10rem;">Assigned</th>
-                                        @endrole
+                                        <th style="min-width: 10rem;">Assigned</th>
                                         <th>Attendance</th>
                                         <th style="min-width: 10rem;">Course Status</th>
                                         <th>Phone</th>
