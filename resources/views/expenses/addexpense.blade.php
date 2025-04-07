@@ -105,15 +105,6 @@
 <!-- END Hero -->
     <script setup>
         const { createApp, ref, reactive } = Vue
-        const { defineRule, configure, useForm, useField, ErrorMessage } = VeeValidate
-
-        function isRequired(value) {
-            if (value && value.trim()) {
-            return true;
-            }
-            return 'This is required';
-        }
-
 
         const app = createApp({
         setup() {
@@ -262,11 +253,9 @@
                 paymentMethodOptions,
                 groupExpenseTypeOptions,
                 groupExpenseTypeChange,
-                isRequired,
             }
         }
         })
-        app.use(VeeValidate);
         app.mount('#expense')
     </script>
 <script type="text/javascript">
