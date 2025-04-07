@@ -200,7 +200,7 @@
                 nextTick(() => {
                   setTimeout(() => {
                     getStudents();
-                  }, 100); // quick fix for rendering delay
+                  }, 100);
                 });
             });
 
@@ -222,9 +222,6 @@
                   ajax: {
                     url: '/api/students',
                     type: 'GET',
-                    data: function (d) {
-                      d.status = status.value
-                    },
                     error: function (xhr, error, thrown) {
                       alert('An error occurred while fetching data. Please try again later.')
                     }
