@@ -44,10 +44,10 @@ class StudentController extends Controller
     {
         // Capture the search keyword from the request if provided
         $search = $request->input('search.value'); // This is the global search input
-        
+
         $students = Student::with(['user', 'course', 'fleet', 'invoice'])
             ->orderBy('created_at', 'desc');
-        
+
         // Apply the search filter to the 'fname', 'mname', and 'sname' columns
         if ($search) {
             $students->where('status', '!=', 'Finished')->where(function($query) use ($search) {
@@ -72,17 +72,17 @@ class StudentController extends Controller
             })
             ->addColumn('balance', function ($student) {
                 $invoiceBalance = $student->invoice->invoice_balance ?? 0; // Get invoice balance, default to 0 if null
-            
+
                 // Use a ternary operator to set the class based on balance
                 $balanceClass = $invoiceBalance > 0 ? 'text-danger' : 'text-success';
-            
+
                 // Return the formatted HTML with the class applied
                 return '<strong>
                             <span class="' . $balanceClass . '">
                                 K' . number_format($invoiceBalance, 2) . '
                             </span>
                         </strong>';
-            })            
+            })
             ->addColumn('registered_on', function ($student) {
                 return $student->created_at->format('d M, Y');
             })
