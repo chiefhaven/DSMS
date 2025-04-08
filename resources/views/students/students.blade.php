@@ -235,7 +235,7 @@
 
                       alert('Error: ' + errorMessage);
                     }
-                  }
+                  },
                   columns: [
                     { data: 'actions', className: 'text-center', orderable: false },
                     { data: 'full_name' },
