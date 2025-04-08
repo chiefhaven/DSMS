@@ -117,7 +117,6 @@
 <!-- END Hero -->
 <script setup>
     const { createApp, ref, reactive, onMounted } = Vue
-    const { defineRule, configure, useForm, useField, ErrorMessage } = VeeValidate
 
     function isRequired(value) {
         if (value && value.trim()) {
@@ -325,7 +324,6 @@
         }
       }
     })
-    app.use(VeeValidate);
     app.mount('#expense')
 </script>
 <script type="text/javascript">
