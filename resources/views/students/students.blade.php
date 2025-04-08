@@ -221,13 +221,21 @@
                     url: '/api/students',
                     type: 'GET',
                     data: function (d) {
-                        d.status = status.value
-                      },
+                      d.status = status.value;
+                    },
                     error: function (xhr, error, thrown) {
-                      alert('An error occurred while fetching data. Please try again later.')
-                    }
-                  },
+                      // Try to parse JSON error from the server
+                      let errorMessage = 'An error occurred while fetching data. Please try again later.';
 
+                      if (xhr.responseJSON && xhr.responseJSON.error) {
+                        errorMessage = xhr.responseJSON.error;
+                      } else if (xhr.responseText) {
+                        errorMessage = xhr.responseText;
+                      }
+
+                      alert('Error: ' + errorMessage);
+                    }
+                  }
                   columns: [
                     { data: 'actions', className: 'text-center', orderable: false },
                     { data: 'full_name' },
