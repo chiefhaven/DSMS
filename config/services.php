@@ -32,8 +32,9 @@ return [
     ],
 
     'clickmobile' => [
-            'url' => env('CLICKMOBILE_API_URL'),
-            'token' => env('CLICKMOBILE_BEARER_TOKEN'),
+            'url' => env('SMS_URL'),
+            'token' => env('SMS_AUTH_KEY'),
+            'from' => env('SMS_SENDER_ID'),
         ],
 
 ];
