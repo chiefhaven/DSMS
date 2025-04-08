@@ -29,6 +29,7 @@ class SmsChannel
             ])->post(config('services.clickmobile.url'), [
                 'to' => $phoneNumber,
                 'message' => $message,
+                'from' => config('services.clickmobile.from'),
             ]);
 
             if ($response->failed()) {
