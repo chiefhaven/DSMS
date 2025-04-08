@@ -1,4 +1,7 @@
 <div class="row" id="app">
+
+        @include('/dashboard_partials/quotes')
+
     <div class="col-md-8">
         <div class="p-3">
             <div class="row block">

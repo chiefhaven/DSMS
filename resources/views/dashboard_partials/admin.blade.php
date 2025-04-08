@@ -1,4 +1,7 @@
 <div class="row items-push">
+        <div class="col-md-12">
+            @include('/dashboard_partials/quotes')
+        </div>
           <div class="col-xl-6">
             <div class="block block-rounded block-bordered block-mode-loading-refresh h-100 mb-0">
               <div class="block-header border-bottom">
@@ -37,12 +40,12 @@
                                 {{$student->user->email}}
 
                               @else
-                                
+
                               @endif
                           </div>
                         </td>
                         <td class="d-none d-sm-table-cell fs-base text-center">
-                          
+
                             @if(isset($student->course->name))
                             <span class="badge bg-dark">
 

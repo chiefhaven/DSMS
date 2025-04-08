@@ -1,15 +1,7 @@
 <div class="row">
         <div class="col-md-12">
-            <h1>
-                Welcome <b>{{ Auth::user()->instructor->fname }}</b> {{ Auth::user()->instructor->sname }}
-            </h1>
-            <hr>
             <div class="row">
-                <div class="col-md-12 col-xl-12 mb-4">
-                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                        {!! \Illuminate\Foundation\Inspiring::quote() !!}
-                    </div>
-                </div>
+                @include('/dashboard_partials/quotes')
 
                 <div class="col-md-12 col-xl-12 mb-4">
                     <h5>Actions</h5>
