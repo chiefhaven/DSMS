@@ -33,14 +33,16 @@ class ExpenseController extends Controller
      */
     public function index()
     {
-        if(Auth::user()->hasRole('admin')){
-            $expenses = Expense::where('added_by', Auth::user()->administrator_id)->with('Students')->orderBy('created_at', 'DESC')->get();
-        }
-        else{
-            $expenses = Expense::with('Students')->orderBy('created_at', 'DESC')->get();
-        }
+        $expenses = Expense::with('Students')
+            ->when(Auth::user()->hasRole('admin'), function ($query) {
+                $query->where('added_by', Auth::user()->administrator_id);
+            })
+            ->orderBy('created_at', 'DESC')
+            ->get();
+
         return view('expenses.expenses', compact('expenses'));
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -237,21 +239,31 @@ class ExpenseController extends Controller
 
     public function checkStudent(StoreexpenseRequest $request)
     {
+        $request->validate([
+            'student' => 'required|exists:students,id',
+        ]);
+
         $post = $request->all();
 
-        $student = havenUtils::student($post['student']);
+        $student = Student::find($post['student']);
 
         $expenseType = $post['expenseType'];
 
         $expenseTypeSet = DB::table('expense_student')->where('student_id', $student->id)->where('expense_type', $request['expenseType'])->get();
         $expenseTypeCount = $expenseTypeSet->count();
 
-        if($expenseTypeCount > 0){
+        if ($expenseTypeCount > 0) {
+            $expense = Expense::find($expenseTypeSet[0]->expense_id);
+            $groupDate = $expense ? $expense->group : 'Unknown date';
+
+            $fullName = trim($student->fname . ' ' . ($student->mname ?? '') . ' ' . $student->sname);
+
             $data = [
-                'feedback'=>'error',
-                'message' => $post['student'].' was already selected for '.$post['expenseType'].' expenses dated <strong>'.Expense::find($expenseTypeSet[0]->expense_id)->group .'</strong>'
+                'feedback' => 'error',
+                'message' => "{$fullName} was already selected for {$post['expenseType']} expenses dated <strong>{$groupDate}</strong>"
             ];
-            return response()->json($data, 200);
+
+            return response()->json($data, 200); // or 200 if you prefer
         }
 
         switch ($expenseType) {
@@ -350,22 +362,27 @@ class ExpenseController extends Controller
 
     public function autocompletestudentSearch(Request $request)
     {
-        $datas = \DB::table('students')
-            ->where('course_id', '!=', '')
+        $search = $request->get('student');
+
+        $students = \DB::table('students')
             ->whereNotNull('course_id')
-            ->where(function($query) use ($request) {
-            $query->where('fname', 'LIKE', "%{$request->student}%")
-                  ->orWhere('mname', 'LIKE', "%{$request->student}%")
-                  ->orWhere('sname', 'LIKE', "%{$request->student}%");
-        })
-        ->get();
+            ->where('course_id', '!=', '')
+            ->where(function ($query) use ($search) {
+                $query->where('fname', 'LIKE', "%{$search}%")
+                    ->orWhere('mname', 'LIKE', "%{$search}%")
+                    ->orWhere('sname', 'LIKE', "%{$search}%");
+            })
+            ->select('id', 'fname', 'mname', 'sname')
+            ->get();
 
-        $dataModified = array();
-
-        foreach ($datas as $data){
-           $dataModified[] = $data->fname.' '.$data->mname.' '.$data->sname;
-         }
+        $dataModified = $students->map(function ($student) {
+            return [
+                'id' => $student->id,
+                'name' => trim("{$student->fname} {$student->mname} {$student->sname}"),
+            ];
+        });
 
         return response()->json($dataModified);
     }
+
 }

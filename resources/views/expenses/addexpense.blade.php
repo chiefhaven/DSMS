@@ -26,7 +26,7 @@
                 <form class="mb-5" action="{{ url('/add-expense') }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
                     @csrf
                     <div class="col-12 form-floating mb-4">
-                        <input type="date" timezone="Africa/Blantyre" class="form-control" id="expense_group_name" name="expense_group_name" v-model="state.expenseGroupName" placeholder="Enter Expense Group">
+                        <input type="text" timezone="Africa/Blantyre" class="form-control" id="expense_group_name" name="expense_group_name" v-model="state.expenseGroupName" placeholder="DDMMYY">
                         <label for="invoice_discount">Booking Date</label>
                     </div>
                     <div class="col-12 form-floating mb-4">
@@ -54,7 +54,15 @@
             <div v-if="state">
                 <div class="row haven-floating">
                     <div class="col-6 form-floating mb-4 text-uppercase">
-                        <input class="form-control" id="student" name="student" :rules="isRequired" v-model="state.studentName" @input="studentSearch()" @blur="onStudentChange($event)" placeholder="Select student" required>
+                        <input
+                            class="form-control"
+                            id="student"
+                            name="student"
+                            v-model="state.studentName"
+                            @input="studentSearch()"
+                            @blur="onStudentChange($event)"
+                            placeholder="Select student"
+                            required>
                         <label for="student" class="text-capitalize">Select student</label>
                     </div>
                     <div class="col-6 form-floating mb-4">
@@ -103,6 +111,22 @@
 </div>
 </div>
 <!-- END Hero -->
+<script>
+        // Set the datepicker with current date as default value
+        $(document).ready(function() {
+            var today = new Date();
+            var day = ("0" + today.getDate()).slice(-2); // Get day with leading zero
+            var month = ("0" + (today.getMonth() + 1)).slice(-2); // Get month with leading zero (Months are zero-based)
+            var year = today.getFullYear();
+
+            // Set the datepicker
+            $("#expense_group_name").datepicker({
+                format: "dd/mm/yyyy",
+                autoclose: true,
+                todayHighlight: true
+            }).datepicker('setDate', day + '-' + month + '-' + year);
+        });
+</script>
     <script setup>
         const { createApp, ref, reactive } = Vue
 
@@ -115,7 +139,8 @@
                 expenseGroupName: currentDate.toLocaleDateString(options),       // Name of the expense group or category
                 expenseGroupType: 'Theory',
                 expenseDescription: '',       // Name of the expense group or category
-                studentName: '', // Name of the student'
+                studentName: '',
+                studentId:'',
                 expenseType: '',            // Type of expense
                 selectedStudents: [],       // Array of selected students (possibly for group payments or expenses)
                 paymentMethod: 'Cash', // Preferred payment method (defaulting to 'Airtel Money')
@@ -160,8 +185,11 @@
                     return hasError
                 }
 
-                if(!state.value.selectedStudents.some(item => item.studentName === state.value.studentName)){
-                    axios.post('/checkStudent', {student:state.value.studentName, expenseType: state.value.expenseType}).then(response => {
+                if(!state.value.selectedStudents.some(item => item.studentId === state.value.studentId)){
+
+                    console.log(state.value.studentId);
+
+                    axios.post('/checkStudent', {student:state.value.studentId, expenseType: state.value.expenseType}).then(response => {
                         if(response.data.feedback == "success"){
                             state.value.selectedStudents.push({studentName:state.value.studentName, expenseType:state.value.expenseType})
                             state.value.studentName =''
@@ -211,17 +239,28 @@
                 //
             }
 
-            function onStudentChange(event){
-                state.value.studentName = event.target.value;  // Now you should have access to your selected option.
+            const onStudentChange = async(event) => {
+                state.value.studentName = event.target.value;
             }
 
             function studentSearch() {
                 var path = "{{ route('expense-student-search') }}";
+
                 $('#student').typeahead({
-                    source:  function (query, process) {
-                    return $.get(path, { query: query }, function (data) {
+                    minLength: 2, // start searching after 2 characters
+                    autoSelect: true,
+                    highlight: true,
+                    source: function (query, process) {
+                        return $.get(path, { query: query }, function (data) {
                             return process(data);
                         });
+                    },
+                    updater: function (item) {
+
+                        state.value.studentId = item.id;
+
+                        console.log("Selected Student:", item, state.value.studentId);
+                        return item;
                     }
                 });
             }

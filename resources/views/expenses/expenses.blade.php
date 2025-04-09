@@ -36,7 +36,7 @@
                       <thead class="thead-dark">
                           <tr>
                             <th class="text-center" style="width: 100px;">Actions</th>
-                            <th style="min-width: 14rem;">Group</th>
+                            <th style="min-width: 14rem;">Slated date</th>
                             <th style="min-width: 10rem;">Status</th>
                             <th style="min-width: 7rem;">Type</th>
                             <th style="min-width: 10rem;">Description</th>
@@ -196,7 +196,7 @@
 
         $(document).ready(function() {
 
-            $('#expenses').DataTable({
+            $('#expense').DataTable({
                 columnDefs: [
                     {
                         targets: [1],

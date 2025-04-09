@@ -290,7 +290,6 @@ class ScheduleLessonController extends Controller
                     $lesson = Lesson::find($student->pivot->lesson_id);
                     $lessonName = $lesson->name ?? 'Unknown Lesson';
 
-
                     // Access pivot data (lesson_id, location, status)
                     $location = $student->pivot->location ?? 'No location provided';
                     $status = $student->pivot->status ?? 'Not scheduled';
