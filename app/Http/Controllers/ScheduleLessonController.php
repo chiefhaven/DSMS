@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ScheduleLesson;
 use App\Http\Requests\StorescheduleLessonRequest;
 use App\Http\Requests\UpdatescheduleLessonRequest;
+use App\Models\Lesson;
 use App\Models\ScheduleLesson as ModelsScheduleLesson;
 use App\Notifications\LessonScheduled;
 use Auth;
@@ -285,7 +286,10 @@ class ScheduleLessonController extends Controller
                     // Access student, instructor, and lesson details
                     $studentName = ($student->fname ?? 'Unknown') . ' ' . ($student->mname ?? '') . ' ' . ($student->sname ?? 'Student');
                     $instructorName = ($schedule->instructor->fname ?? 'Unknown') . ' ' . ($schedule->instructor->sname ?? 'Instructor');
+                    
+                    $lesson = Lesson::find($student->pivot->lesson_id);
                     $lessonName = $lesson->name ?? 'Unknown Lesson';
+
 
                     // Access pivot data (lesson_id, location, status)
                     $location = $student->pivot->location ?? 'No location provided';
@@ -299,7 +303,7 @@ class ScheduleLessonController extends Controller
                         'lesson' => $lessonName,
                         'location' => $location,
                         'comments' => $schedule->comments,
-                        'student' => $student, // Full student details
+                        'student' => $student,
                         'status' => $status,
                         'start' => $schedule->start_time->format('Y-m-d H:i:s'),
                         'end' => $schedule->finish_time->format('Y-m-d H:i:s'),
