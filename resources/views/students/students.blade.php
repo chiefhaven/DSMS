@@ -237,11 +237,11 @@
                         }
 
                         // If 403 error (Unauthorized), reload the page
-                        if (xhr.message == 'User not logged in') {
+                        if (xhr.status == 409) {
                             window.location.reload();  // Reload the page if user is not authorized
                             showError('Error: ' + errorMessage);
                         } else {
-                            alert('Error: ' + errorMessage);
+                            showError('Error: ' + errorMessage);
                         }
                     }
                 },
