@@ -239,9 +239,10 @@
                         // If 403 error (Unauthorized), reload the page
                         if (xhr.status == 409) {
                             window.location.reload();  // Reload the page if user is not authorized
-                            showError('Error: ' + errorMessage);
+                            showError('Session experied, reloading...');
                         } else {
-                            showError('Error: ' + errorMessage);
+                            window.location.reload();
+                            showError('Session experied, reloading...');
                         }
                     }
                 },
