@@ -48,17 +48,16 @@ class ScheduleLessonController extends Controller
     {
         if (!Auth::user()->hasRole('instructor')) {
             return response()->json([
-                'message'  => 'You are not eligible to edit or add a schedule',
+                'message' => 'You are not eligible to edit or add a schedule',
             ], 409);
         }
 
         // 1. Validate the request data
         $validator = Validator::make($request->all(), [
-            'lesson_id'    => 'required|exists:lessons,id',
-            'student_id'   => 'required|exists:students,id',
-            'start_time'   => 'required|date|after_or_equal:now',
-            'finish_time'  => 'required|date|after:start_time',
-            'comments'     => 'nullable|string|max:500',
+            'selectedStudents' => 'required|array',
+            'start_time'       => 'required|date|after_or_equal:now',
+            'finish_time'      => 'required|date|after:start_time',
+            'comments'         => 'nullable|string|max:500',
         ]);
 
         if ($validator->fails()) {
@@ -68,14 +67,14 @@ class ScheduleLessonController extends Controller
             ], 422);
         }
 
-        // 3. Check if the time slot is available (no overlapping lessons)
+        // 2. Check for overlapping lessons
         $isSlotTaken = ScheduleLesson::where('instructor_id', Auth::user()->instructor_id)
             ->where(function ($query) use ($request) {
                 $query->whereBetween('start_time', [$request->start_time, $request->finish_time])
                     ->orWhereBetween('finish_time', [$request->start_time, $request->finish_time])
                     ->orWhere(function ($query) use ($request) {
                         $query->where('start_time', '<', $request->start_time)
-                                ->where('finish_time', '>', $request->finish_time);
+                            ->where('finish_time', '>', $request->finish_time);
                     });
             })
             ->exists();
@@ -86,30 +85,36 @@ class ScheduleLessonController extends Controller
             ], 409);
         }
 
-        // 4. Use a database transaction to ensure data consistency
         DB::beginTransaction();
 
         try {
+            // 3. Create the schedule
             $schedule = ScheduleLesson::create([
-                'lesson_id'    => $request->lesson_id,
                 'instructor_id' => Auth::user()->instructor_id,
-                'student_id'    => $request->student_id,
-                'start_time'   => $request->start_time,
-                'finish_time'  => $request->finish_time,
-                'status'       => 'scheduled',
-                'location' => $request->location,
-                'comments'     => $request->comments,
+                'start_time'    => $request->start_time,
+                'finish_time'   => $request->finish_time,
+                'comments'      => $request->comments,
             ]);
 
-            // 5. Send notification to the student
-            Notification::send(
-                $schedule->student->user,
-                new LessonScheduled(
-                    $schedule
-                )
-            );
+            // 4. Attach students with lesson data
+            foreach ($request->selectedStudents as $student) {
+                DB::table('schedule_lesson_students')->insert([
+                    'id'          => \Illuminate\Support\Str::uuid(),
+                    'schedule_id' => $schedule->id,
+                    'student_id'  => $student['studentId'],
+                    'lesson_id'   => $student['selectedLesson']['id'],
+                    'location'    => $student['location'],
+                    'status'      => 'scheduled',
+                ]);
 
-            DB::commit(); // Commit if everything succeeds
+                // 5. Send notification to each student
+                $studentModel = \App\Models\Student::with('user')->find($student['studentId']);
+                if ($studentModel && $studentModel->user) {
+                    Notification::send($studentModel->user, new LessonScheduled($schedule));
+                }
+            }
+
+            DB::commit();
 
             return response()->json([
                 'message'  => 'Lesson scheduled successfully',
@@ -117,7 +122,7 @@ class ScheduleLessonController extends Controller
             ], 201);
 
         } catch (\Exception $e) {
-            DB::rollBack(); // Rollback on error
+            DB::rollBack();
 
             return response()->json([
                 'message' => 'Failed to schedule lesson',
@@ -134,6 +139,35 @@ class ScheduleLessonController extends Controller
         return view('schedules.adminSchedules');
 
     }
+
+    public function checkStudent(StorescheduleLessonRequest $request)
+    {
+        $post = $request->all();
+
+        $scheduleId = $post['scheduleId'];
+        $studentId = $post['studentId'];
+
+        // Check if student is already in the schedule
+        $scheduleSet = DB::table('schedule_lesson_students')
+            ->where('student_id', $studentId)
+            ->where('schedule_id', $scheduleId)
+            ->exists(); // Using exists() for performance optimization
+
+        if ($scheduleSet) {
+            // Return error message if already scheduled
+            return response()->json([
+                'feedback' => 'error',
+                'message' => "{$post['student']} is already scheduled."
+            ], 200);
+        }
+
+        // Success message if student is not in the schedule
+        return response()->json([
+            'feedback' => 'success',
+            'message' => 'Student added to list. Remember to click submit after selecting all students.'
+        ], 200);
+    }
+
 
     /**
      * Display the specified resource.
@@ -230,41 +264,64 @@ class ScheduleLessonController extends Controller
     }
 
 
-    public function scheduleLesson()
-    {
-        $events = [];
+    public function getLessonSchedules()
+{
+    $events = [];
 
-        if (Auth::user()->hasRole('instructor')) {
-            // Fetch only lessons for the logged-in instructor
-            $lessonSchedules = ScheduleLesson::with(['student', 'instructor', 'lesson'])
-                ->where('instructor_id', Auth::user()->instructor_id)
-                ->get();
+    // Fetching lesson schedules based on user role
+    if (Auth::user()->hasRole('instructor')) {
+        $lessonSchedules = ScheduleLesson::with(['students', 'instructor', 'lesson'])
+            ->where('instructor_id', Auth::user()->instructor_id)
+            ->get();
+    } else {
+        $lessonSchedules = ScheduleLesson::with(['students', 'instructor', 'lesson'])->get();
+    }
+
+    // Looping through each lesson schedule
+    foreach ($lessonSchedules as $schedule) {
+        // Check if the schedule has students
+        if ($schedule->students->isNotEmpty()) {
+            foreach ($schedule->students as $student) {
+                // Access student, instructor, and lesson details
+                $studentName = ($student->fname ?? 'Unknown') . ' ' . ($student->mname ?? '') . ' ' . ($student->sname ?? 'Student');
+                $instructorName = ($schedule->instructor->fname ?? 'Unknown') . ' ' . ($schedule->instructor->sname ?? 'Instructor');
+                $lessonName = $schedule->lesson->name ?? 'Unknown Lesson';
+
+                // Access pivot data (lesson_id, location, status)
+                $location = $student->pivot->location ?? 'No location provided';
+                $status = $student->pivot->status ?? 'Not scheduled';
+
+                // Preparing event data for response
+                $events[] = [
+                    'id' => $schedule->id,
+                    'title' => "$studentName ($lessonName)",
+                    'instructor' => $instructorName,
+                    'location' => $location,
+                    'comments' => $schedule->comments,
+                    'student' => $student, // Full student details
+                    'status' => $status,
+                    'start' => $schedule->start_time->format('Y-m-d H:i:s'),
+                    'end' => $schedule->finish_time->format('Y-m-d H:i:s'),
+                ];
+            }
         } else {
-            // Fetch all lessons for other roles
-            $lessonSchedules = ScheduleLesson::with(['student', 'instructor', 'lesson'])->get();
-        }
-
-        foreach ($lessonSchedules as $schedule) {
-            // Ensure student name and lesson name are properly set
-            $studentName = ($schedule->student->fname ?? 'Unknown') . ' ' .($schedule->student->mname ?? '') . ' ' . ($schedule->student->sname ?? 'Student');
-            $instructorName = ($schedule->instructor->fname ?? 'Unknown') . ' ' . ($schedule->instructor->sname ?? 'Student');
-            $lessonName = $schedule->lesson->name ?? 'Unknown Lesson';
-
+            // Handle case if there are no students for the schedule (optional)
             $events[] = [
                 'id' => $schedule->id,
-                'title' => "$studentName ($lessonName)",
-                'lesson' => $schedule->lesson,
-                'instructor'=> $instructorName,
-                'location' => $schedule->location,
+                'title' => 'No students assigned',
+                'instructor' => $schedule->instructor->fname ?? 'Unknown',
+                'location' => 'N/A',
                 'comments' => $schedule->comments,
-                'student' => $schedule->student,
                 'start' => $schedule->start_time->format('Y-m-d H:i:s'),
                 'end' => $schedule->finish_time->format('Y-m-d H:i:s'),
             ];
         }
-
-        return response()->json($events, 200);
     }
+
+    return response()->json($events, 200);
+}
+
+
 
 
 

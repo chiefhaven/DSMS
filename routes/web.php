@@ -81,10 +81,11 @@ Route::get('/attendanceSummary/{id}', [AttendanceController::class, 'attendanceS
 
 Route::get('/schedules', [ScheduleLessonController::class, 'schedules'])->middleware('auth')->name('schedules');
 Route::get('/schedule-lesson-index', [ScheduleLessonController::class, 'index'])->middleware('auth')->name('schedulelesson-index');
-Route::get('/schedule-lessons', [ScheduleLessonController::class, 'schedulelesson'])->middleware('auth')->name('schedulelesson');
+Route::get('/schedule-lessons', [ScheduleLessonController::class, 'getLessonSchedules'])->middleware('auth')->name('schedulelesson');
 Route::post('/store-lesson-schedule', [ScheduleLessonController::class, 'store'])->middleware('auth')->name('storeschedulelesson');
 Route::put('/update-lesson-schedule/{id}', [ScheduleLessonController::class, 'update'])->middleware('auth')->name('updateschedulelesson');
 Route::delete('schedule-lesson/{id}', [ScheduleLessonController::class, 'destroy'])->middleware('auth')->name('destroyschedulelesson');
+Route::post('/checkStudentSchedule', [ScheduleLessonController::class, 'checkStudent'])->middleware('auth')->name('schedukecheckStudent');
 
 
 Route::get('/courses', [CourseController::class, 'index'])->middleware('auth')->name('courses');

@@ -14,19 +14,18 @@ return new class extends Migration
     public function up()
     {
         Schema::table('schedule_lessons', function (Blueprint $table) {
-            $table->longText('location')->nullable()->after('finish_time');
+            $table->dropColumn('student_id');
+            $table->dropColumn('lesson_id');
+            $table->dropColumn('location');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
     public function down()
     {
         Schema::table('schedule_lessons', function (Blueprint $table) {
-            $table->dropColumn('location');
+            $table->uuid('student_id')->nullable();
+            $table->uuid('lesson_id')->nullable();
+            $table->longText('location')->nullable();
         });
     }
 };

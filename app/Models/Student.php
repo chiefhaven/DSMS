@@ -75,6 +75,13 @@ class Student extends Model
         return $this->belongsToMany(Expense::class)->withPivot('expense_type');
     }
 
+    public function scheduleLessons()
+    {
+        return $this->belongsToMany(ScheduleLesson::class, 'schedule_lesson_students', 'student_id', 'schedule_id')
+                    ->withPivot(['lesson_id', 'location', 'status'])
+                    ->withTimestamps();
+    }
+
     public function classroom()
     {
         return $this->belongsTo(Classroom::class, 'classroom_id', 'id');

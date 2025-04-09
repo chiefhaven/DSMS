@@ -7,33 +7,30 @@
             $hour = now()->format('H');
 
             if ($hour < 12) {
-                $icon = '🌞';
+                $icon = '<i class="fas fa-sun" style="margin-left: 15px;"></i>';
                 $greeting = 'Good morning';
             } elseif ($hour < 18) {
-                $icon = '🌤️';
+                $icon = '<i class="fas fa-cloud-sun" style="margin-left: 15px;"></i>';
                 $greeting = 'Good afternoon';
             } else {
-                $icon = '🌙';
+                $icon = '<i class="fas fa-moon" style="margin-left: 15px;"></i>';
                 $greeting = 'Good evening';
             }
         @endphp
 
-        <span>
-            {{ $icon }} {{ $greeting }},
-        </span>
+        <span>{{ $greeting }},</span>
 
         @if($admin)
-            <b>{{ $admin->fname ?? 'User' }}</b> {{ $admin->sname }}
+            <b>{{ $admin->fname ?? 'User' }}</b> {{ $admin->sname }} {!! $icon !!}
         @elseif($instructor)
-            <b>{{ $instructor->fname ?? 'User' }}</b> {{ $instructor->sname }}
+            <b>{{ $instructor->fname ?? 'User' }}</b> {{ $instructor->sname }} {!! $icon !!}
         @elseif($student)
-            <b>{{ $student->fname ?? 'User' }}</b> {{ $student->sname }}
+            <b>{{ $student->fname ?? 'User' }}</b> {{ $student->sname }} {!! $icon !!}
         @else
-            <b>{{ Auth::user()->name ?? 'User' }}</b>
+            <b>{{ Auth::user()->name ?? 'User' }}</b> {!! $icon !!}
         @endif
-
-
     </h1>
+
     <hr>
     <div class="block-content block-content-full d-flex align-items-center justify-content-between">
         {!! \Illuminate\Foundation\Inspiring::quote() !!}

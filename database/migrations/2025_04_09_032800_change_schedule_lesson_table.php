@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('schedule_lessons', function (Blueprint $table) {
-            $table->longText('location')->nullable()->after('finish_time');
+            $table->uuid('lesson_id')->nullable()->change();
         });
     }
 
@@ -26,7 +26,15 @@ return new class extends Migration
     public function down()
     {
         Schema::table('schedule_lessons', function (Blueprint $table) {
-            $table->dropColumn('location');
+            if (Schema::hasColumn('schedule_lessons', 'student_id')) {
+                $table->dropColumn('student_id');
+            }
+            if (Schema::hasColumn('schedule_lessons', 'lesson_id')) {
+                $table->dropColumn('lesson_id');
+            }
+            if (Schema::hasColumn('schedule_lessons', 'location')) {
+                $table->dropColumn('location');
+            }
         });
     }
 };

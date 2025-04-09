@@ -35,7 +35,7 @@
                                     @{{ option.text }}
                                 </option>
                             </select>
-                            <label for="expenseType">Group Expense Type</label>
+                            <label for="expenseType">List Expense Type</label>
                         </div>
                         <div class="col-12 form-floating mb-4">
                             <input type="text" class="form-control" id="expense_description" name="expense_description" v-model="state.expenseDescription" placeholder="Enter Expense Description">
@@ -53,7 +53,7 @@
             </div>
         </div>
         <div class="col-md-7 block block-rounded block-bordered">
-            <h2 class="flex-grow-1 fs-4 fw-semibold my-2 my-sm-3">Add student to the group</h1>
+            <h2 class="flex-grow-1 fs-4 fw-semibold my-2 my-sm-3">Add student to the list</h1>
             <div v-if="state">
                 <div class="row haven-floating">
                     <div class="col-6 form-floating mb-4 text-uppercase">

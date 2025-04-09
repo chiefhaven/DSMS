@@ -13,8 +13,8 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('schedule_lessons', function (Blueprint $table) {
-            $table->longText('location')->nullable()->after('finish_time');
+        Schema::table('schedule_lesson_students', function (Blueprint $table) {
+            $table->enum('status', ['attended', 'missed', 'cancelled'])->nullable();
         });
     }
 
@@ -25,8 +25,8 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('schedule_lessons', function (Blueprint $table) {
-            $table->dropColumn('location');
+        Schema::table('schedule_lesson_students', function (Blueprint $table) {
+            $table->dropColumn('status');
         });
     }
 };

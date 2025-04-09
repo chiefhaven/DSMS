@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -15,7 +16,10 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class ScheduleLesson extends Model
 {
-    use HasFactory, SoftDeletes, LogsActivity;
+    use HasFactory, HasUuids, SoftDeletes, LogsActivity;
+    protected $keyType = 'string';
+    public $incrementing = false;
+
     protected $fillable = [
         'start_time',
         'finish_time',
@@ -31,9 +35,11 @@ class ScheduleLesson extends Model
     /**
      * Get the student associated with the schedule lesson.
      */
-    public function student()
+    public function students()
     {
-        return $this->belongsTo(Student::class, 'student_id');
+        return $this->belongsToMany(Student::class, 'schedule_lesson_students', 'schedule_id', 'student_id')
+                    ->withPivot(['lesson_id', 'location', 'status'])
+                    ->withTimestamps();
     }
 
     /**
