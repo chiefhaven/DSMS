@@ -239,7 +239,7 @@
                         // If 403 error (Unauthorized), reload the page
                         if (xhr.message == 'User not logged in') {
                             window.location.reload();  // Reload the page if user is not authorized
-                            showError('Your session expired, reloading...');
+                            showError('Error: ' + errorMessage);
                         } else {
                             alert('Error: ' + errorMessage);
                         }
@@ -284,22 +284,30 @@
             };
 
             const showError = (
-            message,
-            detail,
-            {
-                confirmText = 'OK',
-                icon = 'error',
-            } = {}
-            ) => {
-            const baseOptions = {
-                icon,
-                title: message,
-                text: detail,
-                confirmButtonText: confirmText,
-                didOpen: (toast) => {
-                toast.addEventListener('mouseenter', Swal.stopTimer);
-                toast.addEventListener('mouseleave', Swal.resumeTimer);
-                }
+                message,
+                detail,
+                {
+                    confirmText = 'OK',
+                    icon = 'error',
+                } = {}
+                ) => {
+                const baseOptions = {
+                    icon,
+                    title: message,
+                    text: detail,
+                    confirmButtonText: confirmText,
+                    didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer);
+                    toast.addEventListener('mouseleave', Swal.resumeTimer);
+                    }
+                };
+    
+                // Clean up undefined options
+                const cleanOptions = Object.fromEntries(
+                    Object.entries(baseOptions).filter(([_, v]) => v !== undefined)
+                );
+    
+                return Swal.fire(cleanOptions);
             };
 
             return {
