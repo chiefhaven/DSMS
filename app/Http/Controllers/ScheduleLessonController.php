@@ -265,64 +265,61 @@ class ScheduleLessonController extends Controller
 
 
     public function getLessonSchedules()
-{
-    $events = [];
+    {
+        $events = [];
 
-    // Fetching lesson schedules based on user role
-    if (Auth::user()->hasRole('instructor')) {
-        $lessonSchedules = ScheduleLesson::with(['students', 'instructor', 'lesson'])
-            ->where('instructor_id', Auth::user()->instructor_id)
-            ->get();
-    } else {
-        $lessonSchedules = ScheduleLesson::with(['students', 'instructor', 'lesson'])->get();
-    }
+        // Fetching lesson schedules based on user role
+        if (Auth::user()->hasRole('instructor')) {
+            $lessonSchedules = ScheduleLesson::with(['students', 'instructor', 'lesson'])
+                ->where('instructor_id', Auth::user()->instructor_id)
+                ->get();
+        } else {
+            $lessonSchedules = ScheduleLesson::with(['students', 'instructor', 'lesson'])->get();
+        }
 
-    // Looping through each lesson schedule
-    foreach ($lessonSchedules as $schedule) {
-        // Check if the schedule has students
-        if ($schedule->students->isNotEmpty()) {
-            foreach ($schedule->students as $student) {
-                // Access student, instructor, and lesson details
-                $studentName = ($student->fname ?? 'Unknown') . ' ' . ($student->mname ?? '') . ' ' . ($student->sname ?? 'Student');
-                $instructorName = ($schedule->instructor->fname ?? 'Unknown') . ' ' . ($schedule->instructor->sname ?? 'Instructor');
-                $lessonName = $schedule->lesson->name ?? 'Unknown Lesson';
+        // Looping through each lesson schedule
+        foreach ($lessonSchedules as $schedule) {
+            // Check if the schedule has students
+            if ($schedule->students->isNotEmpty()) {
+                foreach ($schedule->students as $student) {
+                    // Access student, instructor, and lesson details
+                    $studentName = ($student->fname ?? 'Unknown') . ' ' . ($student->mname ?? '') . ' ' . ($student->sname ?? 'Student');
+                    $instructorName = ($schedule->instructor->fname ?? 'Unknown') . ' ' . ($schedule->instructor->sname ?? 'Instructor');
+                    $lessonName = $lesson->name ?? 'Unknown Lesson';
 
-                // Access pivot data (lesson_id, location, status)
-                $location = $student->pivot->location ?? 'No location provided';
-                $status = $student->pivot->status ?? 'Not scheduled';
+                    // Access pivot data (lesson_id, location, status)
+                    $location = $student->pivot->location ?? 'No location provided';
+                    $status = $student->pivot->status ?? 'Not scheduled';
 
-                // Preparing event data for response
+                    // Preparing event data for response
+                    $events[] = [
+                        'id' => $schedule->id,
+                        'title' => "$studentName ($lessonName)",
+                        'instructor' => $instructorName,
+                        'lesson' => $lessonName,
+                        'location' => $location,
+                        'comments' => $schedule->comments,
+                        'student' => $student, // Full student details
+                        'status' => $status,
+                        'start' => $schedule->start_time->format('Y-m-d H:i:s'),
+                        'end' => $schedule->finish_time->format('Y-m-d H:i:s'),
+                    ];
+                }
+            } else {
+                // Handle case if there are no students for the schedule (optional)
                 $events[] = [
                     'id' => $schedule->id,
-                    'title' => "$studentName ($lessonName)",
-                    'instructor' => $instructorName,
-                    'location' => $location,
+                    'title' => 'No students assigned',
+                    'instructor' => $schedule->instructor->fname ?? 'Unknown',
+                    'location' => 'N/A',
                     'comments' => $schedule->comments,
-                    'student' => $student, // Full student details
-                    'status' => $status,
                     'start' => $schedule->start_time->format('Y-m-d H:i:s'),
                     'end' => $schedule->finish_time->format('Y-m-d H:i:s'),
                 ];
             }
-        } else {
-            // Handle case if there are no students for the schedule (optional)
-            $events[] = [
-                'id' => $schedule->id,
-                'title' => 'No students assigned',
-                'instructor' => $schedule->instructor->fname ?? 'Unknown',
-                'location' => 'N/A',
-                'comments' => $schedule->comments,
-                'start' => $schedule->start_time->format('Y-m-d H:i:s'),
-                'end' => $schedule->finish_time->format('Y-m-d H:i:s'),
-            ];
         }
+
+        return response()->json($events, 200);
     }
-
-    return response()->json($events, 200);
-}
-
-
-
-
 
 }
