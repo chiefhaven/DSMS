@@ -239,7 +239,7 @@
                         // If 403 error (Unauthorized), reload the page
                         if (xhr.message == 'User not logged in') {
                             window.location.reload();  // Reload the page if user is not authorized
-                            alert('Error: ' + errorMessage);
+                            showError('Your session expired, reloading...');
                         } else {
                             alert('Error: ' + errorMessage);
                         }
@@ -281,6 +281,25 @@
                     });
                   }
                 });
+            };
+
+            const showError = (
+            message,
+            detail,
+            {
+                confirmText = 'OK',
+                icon = 'error',
+            } = {}
+            ) => {
+            const baseOptions = {
+                icon,
+                title: message,
+                text: detail,
+                confirmButtonText: confirmText,
+                didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+                }
             };
 
             return {
