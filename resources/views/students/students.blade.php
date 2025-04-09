@@ -237,7 +237,7 @@
                         }
 
                         // If 403 error (Unauthorized), reload the page
-                        if (xhr.status == 403) {
+                        if (xhr.message == 'User not logged in') {
                             window.location.reload();  // Reload the page if user is not authorized
                             alert('Error: ' + errorMessage);
                         } else {
