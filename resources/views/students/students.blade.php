@@ -217,29 +217,28 @@
                   processing: true,
                   scrollCollapse: true,
                   scrollX: true,
-                  ajax: {
-                    url: '/api/students',
-                    type: 'GET',
-                    data: function (d) {
-                        d.status = status.value;
-                    },
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    xhrFields: {
-                        withCredentials: true
-                    },
-                    error: function (xhr, error, thrown) {
+                  ajax: async function(data, callback, settings) {
+                    try {
+                        const response = await axios.get('/api/students', {
+                            params: { ...data, status: status.value },
+                            withCredentials: true,
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            }
+                        });
+
+                        callback(response.data); // DataTables expects a JSON object with `data`, `recordsTotal`, `recordsFiltered`
+
+                    } catch (error) {
                         let errorMessage = 'An error occurred while fetching data. Please try again later.';
 
-                        if (xhr.responseJSON && xhr.responseJSON.error) {
-                            errorMessage = xhr.responseJSON.error;
-                        } else if (xhr.responseText) {
-                            errorMessage = xhr.responseText;
+                        if (error.response?.data?.error) {
+                            errorMessage = error.response.data.error;
+                        } else if (error.response?.data) {
+                            errorMessage = error.response.data;
                         }
 
-                        // Check for unauthorized or session-related errors
-                        if (xhr.status === 401 || xhr.status === 403 || xhr.status === 409) {
+                        if ([401, 403, 409].includes(error.response?.status)) {
                             showError('Session expired, reloading...');
                             setTimeout(() => window.location.reload(), 1500);
                         } else {
