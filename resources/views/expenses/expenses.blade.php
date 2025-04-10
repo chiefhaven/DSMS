@@ -36,7 +36,7 @@
                       <thead class="thead-dark">
                           <tr>
                             <th class="text-center" style="width: 100px;">Actions</th>
-                            <th style="min-width: 14rem;">Slated date</th>
+                            <th style="min-width: 14rem;">Group</th>
                             <th style="min-width: 10rem;">Status</th>
                             <th style="min-width: 7rem;">Type</th>
                             <th style="min-width: 10rem;">Description</th>
@@ -47,7 +47,7 @@
                             <th style="min-width: 10em;">Approved Amount</th>
                             <th style="min-width: 10rem;">Approved by</th>
                             <th style="min-width: 10rem;">Date Approved</th>
-                            <th style="min-width: 10rem;">Last edited</th>
+                            <th style="min-width: 10rem;">Last edited
                             <th style="min-width: 10rem;">Payment method</th>
                           </tr>
                       </thead>
@@ -196,7 +196,7 @@
 
         $(document).ready(function() {
 
-            $('#expense').DataTable({
+            $('#expenses').DataTable({
                 columnDefs: [
                     {
                         targets: [1],

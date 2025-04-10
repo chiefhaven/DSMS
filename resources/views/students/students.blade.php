@@ -223,11 +223,13 @@
                     data: function (d) {
                         d.status = status.value;
                     },
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
                     xhrFields: {
                         withCredentials: true
                     },
                     error: function (xhr, error, thrown) {
-                        // Try to parse JSON error from the server
                         let errorMessage = 'An error occurred while fetching data. Please try again later.';
 
                         if (xhr.responseJSON && xhr.responseJSON.error) {
@@ -236,13 +238,12 @@
                             errorMessage = xhr.responseText;
                         }
 
-                        // If 403 error (Unauthorized), reload the page
-                        if (xhr.status == 409) {
-                            window.location.reload();  // Reload the page if user is not authorized
-                            showError('Session experied, reloading...');
+                        // Check for unauthorized or session-related errors
+                        if (xhr.status === 401 || xhr.status === 403 || xhr.status === 409) {
+                            showError('Session expired, reloading...');
+                            setTimeout(() => window.location.reload(), 1500);
                         } else {
-                            window.location.reload();
-                            showError('Session experied, reloading...');
+                            showError(errorMessage);
                         }
                     }
                 },
@@ -302,12 +303,12 @@
                     toast.addEventListener('mouseleave', Swal.resumeTimer);
                     }
                 };
-    
+
                 // Clean up undefined options
                 const cleanOptions = Object.fromEntries(
                     Object.entries(baseOptions).filter(([_, v]) => v !== undefined)
                 );
-    
+
                 return Swal.fire(cleanOptions);
             };
 
