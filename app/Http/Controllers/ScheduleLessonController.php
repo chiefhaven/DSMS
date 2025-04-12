@@ -337,24 +337,37 @@ class ScheduleLessonController extends Controller
     {
         if (!Auth::user()->hasRole('instructor')) {
             return response()->json([
-                'message'  => 'You are not eligible to delte schedule',
+                'message' => 'You are not eligible to delete the schedule',
             ], 409);
         }
 
-        $ScheduleLesson = ScheduleLesson::find($id);
+        $scheduleLesson = ScheduleLesson::find($id);
 
-        if (!$ScheduleLesson) {
-            return response()->json(['error' => 'Schedule not found'], 404); // Return a 404 if not found
+        if (!$scheduleLesson) {
+            return response()->json(['error' => 'Schedule not found'], 404);
+        }
+
+        if (Carbon::parse($scheduleLesson->start_time)->isBefore(Carbon::today())) {
+            return response()->json([
+                'message' => 'Cannot delete past schedules.',
+            ], 403);
         }
 
         try {
-            $ScheduleLesson->delete();
+            // Detach related students from pivot table
+            $scheduleLesson->students()->detach();
+
+            // Delete the schedule
+            $scheduleLesson->delete();
+
             return response()->json(['message' => 'Schedule deleted successfully'], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to delete schedule', 'exception' => $e->getMessage()], 500);
+            return response()->json([
+                'error' => 'Failed to delete schedule',
+                'exception' => $e->getMessage()
+            ], 500);
         }
     }
-
 
     public function getLessonSchedules()
     {
