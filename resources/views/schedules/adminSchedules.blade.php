@@ -9,17 +9,6 @@
             Schedule lessons <span class="badge bg-danger ms-2">New</span>
         </h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
-
-            {{--  <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <span class="d-sm-inline-block">Action</span>
-            </button>
-            <div class="dropdown-menu dropdown-menu-end p-0">
-                <div class="p-2">
-                    <button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#lessonScheduleModal">
-                        Schedule Lesson
-                    </button>
-                </div>
-            </div>  --}}
         </nav>
       </div>
     </div>
