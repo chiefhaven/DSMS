@@ -9,12 +9,23 @@
             Schedule lessons <span class="badge bg-danger ms-2">New</span>
         </h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
+
+            <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span class="d-sm-inline-block">Action</span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-end p-0">
+                <div class="p-2">
+                    <button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#createScheduleModal">
+                        Schedule Lesson
+                    </button>
+                </div>
+            </div>
         </nav>
       </div>
     </div>
   </div>
 
-<div class="content content-full" id="lessonSchedule">
+<div class="content content-full" id="schedule">
     @include('components.alert')
 
     <div class="block block-rounded p-4">
@@ -24,95 +35,141 @@
     </div>
 
     <!-- Modal -->
-    <div class="modal fade" id="lessonScheduleModal" tabindex="-1" aria-labelledby="lessonScheduleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="createScheduleModal" tabindex="-1" aria-labelledby="scheduleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="lessonScheduleModalLabel">@{{ selectedEvent ? 'Edit Lesson Schedule' : 'Create Lesson Schedule' }}</h5>
+                <h5 class="modal-title" id="scheduleModalLabel">@{{ selectedSchedule ? 'Edit Lesson Schedule' : 'Create Lesson Schedule' }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form @submit.prevent="submitForm">
-                    @csrf
-                    <!-- Student -->
-                    <div class="form-group mb-3">
+                <div class="row">
+                  <!-- Form to add student to list -->
+                  <div class="col-md-5">
+                    <form @submit.prevent="addStudentToList">
+                      @csrf
+
+                      <!-- Student -->
+                      <div class="form-group mb-3">
                         <label for="student_id" class="form-label">Search student</label>
-                        <input name="student_id" id="student_id" v-model="student" class="form-control" @input="searchStudent()" required>
-                    </div>
+                        <input
+                          name="student_id"
+                          id="student_id"
+                          v-model="student"
+                          class="form-control"
+                          @input="searchStudent"
+                          required
+                        />
+                      </div>
 
-                    <!-- Lesson -->
-                    <div class="form-group mb-3">
+                      <!-- Lesson -->
+                      <div class="form-group mb-3">
                         <label for="lesson_id" class="form-label">Lesson</label>
-                        <select v-model="lessonId" id="lesson_id" class="form-control" required>
-                            <option value="">Select Lesson</option>
-                            <option v-for="lesson in lessons" :key="lesson.id" :value="lesson.id">
-                                @{{ lesson.name }}
-                            </option>
+                        <select v-model="selectedLesson" id="lesson_id" class="form-control" required>
+                          <option value="">Select Lesson</option>
+                          <option v-for="lesson in lessons" :key="lesson.id" :value="lesson">
+                            @{{ lesson.name }}
+                          </option>
                         </select>
-                    </div>
+                      </div>
 
-                    <!-- Start Time -->
-                    <div class="form-group mb-3">
-                        <label for="start_time" class="form-label">Start Time</label>
-                        <input type="datetime-local" v-model="startTime" id="start_time" class="form-control" required />
-                    </div>
+                      <!-- Location -->
+                      <div class="form-group mb-3">
+                        <label class="form-label">Location</label>
+                        <select v-model="location" id="location" class="form-select" required>
+                          <option value="">Select location</option>
+                          <option>Area 4</option>
+                          <option>Area 49</option>
+                          <option>City center</option>
+                          <option>Students Home</option>
+                          <option>Other</option>
+                        </select>
+                      </div>
 
-                    <div class="form-group mb-3">
-                        <label for="start_time" class="form-label text-success">Finish time will be @{{ formatDate(finishTime) }}</label>
-                    </div>
-
-                    {{--  <!-- Finish Time -->
-                    <div class="form-group mb-3">
-                        <label for="finish_time" class="form-label">Finish Time</label>
-                        <input type="datetime-local" v-model="finishTime" id="finish_time" class="form-control" required />
-                    </div>  --}}
-
-                    <!-- Location -->
-                    {{--  <div class="form-group mb-3">
-                        <label for="location" class="form-label">Location</label>
-                        <input type="text" v-model="location" id="location" class="form-control" placeholder="Enter location" />
-                    </div>  --}}
-                    <!-- Location -->
-                    <div class="form-group mb-3">
-                    <label class="form-label">Location</label>
-                    <select v-model="location" id="location" class="form-select">
-                        <option value="">Select location</option>
-                        <option>Area 4</option>
-                        <option>Area 49</option>
-                        <option>City center</option>
-                        <option>Students Home</option>
-                        <option>Other</option>
-                    </select>
-                    </div>
-
-                    <!-- Comments -->
-                    <div class="form-group mb-3">
-                        <label for="comments" class="form-label">Comments</label>
-                        <textarea v-model="comments" id="comments" class="form-control" rows="3" placeholder="Additional notes..."></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <button
-                            type="submit"
-                            class="btn btn-primary"
-                            :disabled="isSubmitting"
-                        >
-                            <span v-if="isSubmitting">
-                                <span class="spinner-border spinner-border-sm" role="status"></span>
-                                @{{ selectedEvent ? "Updating..." : "Creating..." }}
-                            </span>
-                            <span v-else>
-                                @{{ selectedEvent ? "Update Schedule" : "Create Schedule" }}
-                            </span>
+                      <div class="form-group">
+                        <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+                          <span v-if="isSubmitting">
+                            <span class="spinner-border spinner-border-sm" role="status"></span>
+                            Adding...
+                          </span>
+                          <span v-else>
+                            Add to list
+                          </span>
                         </button>
+                      </div>
+                    </form>
+                  </div>
+
+                  <!-- Selected students table -->
+                  <div class="col-md-7">
+                    <strong>Selected students</strong>
+                    <table class="table table-striped">
+                      <thead>
+                        <tr>
+                          <th>Student</th>
+                          <th>Lesson</th>
+                          <th>Location</th>
+                          <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="(selectedStudent, index) in selectedStudents" :key="index">
+                            <td>@{{ selectedStudent.student }}</td>
+                            <td>@{{ selectedStudent.selectedLesson.name }}</td>
+                            <td>@{{ selectedStudent.location }}</td>
+                            <td>
+                                <span><button class="btn btn-danger btn-sm" @click="removeStudentFromList(index)">Remove</button></span>
+                            </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div class="row mt-5">
+                    <hr>
+                    <div class="col-md-5">
                     </div>
-                </form>
-            </div>
+                    <div class="col-md-7">
+                        <!-- Form to submit the schedule -->
+                        <form @submit.prevent="submitForm">
+                            <div class="form-group mb-3">
+                                <label for="start_time" class="form-label">Start Time</label>
+                                <input
+                                type="datetime-local"
+                                v-model="startTime"
+                                id="start_time"
+                                class="form-control"
+                                required
+                                />
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label class="form-label text-success">
+                                Finish time will be @{{ formatDate(finishTime) }}
+                                </label>
+                            </div>
+
+                            <div class="form-group mt-4">
+                                <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+                                <span v-if="isSubmitting">
+                                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                                    @{{ selectedSchedule ? "Updating..." : "Creating..." }}
+                                </span>
+                                <span v-else>
+                                    @{{ selectedSchedule ? "Update Schedule" : "Create Schedule" }}
+                                </span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+              </div>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="lessonsModal" tabindex="-1" aria-labelledby="lessonScheduleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="scheduleModal" tabindex="-1" aria-labelledby="scheduleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -121,37 +178,58 @@
                 </div>
                 <div class="modal-body">
                     <div v-if="eventItems.length > 0" class="table-responsive">
-                        <table class="table table striped">
-                            <thead>
+                        <template v-for="(event, index) in eventItems" :key="index">
+                            <p class="mb-4 d-flex align-items-center gap-3 flex-wrap">
+                                <span class="card p-4">
+                                  <strong>Date</strong>
+                                  <span> @{{ formatDate(event.date) }}</span>
+                                </span>
+                                <span class="card p-4">
+                                  <strong>Time</strong>
+                                  <span> @{{ event.time }}</span>
+                                </span>
+                                <span class="card p-4">
+                                    <strong>Isntrctor</strong> @{{ event.instructor }}
+                                  </span>
+                              </p>
+
+                        </template>
+                        <div class="card p-4">
+                            DETAILS
+                            <table class="table table-striped">
+                                <thead>
                                 <tr>
                                     <th>Student</th>
                                     <th>Lesson</th>
-                                    <th>Date/Time</th>
-                                    <th style="min-width: 100px;">Instructor</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="event in eventItems" :key="event.id">
-                                    <td>@{{ event.student.fname }} @{{ event.student.mname ?? '' }} @{{ event.student.sname }}</td>
-                                    <td>@{{ event.lesson.name }}</td>
-                                    <td>@{{ formatDate(event.start) }}</td>
-                                    <td>
-                                        @{{ event.instructor }}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                <template v-for="(event, index) in eventItems" :key="index">
+                                    <tr v-for="(student, idx) in event.students" :key="idx">
+                                        <td>
+                                        @{{ student.fname }} @{{ student.mname ?? '' }} @{{ student.sname }}
+                                        </td>
+                                        <td>@{{ student.pivot.lesson.name }}</td>
+                                        <td>@{{ student.pivot.location }}</td>
+                                        <td>@{{ student.pivot.status }}</td>
+                                    </tr>
+                                </template>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <div v-else>
                         No schedules attendances this day!
                     </div>
                 </div>
-                {{--  <div class="modal-footer">
-                    <button class="btn btn-light" @click="handleAddSchedule()">
-                        Add Schedule
+                <div class="modal-footer">
+                    <button class="btn btn-sm text-success" @click="deleteEvent(eventItems)" disabled>
+                        Review
                     </button>
-                </div>  --}}
+                </div>
             </div>
         </div>
     </div>
@@ -161,12 +239,14 @@
 <script>
     const { createApp, ref, onMounted, computed, watch } = Vue;
 
-    const lessonSchedule = createApp({
+    const schedule = createApp({
       setup() {
         // Reactive state
         const student = ref('');
+        const selectedStudents = ref([]);
         const studentId = ref("");
         const lessonId = ref("");
+        const selectedLesson = ref("");
         const startTime = ref("");
         const location = ref("");
         const comments = ref("");
@@ -174,10 +254,12 @@
         const studentsData = ref([]);
         const events = ref([]);
         const eventItems = ref([]);
-        const selectedEvent = ref(null);
+        const selectedSchedule = ref(null);
         const clickedDate = ref("");
         const calendarInstance = ref(null);
         const isSubmitting = ref(false);
+        const scheduleId = ref('');
+        const hasError = ref(false);
 
         // Computed properties
         const finishTime = computed(() => {
@@ -207,14 +289,11 @@
             month: 'long',
             day: 'numeric',
             year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
           });
         };
 
         const validateForm = () => {
-          if (!studentId.value || !lessonId.value || !startTime.value) {
+          if (!selectedStudents.value || !startTime.value) {
             notification("Please fill in all required fields!", "error");
             return false;
           }
@@ -234,32 +313,29 @@
           NProgress.start();
 
           const payload = {
-            student_id: studentId.value,
-            lesson_id: lessonId.value,
+            selectedStudents: selectedStudents.value,
             start_time: startTime.value,
             finish_time: finishTime.value,
-            location: location.value,
-            comments: comments.value,
-            lessonScheduleId: selectedEvent.value?.id ?? null,
+            scheduleId: selectedSchedule.value?.id ?? null,
           };
 
           try {
-            const endpoint = selectedEvent.value?.id
-              ? `/update-lesson-schedule/${selectedEvent.value.id}`
+            const endpoint = selectedSchedule.value?.id
+              ? `/update-lesson-schedule/${selectedSchedule.value.id}`
               : "/store-lesson-schedule";
 
-            const method = selectedEvent.value?.id ? "put" : "post";
+            const method = selectedSchedule.value?.id ? "put" : "post";
             const response = await axios[method](endpoint, payload);
 
             notification(response.data.message || "Lesson schedule saved successfully!", "success");
             await fetchSchedules();
-            closeModal('lessonScheduleModal');
+            closeModal('createScheduleModal');
             clearForm();
           } catch (error) {
             handleApiError(error);
           } finally {
-            NProgress.done();
             isSubmitting.value = false;
+            NProgress.done();
           }
         };
 
@@ -268,17 +344,32 @@
                              error.message ||
                              "Failed to save lesson schedule. Please try again.";
           notification(errorMessage, "error");
+          console.error("API Error:", {
+            status: error.response?.status,
+            data: error.response?.data,
+            stack: error.stack,
+          });
         };
 
         const clearForm = () => {
           student.value = '';
           studentId.value = '';
-          lessonId.value = '';
+          selectedLesson.value = '',
+          selectedStudents.value = [],
           startTime.value = '';
           location.value = '';
           comments.value = '';
-          selectedEvent.value = null;
+          selectedSchedule.value = null;
         };
+
+        const clearStudentSelection = () => {
+            studentId.value = '';
+            student.value = '';
+            location.value = '';
+            lessons.value = [];
+            selectedLesson.value = '',
+            hasError.value = false;
+          };
 
         const searchStudent = () => {
           $('#student_id').typeahead({
@@ -321,21 +412,36 @@
 
             // Only proceed if no events exist
             if (!hasEvents) {
+                // Validate date is today or in future
+                if (clickedMoment.isBefore(today)) {
+                    showError("Can't select date", "Please select today's date or a future date");
+                    return;
+                }
               // Set smart default time (next hour if today, 9am if future)
               const defaultTime = clickedMoment.isSame(today, 'day')
                 ? moment().add(1, 'hour').startOf('hour') // Next full hour
                 : clickedMoment.set({ hour: 9, minute: 0 }); // 9:00 AM
 
               startTime.value = defaultTime.format("YYYY-MM-DDTHH:mm");
-              showModal('lessonsModal');
+              showModal('createScheduleModal');
             } else {
               // Optional: Show existing events if needed
-              eventItems.value = events.value.filter(event =>
-                moment(event.start).format('YYYY-MM-DD') === clickedDateStr
-              );
-              showModal('lessonsModal');
+              eventItems.value = events.value
+                .filter(event => moment(event.start).format('YYYY-MM-DD') === clickedDateStr)
+                .map(event => ({
+                    id: event.id,
+                    date: event.start,
+                    time: `${moment(event.start).format('HH:mm')} - ${moment(event.end).format('HH:mm')}`,
+                    students: event.extendedProps?.students,
+                    instructor: `${event.extendedProps?.instructor?.fname ?? ''} ${event.extendedProps?.instructor?.sname ?? ''}`.trim(),
+                    lesson: event.extendedProps?.lesson?.name ?? '',
+                    location: event.extendedProps?.location ?? '',
+                    comments: event.extendedProps?.comments ?? '',
+                }));
+                console.log(eventItems.value);
+              showModal('scheduleModal');
             }
-          };
+        };
 
         const handleAddSchedule = () => {
 
@@ -347,9 +453,9 @@
                 return;
               }
 
-            closeModal('lessonsModal');
+            closeModal('scheduleModal');
             startTime.value = moment(clickedDate.value).format("YYYY-MM-DDTHH:mm");
-            showModal('lessonScheduleModal');
+            showModal('createScheduleModal');
         };
 
         const showModal = (modalId) => {
@@ -358,8 +464,33 @@
         };
 
         const closeModal = (modalId) => {
-            const modal = bootstrap.Modal.getInstance(document.getElementById(modalId));
-            if (modal) modal.hide();
+            const modalEl = document.getElementById(modalId);
+            let modal = bootstrap.Modal.getInstance(modalEl);
+
+            if (!modal) {
+                modal = new bootstrap.Modal(modalEl);
+            }
+
+            modal.hide();
+
+            // Optional delay to allow modal to finish hiding
+            setTimeout(() => {
+                // Reset input, textarea, select fields inside the modal
+                const inputs = modalEl.querySelectorAll('input, textarea, select');
+                inputs.forEach(input => {
+                    if (input.type === 'checkbox' || input.type === 'radio') {
+                        input.checked = false;
+                    } else {
+                        input.value = '';
+                    }
+                });
+
+                // Reset validation messages (if any)
+                const errorElements = modalEl.querySelectorAll('.is-invalid, .is-valid');
+                errorElements.forEach(el => el.classList.remove('is-invalid', 'is-valid'));
+            }, 300);
+
+            selectedStudents.value = [];
         };
 
         const fetchSchedules = async () => {
@@ -377,8 +508,15 @@
         };
 
         const calendarInitialization = () => {
-          const calendarEl = document.getElementById('calendar');
-          if (calendarEl) {
+            const calendarEl = document.getElementById('calendar');
+
+            if (!calendarEl) return;
+
+            // Destroy previous instance if re-initializing
+            if (calendarInstance.value) {
+              calendarInstance.value.destroy();
+            }
+
             calendarInstance.value = new FullCalendar.Calendar(calendarEl, {
               initialView: 'dayGridMonth',
               slotMinTime: '06:00:00',
@@ -389,13 +527,16 @@
               nowIndicator: true,
               dateClick: handleDateClick,
               events: events.value,
-              eventClick: (info) => {
-                info.jsEvent.preventDefault();
-                editEvent(info.event);
-              }
+              eventClick: handleDateClick,
+              headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+              },
+              height: 'auto',
             });
+
             calendarInstance.value.render();
-          }
         };
 
         const refreshCalendar = () => {
@@ -451,7 +592,6 @@
                 }
             };
 
-            // Clean up undefined options
             const cleanOptions = Object.fromEntries(
                 Object.entries(baseOptions).filter(([_, v]) => v !== undefined)
             );
@@ -459,37 +599,149 @@
             return Swal.fire(cleanOptions);
         };
 
-        const editEvent = (event) => {
-          NProgress.start();
-          selectedEvent.value = {
-            id: event.id,
-            ...event.extendedProps
-          };
-          student.value = `${event.extendedProps.student.fname} ${event.extendedProps.student.mname} ${event.extendedProps.student.sname}`;
-          studentId.value = event.extendedProps.student.id;
-          lessonId.value = event.extendedProps.lesson.id;
-          comments.value = event.extendedProps.comments;
-          startTime.value = moment(event.start).format("YYYY-MM-DDTHH:mm");
-          fetchLessons(studentId.value);
-
-          closeModal('lessonsModal');
-          showModal('lessonScheduleModal');
-          NProgress.done();
-        };
-
-        const deleteEvent = async (eventId) => {
-          if (confirm("Are you sure you want to delete this lesson?")) {
+        const editSchedule = (event) => {
             try {
               NProgress.start();
-              await axios.delete(`/schedule-lesson/${eventId}`);
-              await fetchSchedules();
-              notification("Lesson deleted successfully!", "success");
+
+              console.log(event);
+
+              const props = event[0] || {};
+              const studentsList = props.students || [];
+
+              selectedSchedule.value = {
+                id: props.id,
+                ...props
+              };
+
+              // Clear and repopulate selected students
+              selectedStudents.value = studentsList.map((student) => ({
+                id: student.id,
+                student: [student.fname, student.mname, student.sname].filter(Boolean).join(' '),
+                selectedLesson: student.pivot?.lesson ?? null,
+                location: student.pivot?.location ?? props.location ?? '',
+                comments: props.comments ?? ''
+              }));
+
+              startTime.value = selectedSchedule.value.date
+                ? new Date(selectedSchedule.value.date).toISOString().slice(0, 16)
+                : '';
+
+              closeModal('scheduleModal');
+              showModal('createScheduleModal');
             } catch (error) {
-              notification("Failed to delete the lesson. Please try again.", "error");
+              console.error("Error editing event:", error);
+              notification("Failed to edit the lesson. Please try again.", "error");
             } finally {
               NProgress.done();
             }
-          }
+        };
+
+        const deleteEvent = async (event) => {
+            if (!event?.length || !event[0]?.['id']) {
+              Swal.fire("Invalid", "Invalid event selected.", "error");
+              return;
+            }
+
+            const eventId = event[0]['id'];
+
+            const result = await Swal.fire({
+              title: "Are you sure?",
+              text: "You won't be able to revert this!",
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonColor: "#d33",
+              cancelButtonColor: "#3085d6",
+              confirmButtonText: "Delete",
+            });
+
+            if (result.isConfirmed) {
+              try {
+                NProgress.start();
+
+                await axios.delete(`/schedule-lesson/${eventId}`);
+
+                await fetchSchedules();
+                closeModal('scheduleModal');
+
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Deleted!',
+                  text: 'The lesson has been successfully deleted.',
+                  toast: true,
+                  position: 'top-end',
+                  showConfirmButton: false,
+                  timer: 3000,
+                  timerProgressBar: true,
+                });
+
+              } catch (error) {
+                const errorMsg = error.response?.data?.message || "Failed to delete the lesson. Please try again.";
+                Swal.fire("Error", errorMsg, "error");
+                console.error("Delete failed:", error);
+              } finally {
+                NProgress.done();
+              }
+            }
+        };
+
+        const addStudentToList = async () => {
+            if (!studentId.value) {
+                showError('Student name must be filled', 'error');
+                hasError.value = true;
+                return;
+            }
+
+            if (!selectedLesson.value) {
+                showError('Lesson must be filled', 'error');
+                hasError.value = true;
+                return;
+            }
+
+            const alreadyExists = selectedStudents.value.some(
+                (item) => item.studentId === studentId.value
+            );
+
+            if (alreadyExists) {
+                showError('Student already in list', 'error');
+                hasError.value = true;
+                return;
+            }
+
+            try {
+                const response = await axios.post('/checkStudentSchedule', {
+                    studentId: studentId.value,
+                    scheduleId: scheduleId.value
+                });
+
+                if (response.data.feedback === "success") {
+                    // Add the student to the selected students list
+                    selectedStudents.value.push({
+                        studentId: studentId.value,
+                        location: location.value,
+                        student: student.value,
+                        selectedLesson: selectedLesson.value,
+                    });
+
+                    clearStudentSelection();
+
+                    showSuccess("Student added successifully, remember to click create schedule to save changes");
+
+                } else {
+                    // Handle the error if the response is not success
+                    showError(response.data.message, 'error');
+                    hasError.value = true; // Set error state to true if failed
+                }
+
+            } catch (error) {
+                console.log(error)
+                showError("Error", 'An error occurred while checking the student schedule.');
+            }
+        };
+
+        const removeStudentFromList = (index) => {
+
+            selectedStudents.value.splice(index, 1);
+
         };
 
         // Lifecycle hooks
@@ -513,19 +765,23 @@
           location,
           comments,
           eventItems,
-          selectedEvent,
+          selectedSchedule,
           isSubmitting,
           searchStudent,
           submitForm,
           formatDate,
           handleDateClick,
           handleAddSchedule,
-          editEvent,
-          deleteEvent
+          editSchedule,
+          deleteEvent,
+          selectedStudents,
+          addStudentToList,
+          selectedLesson,
+          removeStudentFromList
         };
       }
     });
 
-    lessonSchedule.mount('#lessonSchedule');
+    schedule.mount('#schedule');
 </script>
 @endsection
