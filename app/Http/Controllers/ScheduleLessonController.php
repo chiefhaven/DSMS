@@ -267,10 +267,20 @@ class ScheduleLessonController extends Controller
             $schedule->students()->sync($syncData);
 
             // 6. Notify each student
-            foreach ($request->selectedStudents as $student) {
-                $studentModel = \App\Models\Student::with('user')->find($student['id']);
-                if ($studentModel && $studentModel->user) {
-                    Notification::send($studentModel->user, new LessonScheduled($schedule));
+            $schedule->load('students');
+
+            // Notify each student with pivot data
+            foreach ($schedule->students as $studentModel) {
+                $user = $studentModel->user;
+                if ($user) {
+                    // Access pivot data
+                    $pivot = $studentModel->pivot;
+
+                    Notification::send($user, new LessonScheduled($schedule, [
+                        'lesson' => lesson::find($pivot->lesson_id)->name,
+                        'location'  => $pivot->location,
+                        'status'    => $pivot->status,
+                    ]));
                 }
             }
 

@@ -18,37 +18,32 @@ class LessonScheduled extends Notification implements ShouldQueue
     protected $instructor;
     protected $schedule;
     protected $scheduleDate;
+    protected $pivotData;
 
-    /**
-     * Create a new notification instance.
-     */
-    public function __construct($schedule)
+    public function __construct($schedule, $pivotData = [])
     {
-        $this->student = $schedule->student;
-        $this->instructor = $schedule->instructor;
-        $this->schedule = $schedule;
+        $this->student      = $schedule->student ?? null;
+        $this->instructor   = $schedule->instructor ?? null;
+        $this->schedule     = $schedule;
         $this->scheduleDate = Carbon::parse($schedule->start_time);
+        $this->pivotData    = $pivotData;
     }
 
-    /**
-     * Get the notification's delivery channels.
-     */
     public function via($notifiable)
     {
-        return ['mail', 'database', SmsChannel::class]; // Add SMS Channel
+        return ['mail', 'database', SmsChannel::class];
     }
 
-    /**
-     * Get the mail representation of the notification.
-     */
     public function toMail($notifiable)
     {
         try {
             return (new MailMessage)
-                ->subject('Lesson Scheduled: ' . $this->schedule->lesson?->name)
-                ->greeting('Hello ' . $this->student->fname . '!')
-                ->line('Your lesson has been scheduled with ' . $this->instructor->fname . ' ' . $this->instructor->sname)
-                ->line('Lesson: ' . $this->schedule->lesson?->name)
+                ->subject('Lesson Scheduled: ' . ($this->pivotData['lesson_name'] ?? 'A Lesson'))
+                ->greeting('Hello ' . ($this->student->fname ?? 'Student') . '!')
+                ->line('Your lesson has been scheduled with ' . ($this->instructor->fname ?? '') . ' ' . ($this->instructor->sname ?? ''))
+                ->line('Lesson: ' . ($this->pivotData['lesson_name'] ?? 'N/A'))
+                ->line('Location: ' . ($this->pivotData['location'] ?? 'N/A'))
+                ->line('Status: ' . ($this->pivotData['status'] ?? 'scheduled'))
                 ->line('Date: ' . $this->scheduleDate->format('l, F j, Y'))
                 ->line('Time: ' . $this->scheduleDate->format('g:i A'))
                 ->action('View Schedule', url('/student/schedule'))
@@ -61,40 +56,38 @@ class LessonScheduled extends Notification implements ShouldQueue
         }
     }
 
-    /**
-     * Get the SMS representation of the notification.
-     */
     public function toSms($notifiable)
     {
         return sprintf(
-            "Lesson Scheduled: %s with %s on %s at %s. Check schedule: %s",
-            $this->schedule->pivot ?? 'N/A',
+            "Lesson: %s with %s on %s at %s. Location: %s. Check: %s",
+            $this->pivotData['lesson_name'] ?? 'N/A',
             $this->instructor->fname ?? 'Instructor',
             $this->scheduleDate->format('F j, Y'),
             $this->scheduleDate->format('g:i A'),
+            $this->pivotData['location'] ?? 'N/A',
             url('/student/schedule')
         );
     }
 
-    /**
-     * Get the database representation of the notification.
-     */
     public function toDatabase($notifiable)
     {
         try {
             return [
-                'title' => 'New Lesson Scheduled',
-                'body' => sprintf(
+                'title'       => 'New Lesson Scheduled',
+                'body'        => sprintf(
                     "Lesson: %s with %s on %s at %s",
-                    $this->schedule->lesson?->name ?? 'N/A',
+                    $this->pivotData['lesson_name'] ?? 'N/A',
                     $this->instructor->fname ?? 'Instructor',
                     $this->scheduleDate->format('F j, Y'),
                     $this->scheduleDate->format('g:i A')
                 ),
-                'student_id' => $this->student->id ?? null,
+                'student_id'  => $this->student->id ?? null,
                 'schedule_id' => $this->schedule->id ?? null,
-                'url' => url('/student/schedule'),
-                'created_at' => now()->toDateTimeString(),
+                'lesson_id'   => $this->pivotData['lesson_id'] ?? null,
+                'location'    => $this->pivotData['location'] ?? null,
+                'status'      => $this->pivotData['status'] ?? 'scheduled',
+                'url'         => url('/student/schedule'),
+                'created_at'  => now()->toDateTimeString(),
             ];
         } catch (\Exception $e) {
             Log::error('Failed to create database notification: ' . $e->getMessage());
@@ -102,9 +95,6 @@ class LessonScheduled extends Notification implements ShouldQueue
         }
     }
 
-    /**
-     * Get the array representation of the notification (for broadcasting).
-     */
     public function toArray($notifiable)
     {
         return $this->toDatabase($notifiable);
