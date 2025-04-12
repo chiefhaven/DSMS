@@ -59,7 +59,7 @@ class LessonScheduled extends Notification implements ShouldQueue
     public function toSms($notifiable)
     {
         return sprintf(
-            "Lesson: %s with %s on %s at %s. Location: %s. Check: %s",
+            "Lesson Scheduled: %s with instructor %s on %s at %s. Location: %s. Check: %s",
             $this->pivotData['lesson'] ?? 'N/A',
             $this->instructor->fname ?? 'Instructor',
             $this->scheduleDate->format('F j, Y'),
