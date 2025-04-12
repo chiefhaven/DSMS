@@ -25,7 +25,7 @@
     </div>
   </div>
 
-<div class="content content-full" id="lessonSchedule">
+<div class="content content-full" id="schedule">
     @include('components.alert')
 
     <div class="block block-rounded p-4">
@@ -237,7 +237,7 @@
 <script>
     const { createApp, ref, onMounted, computed, watch } = Vue;
 
-    const lessonSchedule = createApp({
+    const schedule = createApp({
       setup() {
         // Reactive state
         const student = ref('');
@@ -317,8 +317,10 @@
             selectedStudents: selectedStudents.value,
             start_time: startTime.value,
             finish_time: finishTime.value,
-            lessonScheduleId: selectedSchedule.value?.id ?? null,
+            scheduleId: selectedSchedule.value?.id ?? null,
           };
+
+          console.log(payload)
 
           try {
             const endpoint = selectedSchedule.value?.id
@@ -588,10 +590,9 @@
                 ...props
               };
 
-              console.log(selectedSchedule.value);
-
               // Clear and repopulate selected students
               selectedStudents.value = studentsList.map((student) => ({
+                id: student.id,
                 student: [student.fname, student.mname, student.sname].filter(Boolean).join(' '),
                 selectedLesson: student.pivot?.lesson ?? null,
                 location: student.pivot?.location ?? props.location ?? '',
@@ -665,8 +666,6 @@
                     scheduleId: scheduleId.value
                 });
 
-                console.log(response);
-
                 if (response.data.feedback === "success") {
                     // Add the student to the selected students list
                     selectedStudents.value.push({
@@ -736,6 +735,6 @@
       }
     });
 
-    lessonSchedule.mount('#lessonSchedule');
+    schedule.mount('#schedule');
 </script>
 @endsection

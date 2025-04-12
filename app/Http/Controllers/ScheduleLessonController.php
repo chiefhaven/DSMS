@@ -203,38 +203,93 @@ class ScheduleLessonController extends Controller
     {
         if (!Auth::user()->hasRole('instructor')) {
             return response()->json([
-                'message'  => 'You are not eligible to edit or add a schedule',
+                'message' => 'You are not eligible to edit or add a schedule',
             ], 409);
         }
 
-        $scheduleLesson = ScheduleLesson::find($id);
+        // 1. Validate the request data
+        $validator = Validator::make($request->all(), [
+            'selectedStudents' => 'required|array',
+            'start_time'       => 'required|date',
+            'finish_time'      => 'required|date|after:start_time',
+            'comments'         => 'nullable|string|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors'  => $validator->errors(),
+            ], 422);
+        }
+
+        // 2. Check for overlapping lessons (excluding the current one)
+        $isSlotTaken = ScheduleLesson::where('instructor_id', Auth::user()->instructor_id)
+            ->where('id', '!=', $id)
+            ->where(function ($query) use ($request) {
+                $query->whereBetween('start_time', [$request->start_time, $request->finish_time])
+                    ->orWhereBetween('finish_time', [$request->start_time, $request->finish_time])
+                    ->orWhere(function ($query) use ($request) {
+                        $query->where('start_time', '<', $request->start_time)
+                            ->where('finish_time', '>', $request->finish_time);
+                    });
+            })
+            ->exists();
+
+        if ($isSlotTaken) {
+            return response()->json([
+                'message' => 'This time slot is already booked.',
+            ], 409);
+        }
+
+        DB::beginTransaction();
 
         try {
-            // Validate request (handled by UpdatescheduleLessonRequest)
-            $validatedData = $request->validated();
-
-            $scheduleLesson->update([
-                'student_id' => $request['student_id'],
-                'lesson_id' => $request['lesson_id'],
-                'start_time' => $request['start_time'],
-                'finish_time' => $request['finish_time'],
-                'location' => $request['location'],
-                'comments' => $request['comments'],
+            // 3. Update schedule
+            $schedule = ScheduleLesson::findOrFail($id);
+            $schedule->update([
+                'instructor_id' => Auth::user()->instructor_id,
+                'start_time'    => $request->start_time,
+                'finish_time'   => $request->finish_time,
+                'comments'      => $request->comments,
             ]);
 
+            // 4. Prepare sync data
+            $syncData = [];
+            foreach ($request->selectedStudents as $student) {
+                $syncData[$student['id']] = [
+                    'lesson_id' => $student['selectedLesson']['id'],
+                    'location'  => $student['location'],
+                    'status'    => 'scheduled',
+                ];
+            }
+
+            // 5. Sync students with pivot data
+            $schedule->students()->sync($syncData);
+
+            // 6. Notify each student
+            foreach ($request->selectedStudents as $student) {
+                $studentModel = \App\Models\Student::with('user')->find($student['id']);
+                if ($studentModel && $studentModel->user) {
+                    Notification::send($studentModel->user, new LessonScheduled($schedule));
+                }
+            }
+
+            DB::commit();
+
             return response()->json([
-                'message' => 'Schedule updated successfully',
-                'schedule' => $scheduleLesson
+                'message'  => 'Lesson updated successfully',
+                'schedule' => $schedule,
             ], 200);
 
         } catch (\Exception $e) {
+            DB::rollBack();
+
             return response()->json([
-                'message' => 'Failed to update schedule',
-                'error' => $e->getMessage()
+                'message' => 'Failed to update lesson',
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }
-
 
     /**
      * Remove the specified resource from storage.
