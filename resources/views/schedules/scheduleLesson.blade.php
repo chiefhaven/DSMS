@@ -39,7 +39,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="lessonScheduleModalLabel">@{{ selectedEvent ? 'Edit Lesson Schedule' : 'Create Lesson Schedule' }}</h5>
+                <h5 class="modal-title" id="lessonScheduleModalLabel">@{{ selectedSchedule ? 'Edit Lesson Schedule' : 'Create Lesson Schedule' }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -154,10 +154,10 @@
                                 <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
                                 <span v-if="isSubmitting">
                                     <span class="spinner-border spinner-border-sm" role="status"></span>
-                                    @{{ selectedEvent ? "Updating..." : "Creating..." }}
+                                    @{{ selectedSchedule ? "Updating..." : "Creating..." }}
                                 </span>
                                 <span v-else>
-                                    @{{ selectedEvent ? "Update Schedule" : "Create Schedule" }}
+                                    @{{ selectedSchedule ? "Update Schedule" : "Create Schedule" }}
                                 </span>
                                 </button>
                             </div>
@@ -178,34 +178,40 @@
                 </div>
                 <div class="modal-body">
                     <div v-if="eventItems.length > 0" class="table-responsive">
-                        <table class="table table striped">
+                        <template v-for="(event, index) in eventItems" :key="index">
+                            <p class="mb-4 d-flex align-items-center gap-3 flex-wrap">
+                                <span>
+                                  <strong>Date:</strong>
+                                  <span> @{{ event.date }}</span>
+                                </span>
+                                <span>
+                                  <strong>Time:</strong>
+                                  <span> @{{ event.time }}</span>
+                                </span>
+                              </p>
+
+                        </template>
+                        DETAILS
+                        <table class="table table-striped">
                             <thead>
-                                <tr>
-                                    <th>Student</th>
-                                    <th>Lesson</th>
-                                    <th>Date/Time</th>
-                                    <th style="min-width: 100px;">Action</th>
-                                </tr>
+                              <tr>
+                                <th>Student</th>
+                                <th>Lesson</th>
+                                <th>Location</th>
+                                <th>Status</th>
+                              </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="event in eventItems" :key="event.id">
+                              <template v-for="(event, index) in eventItems" :key="index">
+                                <tr v-for="(student, idx) in event.students" :key="idx">
                                     <td>
-                                      @{{ event.student?.fname }}
-                                      @{{ event.student?.mname ?? '' }}
-                                      @{{ event.student?.sname }}
+                                      @{{ student.fname }} @{{ student.mname ?? '' }} @{{ student.sname }}
                                     </td>
-                                    <td>@{{ event.lesson?.name }}</td>
-                                    <td>@{{ formatDate(event.start) }}</td>
-                                    <td>
-                                      {{--  <button class="btn btn-sm me-1" @click="editEvent(event)">
-                                        <i class="fas fa-edit"></i>
-                                      </button>  --}}
-
-                                      <button class="btn btn-sm" @click="deleteEvent(event.id)">
-                                        <i class="fas fa-trash"></i>
-                                      </button>
-                                    </td>
-                                  </tr>
+                                    <td>@{{ student.pivot.lesson.name }}</td>
+                                    <td>@{{ student.pivot.location }}</td>
+                                    <td>@{{ student.pivot.status }}</td>
+                                </tr>
+                              </template>
                             </tbody>
                         </table>
                     </div>
@@ -215,9 +221,12 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-light" @click="handleAddSchedule()">
-                        Add Schedule
+                    <button class="btn btn-light" @click="editSchedule(eventItems)">
+                        Edit schedule
                     </button>
+                    <button class="btn btn-sm text-danger" @click="deleteEvent(eventItems.id)">
+                        <i class="fas fa-trash"></i> Delete Schedule
+                      </button>
                 </div>
             </div>
         </div>
@@ -243,7 +252,7 @@
         const studentsData = ref([]);
         const events = ref([]);
         const eventItems = ref([]);
-        const selectedEvent = ref(null);
+        const selectedSchedule = ref(null);
         const clickedDate = ref("");
         const calendarInstance = ref(null);
         const isSubmitting = ref(false);
@@ -308,17 +317,15 @@
             selectedStudents: selectedStudents.value,
             start_time: startTime.value,
             finish_time: finishTime.value,
-            lessonScheduleId: selectedEvent.value?.id ?? null,
+            lessonScheduleId: selectedSchedule.value?.id ?? null,
           };
 
-          console.log(payload);
-
           try {
-            const endpoint = selectedEvent.value?.id
-              ? `/update-lesson-schedule/${selectedEvent.value.id}`
+            const endpoint = selectedSchedule.value?.id
+              ? `/update-lesson-schedule/${selectedSchedule.value.id}`
               : "/store-lesson-schedule";
 
-            const method = selectedEvent.value?.id ? "put" : "post";
+            const method = selectedSchedule.value?.id ? "put" : "post";
             const response = await axios[method](endpoint, payload);
 
             notification(response.data.message || "Lesson schedule saved successfully!", "success");
@@ -352,7 +359,7 @@
           startTime.value = '';
           location.value = '';
           comments.value = '';
-          selectedEvent.value = null;
+          selectedSchedule.value = null;
         };
 
         const clearStudentSelection = () => {
@@ -419,12 +426,22 @@
               showModal('lessonScheduleModal');
             } else {
               // Optional: Show existing events if needed
-              eventItems.value = events.value.filter(event =>
-                moment(event.start).format('YYYY-MM-DD') === clickedDateStr
-              );
+              eventItems.value = events.value
+                .filter(event => moment(event.start).format('YYYY-MM-DD') === clickedDateStr)
+                .map(event => ({
+                    id: event.id,
+                    date: event.start,
+                    time: `${moment(event.start).format('HH:mm')} - ${moment(event.end).format('HH:mm')}`,
+                    students: event.extendedProps?.students,
+                    instructor: `${event.extendedProps?.instructor?.fname ?? ''} ${event.extendedProps?.instructor?.sname ?? ''}`.trim(),
+                    lesson: event.extendedProps?.lesson?.name ?? '',
+                    location: event.extendedProps?.location ?? '',
+                    comments: event.extendedProps?.comments ?? '',
+                }));
+                console.log(eventItems.value);
               showModal('lessonsModal');
             }
-          };
+        };
 
         const handleAddSchedule = () => {
 
@@ -437,7 +454,6 @@
               }
 
             closeModal('lessonsModal');
-            console.log(clickedDate.value);
             startTime.value = moment(clickedDate.value).format("YYYY-MM-DDTHH:mm");
             showModal('lessonScheduleModal');
         };
@@ -486,12 +502,7 @@
               nowIndicator: true,
               dateClick: handleDateClick,
               events: events.value,
-              eventClick: (info) => {
-                info.jsEvent.preventDefault();
-                if (info.event) {
-                  editEvent(info.event);
-                }
-              },
+              eventClick: handleDateClick,
               headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
@@ -556,7 +567,6 @@
                 }
             };
 
-            // Clean up undefined options
             const cleanOptions = Object.fromEntries(
                 Object.entries(baseOptions).filter(([_, v]) => v !== undefined)
             );
@@ -564,27 +574,33 @@
             return Swal.fire(cleanOptions);
         };
 
-        const editEvent = (event) => {
+        const editSchedule = (event) => {
             try {
               NProgress.start();
 
-              const props = event.extendedProps || {};
-              const studentData = props.student || {};
-              const lessonData = props.lesson || {};
+              console.log(event);
 
-              selectedEvent.value = {
-                id: event.id,
+              const props = event[0] || {};
+              const studentsList = props.students || [];
+
+              selectedSchedule.value = {
+                id: props.id,
                 ...props
               };
 
-              student.value = `${studentData.fname ?? ''} ${studentData.mname ?? ''} ${studentData.sname ?? ''}`.trim();
-              studentId.value = studentData.id;
-              selectedLesson.value = lessonData;
-              comments.value = props.comments ?? '';
-              location.value = props.location ?? '';
-              startTime.value = moment(event.start).format("YYYY-MM-DDTHH:mm");
+              console.log(selectedSchedule.value);
 
-              fetchLessons(studentId.value);
+              // Clear and repopulate selected students
+              selectedStudents.value = studentsList.map((student) => ({
+                student: [student.fname, student.mname, student.sname].filter(Boolean).join(' '),
+                selectedLesson: student.pivot?.lesson ?? null,
+                location: student.pivot?.location ?? props.location ?? '',
+                comments: props.comments ?? ''
+              }));
+
+              startTime.value = selectedSchedule.value.date
+                ? new Date(selectedSchedule.value.date).toISOString().slice(0, 16)
+                : '';
 
               closeModal('lessonsModal');
               showModal('lessonScheduleModal');
@@ -703,14 +719,14 @@
           location,
           comments,
           eventItems,
-          selectedEvent,
+          selectedSchedule,
           isSubmitting,
           searchStudent,
           submitForm,
           formatDate,
           handleDateClick,
           handleAddSchedule,
-          editEvent,
+          editSchedule,
           deleteEvent,
           selectedStudents,
           addStudentToList,

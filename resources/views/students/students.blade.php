@@ -208,6 +208,7 @@
             }
 
             const getStudents = () => {
+                NProgress.start();
                 const table = $('#studentsTable').DataTable();
                 if ($.fn.DataTable.isDataTable('#studentsTable')) {
                     table.destroy();
@@ -219,6 +220,8 @@
                   scrollX: true,
                   ajax: async function(data, callback, settings) {
                     try {
+                        const csrfToken = $('meta[name="csrf-token"]').attr('content');
+                        axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
                         const response = await axios.get('/api/students', {
                             params: { ...data, status: status.value },
                             withCredentials: true,
@@ -227,7 +230,7 @@
                             }
                         });
 
-                        callback(response.data); // DataTables expects a JSON object with `data`, `recordsTotal`, `recordsFiltered`
+                        callback(response.data);
 
                     } catch (error) {
                         let errorMessage = 'An error occurred while fetching data. Please try again later.';
@@ -244,6 +247,8 @@
                         } else {
                             showError(errorMessage);
                         }
+                    } finally{
+                        NProgress.done();
                     }
                 },
                   columns: [
