@@ -60,7 +60,7 @@ class LessonScheduled extends Notification implements ShouldQueue
     {
         return sprintf(
             "Lesson: %s with %s on %s at %s. Location: %s. Check: %s",
-            $this->pivotData['lesson_name'] ?? 'N/A',
+            $this->pivotData['lesson'] ?? 'N/A',
             $this->instructor->fname ?? 'Instructor',
             $this->scheduleDate->format('F j, Y'),
             $this->scheduleDate->format('g:i A'),
