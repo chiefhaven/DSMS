@@ -15,7 +15,7 @@
             </button>
             <div class="dropdown-menu dropdown-menu-end p-0">
                 <div class="p-2">
-                    <button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#lessonScheduleModal">
+                    <button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#createScheduleModal">
                         Schedule Lesson
                     </button>
                 </div>
@@ -35,11 +35,11 @@
     </div>
 
     <!-- Modal -->
-    <div class="modal fade" id="lessonScheduleModal" tabindex="-1" aria-labelledby="lessonScheduleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="createScheduleModal" tabindex="-1" aria-labelledby="scheduleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="lessonScheduleModalLabel">@{{ selectedSchedule ? 'Edit Lesson Schedule' : 'Create Lesson Schedule' }}</h5>
+                <h5 class="modal-title" id="scheduleModalLabel">@{{ selectedSchedule ? 'Edit Lesson Schedule' : 'Create Lesson Schedule' }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -169,7 +169,7 @@
         </div>
     </div>
 
-    <div class="modal fade" id="lessonsModal" tabindex="-1" aria-labelledby="lessonScheduleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="scheduleModal" tabindex="-1" aria-labelledby="scheduleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -224,7 +224,7 @@
                     <button class="btn btn-light" @click="editSchedule(eventItems)">
                         Edit schedule
                     </button>
-                    <button class="btn btn-sm text-danger" @click="deleteEvent(eventItems.id)">
+                    <button class="btn btn-sm text-danger" @click="deleteEvent(eventItems)">
                         <i class="fas fa-trash"></i> Delete Schedule
                       </button>
                 </div>
@@ -320,8 +320,6 @@
             scheduleId: selectedSchedule.value?.id ?? null,
           };
 
-          console.log(payload)
-
           try {
             const endpoint = selectedSchedule.value?.id
               ? `/update-lesson-schedule/${selectedSchedule.value.id}`
@@ -332,7 +330,7 @@
 
             notification(response.data.message || "Lesson schedule saved successfully!", "success");
             await fetchSchedules();
-            closeModal('lessonScheduleModal');
+            closeModal('createScheduleModal');
             clearForm();
           } catch (error) {
             handleApiError(error);
@@ -358,6 +356,7 @@
           student.value = '';
           studentId.value = '';
           selectedLesson.value = '',
+          selectedStudents.value = [],
           startTime.value = '';
           location.value = '';
           comments.value = '';
@@ -425,7 +424,7 @@
                 : clickedMoment.set({ hour: 9, minute: 0 }); // 9:00 AM
 
               startTime.value = defaultTime.format("YYYY-MM-DDTHH:mm");
-              showModal('lessonScheduleModal');
+              showModal('createScheduleModal');
             } else {
               // Optional: Show existing events if needed
               eventItems.value = events.value
@@ -441,7 +440,7 @@
                     comments: event.extendedProps?.comments ?? '',
                 }));
                 console.log(eventItems.value);
-              showModal('lessonsModal');
+              showModal('scheduleModal');
             }
         };
 
@@ -455,9 +454,9 @@
                 return;
               }
 
-            closeModal('lessonsModal');
+            closeModal('scheduleModal');
             startTime.value = moment(clickedDate.value).format("YYYY-MM-DDTHH:mm");
-            showModal('lessonScheduleModal');
+            showModal('createScheduleModal');
         };
 
         const showModal = (modalId) => {
@@ -466,8 +465,33 @@
         };
 
         const closeModal = (modalId) => {
-            const modal = bootstrap.Modal.getInstance(document.getElementById(modalId));
-            if (modal) modal.hide();
+            const modalEl = document.getElementById(modalId);
+            let modal = bootstrap.Modal.getInstance(modalEl);
+
+            if (!modal) {
+                modal = new bootstrap.Modal(modalEl);
+            }
+
+            modal.hide();
+
+            // Optional delay to allow modal to finish hiding
+            setTimeout(() => {
+                // Reset input, textarea, select fields inside the modal
+                const inputs = modalEl.querySelectorAll('input, textarea, select');
+                inputs.forEach(input => {
+                    if (input.type === 'checkbox' || input.type === 'radio') {
+                        input.checked = false;
+                    } else {
+                        input.value = '';
+                    }
+                });
+
+                // Reset validation messages (if any)
+                const errorElements = modalEl.querySelectorAll('.is-invalid, .is-valid');
+                errorElements.forEach(el => el.classList.remove('is-invalid', 'is-valid'));
+            }, 300);
+
+            selectedStudents.value = [];
         };
 
         const fetchSchedules = async () => {
@@ -603,8 +627,8 @@
                 ? new Date(selectedSchedule.value.date).toISOString().slice(0, 16)
                 : '';
 
-              closeModal('lessonsModal');
-              showModal('lessonScheduleModal');
+              closeModal('scheduleModal');
+              showModal('createScheduleModal');
             } catch (error) {
               console.error("Error editing event:", error);
               notification("Failed to edit the lesson. Please try again.", "error");
@@ -613,24 +637,48 @@
             }
         };
 
-        const deleteEvent = async (eventId) => {
-            if (confirm("Are you sure you want to delete this lesson?")) {
+        const deleteEvent = async (event) => {
+            if (!event?.length || !event[0]?.['id']) {
+              Swal.fire("Invalid", "Invalid event selected.", "error");
+              return;
+            }
+
+            const eventId = event[0]['id'];
+
+            const result = await Swal.fire({
+              title: "Are you sure?",
+              text: "You won't be able to revert this!",
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonColor: "#d33",
+              cancelButtonColor: "#3085d6",
+              confirmButtonText: "Delete",
+            });
+
+            if (result.isConfirmed) {
               try {
                 NProgress.start();
+
                 await axios.delete(`/schedule-lesson/${eventId}`);
 
-                // Remove from eventItems list
-                const index = eventItems.value.findIndex((item) => item.id === eventId);
-                if (index !== -1) {
-                  eventItems.value.splice(index, 1);
-                }
-
                 await fetchSchedules();
+                closeModal('scheduleModal');
 
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Deleted!',
+                  text: 'The lesson has been successfully deleted.',
+                  toast: true,
+                  position: 'top-end',
+                  showConfirmButton: false,
+                  timer: 3000,
+                  timerProgressBar: true,
+                });
 
-                notification("Lesson deleted successfully!", "success");
               } catch (error) {
-                notification("Failed to delete the lesson. Please try again.", "error");
+                const errorMsg = error.response?.data?.message || "Failed to delete the lesson. Please try again.";
+                Swal.fire("Error", errorMsg, "error");
+                console.error("Delete failed:", error);
               } finally {
                 NProgress.done();
               }

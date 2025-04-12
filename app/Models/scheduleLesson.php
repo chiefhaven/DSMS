@@ -75,5 +75,18 @@ class ScheduleLesson extends Model
         });
 
     }
+
+    protected static function booted()
+    {
+        static::deleting(function ($schedule) {
+            \App\Models\AuditLog::create([
+                'user_id'      => auth()->id(),
+                'action'       => 'deleted',
+                'model_type'   => ScheduleLesson::class,
+                'model_id'     => $schedule->id,
+                'description'  => 'Schedule lesson deleted',
+            ]);
+        });
+    }
 }
 

@@ -15,6 +15,11 @@ use Illuminate\Support\Facades\Validator;
 
 class ScheduleLessonController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('role:admin|instructor')->only(['destroy', 'restore']);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -152,6 +157,14 @@ class ScheduleLessonController extends Controller
         }
         return view('schedules.adminSchedules');
 
+    }
+
+    public function restore($id)
+    {
+        $schedule = ScheduleLesson::onlyTrashed()->findOrFail($id);
+        $schedule->restore();
+
+        return response()->json(['message' => 'Lesson restored successfully']);
     }
 
     public function checkStudent(StorescheduleLessonRequest $request)

@@ -86,7 +86,7 @@ Route::post('/store-lesson-schedule', [ScheduleLessonController::class, 'store']
 Route::put('/update-lesson-schedule/{id}', [ScheduleLessonController::class, 'update'])->middleware('auth')->name('updateschedulelesson');
 Route::delete('schedule-lesson/{id}', [ScheduleLessonController::class, 'destroy'])->middleware('auth')->name('destroyschedulelesson');
 Route::post('/checkStudentSchedule', [ScheduleLessonController::class, 'checkStudent'])->middleware('auth')->name('schedukecheckStudent');
-
+Route::patch('/schedule-lesson/{id}/restore', [ScheduleLessonController::class, 'restore']);
 
 Route::get('/courses', [CourseController::class, 'index'])->middleware('auth')->name('courses');
 Route::get('/view-course/{id}', function ($courseId) {
