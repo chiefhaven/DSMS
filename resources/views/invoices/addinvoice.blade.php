@@ -4,7 +4,7 @@
   <!-- Hero -->
   <div class="bg-body-light">
     <div class="content content-full">
-      <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
+      <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
         <h1 class="flex-grow-1 fs-3 fw-light my-2 my-sm-3">Enroll <strong>{{$student->fname}} {{$student->mname}} {{$student->sname}}</strong></h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb"></nav>
       </div>

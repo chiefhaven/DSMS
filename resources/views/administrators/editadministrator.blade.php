@@ -4,7 +4,7 @@
   <!-- Hero -->
   <div class="bg-body-light">
     <div class="content content-full">
-      <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
+      <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
         <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Edit administrator; {{$administrator->fname}} {{$administrator->sname}}</h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb"></nav>
       </div>
@@ -31,7 +31,7 @@
             <div class="block-content">
               <form action="{{ url('/updateadministrator') }}" enctype="multipart/form-data" method="POST">
                 @csrf
-                <input type="text" name="administrator_id" id="administrator_id" value="{{$administrator->id}}" hidden>                              
+                <input type="text" name="administrator_id" id="administrator_id" value="{{$administrator->id}}" hidden>
                 <h2 class="content-heading pt-0">
                   <i class="fa fa-fw fa-user text-muted me-1"></i> Administrator Information
                 </h2>
@@ -60,11 +60,11 @@
                           <option value="other">Other</option>
                         </select>
                         <label for="district">Gender</label>
-                    </div>    
+                    </div>
                     <div class="mb-4 form-floating">
                       <input type="date" class="form-control @error('date_of_birth') is-invalid @enderror" id="date_of_birth" name="date_of_birth" placeholder="DDMMYY" value="{{$administrator->date_of_birth}}" formnovalidate="">
                         <label class="form-label" for="text">Date of birth</label>
-                    </div>       
+                    </div>
                     <div class="mb-4 form-floating">
                       <input type="text" class="form-control" id="phone" name="phone" placeholder="+265" value="{{$administrator->phone}}">
                         <label class="form-label" for="example-email-input-floating">Phone</label>

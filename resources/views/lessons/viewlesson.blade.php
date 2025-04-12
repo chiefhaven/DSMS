@@ -4,7 +4,7 @@
 <!-- Hero -->
   <div class="bg-body-light">
     <div class="content content-full">
-      <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
+      <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
         <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Course name</h1>
       </div>
     </div>
@@ -24,7 +24,7 @@
                <div class="table-responsive">
                   <table class="table table-bordered ">
                       <thead>
-                          
+
                       </thead>
                       <tbody>
                           <tr>
@@ -53,7 +53,7 @@
                           </tr>
                       </tbody>
                   </table>
-                  </div> 
+                  </div>
               </div>
             </div>
        </div>

@@ -4,7 +4,7 @@
   <!-- Hero -->
   <div class="bg-body-light">
     <div class="content content-full">
-      <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
+      <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
         <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Administrators</h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
           <ol class="breadcrumb">
@@ -50,13 +50,13 @@
                         <div class="col-8 text-left">
                             <p class="font-size-sm text-muted mb-0">
                                 Phone: {{$administrator->phone}}<br>
-                                Email: 
+                                Email:
                                 @if(isset($administrator->user->email))
 
                                   {{$administrator->user->email}}
-    
+
                                 @else
-                                  
+
                                 @endif
                                 <br>
                             </p>
@@ -74,7 +74,7 @@
                                       </form>
                                       <form method="POST" action="{{ url('/deleteadministrator', $administrator->id) }}">
                                         {{ csrf_field() }}
-                                        {{ method_field('DELETE') }} 
+                                        {{ method_field('DELETE') }}
                                         <button class="dropdown-item" onclick="return confirm('Are you sure you want to delete {{$administrator->fname}} {{$administrator->sname}}?')" type="submit">Delete</button>
                                       </form>
                                     </div>
@@ -85,7 +85,7 @@
                 </div>
             </div>
         </div>
-        @endforeach        
+        @endforeach
       </div>
 
       </div>
