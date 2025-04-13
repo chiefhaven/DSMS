@@ -35,9 +35,9 @@ class StudentClassAssignment extends Notification implements ShouldQueue
         ];
 
         $this->instructor = [
-            'fname' => $classRoom->instructor->fname ?? '',
-            'sname' => $classRoom->instructor->sname ?? '',
-            'phone' => $classRoom->instructor->phone ?? '',
+            'fname' => $classRoom->instructor[0]->fname ?? '',
+            'sname' => $classRoom->instructor[0]->sname ?? '',
+            'phone' => $classRoom->instructor[0]->phone ?? '',
         ];
 
         $this->type = 'assign';
