@@ -123,7 +123,6 @@ class InvoiceController extends Controller
             $date_created = date('Y/m/d');
         }
 
-
         if(isset($post['inovice_due_date'])){
 
             $invoice_due_date = $post['invoice_due_date'];
