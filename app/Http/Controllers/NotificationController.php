@@ -197,4 +197,14 @@ class NotificationController extends Controller
         // Redirect to the URL stored in the notification data
         return redirect($notification->data['url'] ?? '/');
     }
+
+    public function markAllRead()
+    {
+        $user = Auth::user();
+        $user->unreadNotifications->markAsRead();
+
+        Alert::toast('All notifications marked as read.', 'success');
+
+        return back()->with('status', 'All notifications marked as read.');
+    }
 }

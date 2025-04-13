@@ -513,6 +513,7 @@
                 if (error.response && error.response.data && error.response.data.errors) {
                     notification(error.response.data.errors.message, 'error');
                 } else {
+                    console.log(error);
                     notification('An error occurred while assigning the classroom', 'error');
                 }
             })

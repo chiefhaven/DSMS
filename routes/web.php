@@ -238,5 +238,7 @@ Route::post('/check-class-fleet-assignment', [havenUtils::class, 'checkInstructo
 
 
 Route::patch('/notifications/{notificationId}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+Route::patch('/notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
 
 Route::get('/knowledge', [knowledgeController::class, 'index'])->middleware('auth')->name('knolwedge');

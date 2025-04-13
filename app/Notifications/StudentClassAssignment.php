@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Notifications\Channels\SmsChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -13,6 +14,7 @@ class StudentClassAssignment extends Notification
 
     protected $classRoom;
     protected $type;
+    protected $instructor;
 
     /**
      * Create a new notification instance.
@@ -23,6 +25,7 @@ class StudentClassAssignment extends Notification
     {
         $this->classRoom = $classRoom;
         $this->type = $type;
+        $this->instructor = $classRoom->instructor;
     }
 
     /**
@@ -33,7 +36,7 @@ class StudentClassAssignment extends Notification
      */
     public function via($notifiable)
     {
-        return ['database'];
+        return ['mail', 'database', SmsChannel::class];
     }
 
     /**
@@ -46,20 +49,44 @@ class StudentClassAssignment extends Notification
     {
         return (new MailMessage)
             ->subject('You have been assigned a class room')
-            ->line('You have been assigned classroom {$classRoom->name}.')
-            ->action('View', url('/notifications'))
+            ->line("You have been assigned to classroom {$this->classRoom->name} by Instructor {$this->instructor} {$this->instructor}.")
+            ->action('Download our App to view more', url('/dashboard'))
             ->line('If you have any questions, feel free to reach out.')
             ->salutation('Warm regards');
     }
 
+    /**
+     * Get the SMS representation of the notification.
+     *
+     * @param  mixed  $notifiable
+     * @return string
+     */
+    public function toSms($notifiable)
+    {
+        return sprintf(
+            "Classroom Assignment: You have been assigned to %s with Instructor %s %s. Check your assignments: %s",
+            $this->classRoom->name ?? 'N/A',
+            $this->instructor ?? 'N/A',
+            $this->instructor ?? 'Instructor',
+            url('/dashboard')
+        );
+    }
+
+    /**
+     * Get the database representation of the notification.
+     *
+     * @param  mixed  $notifiable
+     * @return array
+     */
     public function toDatabase($notifiable)
     {
         return [
-            'title' => $this->type == 'assign' ? 'You have been assigned a classroom' : 'You have been un-assigned from a class room',
+            'title' => $this->type == 'assign' ? 'You have been assigned to a classroom' : 'You have been un-assigned from a classroom',
             'body' => $this->type == 'un-assign'
-                ? "You have been un-assigned from class room: {$this->classRoom->name}." : "You have been assigned class room {$this->classRoom->name}.",
-            'student_id' => $this->classRoom ? $this->classRoom->id : null,
-            'url' => url("/"),
+                ? "You have been un-assigned from classroom: {$this->classRoom->name}."
+                : "You have been assigned to classroom: {$this->classRoom->name} with Instructor {$this->instructor} {$this->instructor}.",
+            'student_id' => $notifiable->id, // Assuming $notifiable is a student
+            'url' => url("/dashboard"), // Adjust URL if needed
             'created_at' => now(),
         ];
     }
@@ -73,8 +100,7 @@ class StudentClassAssignment extends Notification
     public function toArray($notifiable)
     {
         return [
-            //
+            // You can add any other data here to represent the notification
         ];
     }
 }
-

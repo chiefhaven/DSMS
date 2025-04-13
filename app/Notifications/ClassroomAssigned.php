@@ -3,37 +3,49 @@
 namespace App\Notifications;
 
 use App\Notifications\Channels\SmsChannel;
-use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Log;
 
-class LessonScheduled extends Notification implements ShouldQueue
+class ClassroomAssigned extends Notification
 {
     use Queueable;
 
     protected $student;
     protected $instructor;
-    protected $schedule;
-    protected $scheduleDate;
-    protected $pivotData;
+    protected $classroom;
 
-    public function __construct($schedule, $pivotData = [])
+    /**
+     * Create a new notification instance.
+     *
+     * @return void
+     */
+    public function __construct($classroom)
     {
         $this->student      = $schedule->student ?? null;
         $this->instructor   = $schedule->instructor ?? null;
-        $this->schedule     = $schedule;
-        $this->scheduleDate = Carbon::parse($schedule->start_time);
-        $this->pivotData    = $pivotData;
+        $this->classroom     = $classroom;
     }
 
+    /**
+     * Get the notification's delivery channels.
+     *
+     * @param  mixed  $notifiable
+     * @return array
+     */
     public function via($notifiable)
     {
         return ['mail', 'database', SmsChannel::class];
     }
 
+    /**
+     * Get the mail representation of the notification.
+     *
+     * @param  mixed  $notifiable
+     * @return \Illuminate\Notifications\Messages\MailMessage
+     */
     public function toMail($notifiable)
     {
         try {
