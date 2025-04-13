@@ -801,7 +801,7 @@ class StudentController extends Controller
             //$sms = new NotificationController;
             //$sms->generalSMS($student, 'Carassignment');
 
-            $student->user->notify(new StudentClassAssignment($classRoom, 'assign'));
+            $student->user->notify(new StudentClassAssignment($classRoom, $student));
 
             // Notify success
             return response()->json('Success, student assigned to classroom', 200);
