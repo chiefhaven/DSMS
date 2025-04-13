@@ -15,6 +15,7 @@ class StudentClassAssignment extends Notification implements ShouldQueue
     protected $classRoom;
     protected $student;
     protected $instructor;
+    protected $type;
 
     /**
      * Create a new notification instance.
@@ -26,6 +27,7 @@ class StudentClassAssignment extends Notification implements ShouldQueue
         $this->classRoom = $classRoom;
         $this->student = $student;
         $this->instructor = $classRoom->instructor;
+        $this->type = 'assign';
     }
 
     /**
