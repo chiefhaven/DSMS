@@ -795,7 +795,7 @@ class StudentController extends Controller
             $student->classroom_id = $request->classroom;
             $student->save();
 
-            $classRoom = Classroom::with('instructor')->find($student->classroom_id);
+            $classRoom = Classroom::with('instructors')->find($student->classroom_id);
 
 
             //$sms = new NotificationController;
