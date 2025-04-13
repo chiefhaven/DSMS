@@ -24,9 +24,22 @@ class StudentClassAssignment extends Notification implements ShouldQueue
      */
     public function __construct($classRoom, $student)
     {
-        $this->classRoom = $classRoom;
-        $this->student = $student;
-        $this->instructor = $classRoom->instructor;
+        $this->classRoom = [
+            'name' => $classRoom->name,
+        ];
+
+        $this->student = [
+            'fname' => $student->fname,
+            'mname' => $student->mname,
+            'sname' => $student->sname,
+        ];
+
+        $this->instructor = [
+            'fname' => $classRoom->instructor->fname ?? '',
+            'sname' => $classRoom->instructor->sname ?? '',
+            'phone' => $classRoom->instructor->phone ?? '',
+        ];
+
         $this->type = 'assign';
     }
 
@@ -50,11 +63,11 @@ class StudentClassAssignment extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
-            ->subject('You have been assigned a class room')
-            ->line("You have been assigned to classroom {$this->classRoom->name} with Instructor {$this->instructor} {$this->instructor}.")
+            ->subject("Assigned to Classroom: {$this->classRoom->name}")
+            ->line("You have been assigned to classroom {$this->classRoom->name} with Instructor {$this->instructor->fname} {$this->instructor->sname}.")
             ->action('Download our App to view more', url('/dashboard'))
             ->line('If you have any questions, feel free to reach out.')
-            ->salutation('Warm regards');
+            ->salutation('Warm regards, Daron Driving School');
     }
 
     /**
@@ -88,12 +101,12 @@ class StudentClassAssignment extends Notification implements ShouldQueue
     public function toDatabase($notifiable)
     {
         return [
-            'title' => $this->type == 'assign' ? 'You have been assigned to a classroom' : 'You have been un-assigned from a classroom',
-            'body' => $this->type == 'un-assign'
+            'title' => $this->type === 'assign' ? 'You have been assigned to a classroom' : 'You have been un-assigned from a classroom',
+            'body' => $this->type === 'un-assign'
                 ? "You have been un-assigned from classroom: {$this->classRoom->name}."
-                : "You have been assigned to classroom: {$this->classRoom->name} with Instructor {$this->instructor} {$this->instructor}.",
-            'student_id' => $notifiable->id, // Assuming $notifiable is a student
-            'url' => url("/dashboard"), // Adjust URL if needed
+                : "You have been assigned to classroom: {$this->classRoom->name} with Instructor {$this->instructor->fname} {$this->instructor->sname}.",
+            'student_id' => $notifiable->id,
+            'url' => url("/dashboard"),
             'created_at' => now(),
         ];
     }
@@ -106,8 +119,6 @@ class StudentClassAssignment extends Notification implements ShouldQueue
      */
     public function toArray($notifiable)
     {
-        return [
-            // You can add any other data here to represent the notification
-        ];
+        return $this->toDatabase($notifiable);
     }
 }
