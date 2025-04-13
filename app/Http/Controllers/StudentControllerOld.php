@@ -767,13 +767,11 @@ class StudentController extends Controller
 
             $classRoom = Classroom::with('instructor')->find($student->classroom_id);
 
-            //$sms = new NotificationController;
-            //$sms->generalSMS($student, 'Carassignment');
-
             $student->user->notify(new StudentClassAssignment($classRoom, $student));
 
             // Notify success
             return response()->json('Success, student assigned to classroom', 200);
+
         } catch (\Exception $e) {
             // Handle any exceptions
             return response()->json(['error' => 'Something went wrong: ' . $e->getMessage()], 500);
