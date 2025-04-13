@@ -68,7 +68,7 @@ class NotificationController extends Controller
             $statusCode = $response->getStatusCode();
             $response = [
                 'statusCode' => $statusCode,
-                'message' => `{$response}`,
+                'message' => $statusCode,
             ];
             // Process the response as needed
         } catch (\Exception $e) {
