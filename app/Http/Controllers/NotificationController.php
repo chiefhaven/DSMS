@@ -66,6 +66,7 @@ class NotificationController extends Controller
                     ]);
 
             $statusCode = $response->getStatusCode();
+
             $response = [
                 'statusCode' => $statusCode,
                 'message' => 'SMS sent successfully'
