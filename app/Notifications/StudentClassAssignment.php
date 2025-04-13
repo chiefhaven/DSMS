@@ -8,7 +8,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class StudentClassAssignment extends Notification
+class StudentClassAssignment extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -49,7 +49,7 @@ class StudentClassAssignment extends Notification
     {
         return (new MailMessage)
             ->subject('You have been assigned a class room')
-            ->line("You have been assigned to classroom {$this->classRoom->name} by Instructor {$this->instructor} {$this->instructor}.")
+            ->line("You have been assigned to classroom {$this->classRoom->name} with Instructor {$this->instructor} {$this->instructor}.")
             ->action('Download our App to view more', url('/dashboard'))
             ->line('If you have any questions, feel free to reach out.')
             ->salutation('Warm regards');
