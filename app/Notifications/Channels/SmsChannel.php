@@ -32,6 +32,8 @@ class SmsChannel
                 'from' => config('services.clickmobile.from'),
             ]);
 
+            Log::success("SMS Sent: " . $response->body());
+
             if ($response->failed()) {
                 Log::error("SMS Failed: " . $response->body());
             }
