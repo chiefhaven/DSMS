@@ -80,7 +80,7 @@ class StudentClassAssignment extends Notification implements ShouldQueue
     public function toSms($notifiable)
     {
         return sprintf(
-            "Dear %s %s %s,\n\nYou have been assigned to classroom (%s).\nContact instructor: %s %s\nPhone: %s\n\nCheck your assignments here:\n%s\n\nIf you encounter any challenges, contact the administrator on +265887226317.\n\nBest regards,\nDaron Driving School",
+            "Dear %s %s %s,\n\nYou have been assigned to classroom (%s).\nContact instructor: %s %s\nPhone: %s\n\nCheck your assignments here:\n%s\n\nIf you encounter any challenges, contact the administrator on +265887226317.\n\nBest regards,\nDARON DRIVING SCHOOL",
             $this->student['fname'] ?? '',
             $this->student['mname'] ?? '',
             $this->student['sname'] ?? '',
