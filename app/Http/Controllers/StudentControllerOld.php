@@ -765,13 +765,12 @@ class StudentController extends Controller
             $student->classroom_id = $request->classroom;
             $student->save();
 
-            $classRoom = Classroom::find($student->classroom_id)->with('instructor');
-
+            $classRoom = Classroom::with('instructor')->find($student->classroom_id);
 
             //$sms = new NotificationController;
             //$sms->generalSMS($student, 'Carassignment');
 
-            $student->user->notify(new StudentClassAssignment($classRoom, 'assign'));
+            $student->user->notify(new StudentClassAssignment($classRoom, $student));
 
             // Notify success
             return response()->json('Success, student assigned to classroom', 200);
