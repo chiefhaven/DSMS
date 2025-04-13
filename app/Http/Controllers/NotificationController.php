@@ -71,8 +71,6 @@ class NotificationController extends Controller
                 'message' => 'SMS sent successfully'
             ];
 
-            Log::info($response);
-
             // Process the response as needed
         } catch (\Exception $e) {
             // Handle the exception
