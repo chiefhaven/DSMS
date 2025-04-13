@@ -63,11 +63,12 @@ class StudentClassAssignment extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
-            ->subject("Assigned to Classroom: {$this->classRoom->name}")
-            ->line("You have been assigned to classroom {$this->classRoom->name} with Instructor {$this->instructor->fname} {$this->instructor->sname}.")
+            ->subject("Assigned to Classroom: {$this->classRoom['name']}")
+            ->line("You have been assigned to classroom {$this->classRoom['name']} with Instructor {$this->instructor['fname']} {$this->instructor['sname']}.")
             ->action('Download our App to view more', url('/dashboard'))
             ->line('If you have any questions, feel free to reach out.')
             ->salutation('Warm regards, Daron Driving School');
+
     }
 
     /**
@@ -80,13 +81,13 @@ class StudentClassAssignment extends Notification implements ShouldQueue
     {
         return sprintf(
             "Dear %s %s %s,\n\nYou have been assigned to classroom (%s).\nContact instructor: %s %s\nPhone: %s\n\nCheck your assignments here:\n%s\n\nIf you encounter any challenges, contact the administrator on +265887226317.\n\nBest regards,\nDaron Driving School",
-            $this->student->fname ?? '',
-            $this->student->mname ?? '',
-            $this->student->sname ?? '',
-            $this->classRoom->name ?? '',
-            $this->instructor->fname ?? '',
-            $this->instructor->sname ?? 'Instructor',
-            $this->instructor->phone ?? '+265',
+            $this->student['fname'] ?? '',
+            $this->student['mname'] ?? '',
+            $this->student['sname'] ?? '',
+            $this->classRoom['name'] ?? '',
+            $this->instructor['fname'] ?? '',
+            $this->instructor['sname'] ?? 'Instructor',
+            $this->instructor['phone'] ?? '+265',
             url('/dashboard')
         );
 
@@ -103,12 +104,13 @@ class StudentClassAssignment extends Notification implements ShouldQueue
         return [
             'title' => $this->type === 'assign' ? 'You have been assigned to a classroom' : 'You have been un-assigned from a classroom',
             'body' => $this->type === 'un-assign'
-                ? "You have been un-assigned from classroom: {$this->classRoom->name}."
-                : "You have been assigned to classroom: {$this->classRoom->name} with Instructor {$this->instructor->fname} {$this->instructor->sname}.",
+                ? "You have been un-assigned from classroom: {$this->classRoom['name']}."
+                : "You have been assigned to classroom: {$this->classRoom['name']} with Instructor {$this->instructor['fname']} {$this->instructor['sname']}.",
             'student_id' => $notifiable->id,
             'url' => url("/dashboard"),
             'created_at' => now(),
         ];
+
     }
 
     /**
