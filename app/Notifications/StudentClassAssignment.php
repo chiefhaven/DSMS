@@ -13,7 +13,7 @@ class StudentClassAssignment extends Notification implements ShouldQueue
     use Queueable;
 
     protected $classRoom;
-    protected $type;
+    protected $student;
     protected $instructor;
 
     /**
@@ -21,10 +21,10 @@ class StudentClassAssignment extends Notification implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($classRoom, $type)
+    public function __construct($classRoom, $student)
     {
         $this->classRoom = $classRoom;
-        $this->type = $type;
+        $this->student = $student;
         $this->instructor = $classRoom->instructor;
     }
 
@@ -64,10 +64,14 @@ class StudentClassAssignment extends Notification implements ShouldQueue
     public function toSms($notifiable)
     {
         return sprintf(
-            "Classroom Assignment: You have been assigned to %s with Instructor %s %s. Check your assignments: %s",
-            $this->classRoom->name ?? 'N/A',
-            $this->instructor ?? 'N/A',
-            $this->instructor ?? 'Instructor',
+            "Dear %s %s %s,\n\nYou have been assigned to classroom %s.\nInstructor: %s %s\nPhone: %s\n\nCheck your classroom in your App:\n%s",
+            $this->student->fname ?? '',
+            $this->student->mname ?? '',
+            $this->student->sname ?? '',
+            $this->classRoom->name ?? '',
+            $this->instructor->fname ?? '',
+            $this->instructor->sname ?? 'Instructor',
+            $this->instructor->phone ?? '+265',
             url('/dashboard')
         );
     }
