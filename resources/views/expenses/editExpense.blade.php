@@ -26,7 +26,7 @@
                     <form class="mb-5" action="{{ url('/add-expense') }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
                         @csrf
                         <div class="col-12 form-floating mb-4">
-                            <input type="date" timezone="Africa/Blantyre" class="form-control" id="expense_group_name" name="expense_group_name" v-model="state.expenseGroupName" placeholder="Enter Expense Group">
+                            <input type="text" timezone="Africa/Blantyre" class="form-control" id="expense_group_name" name="expense_group_name" v-model="state.expenseGroupName" placeholder="Enter Expense Group">
                             <label for="invoice_discount">Booking Date</label>
                         </div>
                         <div class="col-12 form-floating mb-4">
@@ -343,7 +343,20 @@
     app.mount('#expense')
 </script>
 <script type="text/javascript">
+    // Set the datepicker with current date as default value
+    $(document).ready(function() {
+        var today = new Date();
+        var day = ("0" + today.getDate()).slice(-2); // Get day with leading zero
+        var month = ("0" + (today.getMonth() + 1)).slice(-2); // Get month with leading zero (Months are zero-based)
+        var year = today.getFullYear();
 
+        // Set the datepicker
+        $("#expense_group_name").datepicker({
+            format: "dd/mm/yyyy",
+            autoclose: true,
+            todayHighlight: true
+        }).datepicker('setDate', day + '-' + month + '-' + year);
+    });
 </script>
 @endsection
 
