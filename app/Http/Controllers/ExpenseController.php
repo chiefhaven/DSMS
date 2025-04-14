@@ -240,12 +240,14 @@ class ExpenseController extends Controller
     public function checkStudent(StoreexpenseRequest $request)
     {
         $request->validate([
-            'student' => 'required|exists:students,id',
+            'student' => 'required',
         ]);
 
         $post = $request->all();
 
-        $student = Student::find($post['student']);
+        // $student = Student::find($post['student']);
+
+        $student = havenUtils::student($post['student']);
 
         $expenseType = $post['expenseType'];
 
