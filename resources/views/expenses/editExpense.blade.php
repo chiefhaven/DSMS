@@ -151,7 +151,7 @@
         onMounted(async () => {
             const res = await axios.get("/reviewExpenseData/{{ $expense->id }}")
             state.value.selectedStudents = res.data
-            state.value.expenseGroupName = {{ $expense->group }}
+            state.value.expenseGroupName = '{{ $expense->group }}'
             totalAmount()
           })
 
