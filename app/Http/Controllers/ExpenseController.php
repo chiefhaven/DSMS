@@ -245,9 +245,9 @@ class ExpenseController extends Controller
 
         $post = $request->all();
 
-        // $student = Student::find($post['student']);
+        $student = Student::find($post['student']);
 
-        $student = havenUtils::student($post['student']);
+        // $student = havenUtils::student($post['student']);
 
         $expenseType = $post['expenseType'];
 
