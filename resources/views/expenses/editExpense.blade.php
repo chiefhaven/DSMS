@@ -136,6 +136,7 @@
             expenseGroupType: '{{ $expense->group_type }}',
             expenseDescription: '{{ $expense->description }}',       // Name of the expense group or category
             studentName: '', // Name of the student'
+            studentId:'',
             fname: '', // Name of the student'
             sname: '', // Name of the student'
             mname: '', // Name of the student'
@@ -195,29 +196,32 @@
             }
 
             var student = state.value.studentName.split(" ")
-            if (!state.value.selectedStudents.some(item => item.fname === student[0] && item.mname === student[1] || item.sname === student[2])) {
-                    axios.post('/checkStudent', {student:state.value.studentName, expenseType: state.value.expenseType}).then(response => {
-                        if(response.data.feedback == "success"){
-                            state.value.selectedStudents.push({fname:student[0], mname:student[1], sname:student[2],
-                                expenses: [{
-                                    pivot: {
-                                        expense_type: state.value.expenseType
-                                      }
-                              }]
-                            })
-                            state.value.studentName =''
-                            totalAmount()
-                        }
-                        else{
-                            notification(response.data.message, 'error')
-                        }
-                    })
-                }
-                else{
-                    notification('Student already in list', 'error')
-                    hasError.value = true
-                    return hasError
-                }
+            if(!state.value.selectedStudents.some(item => item.studentId === state.value.studentId)){
+
+                console.log(state.value.studentId);
+
+                axios.post('/checkStudent', {student:state.value.studentId, expenseType: state.value.expenseType}).then(response => {
+                    if(response.data.feedback == "success"){
+                        state.value.selectedStudents.push({fname:student[0], mname:student[1], sname:student[2],
+                            expenses: [{
+                                pivot: {
+                                    expense_type: state.value.expenseType
+                                  }
+                          }]
+                        })
+                        state.value.studentName =''
+                        notification(response.data.message, 'success')
+                    }
+                    else{
+                        notification(response.data.message, 'error')
+                    }
+                })
+            }
+            else{
+                notification('Student already in list', 'error')
+                hasError.value = true
+                return hasError
+            }
         }
 
         function removeStudentFromGroup(index) {
@@ -281,11 +285,23 @@
 
         function studentSearch() {
             var path = "{{ route('expense-student-search') }}";
+
             $('#student').typeahead({
-                source:  function (query, process) {
-                return $.get(path, { query: query }, function (data) {
+                minLength: 2, // start searching after 2 characters
+                autoSelect: true,
+                highlight: true,
+                source: function (query, process) {
+                    return $.get(path, { query: query }, function (data) {
                         return process(data);
                     });
+                },
+                updater: function (item) {
+
+                    state.value.studentId = item.id;
+
+
+                    console.log("Selected Student:", item, state.value.studentId);
+                    return item;
                 }
             });
         }
