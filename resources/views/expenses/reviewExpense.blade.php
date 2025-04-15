@@ -41,7 +41,7 @@
                         <div class="col-sm-2">Expense type</div>
                         <div class="col-sm-2">Action</div>
                     </div>
-                    <div v-if="loadingData" class="text-center">
+                    <div v-if="state.loadingData" class="text-center">
                         <!-- Spinner -->
                         <div class="spinner"></div>
                         <p>Loading data...</p>
