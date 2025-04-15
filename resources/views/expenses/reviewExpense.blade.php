@@ -67,10 +67,23 @@
     </div>
     <div v-if="state">
         <div v-if="state.expenseStatus === 0" class="block-content block-content-full text-end">
-            List is unapproved <button type="submit" @click="approveList()" class="btn btn-success">Approve</button>
+            <span v-if="state.processing" class="me-3 text-muted">Processing...</span>
+            <button type="submit"
+                    @click="approveList"
+                    :disabled="state.processing"
+                    class="btn btn-success">
+                Approve
+            </button>
         </div>
+
         <div v-else class="block-content block-content-full text-end">
-            List is approved <button type="submit" @click="approveList()" class="btn btn-danger">Unapprove</button>
+            <span v-if="state.processing" class="me-3 text-muted">Processing...</span>
+            <button type="submit"
+                    @click="approveList"
+                    :disabled="state.processing"
+                    class="btn btn-danger">
+                Unapprove
+            </button>
         </div>
     </div>
 </div>
@@ -101,6 +114,7 @@
                 expenseStatus: {{ $expense->approved }},
                 errors: [],                  // Array to store any validation or error messages
                 loadingData: false,
+                processing: false,
             })
 
             onMounted(async () => {
@@ -136,6 +150,7 @@
             const approveList = async () => {
                 try {
                     NProgress.start();
+                    state.value.processing = true;
 
                     const response = await axios.post('/approveList', {
                         expenseId: state.value.expenseId,
@@ -156,6 +171,7 @@
                     }
                 } finally {
                     NProgress.done();
+                    state.value.processing = false;
                 }
             };
 
