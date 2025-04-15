@@ -95,10 +95,18 @@
             })
 
             onMounted(async () => {
-                const res = await axios.get("/reviewExpenseData/{{ $expense->id }}")
-                state.value.selectedStudents = res.data
-                totalAmount()
-            })
+                try {
+                    NProgress.start();
+                    const res = await axios.get(`/reviewExpenseData/{{ $expense->id }}`);
+                    state.value.selectedStudents = res.data;
+                    totalAmount();
+                } catch (error) {
+                    console.error('Failed to load review expense data:', error);
+                    notification('Failed to load expense data', 'error');
+                } finally {
+                    NProgress.done();
+                }
+            });
 
             const paymentMethodOptions = ref([
                 { text: 'Cash', value: 'Cash' },
