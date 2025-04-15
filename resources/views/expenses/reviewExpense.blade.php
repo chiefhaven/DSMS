@@ -41,10 +41,11 @@
                         <div class="col-sm-2">Expense type</div>
                         <div class="col-sm-2">Action</div>
                     </div>
-                    <div v-if="state.loadingData" class="text-center">
-                        <!-- Spinner -->
-                        <div class="spinner"></div>
-                        <p>Loading data...</p>
+                    <div v-if="state.loadingData" class="d-flex flex-column justify-content-center align-items-center" style="height: 300px;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-3">Loading data...</p>
                     </div>
                     <div v-else>
                         <div v-for="(student, index) in state.selectedStudents" :key="student.index">
