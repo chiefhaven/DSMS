@@ -99,7 +99,7 @@
                 totalAmount: 00,
                 expenseStatus: {{ $expense->approved }},
                 errors: [],                  // Array to store any validation or error messages
-                loadingData = false,
+                loadingData: false,
             })
 
             onMounted(async () => {
