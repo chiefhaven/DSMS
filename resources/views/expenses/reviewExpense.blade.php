@@ -42,7 +42,7 @@
                         <div class="col-sm-2">Action</div>
                     </div>
                     <div v-if="state.loadingData" class="d-flex flex-column justify-content-center align-items-center" style="height: 300px;">
-                        <div class="spinner-border text-primary" role="status">
+                        <div class="spinner-border" role="status">
                             <span class="visually-hidden">Loading...</span>
                         </div>
                         <p class="mt-3">Loading data...</p>
