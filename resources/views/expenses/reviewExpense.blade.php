@@ -114,21 +114,32 @@
                 state.value.totalAmount = Object.keys( state.value.selectedStudents ).length*state.value.amount
             }
 
-            function approveList(){
-                axios.post('/approveList', {expenseId: state.value.expenseId, approvedAmount:state.value.totalAmount}).then(response => {
-                    if(response.status==200){
-                        notification('List updated successfully','success')
-                        state.value.expenseStatus = (response.data.approved === true) ? 1 : 0
+            const approveList = async () => {
+                try {
+                    NProgress.start();
 
+                    const response = await axios.post('/approveList', {
+                        expenseId: state.value.expenseId,
+                        approvedAmount: state.value.totalAmount
+                    });
+
+                    if (response.status === 200) {
+                        notification('List updated successfully', 'success');
+                        state.value.expenseStatus = response.data.approved === true ? 1 : 0;
                     }
-                    else if(error.response.data.errors){
-                        notification('error.response.data.errors.message','error')
+
+                } catch (error) {
+                    if (error.response && error.response.data && error.response.data.errors) {
+                        const firstError = Object.values(error.response.data.errors)[0];
+                        notification(firstError, 'error');
+                    } else {
+                        notification('Something went wrong', 'error');
                     }
-                    else{
-                        return false
-                    }
-                });
-            }
+                } finally {
+                    NProgress.done();
+                }
+            };
+
 
             function removeStudentFromList(studentId, index) {
                 axios.post('/removeStudent', {student:studentId, expenseId: state.value.expenseId}).then(response => {
