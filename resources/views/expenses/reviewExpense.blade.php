@@ -140,50 +140,70 @@
                 }
             };
 
+            const removeStudentFromList = async (studentId, index) => {
+                try {
+                    NProgress.start();
 
-            function removeStudentFromList(studentId, index) {
-                axios.post('/removeStudent', {student:studentId, expenseId: state.value.expenseId}).then(response => {
-                    if(response.status==200){
-                        removeStudentFromGroup(index)
-                        totalAmount()
-                        notification('Student removed successfully','success')
-                    }
-                    else if(error.response.data.errors){
-                        notification('error.response.data.errors.message','error')
-                    }
-                    else{
-                        return false
-                    }
-                });
-            }
+                    const response = await axios.post('/removeStudent', {
+                        student: studentId,
+                        expenseId: state.value.expenseId
+                    });
 
-            function saveExpense(){
+                    if (response.status === 200) {
+                        removeStudentFromGroup(index);
+                        totalAmount();
+                        notification('Student removed successfully', 'success');
+                    }
 
-                if(Object.keys( state.value.selectedStudents ).length == 0){
-                    notification('Student list must not be empty', 'error')
-                    return false
+                } catch (error) {
+                    if (error.response && error.response.data && error.response.data.errors) {
+                        const firstError = Object.values(error.response.data.errors)[0];
+                        notification(firstError, 'error');
+                    } else {
+                        notification('Something went wrong', 'error');
+                    }
+                } finally {
+                    NProgress.done();
+                }
+            };
+
+
+            const saveExpense = async () => {
+                if (Object.keys(state.value.selectedStudents).length === 0) {
+                    notification('Student list must not be empty', 'error');
+                    return false;
                 }
 
-                if( !state.value.expenseGroupName || !state.value.paymentMethod){
-                    notification('Expense Group Name, Payment Method and Amount must be filled and Amount must be greater than 0', 'error')
-                    return false
+                if (!state.value.expenseGroupName || !state.value.paymentMethod || state.value.totalAmount <= 0) {
+                    notification('Expense Group Name, Payment Method, and Amount must be filled and Amount must be greater than 0', 'error');
+                    return false;
                 }
 
-                axios.post('/updateExpense', {students:state.value.selectedStudents}).then(response => {
-                    if(response.status==200){
-                        notification('Expense saved successfully','success')
-                        window.location.replace('/expenses')
-                    }
-                    else if(error.response.data.errors){
-                        notification('error.response.data.errors.message','error')
-                    }
-                    else{
-                        return false
-                    }
-                });
+                try {
+                    NProgress.start();
 
-                //
-            }
+                    const response = await axios.post('/updateExpense', {
+                        students: state.value.selectedStudents,
+                        expenseGroupName: state.value.expenseGroupName,
+                        paymentMethod: state.value.paymentMethod,
+                        totalAmount: state.value.totalAmount
+                    });
+
+                    if (response.status === 200) {
+                        notification('Expense saved successfully', 'success');
+                        window.location.replace('/expenses');
+                    }
+                } catch (error) {
+                    if (error.response && error.response.data && error.response.data.errors) {
+                        const firstError = Object.values(error.response.data.errors)[0];
+                        notification(firstError, 'error');
+                    } else {
+                        notification('Something went wrong', 'error');
+                    }
+                } finally {
+                    NProgress.done();
+                }
+            };
 
             function onStudentChange(event){
                 state.value.studentName = event.target.value;
