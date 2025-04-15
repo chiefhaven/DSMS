@@ -67,24 +67,28 @@
     </div>
     <div v-if="state">
         <div v-if="state.expenseStatus === 0" class="block-content block-content-full text-end">
-            <span v-if="state.processing" class="me-3 text-muted">Processing...</span>
             List not approved
             <button type="submit"
                     @click="approveList"
                     :disabled="state.processing"
                     class="btn btn-success">
-                Approve
+                <span v-if="state.processing">
+                    <i class="fas fa-spinner fa-spin me-1"></i> Processing...
+                </span>
+                <span v-else>Approve</span>
             </button>
         </div>
 
         <div v-else class="block-content block-content-full text-end">
-            <span v-if="state.processing" class="me-3 text-muted">Processing...</span>
             List approved
             <button type="submit"
                     @click="approveList"
                     :disabled="state.processing"
                     class="btn btn-danger">
-                Unapprove
+                <span v-if="state.processing">
+                    <i class="fas fa-spinner fa-spin me-1"></i> Processing...
+                </span>
+                <span v-else>Unapprove</span>
             </button>
         </div>
     </div>
