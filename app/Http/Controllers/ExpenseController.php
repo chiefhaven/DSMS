@@ -325,21 +325,24 @@ class ExpenseController extends Controller
 
     public function approveList(StoreexpenseRequest $request)
     {
-        $post = $request->all();
+        $request->validate([
+            'expenseId' => 'required|exists:expenses,id',
+            'approvedAmount' => 'required|numeric|min:0',
+        ]);
 
         $user = Auth::user();
+        $expense = Expense::find($request->expenseId);
 
-        $expense = Expense::find($post['expenseId']);
         $expense->approved_by = $user->administrator_id;
-        $expense->approved_amount = $post['approvedAmount'];
+        $expense->approved_amount = $request->approvedAmount;
         $expense->approved = !$expense->approved;
-        $expense->date_approved = '';
-
+        $expense->date_approved = Carbon::now();
         $expense->save();
 
         $admin = Administrator::with('user')->find($expense->added_by);
-
-        $admin->user->notify(new ExpenseApproved($expense, $user->administrator->fname));
+        if ($admin && $admin->user) {
+            $admin->user->notify(new ExpenseApproved($expense, $user->administrator->fname));
+        }
 
         return response()->json($expense, 200);
     }
