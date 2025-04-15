@@ -25,7 +25,7 @@ class ExpenseApproved extends Notification
     {
         $this->expense = $expense;
         $this->admin = $admin;
-        $this->formattedDate = Carbon::parse($this->expense->group);
+        $this->formattedDate = Carbon::createFromFormat('d/m/Y', $this->expense->group)->format('d F, Y');
     }
 
     /**
