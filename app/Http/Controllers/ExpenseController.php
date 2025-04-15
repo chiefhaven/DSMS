@@ -336,7 +336,7 @@ class ExpenseController extends Controller
         $expense->approved_by = $user->administrator_id;
         $expense->approved_amount = $request->approvedAmount;
         $expense->approved = !$expense->approved;
-        $expense->date_approved = Carbon::now();
+        $expense->date_approved = "2024-10-30 11:16:52";
         $expense->save();
 
         $admin = Administrator::with('user')->find($expense->added_by);
