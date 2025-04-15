@@ -254,11 +254,13 @@ class ExpenseController extends Controller
         $expenseTypeSet = DB::table('expense_student')->where('student_id', $student->id)->where('expense_type', $request['expenseType'])->get();
         $expenseTypeCount = $expenseTypeSet->count();
 
+        $fullName = trim($student->fname . ' ' . ($student->mname ?? '') . ' ' . $student->sname);
+
+
         if ($expenseTypeCount > 0) {
             $expense = Expense::find($expenseTypeSet[0]->expense_id);
             $groupDate = $expense ? $expense->group : 'Unknown date';
 
-            $fullName = trim($student->fname . ' ' . ($student->mname ?? '') . ' ' . $student->sname);
 
             $data = [
                 'feedback' => 'error',
@@ -273,7 +275,7 @@ class ExpenseController extends Controller
                 if(($student->invoice->invoice_amount_paid / $student->invoice->invoice_total) * 100 < $this->setting->fees_road_threshold){
                     $data = [
                         'feedback'=>'error',
-                        'message' => $post['student'].' can not be selected for road test, There are balances that must be paid'
+                        'message' => "{$fullName} can not be selected for road test, There are balances that must be paid"
                     ];
                     return response()->json($data, 200);
                 }
@@ -282,7 +284,7 @@ class ExpenseController extends Controller
                 if(($student->invoice->invoice_amount_paid / $student->invoice->invoice_total) * 100 < $this->setting->fees_trn_threshold){
                     $data = [
                         'feedback'=>'error',
-                        'message' => $post['student'].' can not be selected for TRN, There are balances that must be paid'
+                        'message' => "{$fullName} can not be selected for TRN, There are balances that must be paid"
                     ];
                     return response()->json($data, 200);
                 }
@@ -291,7 +293,7 @@ class ExpenseController extends Controller
                 if(($student->Invoice->invoice_amount_paid / $student->Invoice->invoice_total) * 100 < $this->setting->fees_code_i_threshold){
                     $data = [
                         'feedback'=>'error',
-                        'message' => $post['student'].' can not be selected for Highway code I, There are balances that must be paid'
+                        'message' => "{$fullName} can not be selected for Highway code I, There are balances that must be paid"
                     ];
                     return response()->json($data, 200);
                 }
@@ -300,7 +302,7 @@ class ExpenseController extends Controller
                 if(($student->Invoice->invoice_amount_paid / $student->Invoice->invoice_total) * 100 < $this->setting->fees_code_ii_threshold){
                     $data = [
                         'feedback'=>'error',
-                        'message' => $post['student'].' can not be selected for Highway code II, There are balances that must be paid'
+                        'message' => "{$fullName} can not be selected for Highway code II, There are balances that must be paid"
                     ];
                     return response()->json($data, 200);
                 }
