@@ -336,7 +336,6 @@ class ExpenseController extends Controller
         $expense->approved_by = $user->administrator_id;
         $expense->approved_amount = $request->approvedAmount;
         $expense->approved = !$expense->approved;
-        $expense->date_approved = '05-09-2025';
         $expense->save();
 
         $admin = Administrator::with('user')->find($expense->added_by);
