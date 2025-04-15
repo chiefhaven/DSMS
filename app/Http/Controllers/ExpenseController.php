@@ -340,8 +340,13 @@ class ExpenseController extends Controller
         $expense->save();
 
         $admin = Administrator::with('user')->find($expense->added_by);
-        if ($admin && $admin->user) {
-            $admin->user->notify(new ExpenseApproved($expense, $user->administrator->fname));
+        try {
+            if ($admin && $admin->user) {
+                $admin->user->notify(new ExpenseApproved($expense, $user->administrator->fname));
+            }
+        } catch (\Exception $e) {
+            // Optionally log the error or handle it gracefully
+            Log::error('Failed to send expense approval notification: ' . $e->getMessage());
         }
 
         return response()->json($expense, 200);
