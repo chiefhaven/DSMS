@@ -41,18 +41,25 @@
                         <div class="col-sm-2">Expense type</div>
                         <div class="col-sm-2">Action</div>
                     </div>
-                    <div v-for="(student, index) in state.selectedStudents" :key="student.index">
-                        <div class="row mb-2">
-                            <div class="col-sm-1 text-black">@{{ ++index }}</b></div>
-                            <div class="col-sm-3 text-uppercase">@{{ student.fname }} @{{ student.mname }} <b>@{{ student.sname }}</b></div>
-                            <div class="col-sm-2">@{{ formatter.format(student.invoice.invoice_balance) }}</div>
-                            <div class="col-sm-2 text-center">@{{ student.course.class}}</div>
-                            <div class="col-sm-2">@{{ student.expenses[0].pivot.expense_type }}</div>
-                            <div class="col-sm-2">
-                                <button :disabled="state.expenseStatus !== 0" class="btn btn-danger btn-sm delete-confirm" @click="removeStudentFromList(student.id, index)">Remove</button>
+                    <div v-if="loadingData" class="text-center">
+                        <!-- Spinner -->
+                        <div class="spinner"></div>
+                        <p>Loading data...</p>
+                    </div>
+                    <div v-else>
+                        <div v-for="(student, index) in state.selectedStudents" :key="student.index">
+                            <div class="row mb-2">
+                                <div class="col-sm-1 text-black">@{{ ++index }}</b></div>
+                                <div class="col-sm-3 text-uppercase">@{{ student.fname }} @{{ student.mname }} <b>@{{ student.sname }}</b></div>
+                                <div class="col-sm-2">@{{ formatter.format(student.invoice.invoice_balance) }}</div>
+                                <div class="col-sm-2 text-center">@{{ student.course.class}}</div>
+                                <div class="col-sm-2">@{{ student.expenses[0].pivot.expense_type }}</div>
+                                <div class="col-sm-2">
+                                    <button :disabled="state.expenseStatus !== 0" class="btn btn-danger btn-sm delete-confirm" @click="removeStudentFromList(student.id, index)">Remove</button>
+                                </div>
                             </div>
+                            <hr>
                         </div>
-                        <hr>
                     </div>
                 </div>
             </div>
@@ -91,12 +98,14 @@
                 expenseId: '{{ $expense->id }}',
                 totalAmount: 00,
                 expenseStatus: {{ $expense->approved }},
-                errors: []                  // Array to store any validation or error messages
+                errors: [],                  // Array to store any validation or error messages
+                loadingData = false,
             })
 
             onMounted(async () => {
                 try {
                     NProgress.start();
+                    state.value.loadingData = true;
                     const res = await axios.get(`/reviewExpenseData/{{ $expense->id }}`);
                     state.value.selectedStudents = res.data;
                     totalAmount();
@@ -105,6 +114,7 @@
                     notification('Failed to load expense data', 'error');
                 } finally {
                     NProgress.done();
+                    state.value.loadingData = false;
                 }
             });
 
