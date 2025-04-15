@@ -186,7 +186,7 @@ Route::get('/review-expense/{expense}', [ExpenseController::class, 'reviewExpens
 Route::get('/reviewExpenseData/{expense}', [ExpenseController::class, 'reviewExpenseData'])->middleware('auth')->name('reviewExpenseData');
 Route::post('/removeStudent', [ExpenseController::class, 'removeStudent'])->middleware('auth')->name('removeStudent');
 Route::post('/checkStudent', [ExpenseController::class, 'checkStudent'])->middleware('auth')->name('checkStudent');
-Route::post('/approveList', [ExpenseController::class, 'approveList'])->middleware('auth')->name('removeStudent');
+Route::post('/approveList', [ExpenseController::class, 'approveList'])->middleware('auth')->name('approveList');
 
 
 
