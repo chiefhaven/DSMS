@@ -173,7 +173,6 @@
                         const firstError = Object.values(error.response.data.errors)[0];
                         notification(firstError, 'error');
                     } else {
-                        console.log(error);
                         notification('Something went wrong', 'error');
                     }
                 } finally {
