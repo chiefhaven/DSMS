@@ -27,6 +27,7 @@ use RealRashid\SweetAlert\Facades\Alert;
 use Auth;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
 
 class StudentController extends Controller
@@ -216,16 +217,13 @@ class StudentController extends Controller
     public function index()
     {
         try {
-            // Fetch all fleets
             $fleet = Fleet::all();
-
             $students = Student::with('User')->latest('created_at');
 
-            // Check if the logged-in user is an instructor
             if (Auth::user()->hasRole('instructor')) {
-                $instructor = Auth::user()->instructor;
+                $instructor = Auth::user()->instructor()->with(['department', 'classrooms'])->first();
 
-                if ($instructor->department) {
+                if ($instructor && $instructor->department) {
                     $departmentName = $instructor->department->name;
 
                     if ($departmentName === 'practical') {
@@ -248,19 +246,21 @@ class StudentController extends Controller
                 }
             }
 
-            // Paginate both queries
             $students = $students->get();
 
             return view('students.students', compact('students', 'fleet'));
 
         } catch (ModelNotFoundException $e) {
             Alert::error(__('No students'), $e->getMessage());
+            Log::error($e);
             return redirect('/');
         } catch (\Exception $e) {
             Alert::error(__('Error'), __('An unexpected error occurred.'));
+            Log::error($e);
             return redirect('/');
         }
     }
+
 
     /**
      * Show the form for creating a new resource.
