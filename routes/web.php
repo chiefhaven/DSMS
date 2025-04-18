@@ -67,7 +67,7 @@ Route::get('/search-student', [StudentController::class, 'search'])->middleware(
 Route::post('/studentsPdf', [StudentController::class, 'studentsPDF'])->middleware('auth')->name('studentPDF');
 Route::post('/assignCar', [StudentController::class, 'assignCar'])->middleware('auth')->name('assignCar');
 Route::post('/unAssignCar', [StudentController::class, 'unAssignCar'])->middleware('auth')->name('unAssign');
-Route::post('/updateStudentStatus/{student}', [StudentController::class, 'updateStudentStatus'])->middleware('auth')->name('editstudent');
+Route::post('/updateStudentStatus/{student}', [StudentController::class, 'updateStudentStatus'])->middleware('auth')->name('updateStudentStatus');
 Route::post('/assign-class-room', [StudentController::class, 'assignClassRoom'])->middleware('auth')->name('student-assign-class-room');
 
 Route::get('/attendances', [AttendanceController::class, 'index'])->middleware('auth')->name('attendances');
