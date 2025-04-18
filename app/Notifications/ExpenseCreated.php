@@ -25,7 +25,7 @@ class ExpenseCreated extends Notification
     {
         $this->expense = $expense;
         $this->admin = $admin;
-        $this->formattedDate = Carbon::parse($this->expense->group)->format('d F, Y');
+        $this->formattedDate = Carbon::createFromFormat('d/m/Y', $this->expense->group)->format('d F, Y');
     }
 
     /**
@@ -36,7 +36,7 @@ class ExpenseCreated extends Notification
      */
     public function via($notifiable)
     {
-        return ['database'];
+        return ['database', 'mail'];
     }
 
     /**
@@ -49,8 +49,8 @@ class ExpenseCreated extends Notification
     {
         return (new MailMessage)
             ->subject('New expense created')
-            ->line('An expense slated for {$this->formattedDate} has been created by {$this->admin}.')
-            ->action('View Notification', url('/notifications'))
+            ->line("An expense slated for {$this->formattedDate} has been created by {$this->admin}.")
+            ->action('View Notification', url('/expenses'))
             ->line('If you have any questions, feel free to reach out.')
             ->salutation('Warm regards');
     }

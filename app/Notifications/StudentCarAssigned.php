@@ -34,7 +34,7 @@ class StudentCarAssigned extends Notification
      */
     public function via($notifiable)
     {
-        return ['database'];
+        return ['database', 'mail'];
     }
 
     /**
@@ -57,7 +57,7 @@ class StudentCarAssigned extends Notification
     {
         return [
             'title' => $this->type == 'assign' ? 'You have been assigned a vehicle' : 'You have been un-assigned from a vehicle',
-            'body' => $this->type == 'un-assign' 
+            'body' => $this->type == 'un-assign'
                 ? "You have been un-assigned from vehicle {$this->fleet->car_brand_model} reg number {$this->fleet->car_registration_number}." : "You have been assigned vehicle {$this->fleet->car_brand_model} reg number {$this->fleet->car_registration_number}.",
             'fleet_id' => $this->fleet ? $this->fleet->id : null,
             'url' => url("/"),
