@@ -49,7 +49,7 @@
                 </div>
                 <div class="ml-3 text-right">
                     <p class="font-size-h3 font-w300 mb-0">
-                    {{ $students->where('status', '!=', 'Finished')->count() }}
+                        {{ \App\Models\Student::where('status', '!=', 'Finished')->count() }}
                     </p>
                     <p class="mb-0">Active</p>
                 </div>
@@ -66,7 +66,7 @@
                 </div>
                 <div class="mr-3 text-right">
                     <p class="font-size-h3 font-w900 mb-0">
-                    {{ $students->where('fleet_id', null)->where('classroom_id', null)->where('status', '!=', 'Finished')->count() }}
+                        {{ \App\Models\Student::whereNull('fleet_id')->whereNull('classroom_id')->where('status', '!=', 'Finished')->count() }}
                     </p>
                     <p class="mb-0">Unassigned</p>
                 </div>
@@ -83,7 +83,7 @@
                 </div>
                 <div class="ml-3 text-right">
                     <p class="font-size-h3 font-w900 mb-0">
-                    {{ $students->where('status', '==', 'Finished')->count() }}
+                        {{ \App\Models\Student::where('status', 'Finished')->count() }}
                     </p>
                     <p class="mb-0">Finished/Cancelled</p>
                 </div>
