@@ -39,6 +39,9 @@
     </div>
 
     <div class="content content-full" id="students">
+        <button class="dropdown-item" @click="openStatusChangeModal('student.id', 'student.status')">
+            <i class="fas fa-toggle-on"></i> Change status
+        </button>
         <div class="row">
             <!-- Active Students -->
             <div class="col-md-4 col-xl-4 col-sm-4">
@@ -120,8 +123,10 @@
                 </div>
             </div>
         </div>
-    </div>
 
+        @include('students.partials.changeStatusVue')
+
+    </div>
 
     @role(['superAdmin', 'admin'])
         <!-- Payment Modal -->
@@ -191,6 +196,10 @@
         setup() {
 
             const status = ref('active');
+            const showStatusChangeModal = ref(false);
+            const studentId = ref(null);
+            const studentName = ref('');
+            const studentStatus = ref('');
 
             onMounted(() => {
                 nextTick(() => {
@@ -266,6 +275,32 @@
                     { data: 'trn' }
                   ],
                   drawCallback: function () {
+                    // Bind change status buttons (dropdown)
+                    $('.change-status-btn').on('click', function () {
+                        const id = $(this).data('id');
+                        const status = $(this).data('status');
+                        const fname = $(this).data('fname');
+                        const mname = $(this).data('mname');
+                        const sname = $(this).data('sname');
+
+                        const fullName = `${fname} ${mname ?? ''} ${sname}`.trim();
+
+                        openStatusChangeModal(id, status, fullName);
+                    });
+
+
+                    $(document).on('click', '.status-span', function () {
+                        const id = $(this).data('id');
+                        const status = $(this).data('status');
+                        const fname = $(this).data('fname');
+                        const mname = $(this).data('mname');
+                        const sname = $(this).data('sname');
+
+                        const fullName = `${fname} ${mname || ''} ${sname}`.trim();
+
+                        openStatusChangeModal(id, status, fullName);
+                    });
+
                     $('.delete-confirm').on('click', function (e) {
                       e.preventDefault();
                       var form = $(this).closest('form');
@@ -288,6 +323,46 @@
                   }
                 });
             };
+
+            // Method to open the status change modal
+            const openStatusChangeModal = (id, status, fullName) => {
+                studentId.value = id;          // Set the student ID
+                studentName.value = fullName;  // Set the full name
+                studentStatus.value = status;  // Set the student status
+
+                showStatusChangeModal.value = true;  // Show the modal
+            };
+
+            // Method to close the modal
+            const closeStatusChangeModal = () => {
+                console.log('haven');
+
+                showStatusChangeModal.value = false;  // Close the modal
+            };
+
+            const saveStatusChange = () => {
+
+                axios.post(`/updateStudentStatus/${studentId.value}`, {
+                    status: studentStatus.value
+                }, {
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                })
+                .then(response => {
+                    showAlert('', 'Student status updated successfully.', { icon: 'success' });
+
+                    showStatusChangeModal.value = false; // Hide modal the Vue way
+                    reloadTable();
+
+                    // Optionally refresh your table here
+                })
+                .catch(error => {
+                    console.error('Error updating status:', error);
+                    showError('Oops!', 'Something went wrong while updating the status.', { confirmText: 'Ok' });
+                });
+            };
+
 
             const showError = (
                 message,
@@ -316,8 +391,43 @@
                 return Swal.fire(cleanOptions);
             };
 
+            const showAlert = (
+                message = '', // Optional title
+                detail = '',  // Optional detail text
+                { icon = 'info' } = {}
+            ) => {
+                const baseOptions = {
+                    icon,
+                    toast: true,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer);
+                        toast.addEventListener('mouseleave', Swal.resumeTimer);
+                    }
+                };
+
+                // Only include title and text if they’re not empty
+                if (message) baseOptions.title = message;
+                if (detail) baseOptions.text = detail;
+
+                return Swal.fire(baseOptions);
+            };
+
+
             return {
                 reloadTable,
+                saveStatusChange,
+                closeStatusChangeModal,
+                openStatusChangeModal,
+                showStatusChangeModal,
+                studentId,
+                studentStatus,
+                openStatusChangeModal,
+                closeStatusChangeModal,
+                studentName
             }
 
         }})
