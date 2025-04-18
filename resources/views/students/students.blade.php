@@ -39,9 +39,6 @@
     </div>
 
     <div class="content content-full" id="students">
-        <button class="dropdown-item" @click="openStatusChangeModal('student.id', 'student.status')">
-            <i class="fas fa-toggle-on"></i> Change status
-        </button>
         <div class="row">
             <!-- Active Students -->
             <div class="col-md-4 col-xl-4 col-sm-4">
