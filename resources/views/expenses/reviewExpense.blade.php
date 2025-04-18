@@ -182,6 +182,16 @@
             };
 
             const removeStudentFromList = async (studentId, index) => {
+
+                if (state.value.selectedStudents.length <= 1) {
+                    showAlert('List can not be empty', 'You must have at least one student in the group.', {
+                        toast: false,
+                        icon: 'error',
+                        confirmText: 'Ok'
+                    });
+                    return
+                }
+
                 try {
                     NProgress.start();
 
@@ -193,7 +203,7 @@
                     if (response.status === 200) {
                         removeStudentFromGroup(index);
                         totalAmount();
-                        notification('Student removed successfully', 'success');
+                        showAlert('', 'Student removed successfully', { icon: 'success' });
                     }
 
                 } catch (error) {
@@ -276,6 +286,41 @@
                     }
                 });
             }
+
+            const showAlert = (
+                message = '', // title
+                detail = '',  // text
+                {
+                    icon = 'info',
+                    toast = true,
+                    confirmText = 'OK',
+                    showCancel = false,
+                    cancelText = 'Cancel'
+                } = {}
+            ) => {
+                const baseOptions = {
+                    icon,
+                    title: message,
+                    text: detail,
+                    toast,
+                    position: toast ? 'top-end' : 'center',
+                    showConfirmButton: !toast,
+                    confirmButtonText: confirmText,
+                    showCancelButton: showCancel,
+                    cancelButtonText: cancelText,
+                    timer: toast ? 3000 : undefined,
+                    timerProgressBar: toast,
+                    didOpen: (toastEl) => {
+                        if (toast) {
+                            toastEl.addEventListener('mouseenter', Swal.stopTimer);
+                            toastEl.addEventListener('mouseleave', Swal.resumeTimer);
+                        }
+                    }
+                };
+
+                return Swal.fire(baseOptions);
+            };
+
 
             return {
                 removeStudentFromGroup,

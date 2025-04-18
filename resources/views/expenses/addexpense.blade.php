@@ -208,12 +208,18 @@
             }
 
             function removeStudentFromGroup(index) {
+
                 state.value.selectedStudents.splice(index, 1)
             }
 
             function saveExpense(){
                 if(Object.keys( state.value.selectedStudents ).length == 0){
-                    notification('Student list must not be empty', 'error')
+                    showAlert('Can not save', 'Student list must not be empty; add students or cancel the creation.', {
+                        toast: false,
+                        icon: 'error',
+                        confirmText: 'Ok'
+                    });
+
                     return false
                 }
 
@@ -280,6 +286,40 @@
                     }
                 });
             }
+
+            const showAlert = (
+                message = '', // title
+                detail = '',  // text
+                {
+                    icon = 'info',
+                    toast = true,
+                    confirmText = 'OK',
+                    showCancel = false,
+                    cancelText = 'Cancel'
+                } = {}
+            ) => {
+                const baseOptions = {
+                    icon,
+                    title: message,
+                    text: detail,
+                    toast,
+                    position: toast ? 'top-end' : 'center',
+                    showConfirmButton: !toast,
+                    confirmButtonText: confirmText,
+                    showCancelButton: showCancel,
+                    cancelButtonText: cancelText,
+                    timer: toast ? 3000 : undefined,
+                    timerProgressBar: toast,
+                    didOpen: (toastEl) => {
+                        if (toast) {
+                            toastEl.addEventListener('mouseenter', Swal.stopTimer);
+                            toastEl.addEventListener('mouseleave', Swal.resumeTimer);
+                        }
+                    }
+                };
+
+                return Swal.fire(baseOptions);
+            };
 
             return {
                 addStudentToGroup,

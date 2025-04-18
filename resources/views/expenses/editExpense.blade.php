@@ -198,8 +198,6 @@
             var student = state.value.studentName.split(" ")
             if(!state.value.selectedStudents.some(item => item.studentId === state.value.studentId)){
 
-                console.log(state.value.studentId);
-
                 axios.post('/checkStudent', {student:state.value.studentId, expenseType: state.value.expenseType}).then(response => {
                     if(response.data.feedback == "success"){
                         state.value.selectedStudents.push({fname:student[0], mname:student[1], sname:student[2],
@@ -225,9 +223,53 @@
         }
 
         function removeStudentFromGroup(index) {
+
+            if (state.value.selectedStudents.length <= 1) {
+                showAlert('List can not be empty', 'You must have at least one student in the group.', {
+                    toast: false,
+                    icon: 'error',
+                    confirmText: 'Ok'
+                });
+                return
+            }
+
             state.value.selectedStudents.splice(index, 1)
             totalAmount()
         }
+
+        const showAlert = (
+                message = '', // title
+                detail = '',  // text
+                {
+                    icon = 'info',
+                    toast = true,
+                    confirmText = 'OK',
+                    showCancel = false,
+                    cancelText = 'Cancel'
+                } = {}
+            ) => {
+                const baseOptions = {
+                    icon,
+                    title: message,
+                    text: detail,
+                    toast,
+                    position: toast ? 'top-end' : 'center',
+                    showConfirmButton: !toast,
+                    confirmButtonText: confirmText,
+                    showCancelButton: showCancel,
+                    cancelButtonText: cancelText,
+                    timer: toast ? 3000 : undefined,
+                    timerProgressBar: toast,
+                    didOpen: (toastEl) => {
+                        if (toast) {
+                            toastEl.addEventListener('mouseenter', Swal.stopTimer);
+                            toastEl.addEventListener('mouseleave', Swal.resumeTimer);
+                        }
+                    }
+                };
+
+                return Swal.fire(baseOptions);
+            };
 
         function updateExpense(){
 
@@ -244,7 +286,6 @@
             state.value.isLoading = true
             axios.post('/updateExpense', {expenseId:state.value.expenseId, students:state.value.selectedStudents, expenseGroupName:state.value.expenseGroupName, expenseDescription:state.value.expenseDescription, expenseGroupType:state.value.expenseGroupType, expenseAmount: state.value.amount}).then(response => {
                 if(response.status==200){
-                    console.log(response.data)
                     notification('Expense updated successfully','success')
                     window.location.replace('/expenses')
                 }
@@ -268,6 +309,16 @@
         }
 
         function removeStudentFromList(studentId, index) {
+
+            if (state.value.selectedStudents.length <= 1) {
+                showAlert('List can not be empty', 'You must have at least one student in the group.', {
+                    toast: false,
+                    icon: 'error',
+                    confirmText: 'Ok'
+                });
+                return
+            }
+
             axios.post('/removeStudent', {student:studentId, expenseId: state.value.expenseId}).then(response => {
                 if(response.status==200){
                     removeStudentFromGroup(index)
@@ -299,8 +350,6 @@
 
                     state.value.studentId = item.id;
 
-
-                    console.log("Selected Student:", item, state.value.studentId);
                     return item;
                 }
             });
@@ -321,6 +370,7 @@
                   }
               });
         }
+
 
         return {
             addStudentToGroup,
