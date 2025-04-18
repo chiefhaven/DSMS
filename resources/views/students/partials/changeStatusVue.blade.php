@@ -14,7 +14,7 @@
                 <div class="mb-3">
                     <label for="statusSelect" class="form-label">Select Status</label>
                     <select v-model="studentStatus" class="form-select" id="studentStatus">
-                        @role(['superAdmin', 'admin', 'instructor'])
+                        @role(['superAdmin', 'admin'])
                             <option>Pending</option>
                             <option>In progress</option>
                         @endrole
