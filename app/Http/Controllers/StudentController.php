@@ -152,7 +152,13 @@ class StudentController extends Controller
                 }
             })
             ->addColumn('course_status', function ($student) {
-                return ucfirst($student->status);
+                return '<span class="status-span"
+                            data-status="' . e($student->status) . '"
+                            data-fname="' . e($student->fname) . '"
+                            data-mname="' . e($student->mname) . '"
+                            data-sname="' . e($student->sname) . '"
+                            data-id="' . e($student->id) . '"
+                            style="cursor: pointer; color: #0d6efd;">' . ucfirst($student->status) . '</span>';
             })
             ->addColumn('phone', function ($student) {
                 return $student->phone ?? '-';
@@ -165,11 +171,21 @@ class StudentController extends Controller
             })
             ->addColumn('actions', function ($student) {
                 $view = '<a class="dropdown-item" href="' . url('/viewstudent', $student->id) . '">
-                            <i class="fa fa-user"></i> Profile
+                            <i class="fa fa-user"></i> View
                         </a>';
 
                 $edit = '';
                 $delete = '';
+
+                $changeStatus = "<button
+                                    class='dropdown-item change-status-btn'
+                                    data-fname=\"" . e($student->fname) . "\"
+                                    data-mname=\"" . e($student->mname) . "\"
+                                    data-sname=\"" . e($student->sname) . "\"
+                                    data-id=\"" . e($student->id) . "\"
+                                    data-status=\"" . e($student->status) . "\">
+                                        <i class='fas fa-toggle-on'></i> Change status
+                                </button>";
 
                 if (auth()->user()->hasRole('superAdmin')) {
                     $edit = '<a class="dropdown-item" href="' . url('/edit-student', $student->id) . '">
@@ -188,12 +204,12 @@ class StudentController extends Controller
                     <div class="dropdown d-inline-block">
                         <button class="btn btn-primary" data-bs-toggle="dropdown">Actions</button>
                         <div class="dropdown-menu dropdown-menu-end">
-                            ' . $view . $edit . $delete . '
+                            ' . $view . $edit . $delete . $changeStatus . '
                         </div>
                     </div>
                 ';
             })
-            ->rawColumns(['actions', 'full_name', 'attendance', 'balance']) // allow HTML in 'actions'
+            ->rawColumns(['actions', 'full_name', 'attendance', 'balance', 'course_status']) // allow HTML in 'actions'
             ->make(true);
     }
 
@@ -469,25 +485,22 @@ class StudentController extends Controller
 
     public function updateStudentStatus(UpdateStudentRequest $request, $student)
     {
-
-        $messages = [
+        $validated = $request->validate([
+            'status' => 'required|string|in:Finished,In progress,Pending',
+        ], [
             'status.required' => 'Status is required!',
-        ];
+        ]);
 
-        $this->validate($request, [
-            'status' => 'required|string|in:Finished,In progress,Pending', // Adjust the rules as needed
-        ], $messages);
-
-        $post = $request->All();
-        $student = Student::find($student);
-        $student->status = $post['status'];
-
+        $student = Student::findOrFail($student);
+        $student->status = $validated['status'];
         $student->save();
 
-        Alert::toast('Student status updated to '. $post['status'] , 'success');
-        return back();
-
+        return response()->json([
+            'message' => 'Student status updated to ' . $validated['status'],
+            'status' => $validated['status']
+        ]);
     }
+
 
     /**
      * Remove the specified resource from storage.
