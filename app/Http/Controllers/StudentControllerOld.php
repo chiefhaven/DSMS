@@ -129,6 +129,11 @@ class StudentController extends Controller
 
                 $edit = '';
                 $delete = '';
+                $changeStatus = '';
+
+                '<button class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#change-status">
+                    <i class="nav-main-link-icon  fas fa-toggle-on"></i>Change status
+                </button>';
 
                 if (auth()->user()->hasRole('superAdmin')) {
                     $edit = '<a class="dropdown-item" href="' . url('/edit-student', $student->id) . '">
@@ -147,7 +152,7 @@ class StudentController extends Controller
                     <div class="dropdown d-inline-block">
                         <button class="btn btn-primary" data-bs-toggle="dropdown">Actions</button>
                         <div class="dropdown-menu dropdown-menu-end">
-                            ' . $view . $edit . $delete . '
+                            ' . $view . $edit . $delete . $changeStatus . '
                         </div>
                     </div>
                 ';
