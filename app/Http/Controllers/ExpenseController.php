@@ -66,50 +66,45 @@ class ExpenseController extends Controller
         $messages = [
             'expenseGroupName.required' => 'Expense Group Name is required',
             'expenseAmount.required'   => 'Expense amount is required',
+            'students.required' => 'Please select at least one student',
+            'students.array' => 'Invalid student data format',
+            'students.min' => 'Please select at least one student',
         ];
 
-        // Validate the request
         $this->validate($request, [
-            'expenseGroupName'  =>'required',
-            'expenseAmount'   =>'required',
-
+            'expenseGroupName'  => 'required',
+            'expenseAmount'     => 'required',
+            'students'          => 'required|array|min:1'
         ], $messages);
 
         $post = $request->all();
-
         $students = $post['students'];
 
         $user = Auth::user();
+        $admin = Administrator::findOrFail($user->administrator_id);
 
-        $admin = Administrator::where('id', $user->administrator_id)->firstOrFail();
-
-        $expense = new expense();
+        $expense = new Expense();
         $expense->group = $post['expenseGroupName'];
-        $expense->group_type = $post['expenseGroupType'];
-        $expense->description = $post['expenseDescription'];
+        $expense->group_type = $post['expenseGroupType'] ?? null;
+        $expense->description = $post['expenseDescription'] ?? null;
         $expense->amount = $post['expenseAmount'];
         $expense->added_by = $user->administrator_id;
-
         $expense->save();
-        //Get student id
+
         foreach ($students as $data) {
-            $expenseId = Expense::orderBy('created_at', 'desc')->first()->id;
             $student = havenUtils::student($data['studentName']);
-            $student->expenses()->attach($expenseId, ['expense_type' => $data['expenseType']]);
+            $student->expenses()->attach($expense->id, [
+                'expense_type' => $data['expenseType']
+            ]);
         }
 
-        if(!$expense->save()){
-            return false;
-        }
-
+        // Notify super admins
         $superAdmins = User::role('superAdmin')->get();
-
         foreach ($superAdmins as $superAdmin) {
             $superAdmin->notify(new ExpenseCreated($expense, $admin->fname));
         }
 
-        $data = ['message' => 'Expense added successfuly'];
-        return response()->json([$data], 200);
+        return response()->json(['message' => 'Expense added successfully'], 200);
     }
 
     /**
@@ -167,53 +162,65 @@ class ExpenseController extends Controller
      * @param  \App\Models\expense  $expense
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateexpenseRequest $request, expense $expense)
+    public function update(UpdateexpenseRequest $request, Expense $expense)
     {
         $messages = [
             'expenseGroupName.required' => 'Expense Group Name is required',
             'expenseAmount.required'   => 'Expense amount is required',
+            'students.required' => 'Please select at least one student',
+            'students.array' => 'Invalid student data format',
+            'students.min' => 'Please select at least one student',
         ];
 
-        // Validate the request
-        $this->validate($request, [
-            'expenseGroupName'  =>'required',
-            'expenseAmount'   =>'required',
+        try {
+            $this->validate($request, [
+                'expenseGroupName'  => 'required',
+                'expenseAmount'     => 'required',
+                'students'          => 'required|array|min:1'
+            ], $messages);
 
-        ], $messages);
+            DB::beginTransaction();
 
-        $post = $request->all();
+            $post = $request->all();
+            $students = $post['students'];
 
-        $students = $post['students'];
+            $expense = Expense::find($post['expenseId']);
 
-        $expenseUpdate = Expense::find($post['expenseId']);
 
-        if (!$expenseUpdate) {
-            return response()->json(['error' => 'Expense not found'], 404);
+            // Update expense
+            $expense->group = $post['expenseGroupName'];
+            $expense->group_type = $post['expenseGroupType'] ?? null;
+            $expense->description = $post['expenseDescription'] ?? null;
+            $expense->amount = $post['expenseAmount'];
+            $expense->edited_by = Auth::user()->administrator_id;
+            $expense->save();
+
+            // Clear previous student associations
+            $expense->students()->detach();
+
+            // Reattach students with expense_type
+            foreach ($students as $data) {
+                $fullName = trim($data['fname'] . ' ' . $data['mname'] . ' ' . $data['sname']);
+                $student = havenUtils::student($fullName);
+
+                $student->expenses()->attach($expense->id, [
+                    'expense_type' => $data['expenses'][0]['pivot']['expense_type']
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json(['message' => 'Expense updated successfully'], 200);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            Log::error('Expense update failed: ' . $e->getMessage());
+
+            return response()->json([
+                'error' => 'An error occurred while updating the expense. Please try again later.',
+            ], 500);
         }
-
-        // Proceed with updating and saving
-        $expenseUpdate->group = $post['expenseGroupName'];
-        $expenseUpdate->group_type = $post['expenseGroupType'];
-        $expenseUpdate->description = $post['expenseDescription'];
-        $expenseUpdate->amount = $post['expenseAmount'];
-        $expenseUpdate->edited_by = Auth::user()->administrator_id;
-
-        $expenseUpdate->save();
-
-        //Get student id
-        foreach ($students as $data) {
-            $student = havenUtils::student($data['fname'].' '.$data['mname'].' '.$data['sname']);
-            $student->expenses()->sync([
-                $expenseUpdate->id => ['expense_type' => $data['expenses'][0]['pivot']['expense_type']]
-            ]);
-        }
-
-        if(!$expenseUpdate->save()){
-            return false;
-        }
-
-        $data = ['message' => 'Expense added successfuly'];
-        return response()->json([$data], 200);
     }
 
     /**
