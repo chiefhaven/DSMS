@@ -5,9 +5,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\mbiraStudentVersion;
+use App\Http\Controllers\Api\MbiraStudentVersion;
 use App\Http\Controllers\Api\studentController as ApiStudentController;
-use App\Http\Controllers\Api\studentProfileController;
+use App\Http\Controllers\Api\StudentProfileController;
 use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\StudentController;
 use App\Models\Classroom;
@@ -38,18 +38,18 @@ Route::get('/invoices', [InvoiceController::class, 'index']);
 Route::get('invoice-view/{id}', [InvoiceController::class, 'show'])->middleware('auth');
 
 
-Route::get('/studentProfile', [studentProfileController::class, 'show'])->middleware('auth:sanctum')->name('studentProfile');
+Route::get('/studentProfile', [StudentProfileController::class, 'show'])->middleware('auth:sanctum')->name('studentProfile');
 Route::get('/classroomDetails/{id}', [ApiStudentController::class, 'showClassRoom'])->middleware('auth:sanctum')->name('classroomDetails');
 Route::get('/fleetDetails/{id}', [ApiStudentController::class, 'showFleet'])->middleware('auth:sanctum')->name('fleetDetails');
-Route::get('/attendance', [studentProfileController::class, 'showAttendance'])->middleware('auth:sanctum')->name('attendance');
+Route::get('/attendance', [StudentProfileController::class, 'showAttendance'])->middleware('auth:sanctum')->name('attendance');
 Route::get('/students', [StudentController::class, 'fetchStudents'])->name('students')->middleware('auth:sanctum')->name('students');
 
-Route::get('/courses', [studentProfileController::class, 'courses'])->middleware('auth:sanctum')->name('courses');
+Route::get('/courses', [StudentProfileController::class, 'courses'])->middleware('auth:sanctum')->name('courses');
 
-Route::get('/student-mbira-version', [mbiraStudentVersion::class, 'index'])->name('student-mbira-version');
+Route::get('/student-mbira-version', [MbiraStudentVersion::class, 'index'])->name('student-mbira-version');
 
-Route::get('/notifications', [studentProfileController::class, 'notifications'])->middleware('auth:sanctum')->name('notifications');
-Route::get('/attendances', [studentProfileController::class, 'attendances'])->middleware('auth:sanctum')->name('attendances');
-Route::get('/courseDetails', [studentProfileController::class, 'courseDetails'])->middleware('auth:sanctum')->name('courseDetails');
+Route::get('/notifications', [StudentProfileController::class, 'notifications'])->middleware('auth:sanctum')->name('notifications');
+Route::get('/attendances', [StudentProfileController::class, 'attendances'])->middleware('auth:sanctum')->name('attendances');
+Route::get('/courseDetails', [StudentProfileController::class, 'courseDetails'])->middleware('auth:sanctum')->name('courseDetails');
 
 
