@@ -29,7 +29,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Yajra\DataTables\Facades\DataTables;
 
-class StudentController extends Controller
+class StudentControllerOld extends Controller
 {
     public function __construct()
     {
