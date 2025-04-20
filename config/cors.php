@@ -22,6 +22,7 @@ return [
     'allowed_origins' => [
         'http://dsms.darondrivingschool.com',
         'https://dsms.darondrivingschool.com',
+        '127.0.0.1:8000',
     ],
 
     'allowed_origins_patterns' => [],
