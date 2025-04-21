@@ -19,6 +19,7 @@ use App\Http\Controllers\NotificationTemplateController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\havenUtils;
+use App\Http\Controllers\InstructorPaymentController;
 use App\Http\Controllers\knowledgeController;
 use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\ScheduleLessonController;
@@ -135,18 +136,28 @@ Route::post('/edit-payment', [PaymentController::class, 'edit'])->middleware('au
 Route::post('/show-payment', [PaymentController::class, 'show'])->middleware('auth')->name('show-payment');
 Route::post('/update-payment', [PaymentController::class, 'update'])->middleware('auth')->name('update-payment');
 
-Route::get('/instructors', [InstructorController::class, 'index'])->middleware('auth')->name('instructors');
-Route::get('/instructors-json', [InstructorController::class, 'indexInstructors'])->middleware('auth')->name('instructors-json');
+Route::middleware('auth')->group(function () {
+    Route::get('/instructors', [InstructorController::class, 'index'])->name('instructors');
+    Route::get('/instructors-json', [InstructorController::class, 'indexInstructors'])->name('instructors-json');
+    Route::get('/addinstructor', [InstructorController::class, 'create'])->name('addinstructor');
+    Route::post('/storeinstructor', [InstructorController::class, 'store'])->name('storeinstructor');
+    Route::get('/editinstructor/{id}', [InstructorController::class, 'edit'])->name('editinstructor');
+    Route::post('/updateinstructor', [InstructorController::class, 'update'])->name('updateinstructor');
+    Route::delete('/deleteinstructor/{id}', [InstructorController::class, 'destroy'])->name('deleteinstructor');
+});
+
+// Routes without auth middleware
 Route::get('/viewinstructor/{instructor}', [InstructorController::class, 'show'])->name('viewinstructor');
-Route::get('/addinstructor', [InstructorController::class, 'create'])->middleware('auth')->name('addinstructor');
-Route::post('/storeinstructor', [InstructorController::class, 'store'])->middleware('auth')->name('storeinstructor');
-Route::get('/editinstructor/{id}', [InstructorController::class, 'edit'])->middleware('auth')->name('editinstructor');
-Route::post('/updateinstructor', [InstructorController::class, 'update'])->middleware('auth')->name('updateinstructor');
-Route::delete('/deleteinstructor/{id}', [InstructorController::class, 'destroy'])->middleware('auth')->name('deleteinstructor');
 Route::get('/instructor-search', [InstructorController::class, 'instructorSearch'])->name('instructorSearch');
 
-Route::get('/instructor-data/{instructor}', [InstructorController::class, 'instructorData'])->middleware('auth')->name('instructor-students');
+Route::get('/instructor-payments', [InstructorPaymentController::class, 'index'])->middleware('auth')->name('instructor-payments');
+Route::get('/fetchPayments', [InstructorPaymentController::class, 'fetchPayments'])->middleware('auth')->name('fetchPayments');
+Route::get('/instructors/payment/{payment}', [InstructorPaymentController::class, 'show'])->name('viewpayment');
+Route::get('/instructors/payment/edit/{payment}', [InstructorPaymentController::class, 'edit'])->middleware('auth')->name('editpayment');
+Route::post('/instructors/payment/update/{payment}', [InstructorPaymentController::class, 'update'])->middleware('auth')->name('updatepayment');
+Route::delete('/instructors/payment/{payment}', [InstructorPaymentController::class, 'destroy'])->middleware('auth')->name('deletepayment');
 
+Route::get('/instructor-data/{instructor}', [InstructorController::class, 'instructorData'])->middleware('auth')->name('instructor-students');
 
 Route::get('/administrators', [AdministratorController::class, 'index'])->middleware('auth')->name('adminitrators');
 Route::get('/viewadministrator', [AdministratorController::class, 'show'])->middleware('auth')->name('viewadministrator');
