@@ -348,6 +348,7 @@ class ExpenseController extends Controller
         $expense->save();
 
         $admin = Administrator::with('user')->find($expense->added_by);
+
         try {
             if ($admin && $admin->user) {
                 $admin->user->notify(new ExpenseApproved($expense, $user->administrator->fname));
