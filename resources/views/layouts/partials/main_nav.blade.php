@@ -119,17 +119,24 @@
                     <span class="nav-main-link-name">Instructors</span>
                 </a>
                 <ul class="nav-main-submenu">
-                <li class="nav-main-item">
-                    <a class="nav-main-link" href="{{ url('/instructors') }}">
-                        <span class="nav-main-link-name">All instructors</span>
-                    </a>
+                    <li class="nav-main-item">
+                        <a class="nav-main-link" href="{{ url('/instructors') }}">
+                            <span class="nav-main-link-name">All instructors</span>
+                        </a>
                     </li>
                 </ul>
                 <ul class="nav-main-submenu">
-                <li class="nav-main-item">
-                    <a class="nav-main-link" href="{{ url('/addinstructor') }}">
-                        <span class="nav-main-link-name">Add instructor</span>
-                    </a>
+                    <li class="nav-main-item">
+                        <a class="nav-main-link" href="{{ url('/addinstructor') }}">
+                            <span class="nav-main-link-name">Add instructor</span>
+                        </a>
+                    </li>
+                </ul>
+                <ul class="nav-main-submenu">
+                    <li class="nav-main-item">
+                        <a class="nav-main-link" href="{{ url('/instructor-payments') }}">
+                            <span class="nav-main-link-name">Payments</span>
+                        </a>
                     </li>
                 </ul>
             </li>
