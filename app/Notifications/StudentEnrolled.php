@@ -14,18 +14,17 @@ class StudentEnrolled extends Notification
 
     protected $student;
     protected $admin;
-    protected $studentCreatedDate;
+    protected $superAdmin;
 
     /**
      * Create a new notification instance.
      *
      * @return void
      */
-    public function __construct($student, string $admin)
+    public function __construct($student, $superAdmin)
     {
         $this->student = $student;
-        $this->admin = $admin;
-        $this->studentCreatedDate = Carbon::parse($this->student->created_at)->format('d F, Y');
+        $this->superAdmin = $superAdmin;
     }
 
     /**
@@ -48,16 +47,19 @@ class StudentEnrolled extends Notification
     public function toMail($notifiable)
     {
         return (new MailMessage)
-                    ->line('The introduction to the notification.')
-                    ->action('Notification Action', url('/'))
-                    ->line('Thank you for using our application!');
+            ->subject('New Student Enrollment Notification')
+            ->greeting('Hello!')
+            ->line("Student {$this->student->fname} {$this->student->mname} {$this->student->sname} has been successfully enrolled in the {$this->student->course->name} course.")
+            ->action('View Student Details', url("/viewstudent/{$this->student->id}"))
+            ->line('Thank you.');
     }
 
     public function toDatabase($notifiable)
     {
         return [
-            'title' => 'Student enrolled',
-            'body' => "Student {$this->student->fname} {$this->student->mname} {$this->student->sname} has been enrolled in {$this->student->course->name} course.",
+            'type' => 'Enrollment',
+            'title' => 'Student Enrolled',
+            'body' => "Student {$this->student->fname} {$this->student->mname} {$this->student->sname} has been enrolled in the {$this->student->course->name} course.",
             'student_id' => $this->student->id,
             'url' => url("/viewstudent/{$this->student->id}"),
             'created_at' => now(),
@@ -74,7 +76,7 @@ class StudentEnrolled extends Notification
     {
         return [
             'title' => 'Student registered',
-            'body' => "Student {$this->student->fname} {$this->student->mname} {$this->student->sname} has been registerd by {$this->admin}.",
+            'body' => "Student {$this->student->fname} {$this->student->mname} {$this->student->sname} has been enrolled by {$this->admin}.",
             'student_id' => $this->student->id,
             'url' => url("/viewstudent/{$this->student->id}"),
             'created_at' => now(),
