@@ -65,6 +65,11 @@ class Instructor extends Model
        return $this->belongsTo(Department::class);
     }
 
+    public function payments()
+    {
+        return $this->hasMany(InstructorPayment::class);
+    }
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
