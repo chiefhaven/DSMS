@@ -247,7 +247,6 @@
                             @endforeach
                             </tbody>
                         </table>
-                            {{--  {{ $activities->links('pagination::bootstrap-5') }}  --}}
                         </div>
                     </div>
                     </div>
@@ -317,7 +316,9 @@
                             System will automatically pay bonuses on 28th
                         </p>
                         <p>
-                           <a href="#" class="btn btn-primary">Pay early</a>
+                            <button class="btn btn-primary pay-early-btn" data-id="">
+                                Pay early
+                            </button>
                         </p>
                     </div>
                 </div>
@@ -360,14 +361,6 @@
                     .catch((err) => {
                         rej(err);
                     });
-            },
-
-            invoice_edit: function(invoice_number){
-
-            },
-
-            invoice_delete: function(invoice_number){
-
             },
         },
 
@@ -414,6 +407,29 @@
             ]
         });
     });
+
+    $(document).on('click', '.pay-early-btn', function () {
+        const paymentId = $(this).data('id');
+
+        // Example: Show modal or redirect
+        // window.location.href = '/payments/pay-early/' + paymentId;
+
+        // Or show SweetAlert confirmation
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You are about to process an early payment.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, proceed!',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Do AJAX or redirect
+                console.log('Process payment for ID:', paymentId);
+            }
+        });
+    });
+
 </script>
 <script>
     const ctx = document.getElementById('attendancesChart');
