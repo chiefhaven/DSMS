@@ -326,52 +326,60 @@
         </div>
     </div>
 
-<script>
-    const { createApp } = Vue
+    <script>
+        const { createApp, ref, onMounted } = Vue;
 
-    createApp({
-        data() {
-        return {
-            count: 0,
-            info: [],
-        }
-        },
-        methods : {
+        const students = createApp({
+            setup() {
+                const count = ref(0);
+                const info = ref([]);
+                const invoice = ref(null);
 
-            async read() {
-                const { data } = window.axios.get('/api/invoicesHome');
-                // console.log(data)
-            },
-            // Creating function
-            timeCreated: function(date){
-                return moment(date).format('DD MMMM, YYYY');
-            },
+                // Fetch invoices on page load
+                onMounted(() => {
+                    axios.get('/api/invoices')
+                        .then(response => {
+                            info.value = response.data;
+                        })
+                        .catch(error => {
+                            console.error("Error loading invoices:", error);
+                        });
+                });
 
-            formatPrice(value) {
-                let val = (value/1).toFixed(2).replace(',', '.')
-                return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-            },
+                // Fetch single invoice view
+                const view_invoice = (invoice_number) => {
+                    const url = `/api/invoice-view/${invoice_number}`;
+                    axios.get(url)
+                        .then(response => {
+                            invoice.value = response.data;
+                        })
+                        .catch(err => {
+                            console.error("Error fetching invoice:", err);
+                        });
+                };
 
-            view_invoice: function(invoice_number){
-                const url = `api/invoice-view/Daron-2022-2`;
-                axios.get(url)
-                    .then((response) => {
-                        res(this.invoice = response.data);
-                    })
-                    .catch((err) => {
-                        rej(err);
-                    });
-            },
-        },
+                // Format date using moment.js
+                const timeCreated = (date) => {
+                    return moment(date).format('DD MMMM, YYYY');
+                };
 
-        mounted () {
-            axios
-            .get('api/invoices')
-            .then(response => (this.info = response.data))
-        }
+                // Format currency
+                const formatPrice = (value) => {
+                    let val = (value / 1).toFixed(2).replace(',', '.');
+                    return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                };
 
-    }).mount('#invoices')
-</script>
+                return {
+                    count,
+                    info,
+                    invoice,
+                    view_invoice,
+                    timeCreated,
+                    formatPrice
+                };
+            }
+        }).mount('#invoices');
+    </script>
 
 <script>
     document.getElementById("filter").value = "{{ $time }}"
