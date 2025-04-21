@@ -19,6 +19,7 @@ use App\Notifications\StudentEnrollment;
 use Illuminate\Support\Str;
 use Auth;
 use Exception;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use RealRashid\SweetAlert\Facades\Alert;
 use PDF;
@@ -123,7 +124,7 @@ class InvoiceController extends Controller
             $date_created = date('Y/m/d');
         }
 
-        if(isset($post['inovice_due_date'])){
+        if(isset($post['invoice_due_date'])){
 
             $invoice_due_date = $post['invoice_due_date'];
         }
@@ -188,21 +189,28 @@ class InvoiceController extends Controller
                 Alert::toast($student->fname.' successifully enrolled', 'success');
             }
 
-            $admins = User::role('admin')->get();
-            $superAdmin = Administrator::find($user->administrator_id);
+            $admin = Administrator::with('user')->find($student->added_by);
 
-            if (!$superAdmin) {
+
+            $superAdminName = $user->Administrator->fname . ' ' . $user->Administrator->sname;
+
+
+            if (!$superAdminName) {
                 throw new Exception("Super Admin not found.");
             }
 
-            $superAdminName = $superAdmin->fname . ' ' . $superAdmin->sname;
+            try {
+                if ($admin) {
+                    $admin->user->notify(new StudentEnrolled($student, $superAdminName));
+                }
 
-            // Notify all admins
-            Notification::send($admins, new StudentEnrolled($student, $superAdminName));
+                if ($student->user && method_exists($student->user, 'notify')) {
+                    $student->user->notify(new StudentEnrollment($student));
+                }
 
-            // Notify the student
-            if ($student->user && method_exists($student->user, 'notify')) {
-                $student->user->notify(new StudentEnrollment($student, $superAdminName));
+                $sms->balanceSMS($student->id, 'enrollment');
+            } catch (\Throwable $e) {
+                Log::error("Notification error for student {$student_id}: " . $e->getMessage());
             }
 
             $sms->balanceSMS($student->id, 'enrollment');
