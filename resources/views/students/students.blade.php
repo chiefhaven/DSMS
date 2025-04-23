@@ -42,19 +42,19 @@
         <div class="row">
             <!-- Active Students -->
             <div class="col-md-4 col-xl-4 col-sm-4">
-            <div class="block block-rounded block-link-shadow border" @click="reloadTable('active')" style="cursor: pointer;">
-                <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                <div>
-                    <i class="fa fa-2x fa-check-circle text-success"></i>
+                <div class="block block-rounded block-link-shadow border" @click="reloadTable('active')" style="cursor: pointer;">
+                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                        <div>
+                            <i class="fa fa-2x fa-check-circle text-success"></i>
+                        </div>
+                        <div class="ml-3 text-right">
+                            <p class="font-size-h3 font-w300 mb-0">
+                                {{ \App\Models\Student::where('status', '!=', 'Finished')->count() }}
+                            </p>
+                            <p class="mb-0">Active</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="ml-3 text-right">
-                    <p class="font-size-h3 font-w300 mb-0">
-                        {{ \App\Models\Student::where('status', '!=', 'Finished')->count() }}
-                    </p>
-                    <p class="mb-0">Active</p>
-                </div>
-                </div>
-            </div>
             </div>
 
             <!-- Unassigned Students -->
@@ -76,19 +76,19 @@
 
             <!-- Finished Students -->
             <div class="col-md-4 col-xl-4 col-sm-4">
-            <div class="block block-rounded block-link-shadow border" @click="reloadTable('finished')" style="cursor: pointer;">
-                <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                <div>
-                    <i class="fa fa-2x fa-check-circle text-primary"></i>
+                <div class="block block-rounded block-link-shadow border" @click="reloadTable('finished')" style="cursor: pointer;">
+                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                    <div>
+                        <i class="fa fa-2x fa-check-circle text-primary"></i>
+                    </div>
+                    <div class="ml-3 text-right">
+                        <p class="font-size-h3 font-w900 mb-0">
+                            {{ \App\Models\Student::where('status', 'Finished')->count() }}
+                        </p>
+                        <p class="mb-0">Finished/Cancelled</p>
+                    </div>
+                    </div>
                 </div>
-                <div class="ml-3 text-right">
-                    <p class="font-size-h3 font-w900 mb-0">
-                        {{ \App\Models\Student::where('status', 'Finished')->count() }}
-                    </p>
-                    <p class="mb-0">Finished/Cancelled</p>
-                </div>
-                </div>
-            </div>
             </div>
         </div>
 
@@ -332,8 +332,6 @@
 
             // Method to close the modal
             const closeStatusChangeModal = () => {
-                console.log('haven');
-
                 showStatusChangeModal.value = false;  // Close the modal
             };
 
