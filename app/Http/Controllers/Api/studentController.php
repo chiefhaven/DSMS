@@ -7,7 +7,7 @@ use App\Models\Classroom;
 use App\Models\Fleet;
 use Illuminate\Http\Request;
 
-class StudentController extends Controller
+class studentController extends Controller
 {
     public function showClassRoom($classroom)
     {

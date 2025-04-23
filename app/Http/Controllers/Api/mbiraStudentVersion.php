@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 
-class MbiraStudentVersion extends Controller
+class mbiraStudentVersion extends Controller
 {
     public function index()
     {

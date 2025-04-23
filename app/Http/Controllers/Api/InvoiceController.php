@@ -18,7 +18,7 @@ use Auth;
 use RealRashid\SweetAlert\Facades\Alert;
 use PDF;
 
-class InvoiceController extends Controller
+class invoiceController extends Controller
 {
     /**
      * Display a listing of the resource.
