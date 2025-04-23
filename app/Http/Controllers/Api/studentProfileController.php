@@ -59,13 +59,18 @@ class studentProfileController extends Controller
             return response()->json(['message' => 'Student not found'], 404);
         }
 
-        $theoryCount = optional($student->Course?->lessons)
-            ->where('department_id', 'd9b69664-b8ca-11ef-9fee-525400adf70e')
-            ->sum(fn($lesson) => $lesson->pivot->lesson_quantity ?? 0);
+        $theoryCount = 0;
+        $practicalCount = 0;
 
-        $practicalCount = optional($student->Course?->lessons)
-            ->where('department_id', 'd9b6a9c9-b8ca-11ef-9fee-525400adf70e')
-            ->sum(fn($lesson) => $lesson->pivot->lesson_quantity ?? 0);
+        if($student->Course){
+            $theoryCount = optional($student->Course?->lessons)
+                ->where('department_id', 'd9b69664-b8ca-11ef-9fee-525400adf70e')
+                ->sum(fn($lesson) => $lesson->pivot->lesson_quantity ?? 0);
+
+            $practicalCount = optional($student->Course?->lessons)
+                ->where('department_id', 'd9b6a9c9-b8ca-11ef-9fee-525400adf70e')
+                ->sum(fn($lesson) => $lesson->pivot->lesson_quantity ?? 0);
+        }
 
         // Add counts to the response
         $studentData = $student->toArray();
