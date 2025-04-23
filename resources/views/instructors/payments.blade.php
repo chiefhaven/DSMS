@@ -86,6 +86,7 @@
 
                             callback(response.data);
 
+
                         } catch (error) {
                             let errorMessage = 'An error occurred while fetching data. Please try again later.';
 
@@ -154,7 +155,7 @@
                           e.preventDefault();
                           var form = $(this).closest('form');
                           Swal.fire({
-                            title: 'Delete Student',
+                            title: 'Delete payment',
                             text: 'Do you want to delete this payment?',
                             icon: 'warning',
                             showCancelButton: true,

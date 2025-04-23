@@ -315,11 +315,11 @@
                         <p class="text-warning">
                             System will automatically pay bonuses on 28th
                         </p>
-                        <p>
-                            <button class="btn btn-primary pay-early-btn" data-id="">
+                        <div id="bonuses">
+                            <button class="btn btn-primary" @click="payEarly">
                                 Pay early
                             </button>
-                        </p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -328,6 +328,36 @@
 
     <script>
         const { createApp, ref, onMounted } = Vue;
+
+        const bonuses = createApp({
+            setup() {
+                const payEarly = () => {
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: "You are about to process an early payment.",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes, proceed!',
+                        cancelButtonText: 'Cancel'
+                    }).then((result) => {
+                        axios.post('/api/bonuses/pay-early')
+                        .then(response => {
+                            Swal.fire('Success!', 'Early payment processed.', 'success');
+                            // Optional: reload bonuses or update UI
+                        })
+                        .catch(error => {
+                            Swal.fire('Error!', 'Could not process payment.', 'error');
+                            console.error('Early payment error:', error);
+                        });
+                    });
+                };
+
+                return {
+                    payEarly
+                };
+            }
+        }).mount('#bonuses');
+
 
         const students = createApp({
             setup() {
@@ -375,7 +405,7 @@
                     invoice,
                     view_invoice,
                     timeCreated,
-                    formatPrice
+                    formatPrice,
                 };
             }
         }).mount('#invoices');
@@ -413,28 +443,6 @@
                 { targets: 1, type: 'custom-date' }, // Apply custom date sorting
                 { targets: 0, orderable: false },
             ]
-        });
-    });
-
-    $(document).on('click', '.pay-early-btn', function () {
-        const paymentId = $(this).data('id');
-
-        // Example: Show modal or redirect
-        // window.location.href = '/payments/pay-early/' + paymentId;
-
-        // Or show SweetAlert confirmation
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "You are about to process an early payment.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, proceed!',
-            cancelButtonText: 'Cancel'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Do AJAX or redirect
-                console.log('Process payment for ID:', paymentId);
-            }
         });
     });
 

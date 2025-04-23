@@ -11,7 +11,7 @@ use App\Models\Course;
 
 use function PHPUnit\Framework\isEmpty;
 
-class StudentProfileController extends Controller
+class studentProfileController extends Controller
 {
     /**
      * Display a listing of the resource.

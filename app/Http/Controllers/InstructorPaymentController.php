@@ -5,10 +5,19 @@ namespace App\Http\Controllers;
 use App\Models\InstructorPayment;
 use App\Http\Requests\StoreInstructorPaymentRequest;
 use App\Http\Requests\UpdateInstructorPaymentRequest;
+use App\Models\Instructor;
+use App\Models\Setting;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
 
 class InstructorPaymentController extends Controller
 {
+    protected $bonus;
+
+    public function __construct() {
+        $this->bonus = Setting::find(1) ? Setting::find(1)->bonus : null;
+    }
     /**
      * Display a listing of the resource.
      *
@@ -98,8 +107,40 @@ class InstructorPaymentController extends Controller
      */
     public function store(StoreInstructorPaymentRequest $request)
     {
-        //
+        $instructors = Instructor::where('status', 'active')->get();
+
+        foreach ($instructors as $instructor) {
+            $bonusThisMonth = $instructor->attendances()->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
+
+            $instructorPayment = new InstructorPayment;
+            $instructorPayment->instructor_id = $instructor->id;
+            $instructorPayment->attendances_count = $bonusThisMonth;
+            $instructorPayment->pay_per_attendance = $this->bonus;
+            $instructorPayment->status = 'Paid';
+            $instructorPayment->total_payment = $bonusThisMonth * $this->bonus;
+            try {
+                $paymentDate = Carbon::now()->format('d-m-Y');
+                $instructorPayment->payment_date = $paymentDate;
+            } catch (\Exception $e) {
+                // Handle the exception (e.g., invalid date format)
+                Log::error('Invalid date format: ' . $e->getMessage());
+                // Optionally, set a default or return error
+            }
+
+            try {
+                $paymentMonth = Carbon::now()->format('Y-m');
+                $instructorPayment->payment_month = $paymentMonth;
+            } catch (\Exception $e) {
+                Log::error('Invalid month format: ' . $e->getMessage());
+            }
+            $instructorPayment->save();
+        }
+
+        return response()->json([
+            'message' => 'Early bonus payment processed successfully.'
+        ]);
     }
+
 
     /**
      * Display the specified resource.

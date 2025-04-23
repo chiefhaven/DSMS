@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\MbiraStudentVersion;
 use App\Http\Controllers\Api\studentController as ApiStudentController;
 use App\Http\Controllers\Api\StudentProfileController;
 use App\Http\Controllers\ClassroomController;
+use App\Http\Controllers\InstructorPaymentController;
 use App\Http\Controllers\StudentController;
 use App\Models\Classroom;
 
@@ -51,5 +52,7 @@ Route::get('/student-mbira-version', [MbiraStudentVersion::class, 'index'])->nam
 Route::get('/notifications', [StudentProfileController::class, 'notifications'])->middleware('auth:sanctum')->name('notifications');
 Route::get('/attendances', [StudentProfileController::class, 'attendances'])->middleware('auth:sanctum')->name('attendances');
 Route::get('/courseDetails', [StudentProfileController::class, 'courseDetails'])->middleware('auth:sanctum')->name('courseDetails');
+
+Route::post('/bonuses/pay-early', [InstructorPaymentController::class, 'store'])->middleware('auth:sanctum')->name('courseDetails');;
 
 
