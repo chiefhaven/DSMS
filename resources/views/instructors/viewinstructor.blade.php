@@ -89,8 +89,8 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td><b>Todays attendances:</b></td>
-                                            <td>{{ $instructor->attendances->count() ?? '0' }}</td>
+                                            <td><b>Month attendances:</b></td>
+                                            <td>{{ $instructor->attendances?->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])->count() ?? 0 }}</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -118,89 +118,89 @@
 
 
         <div class="row">
-            <div class="col-md-6">
+            @include('students.partials.changeStatusVue')
+
+            <div class="col-md-12">
                 <div class="block block-rounded">
                     <div class="p-4 m-4 h-60 d-flex flex-column overflow-auto">
                         <h5>Assigned students</h5>
                         <hr>
+                        <div class="block-content tab-content">
+                            <div class="row">
+                                <!-- Active Students -->
+                                <div class="col-md-4 col-xl-4 col-sm-6">
+                                    <div class="block block-rounded block-link-shadow border" @click="reloadTable('active')" style="cursor: pointer;">
+                                        <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                                            <div>
+                                                <i class="fa fa-2x fa-check-circle text-success"></i>
+                                            </div>
+                                            <div class="ml-3 text-right">
+                                                <p class="font-size-h3 font-w300 mb-0">
+                                                    {{ ($instructor->fleet && $instructor->fleet->student) || $instructor->classrooms ?
+                                                        ($instructor->fleet && $instructor->fleet->student ? $instructor->fleet->student->where('status', '!=', 'Finished')->count() : 0) +
+                                                        ($instructor->classrooms ? $instructor->classrooms->sum(function($classroom) {
+                                                            return $classroom->students ? $classroom->students->where('status', '!=', 'Finished')->count() : 0;
+                                                        }) : 0) : 'None' }}
+                                                </p>
+                                                <p class="mb-0">Active</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
 
-                        <!-- Show loading spinner when data is fetching -->
-                        <div v-if="isLoading" class="text-center">
-                            <span class="spinner-border text-primary" role="status"></span>
-                            <p>Loading students...</p>
-                        </div>
-
-                        <div v-if="!isLoading" class="block-content tab-content">
-
-                            <ul class="nav nav-tabs nav-tabs-block" role="tablist">
-                                <li class="nav-item">
-                                    <button class="nav-link active" id="pending-in-progress-tab" data-bs-toggle="tab" data-bs-target="#pending-in-progress" role="tab" aria-controls="pending-in-progress" aria-selected="true">
-                                        Active
-                                    </button>
-                                </li>
-                                <li class="nav-item">
-                                    <button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed" role="tab" aria-controls="completed" aria-selected="false">
-                                        Finished
-                                    </button>
-                                </li>
-                            </ul>
-
-                            <!-- Pending/In Progress Tab -->
-                            <div class="tab-pane fade show active" id="pending-in-progress" role="tabpanel" aria-labelledby="pending-in-progress-tab">
-                                <div class="content-full">
-                                    <div class="row">
-                                        <div class="col-md-12 py-4">
-                                            <table id="studentsTable" class="table table-responsive table-striped">
-                                                <thead>
-                                                    <tr>
-                                                        <th style="min-width: 300px">Name</th>
-                                                        <th style="min-width: 200px">Status</th>
-                                                        <th class="text-center" style="min-width: 150px">Fees Balance</th>
-                                                        <th class="text-center" style="min-width: 150px">Attendance status</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr v-for="student in activeStudents" :key="student.id">
-                                                        <td class="text-uppercase">@{{ student.fname }} @{{ student.mname ?? '' }} @{{ student.sname }}</td>
-                                                        <td class="text-uppercase">@{{ student.status }}</td>
-                                                        <td class="text-center">K00.00</td>
-                                                        <td class="text-center">0%</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
+                                <!-- Finished Students -->
+                                <div class="col-md-4 col-xl-4 col-sm-6">
+                                    <div class="block block-rounded block-link-shadow border" @click="reloadTable('finished')" style="cursor: pointer;">
+                                        <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <i class="fa fa-2x fa-check-circle text-primary"></i>
+                                        </div>
+                                        <div class="ml-3 text-right">
+                                            <p class="font-size-h3 font-w900 mb-0">
+                                                {{ ($instructor->fleet && $instructor->fleet->student) || $instructor->classrooms ?
+                                                    ($instructor->fleet && $instructor->fleet->student ? $instructor->fleet->student->where('status', '==', 'Finished')->count() : 0) +
+                                                    ($instructor->classrooms ? $instructor->classrooms->sum(function($classroom) {
+                                                        return $classroom->students ? $classroom->students->where('status', '==', 'Finished')->count() : 0;
+                                                    }) : 0) : 'None' }}
+                                            </p>
+                                            <p class="mb-0">Finished/Cancelled</p>
+                                        </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Completed Tab -->
-                            <div class="tab-pane fade" id="completed" role="tabpanel" aria-labelledby="completed-tab">
-                                <div class="content-full">
-                                    <div class="row">
-                                        <div class="col-md-12 py-4">
-                                            <table id="completedStudentsTable" class="table table-responsive table-striped">
-                                                <thead>
-                                                    <tr>
-                                                        <th style="min-width: 300px">Name</th>
-                                                        <th class="" style="min-width: 150px">Status</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr v-for="student in completedStudents" :key="student.id">
-                                                        <td class="text-uppercase">@{{ student.fname }} @{{ student.mname ?? '' }} @{{ student.sname }}</td>
-                                                        <td class="text-uppercase">@{{ student.status }}</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
+                            <!-- Pending/In Progress Tab -->
+                            <div class="tab-pane fade show active" id="pending-in-progress" role="tabpanel" aria-labelledby="pending-in-progress-tab">
+                            <div class="content-full">
+                                <div class="row table-responsive">
+                                <div class="col-md-12 py-4">
+                                    <table id="studentsTable" class="table table-bordered table-striped table-vcenter table-responsive">
+                                    <thead class="thead-dark">
+                                        <tr>
+                                        <th class="text-center" style="min-width: 100px;">Actions</th>
+                                        <th style="min-width: 15rem;">Name</th>
+                                        <th style="min-width: 15rem;">Course Enrolled</th>
+                                        <th>Fees</th>
+                                        <th>Balance</th>
+                                        <th style="min-width: 10rem;">Registered on</th>
+                                        <th>Attendance</th>
+                                        <th style="min-width: 10rem;">Course Status</th>
+                                        <th>Phone</th>
+                                        <th>Email</th>
+                                        <th>TRN</th>
+                                        </tr>
+                                    </thead>
+                                    </table>
                                 </div>
+                                </div>
+                            </div>
                             </div>
                         </div> <!-- End of tab-content -->
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-12">
                 <div class="block block-rounded">
                     <div class="p-4 m-4 h-60 d-flex flex-column overflow-auto">
                         <div class="row">
@@ -241,6 +241,7 @@
             </div>
         </div>
     </div>
+
     <script>
         const { createApp, ref, computed, onMounted, watch, onBeforeUnmount, reactive, nextTick } = Vue;
 
@@ -251,11 +252,18 @@
                 const studentsData = ref([]);
                 const attendanceData = ref([]);
                 const schedulesData = ref([]);
+                const Schedules = ref([]);
                 const instructorId = '{{ $instructor->id ?? null }}';
                 const isLoading = ref(false);
                 const period = ref('');
                 const startDate = ref('');
                 const endDate = ref('');
+                const status = ref('active');
+                const showStatusChangeModal = ref(false);
+                const studentId = ref(null);
+                const studentName = ref('');
+                const studentStatus = ref('');
+
 
                 const formatCurrency = (value) => {
                     return `K ${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -275,9 +283,152 @@
                         let modal = new bootstrap.Modal(document.getElementById('customDateModal'));
                         modal.show();
                     } else {
-                        console.log(instructorId);
                         downloadSummary(instructorId);
                     }
+                };
+
+                const reloadTable = (val) => {
+                    NProgress.start();
+
+                    status.value = val
+                    if ($.fn.DataTable.isDataTable('#studentsTable')) {
+                        $('#studentsTable').DataTable().ajax.reload();
+                      }
+
+                    NProgress.done();
+
+                }
+
+                const showAlert = (
+                    message = '', // Optional title
+                    detail = '',  // Optional detail text
+                    { icon = 'info' } = {}
+                ) => {
+                    const baseOptions = {
+                        icon,
+                        toast: true,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        didOpen: (toast) => {
+                            toast.addEventListener('mouseenter', Swal.stopTimer);
+                            toast.addEventListener('mouseleave', Swal.resumeTimer);
+                        }
+                    };
+
+                    // Only include title and text if they’re not empty
+                    if (message) baseOptions.title = message;
+                    if (detail) baseOptions.text = detail;
+
+                    return Swal.fire(baseOptions);
+                };
+
+                const getStudents = () => {
+                    NProgress.start();
+                    const table = $('#studentsTable').DataTable();
+                    if ($.fn.DataTable.isDataTable('#studentsTable')) {
+                        table.destroy();
+                    }
+                    $('#studentsTable').DataTable({
+                      serverSide: true,
+                      processing: true,
+                      scrollCollapse: true,
+                      scrollX: true,
+                      ajax: async function(data, callback, settings) {
+                        try {
+                            const csrfToken = $('meta[name="csrf-token"]').attr('content');
+                            axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
+                            const response = await axios.get('/api/instructor-students', {
+                                params: { ...data, status: status.value, instructorId: instructorId },
+                                withCredentials: true,
+                                headers: {
+                                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                }
+                            });
+
+                            callback(response.data);
+
+                        } catch (error) {
+                            let errorMessage = 'An error occurred while fetching data. Please try again later.';
+
+                            if (error.response?.data?.error) {
+                                errorMessage = error.response.data.error;
+                            } else if (error.response?.data) {
+                                errorMessage = error.response.data;
+                            }
+
+                            if ([401, 403, 409].includes(error.response?.status)) {
+                                notification('Session expired, reloading...');
+                                setTimeout(() => window.location.reload(), 1500);
+                            } else {
+                                notification(errorMessage);
+                            }
+                        } finally{
+                            NProgress.done();
+                        }
+                    },
+                      columns: [
+                        { data: 'actions', className: 'text-center', orderable: false },
+                        { data: 'full_name' },
+                        { data: 'course_enrolled', className: 'text-wrap' },
+                        { data: 'fees', className: 'text-right' },
+                        { data: 'balance', className: 'text-right' },
+                        { data: 'registered_on', className: 'text-center' },
+                        { data: 'attendance', className: 'text-center' },
+                        { data: 'course_status', className: 'text-wrap' },
+                        { data: 'phone' },
+                        { data: 'email' },
+                        { data: 'trn' }
+                      ],
+                      drawCallback: function () {
+                        // Bind change status buttons (dropdown)
+                        $('.change-status-btn').on('click', function () {
+                            const id = $(this).data('id');
+                            const status = $(this).data('status');
+                            const fname = $(this).data('fname');
+                            const mname = $(this).data('mname');
+                            const sname = $(this).data('sname');
+
+                            const fullName = `${fname} ${mname ?? ''} ${sname}`.trim();
+
+                            openStatusChangeModal(id, status, fullName);
+                        });
+
+
+                        $(document).on('click', '.status-span', function () {
+                            const id = $(this).data('id');
+                            const status = $(this).data('status');
+                            const fname = $(this).data('fname');
+                            const mname = $(this).data('mname');
+                            const sname = $(this).data('sname');
+
+                            const fullName = `${fname} ${mname || ''} ${sname}`.trim();
+
+                            openStatusChangeModal(id, status, fullName);
+                        });
+
+                        $('.delete-confirm').on('click', function (e) {
+                          e.preventDefault();
+                          var form = $(this).closest('form');
+                          Swal.fire({
+                            title: 'Delete Student',
+                            text: 'Do you want to delete this student?',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#d33',
+                            cancelButtonColor: '#3085d6',
+                            confirmButtonText: 'Delete!',
+                            cancelButtonText: 'Cancel'
+                          }).then((result) => {
+                            if (result.isConfirmed) {
+                              form.submit();
+                              $('#studentsTable').DataTable().ajax.reload();
+                            }
+                          });
+                        });
+                      }
+                    });
                 };
 
                 const downloadSummary = async (instructor) => {
@@ -308,8 +459,53 @@
 
                 // Fetch instructor's students when the component mounts
                 onMounted(() => {
+
+                    getStudents();
                     data(instructorId);
+
                 });
+
+                // Method to open the status change modal
+                const openStatusChangeModal = (id, status, fullName) => {
+                    studentId.value = id;          // Set the student ID
+                    studentName.value = fullName;  // Set the full name
+                    studentStatus.value = status;  // Set the student status
+
+                    showStatusChangeModal.value = true;  // Show the modal
+                };
+
+                // Method to close the modal
+                const closeStatusChangeModal = () => {
+                    showStatusChangeModal.value = false;  // Close the modal
+                };
+
+                const saveStatusChange = async () => {
+                    NProgress.start();
+
+                    try {
+                        const response = await axios.post(`/updateStudentStatus/${studentId.value}`, {
+                            status: studentStatus.value
+                        }, {
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            }
+                        });
+
+                        showAlert('', 'Student status updated successfully.', { icon: 'success' });
+                        showStatusChangeModal.value = false;
+                        status.value ='active';
+                        reloadTable();
+
+                    } catch (error) {
+                        console.error('Error updating status:', error);
+                        showError('Oops!', 'Something went wrong while updating the status.', {
+                            confirmText: 'Ok'
+                        });
+                    } finally {
+                        NProgress.done();
+                    }
+                };
+
 
                 const completedStudents = computed(() => {
                     return studentsData.value.filter(student => student.status === 'Finished');
@@ -344,7 +540,7 @@
                 const getXlsxData = async () => {
                     try {
                         const data = attendanceData.value;
-                        const schedulesData = schedulesData.value;
+                        const schedules = schedulesData.value;
 
                         const currentMonth = new Date().getMonth();
                         const currentYear = new Date().getFullYear();
@@ -352,35 +548,35 @@
                         // Group attendance by date
                         const dailyData = data.reduce((acc, curr) => {
                             const attendanceDate = new Date(curr.attendance_date);
-                            const date = attendanceDate.toISOString().split('T')[0];
+                            if (isNaN(attendanceDate)) return acc;
 
                             if (attendanceDate.getMonth() === currentMonth && attendanceDate.getFullYear() === currentYear) {
+                                const date = attendanceDate.toISOString().split('T')[0];
                                 acc[date] = (acc[date] || 0) + 1;
                             }
                             return acc;
                         }, {});
 
                         // Group schedules by date
-                        const dailySchedules = schedulesData.reduce((acc, curr) => {
+                        const dailySchedules = schedules.reduce((acc, curr) => {
                             const scheduleDate = new Date(curr.start_time);
-                            const date = scheduleDate.toISOString().split('T')[0];
+                            if (isNaN(scheduleDate)) return acc;
 
                             if (scheduleDate.getMonth() === currentMonth && scheduleDate.getFullYear() === currentYear) {
+                                const date = scheduleDate.toISOString().split('T')[0];
                                 acc[date] = (acc[date] || 0) + 1;
                             }
                             return acc;
                         }, {});
 
-                        // Merge all unique dates from both data sources
-                        const allDates = Array.from(new Set([...Object.keys(dailyData), ...Object.keys(dailySchedules)]));
+                        // Merge and sort unique dates
+                        const allDates = Array.from(new Set([
+                            ...Object.keys(dailyData),
+                            ...Object.keys(dailySchedules)
+                        ])).sort();
 
-                        // Format labels properly
-                        labels.value = allDates.map(date => {
-                            const formattedDate = new Date(date);
-                            return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long' }).format(formattedDate);
-                        });
-
-                        // Ensure attendance and schedule values align with the sorted dates
+                        // Store dates and values
+                        labels.value = allDates; // ISO strings: yyyy-MM-dd
                         Attendances.value = allDates.map(date => dailyData[date] || 0);
                         Schedules.value = allDates.map(date => dailySchedules[date] || 0);
 
@@ -395,7 +591,6 @@
                 };
 
 
-                // Load Chart
                 const loadChart = () => {
                     chartLoading.value = false;
                     const ctx = document.getElementById("attendancesChart");
@@ -412,12 +607,12 @@
                     attendancesChart = new Chart(ctx, {
                         type: "line",
                         data: {
-                            labels: labels.value,
+                            labels: labels.value, // Use ISO dates
                             datasets: [
                                 {
                                     label: "Attendances",
                                     fill: false,
-                                    data: Attendances.value, // Ensure it's reactive
+                                    data: Attendances.value,
                                     backgroundColor: "rgba(255, 159, 64, 0.5)",
                                     borderColor: "rgba(255, 159, 64, 1)",
                                     borderWidth: 2,
@@ -425,7 +620,7 @@
                                 {
                                     label: "Schedules",
                                     fill: false,
-                                    data: Schedules.value, // Fixed to use Schedules
+                                    data: Schedules.value,
                                     backgroundColor: "rgba(54, 162, 235, 0.5)",
                                     borderColor: "rgba(54, 162, 235, 1)",
                                     borderWidth: 2,
@@ -458,14 +653,14 @@
                                         },
                                         tooltipFormat: "d MMM yyyy",
                                     },
+                                    title: {
+                                        display: true,
+                                        text: "Date",
+                                    },
                                     ticks: {
                                         autoSkip: true,
                                         maxRotation: 45,
                                         minRotation: 45,
-                                    },
-                                    title: {
-                                        display: true,
-                                        text: "Date",
                                     },
                                 },
                                 y: {
@@ -492,7 +687,6 @@
 
                         if (response.status === 200) {
                             const data = response.data;
-                            console.log("Fetched Data:", data);
 
                             // Reset arrays before updating
                             studentsData.value = [];
@@ -523,12 +717,7 @@
 
                             // Apply DataTables after ensuring elements exist
                             setTimeout(() => {
-                                if ($.fn.DataTable.isDataTable("#studentsTable")) {
-                                    $("#studentsTable").DataTable().destroy();
-                                }
-                                if ($.fn.DataTable.isDataTable("#completedStudentsTable")) {
-                                    $("#completedStudentsTable").DataTable().destroy();
-                                }
+
                                 if ($.fn.DataTable.isDataTable("#attendancesTable")) {
                                     $("#attendancesTable").DataTable().destroy();
                                 }
@@ -561,14 +750,6 @@
 
                                     return `${day} ${month}, ${year} ${hours}:${minutes}:${seconds}`;
                                 }
-
-                                $("#studentsTable").DataTable({
-
-                                });
-
-                                $("#completedStudentsTable").DataTable({
-
-                                });
 
                                 $("#attendancesTable").DataTable({
                                     order: [[0, 'desc']], // Sort by Date column
@@ -619,7 +800,17 @@
                     handlePeriodChange,
                     downloadSummary,
                     completedStudents,
-                    activeStudents
+                    activeStudents,
+                    reloadTable,
+                    saveStatusChange,
+                    closeStatusChangeModal,
+                    openStatusChangeModal,
+                    showStatusChangeModal,
+                    studentId,
+                    studentStatus,
+                    openStatusChangeModal,
+                    closeStatusChangeModal,
+                    studentName
                 };
             }
         });
