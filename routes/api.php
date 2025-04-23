@@ -44,6 +44,7 @@ Route::get('/classroomDetails/{id}', [ApiStudentController::class, 'showClassRoo
 Route::get('/fleetDetails/{id}', [ApiStudentController::class, 'showFleet'])->middleware('auth:sanctum')->name('fleetDetails');
 Route::get('/attendance', [StudentProfileController::class, 'showAttendance'])->middleware('auth:sanctum')->name('attendance');
 Route::get('/students', [StudentController::class, 'fetchStudents'])->name('students')->middleware('auth:sanctum')->name('students');
+Route::get('/instructor-students', [StudentController::class, 'fetchInstructorStudents'])->name('InstructorStudents')->middleware('auth:sanctum');
 
 Route::get('/courses', [StudentProfileController::class, 'courses'])->middleware('auth:sanctum')->name('courses');
 
