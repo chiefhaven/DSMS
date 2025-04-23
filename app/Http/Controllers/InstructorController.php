@@ -12,14 +12,19 @@ use App\Http\Requests\StoreInstructorRequest;
 use App\Http\Requests\UpdateInstructorRequest;
 use App\Models\Administrator;
 use App\Models\Department;
+use App\Models\Fleet;
+use App\Models\Student;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Session;
 use Illuminate\Support\Str;
 use PDF;
 use Illuminate\Foundation\Auth\RegistersUsers;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use RealRashid\SweetAlert\Facades\Alert;
+use Yajra\DataTables\Facades\DataTables;
 
 class InstructorController extends Controller
 {
@@ -36,6 +41,180 @@ class InstructorController extends Controller
     {
         $instructors = Instructor::with('User', 'Lesson', 'Fleet')->get();
         return view('instructors.instructors', compact('instructors'));
+    }
+
+    public function fetchStudents(Request $request): JsonResponse
+    {
+        // Capture the search keyword from the request if provided
+        $search = $request->input('search.value'); // This is the global search input
+
+        $status = $request->status;
+
+        $students = Student::with(['user', 'course', 'fleet', 'invoice', 'classroom'])
+            ->when($status === 'active', function ($query) {
+                $query->where(function ($q) {
+                    $q->whereNotNull('fleet_id')
+                    ->orWhereNotNull('classroom_id');
+                })->where('status', '!=', 'Finished');
+            })
+            ->when($status === 'unassigned', function ($query) {
+                // Unassigned means no fleet or classroom assigned and not finished
+                $query->whereNull('fleet_id')
+                    ->whereNull('classroom_id')
+                    ->where('status', '!=', 'Finished');
+            })
+            ->when($status === 'finished', function ($query) {
+                $query->where('status', 'Finished');
+            })
+            ->orderBy('created_at', 'desc');
+
+        if (Auth::user()->hasRole('instructor')) {
+
+            $instructor = Auth::user()->instructor;
+
+            if ($instructor->department) {
+                $departmentName = $instructor->department->name;
+
+                switch ($departmentName) {
+                    case 'practical':
+                        $fleetAssigned = Fleet::where('instructor_id', $instructor->id)->first();
+                        if ($fleetAssigned) {
+                            $students->where('fleet_id', $fleetAssigned->id);
+                        } else {
+                            throw new ModelNotFoundException(__('You are not allocated a car.'));
+                        }
+                        break;
+
+                    case 'theory':
+                        $classroomIds = $instructor->classrooms->pluck('id');
+                        if ($classroomIds->isNotEmpty()) {
+                            $students->whereIn('classroom_id', $classroomIds);
+                        } else {
+                            throw new ModelNotFoundException(__('You are not allocated a class room.'));
+                        }
+                        break;
+                }
+            }
+        }
+
+        // Apply the search filter to the 'fname', 'mname', and 'sname' columns
+        if ($search) {
+            $students->where(function($query) use ($search) {
+                $query->where('fname', 'like', "%$search%")
+                    ->orWhere('mname', 'like', "%$search%")
+                    ->orWhere('sname', 'like', "%$search%")
+                    ->orWhereHas('course', function($q) use ($search) {
+                        $q->where('name', 'like', "%$search%");
+                    });
+            });
+        }
+
+        return DataTables::of($students)
+            ->addColumn('full_name', function ($student) {
+                $middle = $student->mname ? $student->mname . ' ' : '';
+                return '<span class="text-uppercase">' . e($student->fname) . ' ' . e($middle) . '<b>' . e($student->sname) . '</b></span>';
+            })
+            ->addColumn('course_enrolled', function ($student) {
+                return $student->course->name ?? 'Not enrolled yet';
+            })
+            ->addColumn('fees', function ($student) {
+                return 'K' . number_format($student->invoice->invoice_total ?? 0);
+            })
+            ->addColumn('balance', function ($student) {
+                $invoiceBalance = $student->invoice->invoice_balance ?? 0;
+                $balanceClass = $invoiceBalance > 0 ? 'text-danger' : 'text-success';
+
+                return '<strong>
+                            <span class="' . $balanceClass . '">
+                                K' . number_format($invoiceBalance, 2) . '
+                            </span>
+                        </strong>';
+            })
+            ->addColumn('registered_on', function ($student) {
+                return $student->created_at->format('d M, Y');
+            })
+            ->addColumn('car_assigned', function ($student) {
+                if ($student->fleet) {
+                    return $student->fleet->car_registration_number;
+                } elseif ($student->classroom) {
+                    return $student->classroom->name;
+                } else {
+                    return 'Not assigned';
+                }
+            })
+            ->addColumn('attendance', function ($student) {
+                $attendanceCount = $student->attendance ? $student->attendance->count() : 0;
+                $courseDuration = $student->course->duration ?? 0;
+                $percentage = ($courseDuration > 0) ? round(($attendanceCount / $courseDuration) * 100, 1) : 0;
+
+                if ($percentage >= 100) {
+                    return '<span class="badge bg-success">Completed</span>';
+                } elseif ($percentage >= 50) {
+                    return '<span class="badge bg-info">' . $percentage . '%</span>';
+                } else {
+                    return '<span class="badge bg-warning">' . $percentage . '%</span>';
+                }
+            })
+            ->addColumn('course_status', function ($student) {
+                return '<span class="status-span"
+                            data-status="' . e($student->status) . '"
+                            data-fname="' . e($student->fname) . '"
+                            data-mname="' . e($student->mname) . '"
+                            data-sname="' . e($student->sname) . '"
+                            data-id="' . e($student->id) . '"
+                            style="cursor: pointer; color: #0d6efd;">' . ucfirst($student->status) . '</span>';
+            })
+            ->addColumn('phone', function ($student) {
+                return $student->phone ?? '-';
+            })
+            ->addColumn('email', function ($student) {
+                return $student->user->email ?? '-';
+            })
+            ->addColumn('trn', function ($student) {
+                return $student->trn ?? '-';
+            })
+            ->addColumn('actions', function ($student) {
+                $view = '<a class="dropdown-item" href="' . url('/viewstudent', $student->id) . '">
+                            <i class="fa fa-user"></i> View
+                        </a>';
+
+                $edit = '';
+                $delete = '';
+
+                $changeStatus = "<button
+                                    class='dropdown-item change-status-btn'
+                                    data-fname=\"" . e($student->fname) . "\"
+                                    data-mname=\"" . e($student->mname) . "\"
+                                    data-sname=\"" . e($student->sname) . "\"
+                                    data-id=\"" . e($student->id) . "\"
+                                    data-status=\"" . e($student->status) . "\">
+                                        <i class='fas fa-toggle-on'></i> Change status
+                                </button>";
+
+                if (auth()->user()->hasRole('superAdmin')) {
+                    $edit = '<a class="dropdown-item" href="' . url('/edit-student', $student->id) . '">
+                                <i class="fa fa-pencil"></i> Edit
+                            </a>';
+
+                    $delete = '<form method="POST" action="' . url('student-delete', $student->id) . '" style="display:inline;">
+                                    ' . csrf_field() . method_field('DELETE') . '
+                                    <button type="submit" class="dropdown-item delete-confirm">
+                                        <i class="fa fa-trash"></i> Delete
+                                    </button>
+                                </form>';
+                }
+
+                return '
+                    <div class="dropdown d-inline-block">
+                        <button class="btn btn-primary" data-bs-toggle="dropdown">Actions</button>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            ' . $view . $edit . $delete . $changeStatus . '
+                        </div>
+                    </div>
+                ';
+            })
+            ->rawColumns(['actions', 'full_name', 'attendance', 'balance', 'course_status']) // allow HTML in 'actions'
+            ->make(true);
     }
 
     public function indexInstructors(Request $request)
@@ -165,7 +344,7 @@ class InstructorController extends Controller
      */
     public function instructorData($instructor)
     {
-        $instructor = Instructor::with('Fleet.student', 'classrooms.students', 'attendances.student', 'attendances.lesson', 'Schedules')->find($instructor);
+        $instructor = Instructor::with('Fleet.student.invoice', 'classrooms.students.invoice', 'attendances.student', 'attendances.lesson', 'Schedules')->find($instructor);
         return response()->json($instructor);
     }
 
