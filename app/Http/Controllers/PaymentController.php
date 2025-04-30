@@ -80,9 +80,9 @@ class PaymentController extends Controller
         }
 
         $payment = new Payment;
-        $student = havenUtils::studentID_InvoiceNumber($post['invoice_number']);
+        $invoice = havenUtils::studentID_InvoiceNumber($post['invoice_number']);
 
-        if (!$student || !$student->student) {
+        if (!$invoice || !$invoice->student) {
             return back()->withErrors(['invoice_number' => 'Invalid invoice number. Student not found.']);
         }
 
@@ -103,7 +103,7 @@ class PaymentController extends Controller
         $payment->amount_paid = $post['paid_amount'];
         $payment->payment_method_id = $post['payment_method'];
         $payment->transaction_id = Str::random(14);
-        $payment->student_id = $student->student->id;
+        $payment->student_id = $invoice->student->id;
         $payment->entered_by = Auth::user()->name;
 
         // Update invoice balance
@@ -115,7 +115,7 @@ class PaymentController extends Controller
 
         // Send SMS notification
         $sms = new NotificationController;
-        $sms->balanceSMS($student->student->id, 'Payment');
+        $sms->balanceSMS($invoice->student->id, 'Payment');
 
         Alert::toast('Payment added successfully', 'success');
         return back();
@@ -163,20 +163,30 @@ class PaymentController extends Controller
      */
     public function destroy($id)
     {
+        if (!Auth::user()->hasRole('superAdmin')) {
+            Alert::toast('You do not have permission to delete payment. Please contact the administrator for assistance.', 'warning');
+            return back();
+        }
 
-        $studentPayment = Payment::find($id);
-        $invoice = Invoice::where('student_id', $studentPayment->student_id)->first();
+        $payment = Payment::find($id);
 
-        $invoice->invoice_balance = $invoice->invoice_balance + $studentPayment->amount_paid;
-        $invoice->invoice_amount_paid = $invoice->invoice_amount_paid - $studentPayment->amount_paid;
+        if (!$payment) {
+            Alert::toast('Payment not found.', 'error');
+            return back();
+        }
 
-        $invoice->save();
+        $invoice = Invoice::where('student_id', $payment->student_id)->first();
 
-        Payment::find($id)->delete();
+        if ($invoice) {
+            $invoice->invoice_balance += $payment->amount_paid;
+            $invoice->invoice_amount_paid -= $payment->amount_paid;
+            $invoice->save();
+        }
 
+        $payment->delete();
 
-        Alert::toast('Payment deleted', 'success');
-
-        return redirect()->back();
+        Alert::toast('Payment deleted successfully.', 'success');
+        return back();
     }
+
 }
