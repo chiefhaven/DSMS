@@ -10,6 +10,7 @@ use App\Models\Setting;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
+use Auth;
 
 class InstructorPaymentController extends Controller
 {
@@ -107,6 +108,32 @@ class InstructorPaymentController extends Controller
      */
     public function store(StoreInstructorPaymentRequest $request)
     {
+        // Check permission
+        if (!Auth::user()->hasRole('superAdmin')) {
+            return response()->json([
+                'message' => 'You are not allowed to make payments to instructors.'
+            ], 403); // 403 is more appropriate for "Forbidden"
+        }
+
+        $todaysDate = Carbon::now();
+
+        if ($todaysDate->day <= 25) {
+            return response()->json([
+                'message' => 'Payments can only be processed after the 25th of every month.'
+            ], 409);
+        }
+
+        // Check if payments have already been made this month
+        $paymentsThisMonth = InstructorPayment::whereYear('created_at', Carbon::now()->year)
+            ->whereMonth('created_at', $todaysDate->month)
+            ->exists(); // More efficient than get() + count()
+
+        if ($paymentsThisMonth) {
+            return response()->json([
+                'message' => 'Payments already done for this month, can only be made once a month.'
+            ], 409); // 409 Conflict is more semantically appropriate
+        }
+
         $instructors = Instructor::where('status', 'active')->get();
 
         foreach ($instructors as $instructor) {
