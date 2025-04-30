@@ -89,6 +89,11 @@ class InvoiceController extends Controller
             'paid_amount'   =>'numeric|min:0'
         ], $messages);
 
+        if(!Auth::user()->hasRole('superAdmin')){
+            Alert::toast('You do not have permission to enroll a student. Please contact the administrator for assistance.', 'warning');
+            return back();
+        }
+
         $post = $request->All();
 
         $invoice = new Invoice;
@@ -292,6 +297,11 @@ class InvoiceController extends Controller
             'classroom' => 'nullable|exists:classrooms,id', // Optional but must exist in classrooms table
         ], $messages);
 
+        if(!Auth::user()->hasRole('superAdmin')){
+            Alert::toast('You do not have permission to enroll a student. Please contact the administrator for assistance.', 'warning');
+            return back();
+        }
+
         // Get all request data
         $post = $request->all();
 
@@ -362,7 +372,7 @@ class InvoiceController extends Controller
             $student->fleet_id = Null;
             $Invoice->delete();
             $student->save();
-            Alert::toast('Invoice deleted', 'success');
+            Alert::toast('Invoice deleted, student unenrolled!', 'success');
         }
 
         catch(Exception $e){
