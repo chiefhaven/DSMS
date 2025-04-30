@@ -316,8 +316,13 @@
                             System will automatically pay bonuses on 28th
                         </p>
                         <div id="bonuses">
-                            <button class="btn btn-primary" @click="payEarly">
-                                Pay early
+                            <button class="btn btn-primary" :disabled="paymentLoading" @click="payEarly">
+                                <span v-if="paymentLoading">
+                                    <i class="fa fa-spinner fa-spin"></i> Processing...
+                                </span>
+                                <span v-else>
+                                    Pay early
+                                </span>
                             </button>
                         </div>
                     </div>
@@ -331,29 +336,42 @@
 
         const bonuses = createApp({
             setup() {
+                const paymentLoading = ref(false)
+
+
                 const payEarly = () => {
                     Swal.fire({
                         title: 'Are you sure?',
                         text: "You are about to process an early payment.",
-                        icon: 'warning',
+                        icon: 'info',
                         showCancelButton: true,
-                        confirmButtonText: 'Yes, proceed!',
+                        confirmButtonText: 'Proceed',
+                        confirmButtonColor: '#28a745',
                         cancelButtonText: 'Cancel'
                     }).then((result) => {
-                        axios.post('/api/bonuses/pay-early')
-                        .then(response => {
-                            Swal.fire('Success!', 'Early payment processed.', 'success');
-                            // Optional: reload bonuses or update UI
-                        })
-                        .catch(error => {
-                            Swal.fire('Error!', 'Could not process payment.', 'error');
-                            console.error('Early payment error:', error);
-                        });
+                        if (result.isConfirmed) {
+                            NProgress.start();
+                            paymentLoading.value = true;
+                            axios.post('/api/bonuses/pay-early')
+                                .then(response => {
+                                    Swal.fire('Success!', 'Early payment processed.', 'success');
+                                    // Optional: reload bonuses or update UI
+                                })
+                                .catch(error => {
+                                    const message = error.response?.data?.message || 'An unexpected error occurred.';
+                                    Swal.fire('Payment not processed!', message, 'error');
+                                })
+                                .finally(() => {
+                                    NProgress.done();
+                                    paymentLoading.value = false;
+                                });
+                        }
                     });
                 };
 
                 return {
-                    payEarly
+                    payEarly,
+                    paymentLoading
                 };
             }
         }).mount('#bonuses');
