@@ -85,8 +85,8 @@
 
         static function studentID_InvoiceNumber($invoiceNumber){
 
-                $student = Invoice::where('invoice_number', $invoiceNumber)->first();
-                return $student;
+                $invoice = Invoice::where('invoice_number', $invoiceNumber)->first();
+                return $invoice;
 
         }
 
