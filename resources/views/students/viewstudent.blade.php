@@ -554,4 +554,45 @@
     })
     app.mount('#student')
 </script>
+
+<script>
+    $('.delete-confirm').on('click', function (e) {
+        e.preventDefault();
+        var form = $(this).closest('form');
+        var transactionId = $(this).data('transaction-id');
+
+        Swal.fire({
+            title: 'Delete Payment',
+            text: 'Are you sure you want to delete payment number ' + transactionId + '?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Delete'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    });
+</script>
+
+<script>
+    $('.delete-invoice').on('click', function (e) {
+        e.preventDefault();
+        const invoiceId = $(this).data('invoice-id'); // force string
+        const form = $(this).closest('form');
+
+        Swal.fire({
+            title: 'Delete Invoice #'+ invoiceId,
+            text: 'This will unenroll student from course!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Delete',
+            confirmButtonColor: '#d33',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    });
+</script>
 @endsection
