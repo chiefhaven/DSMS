@@ -83,7 +83,7 @@ class AuthController extends Controller
     }
 
     // Handle Forgot Password Request
-    public function forgotPassword(Request $request)
+    public function forgotPasswordReset(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:users,email',
