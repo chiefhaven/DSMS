@@ -30,7 +30,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::post('register', [AuthController::class, 'register'])->name('register.api'); // Signup
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('resetPassword.api');
-Route::post('/forgot-password', [AuthController::class, 'resetPassword'])->name('forgotPassword.api');
+Route::post('/forgot-password', [AuthController::class, 'forgotPasswordReset'])->name('forgotPassword.api');
 Route::post('/otp', [AuthController::class, 'otp']);
 Route::post('login', [AuthController::class, 'login'])->name('login.api'); // Login
 
