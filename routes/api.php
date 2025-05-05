@@ -3,15 +3,14 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\HomeController;
-use App\Http\Controllers\Api\InvoiceController;
+use App\Http\Controllers\Api\InvoiceController as ApiInvoiceController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\MbiraStudentVersion;
 use App\Http\Controllers\Api\studentController as ApiStudentController;
 use App\Http\Controllers\Api\StudentProfileController;
-use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\InstructorPaymentController;
 use App\Http\Controllers\StudentController;
-use App\Models\Classroom;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,8 +36,9 @@ Route::post('/otp', [AuthController::class, 'otp']);
 Route::post('login', [AuthController::class, 'login'])->name('login.api'); // Login
 
 Route::get('invoicesHome', [HomeController::class],'index')->middleware('auth');
-Route::get('/invoices', [InvoiceController::class, 'index']);
-Route::get('invoice-view/{id}', [InvoiceController::class, 'show'])->middleware('auth');
+Route::get('/invoices', [ApiInvoiceController::class, 'index']);
+Route::get('/fetchInvoices', [InvoiceController::class, 'fetchInvoices'])->middleware('auth');
+Route::get('invoice-view/{id}', [ApiInvoiceController::class, 'show'])->middleware('auth');
 
 
 Route::get('/studentProfile', [StudentProfileController::class, 'show'])->middleware('auth:sanctum')->name('studentProfile');
