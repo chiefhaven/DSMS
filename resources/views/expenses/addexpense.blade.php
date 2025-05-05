@@ -26,7 +26,7 @@
                 <form class="mb-5" action="{{ url('/add-expense') }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
                     @csrf
                     <div class="col-12 form-floating mb-4">
-                        <input type="text" timezone="Africa/Blantyre" class="form-control" id="expense_group_name" name="expense_group_name" v-model="state.expenseGroupName" placeholder="DDMMYY">
+                        <input type="text" timezone="Africa/Blantyre" class="form-control" id="expense_group_name" name="expense_group_name" v-model="state.expenseGroupName" placeholder="DDMMYY" required>
                         <label for="invoice_discount">Booking Date</label>
                     </div>
                     <div class="col-12 form-floating mb-4">
@@ -42,7 +42,7 @@
                         <label for="invoice_discount">Expense notes</label>
                     </div>
                     <div class="col-12 form-floating mb-4">
-                        <input type="number" class="form-control" id="amount" name="amount" v-model="state.amount">
+                        <input type="number" class="form-control" id="amount" name="amount" v-model="state.amount" required>
                         <label for="amount">Amount per student</label>
                     </div>
             </form>
@@ -222,6 +222,17 @@
 
                     return false
                 }
+
+                if (isNaN(state.value.amount) || Number(state.value.amount) <= 0) {
+                    showAlert('Amount per student', 'Expense amount per student must be a number greater than 0 and must be the actual figure', {
+                        toast: false,
+                        icon: 'error',
+                        confirmText: 'Ok'
+                    });
+
+                    return false;
+                }
+
 
                 if( !state.value.expenseGroupName || !state.value.paymentMethod){
                     notification('Expense Group Name, Payment Method and Amount must be filled and Amount must be greater than 0', 'error')
