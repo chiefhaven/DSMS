@@ -13,16 +13,17 @@ use App\Models\Setting;
 use App\Http\Requests\UpdateInvoiceRequest;
 use App\Models\Administrator;
 use App\Models\Classroom;
-use App\Models\User;
 use App\Notifications\StudentEnrolled;
 use App\Notifications\StudentEnrollment;
 use Illuminate\Support\Str;
 use Auth;
 use Exception;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Notification;
 use RealRashid\SweetAlert\Facades\Alert;
 use PDF;
+use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Http\JsonResponse;
+
 
 class InvoiceController extends Controller
 {
@@ -35,14 +36,131 @@ class InvoiceController extends Controller
     public function index()
     {
         if(Auth::user()->hasRole('superAdmin')){
-            $invoices = Invoice::with('Student', 'User')->orderBy('created_at', 'DESC')->get();
-            return view('invoices.invoices', compact('invoices'));
+            return view('invoices.invoices');
         }
 
         else{
             Alert::toast('You don\'t have permission to access this page', 'warning');
             return redirect('/');
         }
+    }
+
+    public function fetchInvoices(Request $request): JsonResponse
+    {
+        // Capture the search keyword from the request if provided
+        $search = $request->input('search.value'); // This is the global search input
+
+        //$status = $request->status;
+
+        $invoices = Invoice::with('Student', 'User')->orderBy('created_at', 'DESC');
+
+        // Apply the search filter to the 'fname', 'mname', and 'sname' columns
+        if ($search) {
+            $invoices->where(function($query) use ($search) {
+                $query->where('fname', 'like', "%$search%")
+                    ->orWhere('mname', 'like', "%$search%")
+                    ->orWhere('sname', 'like', "%$search%")
+                    ->orWhereHas('course', function($q) use ($search) {
+                        $q->where('name', 'like', "%$search%");
+                    });
+            });
+        }
+
+        return DataTables::of($invoices)
+            ->addColumn('invoice_number', function ($invoice) {
+                return e($invoice->invoice_number);
+            })
+            ->addColumn('student_name', function ($invoice) {
+                $middle = $invoice->student->mname ? $invoice->student->mname . ' ' : '';
+                return '<span class="text-uppercase">' . e($invoice->student->fname) . ' ' . e($middle) . '<b>' . e($invoice->student->sname) . '</b></span>';
+            })
+            ->addColumn('course', function ($invoice) {
+                return $invoice->course->name;
+            })
+            ->addColumn('course_price', function ($invoice) {
+                return 'K' . number_format($invoice->invoice_total ?? 0);
+            })
+            ->addColumn('discount', function ($invoice) {
+                return 'K' . number_format($invoice->invoice_discount ?? 0);
+            })
+            ->addColumn('total', function ($invoice) {
+                $invoiceBalance = $invoice->invoice_total ?? 0;
+                $balanceClass = $invoiceBalance > 0 ? 'text-danger' : 'text-success';
+
+                return '<strong>
+                            <span class="' . $balanceClass . '">
+                                K' . number_format($invoiceBalance, 2) . '
+                            </span>
+                        </strong>';
+            })
+            ->addColumn('paid', function ($invoice) {
+                $paid = $invoice->invoice_amount_paid ?? 0;
+
+                return '<strong>
+                            K' . number_format($paid, 2) . '
+                        </strong>';
+            })
+            ->addColumn('balance', function ($invoice) {
+                $invoiceBalance = $invoice->invoice->invoice_balance ?? 0;
+                $balanceClass = $invoiceBalance > 0 ? 'text-danger' : 'text-success';
+
+                return '<strong>
+                            <span class="' . $balanceClass . '">
+                                K' . number_format($invoiceBalance, 2) . '
+                            </span>
+                        </strong>';
+            })
+            ->addColumn('due_date', function ($invoice) {
+                return $invoice->invoice_payment_due_date
+                    ? $invoice->invoice_payment_due_date->format('d M, Y')
+                    : '-';
+            })
+            ->addColumn('updated_at', function ($invoice) {
+                return $invoice->updated_at
+                    ? $invoice->updated_at->format('d M, Y')
+                    : '-';
+            })
+            ->addColumn('date_created', function ($invoice) {
+                return $invoice->created_at
+                    ? $invoice->created_at->format('d M, Y')
+                    : '-';
+            })
+            ->addColumn('actions', function ($invoice) {
+                $view = '<a class="dropdown-item" href="' . url('/view-invoice', $invoice->id) . '">
+                            <i class="fa fa-file-invoice"></i> View
+                        </a>';
+
+                $edit = '';
+                $delete = '';
+
+                if (auth()->user()->hasRole('superAdmin')) {
+                    $edit = '<a class="dropdown-item" href="' . url('/edit-invoice', $invoice->id) . '">
+                                <i class="fa fa-pencil"></i> Edit
+                            </a>';
+
+                    $print = '<a class="dropdown-item" href="' . url('/invoice-pdf', $invoice->id) . '">
+                        <i class="si si-printer me-1"></i> Print Invoice
+                    </a>';
+
+                    $delete = '<form method="POST" action="' . url('invoice-delete', $invoice->id) . '" style="display:inline;">
+                                    ' . csrf_field() . method_field('DELETE') . '
+                                    <button type="submit" class="dropdown-item delete-confirm">
+                                        <i class="fa fa-trash"></i> Delete
+                                    </button>
+                                </form>';
+                }
+
+                return '
+                    <div class="dropdown d-inline-block">
+                        <button class="btn btn-primary" data-bs-toggle="dropdown">Actions</button>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            ' . $view . $edit . $delete . $print .'
+                        </div>
+                    </div>
+                ';
+            })
+            ->rawColumns(['actions','total', 'paid', 'student_name', 'balance']) // allow HTML in 'actions'
+            ->make(true);
     }
 
     /**
