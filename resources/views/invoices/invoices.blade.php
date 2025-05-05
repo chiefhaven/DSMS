@@ -1,114 +1,45 @@
 @extends('layouts.backend')
 
 @section('content')
-  <!-- Hero -->
-  <div class="bg-body-light">
-    <div class="content content-full">
-      <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
-        <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Invoices</h1>
-      </div>
-    </div>
-  </div>
-
-  <div class="content content-full">
-    @if(Session::has('message'))
-      <div class="alert alert-info">
-        {{Session::get('message')}}
-      </div>
-    @endif
-    <div class="block block-rounded block-bordered">
-          <div class="block-content">
-            <div class="table-responsive">
-            @if(!$invoices->isEmpty())
-              <table id="invoices" class="table table-bordered table-striped table-vcenter">
-                  <thead>
-                      <tr>
-                        <th class="text-center">Actions</th>
-                        <th style="min-width: 15rem">Invoice No</th>
-                        <th style="min-width: 15rem">Student</th>
-                        <th>Course Price</th>
-                        <th>Discount</th>
-                        <th>Total</th>
-                        <th>Paid</th>
-                        <th>Balance</th>
-                        <th style="min-width: 10rem">Date</th>
-                        <th style="min-width: 10rem">Due</th>
-                      </tr>
-                  </thead>
-                  <tbody>
-                    @foreach ($invoices as $invoice)
-                      <tr>
-                        <td class="text-center">
-                            <div class="dropdown d-inline-block">
-                                <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="d-sm-inline-block">Action</span>
-                                </button>
-                                <div class="dropdown-menu dropdown-menu-end p-0">
-                                    <div class="p-2">
-                                        <a class="dropdown-item" href="{{ url('/view-invoice', $invoice->id) }}">
-                                        View
-                                        </a>
-                                        <form method="get" action="{{ url('/edit-invoice', $invoice->id) }}">
-                                            {{ csrf_field() }}
-                                            <button class="dropdown-item" type="submit"><i class="si si-edit-name"></i> Edit</button>
-                                            </form>
-                                        <a class="dropdown-item" href="javascript:void(0)">
-                                            Add payment
-                                        </a>
-                                        <a class="dropdown-item" href="{{ url('/invoice-pdf', $invoice->id) }}">
-                                            <i class="si si-printer me-1"></i> Print Invoice
-                                        </a>
-                                        <form method="POST" action="{{ url('/invoice-delete', $invoice) }}">
-                                            {{ csrf_field() }}
-                                            {{ method_field('DELETE') }}
-                                                <button class="dropdown-item delete-confirm" type="submit">
-                                                <i class="si si-trash me-1"></i> Delete</button>
-                                        </form>
-                                        <form method="POST" action="{{ url('send-balance-sms', [$invoice->student,'Balance'])}}">
-                                            {{ csrf_field() }}
-                                            <button class="dropdown-item" type="submit"><i class="si si-envelope me-1"></i> Send balance reminder</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
-                          <td class="font-w600">
-                              <a href="{{ url('/view-invoice', $invoice->id) }}">{{$invoice->invoice_number}}</a>
-                          </td>
-                          <td class="text-uppercase">
-                            {{$invoice->student->fname}} <b>{{$invoice->student->sname}}</b>
-                          </td>
-                          <td>
-                            K{{number_format($invoice->course_price, 2)}}
-                          </td>
-                          <td>
-                            K{{number_format($invoice->invoice_discount, 2)}}
-                          </td>
-                          <td>
-                            K{{number_format($invoice->invoice_total, 2)}}
-                          </td>
-                          <td>
-                            K{{number_format($invoice->invoice_amount_paid, 2)}}
-                          </td>
-                          <td>
-                              K{{number_format($invoice->invoice_balance, 2)}}
-                          </td>
-                          <td class="font-w600">
-                            {{$invoice->date_created->format('j F, Y')}}
-                          </td>
-                          <td>
-                              {{$invoice->invoice_payment_due_date->format('j F, Y')}}
-                          </td>
-                      </tr>
-                      @endforeach
-                  </tbody>
-              </table>
-            @else
-                <p class="p-5">No matching records found!</p>
-            @endif
+    <!-- Hero -->
+    <div class="bg-body-light">
+        <div class="content content-full">
+            <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
+                <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Invoices</h1>
             </div>
-          </div>
-      </div>
+        </div>
+    </div>
+
+    <div class="content content-full">
+        @if(Session::has('message'))
+        <div class="alert alert-info">
+            {{Session::get('message')}}
+        </div>
+        @endif
+        <div class="block block-rounded block-bordered" id="invoices">
+            <div class="block-content">
+                <div class="table-responsive">
+                    <table id="invoicesTable" class="table table-bordered table-striped table-vcenter">
+                        <thead>
+                            <tr>
+                            <th class="text-center">Actions</th>
+                            <th style="min-width: 15rem">Invoice No</th>
+                            <th style="min-width: 15rem">Student</th>
+                            <th style="min-width: 10rem">Course</th>
+                            <th style="min-width: 10rem">Course Price</th>
+                            <th style="min-width: 10rem">Discount</th>
+                            <th style="min-width: 10rem">Total</th>
+                            <th style="min-width: 10rem">Paid</th>
+                            <th style="min-width: 10rem">Balance</th>
+                            <th style="min-width: 10rem">Date created</th>
+                            <th style="min-width: 10rem">Due</th>
+                            <th style="min-width: 10rem">Updated at</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
 <script type="text/javascript">
@@ -129,69 +60,225 @@
 </script>
 
 <!-- Vue app -->
-<script>
-    const { createApp } = Vue
+<script setup>
+    const { createApp, ref, onMounted } = Vue;
 
-    createApp({
-        data() {
+    const invoices = createApp({
+      setup() {
+        const status = ref('active');
+        const showStatusChangeModal = ref(false);
+        const studentId = ref(null);
+        const studentName = ref('');
+        const invoicestatus = ref('');
+        const isSaving = ref(false);
+
+        onMounted(() => {
+          getinvoices();
+        });
+
+        const reloadTable = (val = status.value) => {
+          status.value = val;
+          if ($.fn.DataTable.isDataTable('#invoicesTable')) {
+            $('#invoicesTable').DataTable().ajax.reload();
+          }
+        };
+
+        const getinvoices = () => {
+          NProgress.start();
+
+          if ($.fn.DataTable.isDataTable('#invoicesTable')) {
+            $('#invoicesTable').DataTable().destroy();
+          }
+
+          $('#invoicesTable').DataTable({
+            serverSide: true,
+            processing: true,
+            scrollCollapse: true,
+            scrollX: true,
+            ajax: async function (data, callback) {
+              try {
+                const csrfToken = $('meta[name="csrf-token"]').attr('content');
+                axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
+
+                const response = await axios.get('/api/fetchInvoices', {
+                  params: { ...data, status: status.value },
+                  withCredentials: true,
+                  headers: {
+                    'X-CSRF-TOKEN': csrfToken
+                  }
+                });
+
+                callback(response.data);
+              } catch (error) {
+                let errorMessage = 'An error occurred while fetching data. Please try again later.';
+
+                if (error.response?.data?.error) {
+                  errorMessage = error.response.data.error;
+                } else if (error.response?.data) {
+                  errorMessage = error.response.data;
+                }
+
+                if ([401, 403, 409].includes(error.response?.status)) {
+                  showError('Session expired, reloading...');
+                  setTimeout(() => window.location.reload(), 1500);
+                } else {
+                  showError('Error', errorMessage);
+                  console.error(error);
+                }
+              } finally {
+                NProgress.done();
+              }
+            },
+            columns: [
+              { data: 'actions', className: 'text-center', orderable: false },
+              { data: 'invoice_number' },
+              { data: 'student_name' },
+              { data: 'course', className: 'text-wrap' },
+              { data: 'course_price', className: 'text-right' },
+              { data: 'discount', className: 'text-right' },
+              { data: 'total', className: 'text-center' },
+              { data: 'paid', className: 'text-center' },
+              { data: 'balance', className: 'text-center' },
+              { data: 'date_created', className: 'text-wrap' },
+              { data: 'due_date', className: 'text-wrap' },
+              { data: 'updated_at', className: 'text-wrap' },
+            ],
+            drawCallback: function () {
+              $('#invoicesTable tbody')
+                .off()
+                .on('click', '.change-status-btn, .status-span', function () {
+                  const id = $(this).data('id');
+                  const status = $(this).data('status');
+                  const fname = $(this).data('fname');
+                  const mname = $(this).data('mname');
+                  const sname = $(this).data('sname');
+
+                  const fullName = `${fname} ${mname || ''} ${sname}`.trim();
+                  openStatusChangeModal(id, status, fullName);
+                });
+
+              $('.delete-confirm').on('click', function (e) {
+                e.preventDefault();
+                const form = $(this).closest('form');
+                Swal.fire({
+                  title: 'Delete invoice?',
+                  text: 'Deleting this invoice will unenrolle the student from course!',
+                  icon: 'warning',
+                  showCancelButton: true,
+                  confirmButtonColor: '#d33',
+                  cancelButtonColor: '#3085d6',
+                  confirmButtonText: 'Delete',
+                  cancelButtonText: 'Cancel'
+                }).then((result) => {
+                  if (result.isConfirmed) {
+                    form.submit();
+                    $('#invoicesTable').DataTable().ajax.reload();
+                  }
+                });
+              });
+            }
+          });
+        };
+
+        const openStatusChangeModal = (id, status, fullName) => {
+          studentId.value = id;
+          invoicestatus.value = status;
+          studentName.value = fullName;
+          showStatusChangeModal.value = true;
+        };
+
+        const closeStatusChangeModal = () => {
+          showStatusChangeModal.value = false;
+        };
+
+        const saveStatusChange = async () => {
+          isSaving.value = true;
+
+          try {
+            await axios.post(`/updateinvoicestatus/${studentId.value}`, {
+              status: invoicestatus.value
+            }, {
+              headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+              }
+            });
+
+            showAlert('', 'Student status updated successfully.', { icon: 'success' });
+            showStatusChangeModal.value = false;
+            reloadTable();
+          } catch (error) {
+            console.error('Error updating status:', error);
+            showError('Oops!', 'Something went wrong while updating the status.');
+          } finally {
+            isSaving.value = false;
+          }
+        };
+
+        const showError = (
+          message = 'Error',
+          detail = '',
+          { confirmText = 'OK', icon = 'error' } = {}
+        ) => {
+          const baseOptions = {
+            icon,
+            title: message,
+            text: detail,
+            confirmButtonText: confirmText,
+            didOpen: (toast) => {
+              toast.addEventListener('mouseenter', Swal.stopTimer);
+              toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+          };
+
+          const cleanOptions = Object.fromEntries(
+            Object.entries(baseOptions).filter(([_, v]) => v !== undefined)
+          );
+
+          return Swal.fire(cleanOptions);
+        };
+
+        const showAlert = (
+          message = '',
+          detail = '',
+          { icon = 'info' } = {}
+        ) => {
+          const baseOptions = {
+            icon,
+            toast: true,
+            timer: 3000,
+            timerProgressBar: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            didOpen: (toast) => {
+              toast.addEventListener('mouseenter', Swal.stopTimer);
+              toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+          };
+
+          if (message) baseOptions.title = message;
+          if (detail) baseOptions.text = detail;
+
+          return Swal.fire(baseOptions);
+        };
+
         return {
-            count: 0,
-            info: [],
-        }
-        },
-        methods : {
-
-            async read() {
-                const { data } = window.axios.get('/api/invoices');
-                // console.log(data)
-            },
-            // Creating function
-            timeCreated: function(date){
-                return moment(date).format('DD MMMM, YYYY');
-            },
-
-            formatPrice(value) {
-                let val = (value/1).toFixed(2).replace(',', '.')
-                return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-            },
-
-            view_invoice: function(invoice_number){
-                const url = `api/invoice-view/Daron-2022-2`;
-                axios.get(url)
-                    .then((response) => {
-                        res(this.invoice = response.data);
-                    })
-                    .catch((err) => {
-                        rej(err);
-                    });
-            },
-
-            invoice_edit: function(invoice_number){
-
-            },
-
-            invoice_delete: function(invoice_number){
-
-            },
-        },
-
-        mounted () {
-            axios
-            .get('api/home')
-            .then(response => (this.info = response.data))
-        }
-
-    }).mount('#invoices')
-</script>
-<script>
-    $(document).ready(function() {
-        $('#invoices').DataTable({
-            "columnDefs": [
-                { "orderable": false, "targets": 0 }
-            ]
-        } );
+          reloadTable,
+          saveStatusChange,
+          closeStatusChangeModal,
+          openStatusChangeModal,
+          showStatusChangeModal,
+          studentId,
+          invoicestatus,
+          studentName,
+          isSaving
+        };
+      }
     });
-</script>
+
+    invoices.mount('#invoices');
+    </script>
+
+
 
   <!-- END Hero -->
 
