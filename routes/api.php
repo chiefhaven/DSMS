@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\HomeController;
+use App\Http\Controllers\Api\HomeController as ApiHomeController;
 use App\Http\Controllers\Api\InvoiceController as ApiInvoiceController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\Api\AuthController;
@@ -56,6 +57,10 @@ Route::get('/notifications', [StudentProfileController::class, 'notifications'])
 Route::get('/attendances', [StudentProfileController::class, 'attendances'])->middleware('auth:sanctum')->name('attendances');
 Route::get('/courseDetails', [StudentProfileController::class, 'courseDetails'])->middleware('auth:sanctum')->name('courseDetails');
 
-Route::post('/bonuses/pay-early', [InstructorPaymentController::class, 'store'])->middleware('auth:sanctum')->name('courseDetails');;
+Route::post('/bonuses/pay-early', [InstructorPaymentController::class, 'store'])->middleware('auth:sanctum')->name('courseDetails');
+
+Route::get('/dashboardSummary', [ApiHomeController::class, 'dashboardSummary'])->middleware('auth:sanctum')->name('dashboardSummary');
+
+
 
 
