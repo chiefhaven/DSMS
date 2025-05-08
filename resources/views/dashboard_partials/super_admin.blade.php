@@ -101,7 +101,7 @@
                             <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                                 <div><i class="fa fa-2x fa-chart-line"></i></div>
                                 <div class="ml-3 text-right">
-                                    <p class="font-size-h3 font-w900 mb-0">K@{{ summaryInfo.expensesTotal }}</p>
+                                    <p class="font-size-h3 font-w900 mb-0">K@{{ formatCurrency(summaryInfo.expensesTotal) }}</p>
                                     <p class="mb-0">Expenses</p>
                                 </div>
                             </div>
