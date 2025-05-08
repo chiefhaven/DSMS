@@ -4,106 +4,118 @@
 
     <div class="col-md-8">
         <div class="p-3">
-            <div class="row block">
-                <div class="col-md-12 mb-3">
-                    <div class="col-md-12 block-rounded block-bordered p-4 d-inline-block">
-                        <form action="{{ url('/') }}" method="POST" enctype="multipart/form-data">
-                            @csrf
-                            <label for="filter">Filter</label>
-                            <select class="btn border dropdown-toggle" id="filter" name="filter" onchange="this.form.submit()">
-                                <option value="today">Today</option>
-                                <option value="yesterday">Yesterday</option>
-                                <option value="thisweek">This Week</option>
-                                <option value="thismonth">This Month</option>
-                                <option value="lastmonth">Last Month</option>
-                                <option value="thisyear">This Year</option>
-                                <option value="lastyear">Last Year</option>
-                                <option value="alltime">All Time</option>
-                            </select>
-                        </form>
-                    </div>
+            <div class="row block" id="dashboardSummary" v-cloak>
+                <div v-if="isLoading" class="text-center py-7">
+                    <span class="spinner-border text-primary" role="status"></span>
+                    <p>Loading summary</p>
                 </div>
-                <div class="col-md-4 col-xl-4">
-                    <div class="block block-rounded block-link-shadow border" href="javascript:void(0)">
-                        <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                            <div>
-                                <i class="fa fa-2x fa-arrow-up"></i>
-                            </div>
-                            <div class="ml-3 text-right">
-                                <p class="font-size-h3 font-w300 mb-0">
-                                    K{{number_format($earningsTotal, 2)}}
-                                </p>
-                                <p class="mb-0">
-                                    Sales
-                                </p>
+        
+                <div v-else class="row">
+                    <div class="col-md-12 mb-3">
+                        <div class="col-md-12 block-rounded block-bordered p-4 d-inline-block">
+                            <form @submit.prevent class="row g-2 align-items-end">
+                                @csrf
+                            
+                                <div class="col-auto">
+                                    <label for="filter" class="form-label mb-1">Filter</label>
+                                    <select class="form-control form-control rounded-0"
+                                            id="filter"
+                                            v-model="filter"
+                                            name="filter"
+                                            @change="onFilterChange">
+                                        <option value="today">Today</option>
+                                        <option value="yesterday">Yesterday</option>
+                                        <option value="thisweek">This Week</option>
+                                        <option value="thismonth">This Month</option>
+                                        <option value="lastmonth">Last Month</option>
+                                        <option value="thisyear">This Year</option>
+                                        <option value="lastyear">Last Year</option>
+                                        <option value="alltime">All Time</option>
+                                        <option value="custom">Custom</option>
+                                    </select>
+                                </div>
+                            
+                                <template v-if="filter === 'custom'">
+                                    <div class="col-auto">
+                                        <label for="startDate" class="form-label mb-1">Start Date</label>
+                                        <input type="text" id="startDate"
+                                               class="form-control form-control rounded-0"
+                                               v-model="startDate"
+                                               @change="onCustomDateChange"
+                                               placeholder="YYYY-MM-DD" />
+                                    </div>
+                            
+                                    <div class="col-auto">
+                                        <label for="endDate" class="form-label mb-1">End Date</label>
+                                        <input type="text" id="endDate"
+                                               class="form-control form-control rounded-0"
+                                               v-model="endDate"
+                                               @change="onCustomDateChange"
+                                               placeholder="YYYY-MM-DD" />
+                                    </div>
+                                </template>
+                            </form>
+                            
+                        </div>
+                    </div>
+        
+                    <!-- Dashboard cards (Sales, Balances, Students, etc.) -->
+                    <div class="col-md-4 col-xl-4">
+                        <div class="block block-rounded block-link-shadow border">
+                            <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                                <div><i class="fa fa-2x fa-arrow-up"></i></div>
+                                <div class="ml-3 text-right">
+                                    <p class="font-size-h3 font-w300 mb-0">K@{{ formatCurrency(summaryInfo.earningsTotal) }}</p>
+                                    <p class="mb-0">Sales</p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-md-4 col-xl-4">
-                    <div class="block block-rounded block-link-shadow border">
-                        <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                            <div>
-                                <i class="fa fa-2x fa-arrow-up"></i>
-                            </div>
-                            <div class="ml-3 text-right">
-                                <p class="font-size-h3 font-w900 mb-0">
-                                    K{{number_format($invoiceBalances, 2)}}
-                                </p>
-                                <p class="mb-0">
-                                    Balances
-                                </p>
+        
+                    <div class="col-md-4 col-xl-4">
+                        <div class="block block-rounded block-link-shadow border">
+                            <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                                <div><i class="fa fa-2x fa-wallet"></i></div>
+                                <div class="ml-3 text-right">
+                                    <p class="font-size-h3 font-w900 mb-0">K@{{ formatCurrency(summaryInfo.invoiceBalances) }}</p>
+                                    <p class="mb-0">Balances</p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-md-4 col-xl-4">
-                    <div class="block block-rounded block-link-shadow border">
-                        <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                            <div>
-                                <i class="far fa-2x fa-user"></i>
-                            </div>
-                            <div class="ml-3 text-right">
-                                <p class="font-size-h3 font-w900 mb-0">
-                                    {{$studentCount}}
-                                </p>
-                                <p class="mb-0">
-                                    Students
-                                </p>
+        
+                    <div class="col-md-4 col-xl-4">
+                        <div class="block block-rounded block-link-shadow border">
+                            <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                                <div><i class="far fa-2x fa-user"></i></div>
+                                <div class="ml-3 text-right">
+                                    <p class="font-size-h3 font-w900 mb-0">@{{ summaryInfo.studentCount }}</p>
+                                    <p class="mb-0">Students</p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-md-4 col-xl-4">
-                    <div class="block block-rounded block-link-shadow border">
-                        <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                            <div>
-                                <i class="fa fa-2x fa-chart-line"></i>
-                            </div>
-                            <div class="mr-3">
-                                <p class="font-size-h3 font-w900 mb-0">
-                                    K{{number_format($expensesTotal, 2)}}
-                                </p>
-                                <p class="mb-0">
-                                    Expenses
-                                </p>
+        
+                    <div class="col-md-4 col-xl-4">
+                        <div class="block block-rounded block-link-shadow border">
+                            <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                                <div><i class="fa fa-2x fa-chart-line"></i></div>
+                                <div class="ml-3 text-right">
+                                    <p class="font-size-h3 font-w900 mb-0">K@{{ summaryInfo.expensesTotal }}</p>
+                                    <p class="mb-0">Expenses</p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-md-4 col-xl-4">
-                    <div class="block block-rounded block-link-shadow border">
-                        <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                            <div>
-                                <i class="far fa-2x fa-clock"></i>
-                            </div>
-                            <div class="ml-3 text-right">
-                                <p class="font-size-h3 font-w900 mb-0">
-                                    {{ $attendanceCount }}
-                                </p>
-                                <p class="mb-0">
-                                    Attendanes
-                                </p>
+        
+                    <div class="col-md-4 col-xl-4">
+                        <div class="block block-rounded block-link-shadow border">
+                            <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                                <div><i class="far fa-2x fa-clock"></i></div>
+                                <div class="ml-3 text-right">
+                                    <p class="font-size-h3 font-w900 mb-0">@{{ formatCurrency(summaryInfo.attendanceCount) }}</p>
+                                    <p class="mb-0">Attendances</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -332,7 +344,7 @@
     </div>
 
     <script>
-        const { createApp, ref, onMounted } = Vue;
+        const { createApp, ref, onMounted, watch, nextTick } = Vue;
 
         const bonuses = createApp({
             setup() {
@@ -390,7 +402,6 @@
                             info.value = response.data;
                         })
                         .catch(error => {
-                            console.error("Error loading invoices:", error);
                         });
                 });
 
@@ -402,7 +413,6 @@
                             invoice.value = response.data;
                         })
                         .catch(err => {
-                            console.error("Error fetching invoice:", err);
                         });
                 };
 
@@ -427,10 +437,152 @@
                 };
             }
         }).mount('#invoices');
+
+        const dashboardSummary = createApp({
+            setup() {
+                const filter = ref('today')
+                const startDate = ref()
+                const endDate = ref()
+                const isLoading = ref(false)
+
+                const summaryInfo = ref([]);
+
+                // Initialize datepickers on mount
+                onMounted(() => {
+                    isLoading.value = true;
+
+                    filterDashboard();
+                });
+
+                const filterDashboard = async () => {
+                    NProgress.start()
+                    try {
+                        const response = await axios.get('/api/dashboardSummary', {
+                            params: {
+                                filter: filter.value,
+                                ...(filter.value === 'custom' && {
+                                    start_date: startDate.value,
+                                    end_date: endDate.value
+                                })
+                            }
+                        })
+                        summaryInfo.value = response.data;
+                    } catch (error) {
+                        const errorData = error.response.data;
+
+                        if (errorData.errors && typeof errorData.errors === 'object') {
+                            Object.values(errorData.errors).forEach(errorArray => {
+                                errorArray.forEach(msg => {
+                                    showAlert('', msg, { icon: 'error' });
+                                });
+                            });
+                        } else {
+                            showAlert('', errorData.message || errorData, { icon: 'error' });
+                        }
+
+                    }finally{
+                        NProgress.done();
+                        isLoading.value = false;
+
+                    }
+                }
+
+                watch(
+                    () => filter.value,
+                    (newVal) => {
+                        if (newVal === 'custom') {
+                            nextTick(() => {
+                                const today = new Date();
+                                const day = String(today.getDate()).padStart(2, '0');
+                                const month = String(today.getMonth() + 1).padStart(2, '0');
+                                const year = today.getFullYear();
+                            
+                                // Set the date in yyyy-mm-dd format (adjusted for consistency)
+                                const formattedDate = `${year}-${month}-${day}`;
+                            
+                                $('#startDate').datepicker({
+                                    format: 'yyyy-mm-dd',
+                                    autoclose: true,
+                                    todayHighlight: true,
+                                }).on('changeDate', function (e) {
+                                    startDate.value = e.format('yyyy-mm-dd'); // Ensure correct format
+                                    onCustomDateChange();
+                                }).datepicker('setDate', formattedDate);
+                            
+                                $('#endDate').datepicker({
+                                    format: 'yyyy-mm-dd',
+                                    autoclose: true,
+                                    todayHighlight: true,
+                                }).on('changeDate', function (e) {
+                                    endDate.value = e.format('yyyy-mm-dd'); // Ensure correct format
+                                    onCustomDateChange();
+                                }).datepicker('setDate', formattedDate);
+                            });
+                            
+                        }
+                    },
+                    { immediate: true }
+                );
+
+
+                const onFilterChange = () => {
+                    if (filter.value !== 'custom') {
+                        filterDashboard();
+                    }
+                };
+
+                const onCustomDateChange = () => {
+                    if (filter.value === 'custom' && startDate.value && endDate.value) {
+                        filterDashboard();
+                    }
+                };
+
+                // Format currency
+                const formatCurrency = (value) => {
+                    let val = (value / 1).toFixed(2).replace(',', '.');
+                    return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                };
+
+                const showAlert = (
+                    message = '',
+                    detail = '',
+                    { icon = 'info' } = {}
+                    ) => {
+                    const baseOptions = {
+                        icon,
+                        toast: true,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer);
+                        toast.addEventListener('mouseleave', Swal.resumeTimer);
+                        }
+                    };
+
+                    if (message) baseOptions.title = message;
+                    if (detail) baseOptions.text = detail;
+
+                    return Swal.fire(baseOptions);
+                };
+
+                return {
+                    summaryInfo,
+                    filter,
+                    startDate,
+                    endDate,
+                    filterDashboard,
+                    formatCurrency,
+                    onFilterChange,
+                    onCustomDateChange,
+                    isLoading
+                };
+            }
+        }).mount('#dashboardSummary');
     </script>
 
 <script>
-    document.getElementById("filter").value = "{{ $time }}"
 
     $(document).ready(function () {
         $.extend($.fn.dataTable.ext.type.order, {
@@ -481,7 +633,6 @@
 
             // Ensure data exists
             if (!data || !data.attendances || !data.schedules) {
-                console.error("Unexpected data structure:", data);
                 return;
             }
 
@@ -510,7 +661,6 @@
 
             load_chart(labels, attendances, schedules);
         }).fail(function(jqXHR, textStatus, errorThrown) {
-            console.error("Error fetching data:", textStatus, errorThrown);
         });
     }
 
