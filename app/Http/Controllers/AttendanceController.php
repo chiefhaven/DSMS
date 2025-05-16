@@ -231,7 +231,7 @@ class AttendanceController extends Controller
         $studentCourseDuration = havenUtils::courseDuration($courseID);
 
         if(self::attendanceCount($student_id) >= $studentCourseDuration){
-            dd(self::attendanceCount($student_id), $studentCourseDuration);
+            // dd(self::attendanceCount($student_id), $studentCourseDuration);
             Alert()->error('Attendance not entered','You can not enter more attendances than course duration a student enrolled!');
             return redirect('/attendances');
         }
