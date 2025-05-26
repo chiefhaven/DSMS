@@ -52,8 +52,18 @@
                             <div class="row mb-2">
                                 <div class="col-sm-1 text-black">@{{ ++index }}</b></div>
                                 <div class="col-sm-3 text-uppercase">@{{ student.fname }} @{{ student.mname }} <b>@{{ student.sname }}</b></div>
-                                <div class="col-sm-2">@{{ formatter.format(student.invoice.invoice_balance) }}</div>
-                                <div class="col-sm-2 text-center">@{{ student.course.class}}</div>
+                                <div class="col-sm-2" v-if="student.invoice">
+                                    @{{ formatter.format(student.invoice.invoice_balance) }}
+                                </div>
+                                <div class="col-sm-2" v-else>
+                                    Not enrolled
+                                </div>
+                                <div class="col-sm-2 text-center" v-if="student.course">
+                                    @{{ student.course.class }}
+                                </div>
+                                <div class="col-sm-2 text-center" v-else>
+                                    Not enrolled
+                                </div>
                                 <div class="col-sm-2">@{{ student.expenses[0].pivot.expense_type }}</div>
                                 <div class="col-sm-2">
                                     <button :disabled="state.expenseStatus !== 0" class="btn btn-danger btn-sm delete-confirm" @click="removeStudentFromList(student.id, index)">Remove</button>
