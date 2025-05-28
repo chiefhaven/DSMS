@@ -103,6 +103,7 @@
                   window.location.href = notification.data.url;
 
                 } catch (error) {
+                    console.log(error)
                   showError('Error', 'Something wrong happened.');
                 } finally {
                   NProgress.done();
