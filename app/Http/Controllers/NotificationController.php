@@ -7,6 +7,7 @@ use RealRashid\SweetAlert\Facades\Alert;
 use App\Models\Student;
 use App\Models\notification_template;
 use Auth;
+use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
@@ -213,13 +214,18 @@ class NotificationController extends Controller
         return back();
     }
 
-    public function markAsRead($notificationId)
+    public function markAsRead(Request $request, $notificationId)
     {
         // Find the notification by ID
         $notification = Auth::user()->notifications()->findOrFail($notificationId);
 
         // Mark the notification as read
         $notification->markAsRead();
+
+        if($request->api)
+        {
+            return response()->json(['status' => 'read']);
+        }
 
         // Redirect to the URL stored in the notification data
         return redirect($notification->data['url'] ?? '/');
