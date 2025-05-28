@@ -36,7 +36,7 @@
               <!-- Scroll container -->
               <div
                 class="notifications-list"
-                style="max-height: 400px; overflow-y: auto;"
+                style="max-height: 1000px; overflow-y: auto;"
                 @scroll="loadMoreNotifications"
               >
                 <div v-for="notification in notifications" :key="notification.id">
@@ -171,7 +171,7 @@
                 if(!isLoadingMore.value) {
                   loadNotifications(page.value + 1);
                 }
-              };
+            };
 
             return {
               notifications,
