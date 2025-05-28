@@ -1,7 +1,7 @@
 <div class="dropdown d-inline-block">
     @php
         $user = Auth::user();
-        $notifications = $user?->notifications ?? collect();
+        $notifications = $user?->notifications->take(10) ?? collect();
         $unreadNotificationsCount = $user?->unreadNotifications?->count() ?? 0;
     @endphp
 
@@ -54,9 +54,9 @@
 
                         <a href="#" class="text-reset" onclick="event.preventDefault(); this.closest('form').submit();">
                             <p class="p-3 m-2 rounded"
-                               style="background-color: {{ $notification->read() ? '#f8f9fa' : '#3de6ff' }};
-                                      color: {{ $notification->unread() ? 'black' : '#303030' }};
-                                      border-left: 5px solid {{ $notification->unread() ? '#007bff' : '#ccc' }};">
+                            style="background-color: {{ $notification->read() ? '#f8f9fa' : '#3de6ff' }};
+                                    color: {{ $notification->unread() ? 'black' : '#303030' }};
+                                    border-left: 5px solid {{ $notification->unread() ? '#007bff' : '#ccc' }};">
                                 <strong>{{ $notification->data['title'] ?? 'No Title' }}</strong><br>
                                 {{ $notification->data['body'] ?? 'No Body' }}<br>
                                 <small>{{ $notification->created_at->diffForHumans() }}</small>
@@ -67,6 +67,15 @@
             @empty
                 <p class="text-center p-3">No notifications available.</p>
             @endforelse
+
+            @if($notifications->isNotEmpty())
+                <div class="text-center p-2">
+                    <a href="{{ route('notifications.index') }}" class="btn btn-link text-decoration-none">
+                        All notifications
+                    </a>
+                </div>
+            @endif
         </div>
+
     </div>
 </div>

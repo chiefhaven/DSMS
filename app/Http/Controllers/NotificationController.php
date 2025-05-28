@@ -14,6 +14,31 @@ class NotificationController extends Controller
     // {
     //     $this->middleware(['role:superAdmin|admin|student']);
     // }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        return view('notifications/notifications');
+    }
+
+
+    /**
+     * Display a listing of notifications.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function loadNotifications()
+    {
+        $user = Auth::user();
+        $notifications = $user?->notifications ?? collect();
+        return response()->json($notifications);
+    }
+
+
     /**
      * Update the resource.
      *
