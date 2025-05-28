@@ -89,9 +89,8 @@
             const markAsRead = async (notification) => {
                 NProgress.start();
                 try {
-                  const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-                  await axios.patch(`/notifications/${notification.id}/read`, {
+                  await axios.post(`/notifications/${notification.id}/readApi`, {
                     redirect_url: notification.data.url
                   }, {
                     headers: {
