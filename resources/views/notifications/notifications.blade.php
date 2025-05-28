@@ -92,20 +92,17 @@
                     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
 
-                  await axios.patch(`/notifications/${notification.id}/read`, {
-                  }, {
-                    headers: {
-                      'X-CSRF-TOKEN': csrfToken
-                    }
-                  });
+                    await axios.patch(`/notifications/${notification.id}/read`, {}, {
+                        headers: {
+                          'X-CSRF-TOKEN': csrfToken
+                        }
+                      });
 
-                  // Optionally mark as read locally
-                  notification.read_at = new Date().toISOString();
-                  window.location.href = notification.data.url;
+                    window.location.href = notification.data.url;
 
                 } catch (error) {
                     console.log(error)
-                  showError('Error', 'Something wrong happened.');
+                    showError('Error', 'Something wrong happened.');
                 } finally {
                   NProgress.done();
                 }
