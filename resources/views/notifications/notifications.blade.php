@@ -90,7 +90,7 @@
                 NProgress.start();
                 try {
 
-                  await axios.post(`/notifications/${notification.id}/readApi`, {
+                  await axios.patch(`/notifications/${notification.id}/read`, {
                     redirect_url: notification.data.url
                   }, {
                     headers: {
