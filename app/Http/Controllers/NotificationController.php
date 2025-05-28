@@ -32,12 +32,25 @@ class NotificationController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function loadNotifications()
+    public function loadNotifications(Request $request)
     {
         $user = Auth::user();
-        $notifications = $user?->notifications ?? collect();
-        return response()->json($notifications);
+
+        // Get page number from query params (default 1)
+        $page = $request->query('page', 1);
+
+        // Define how many per page
+        $perPage = 10;
+
+        // Use the notifications relationship with pagination
+        $notifications = $user->notifications()
+                            ->orderBy('created_at', 'desc')
+                            ->paginate($perPage, ['*'], 'page', $page);
+
+        // Return only the collection data (items) as JSON
+        return response()->json($notifications->items());
     }
+
 
 
     /**
