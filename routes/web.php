@@ -250,7 +250,7 @@ Route::post('/check-class-fleet-assignment', [havenUtils::class, 'checkInstructo
 
 Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
 Route::get('/load-notifications', [NotificationController::class, 'loadNotifications'])->name('notifications.loadNotications');
-Route::patch('/notifications/{notificationId}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+Route::match(['patch', 'post'], '/notifications/{notificationId}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
 Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
 Route::patch('/notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
 
