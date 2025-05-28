@@ -92,7 +92,7 @@
                     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
 
-                    await axios.patch(`/notifications/${notification.id}/read`, {}, {
+                    await axios.patch(`/notifications/${notification.id}/read`, {api: true}, {
                         headers: {
                           'X-CSRF-TOKEN': csrfToken
                         }
