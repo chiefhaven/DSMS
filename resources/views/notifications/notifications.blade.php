@@ -93,7 +93,6 @@
 
 
                   await axios.patch(`/notifications/${notification.id}/read`, {
-                    redirect_url: notification.data.url
                   }, {
                     headers: {
                       'X-CSRF-TOKEN': csrfToken
