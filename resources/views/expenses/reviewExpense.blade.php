@@ -32,7 +32,7 @@
     </div>
     <div class="col-md-8">
         <div v-if="state">
-            <div v-if="state.loadingData" class="d-flex flex-column justify-content-center align-items-center" style="height: 300px;">
+            <div v-if="state.loadingData" class="block block-rounded block-bordered d-flex flex-column justify-content-center align-items-center" style="height: 300px;">
               <div class="spinner-border" role="status">
                 <span class="visually-hidden">Loading...</span>
               </div>
