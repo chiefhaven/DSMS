@@ -30,6 +30,8 @@ class HomeController extends Controller
         $filter = $request->input('filter');
         $time = "today"; // Default to today
 
+        $attendanceCount = 0;
+
 
         if (Auth::user()->hasRole('instructor')) {
             $attendanceCount = Attendance::whereMonth('created_at', Carbon::now()->month)
@@ -54,7 +56,7 @@ class HomeController extends Controller
 
         $settings = Setting::find(1);
 
-        return view('dashboard', compact(['settings', 'instructors', 'activities', 'student', 'time']));
+        return view('dashboard', compact(['settings', 'attendanceCount', 'instructors', 'activities', 'student', 'time']));
     }
 
     public function summaryData()
