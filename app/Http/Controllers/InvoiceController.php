@@ -54,15 +54,16 @@ class InvoiceController extends Controller
 
         $invoices = Invoice::with('Student', 'User')->orderBy('created_at', 'DESC');
 
-        // Apply the search filter to the 'fname', 'mname', and 'sname' columns
         if ($search) {
-            $invoices->where(function($query) use ($search) {
-                $query->where('fname', 'like', "%$search%")
-                    ->orWhere('mname', 'like', "%$search%")
-                    ->orWhere('sname', 'like', "%$search%")
-                    ->orWhereHas('course', function($q) use ($search) {
-                        $q->where('name', 'like', "%$search%");
-                    });
+            $invoices->where(function ($query) use ($search) {
+                $query->where('invoice_number', 'like', "%$search%")
+                      ->orWhereHas('Student', function ($q) use ($search) {
+                          $q->where('fname', 'like', "%$search%")
+                            ->orWhere('mname', 'like', "%$search%")
+                            ->orWhere('sname', 'like', "%$search%");
+                      })->orWhereHas('Student.course', function ($q) use ($search) {
+                          $q->where('name', 'like', "%$search%");
+                      });
             });
         }
 
