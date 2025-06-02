@@ -283,7 +283,7 @@ class ExpenseController extends Controller
                 if(($student->invoice->invoice_amount_paid / $student->invoice->invoice_total) * 100 < $this->setting->fees_road_threshold){
                     $data = [
                         'feedback'=>'error',
-                        'message' => "{$fullName} can not be selected for road test, There are balances that must be paid"
+                        'message' => "{$fullName} can not be selected for road test, There is K{$student->invoice->invoice_balance} balance that must be paid"
                     ];
                     return response()->json($data, 200);
                 }

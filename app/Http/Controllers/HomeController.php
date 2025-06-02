@@ -43,7 +43,7 @@ class HomeController extends Controller
             ->take(10)
             ->get();
 
-        $activities = Activity::orderBy('created_at', 'DESC')->paginate(1000);
+        $activities = Activity::orderBy('created_at', 'DESC')->get();
 
         $instructors = Instructor::where('status', 'active')
         ->with(['attendances' => function ($query) {
