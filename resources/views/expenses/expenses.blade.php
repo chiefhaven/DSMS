@@ -27,6 +27,9 @@
   </div>
 
   <div class="content content-full">
+    @php
+        use Carbon\Carbon;
+    @endphp
     <div class="block block-rounded block-bordered">
           <div class="block-content">
             </div>
@@ -103,7 +106,22 @@
                                     </div>
                                 </td>
                                 <td>
-                                    {{$expense->group}}<br>
+                                    @php
+                                        $dateRaw = trim($expense->group);
+                                        $formats = ['d/m/Y', 'd-m-Y', 'Y-m-d'];
+                                        $formattedDate = 'Invalid date';
+
+                                        foreach ($formats as $format) {
+                                            try {
+                                                $formattedDate = Carbon::createFromFormat($format, $dateRaw)->format('d M, Y');
+                                                break; // Exit once successful
+                                            } catch (\Exception $e) {
+                                                continue;
+                                            }
+                                        }
+                                    @endphp
+
+                                    {{ $formattedDate }}<br>
                                     <div class="sm-text" style="font-size: 12px">
                                         {{$expense->students->count()}} Students paid for!
                                     </div>
