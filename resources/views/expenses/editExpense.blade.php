@@ -20,84 +20,121 @@
 
 <div class="content content-full" id="expense">
     <div class="row">
-        <div class="col-md-5 block-rounded block-bordered">
-            <div class="block block-rounded block-themed block-transparent mb-0" style="background-color:#ffffff">
+        <div class="col-md-5 block block-rounded block-bordered">
+            <div class="block-themed block-transparent mb-0">
                 <div class="block-content">
-                    <form class="mb-5" action="{{ url('/add-expense') }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
-                        @csrf
-                        <div class="col-12 form-floating mb-4">
-                            <input type="text" timezone="Africa/Blantyre" class="form-control" id="expense_group_name" name="expense_group_name" v-model="state.expenseGroupName" placeholder="Enter Expense Group">
-                            <label for="invoice_discount">Booking Date</label>
-                        </div>
-                        <div class="col-12 form-floating mb-4">
-                            <select class="form-control" id="expenseType" @blur="groupExpenseTypeChange($event)" name="expenseType" v-model="state.expenseGroupType" placeholder="Select expense Type" :disabled="Object.keys(state.selectedStudents).length != 0">
-                                <option v-for="option in groupExpenseTypeOptions" :value="option.value">
-                                    @{{ option.text }}
-                                </option>
-                            </select>
-                            <label for="expenseType">List Expense Type</label>
-                        </div>
-                        <div class="col-12 form-floating mb-4">
-                            <input type="text" class="form-control" id="expense_description" name="expense_description" v-model="state.expenseDescription" placeholder="Enter Expense Description">
-                            <label for="invoice_discount">Expense notes</label>
-                        </div>
-                        <div class="col-12 form-floating mb-4">
-                            <input type="number" class="form-control" id="amount" @input="totalAmount()" name="amount" v-model="state.amount">
-                            <label for="amount">Amount per student</label>
-                        </div>
-                        <div class="col-12 form-floating mb-4">
-                            Total Amount: @{{ formatter.format(state.totalAmount) }}
-                        </div>
-                </form>
+                    <div v-if="state.loadingData" class="d-flex flex-column justify-content-center align-items-center" style="height: 300px;">
+                        <span class="spinner-border text-primary"></span>
+                        <p class="mt-3">Loading data...</p>
+                    </div>
+
+                    <div v-else>
+                        <form class="mb-5" action="{{ url('/add-expense') }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
+                                @csrf
+                                <div class="col-12 form-floating mb-4">
+                                    <input type="text" timezone="Africa/Blantyre" class="form-control" id="expense_group_name" name="expense_group_name" v-model="state.expenseGroupName" placeholder="Enter Expense Group">
+                                    <label for="invoice_discount">Booking Date</label>
+                                </div>
+                                <div class="col-12 form-floating mb-4">
+                                    <select class="form-control" id="expenseType" @blur="groupExpenseTypeChange($event)" name="expenseType" v-model="state.expenseGroupType" placeholder="Select expense Type" :disabled="Object.keys(state.selectedStudents).length != 0">
+                                        <option v-for="option in groupExpenseTypeOptions" :value="option.value">
+                                            @{{ option.text }}
+                                        </option>
+                                    </select>
+                                    <label for="expenseType">List Expense Type</label>
+                                </div>
+                                <div class="col-12 form-floating mb-4">
+                                    <input type="text" class="form-control" id="expense_description" name="expense_description" v-model="state.expenseDescription" placeholder="Enter Expense Description">
+                                    <label for="invoice_discount">Expense notes</label>
+                                </div>
+                                <div class="col-12 form-floating mb-4">
+                                    <input type="number" class="form-control" id="amount" @input="totalAmount()" name="amount" v-model="state.amount">
+                                    <label for="amount">Amount per student</label>
+                                </div>
+                                <div class="col-12 form-floating mb-4">
+                                    Total Amount: @{{ formatter.format(state.totalAmount) }}
+                                </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="col-md-7 block block-rounded block-bordered">
-            <h2 class="flex-grow-1 fs-4 fw-semibold my-2 my-sm-3">Add student to the list</h1>
-            <div v-if="state">
-                <div class="row haven-floating">
-                    <div class="col-6 form-floating mb-4 text-uppercase">
-                        <input class="form-control" id="student" name="student" :rules="isRequired" v-model="state.studentName" @input="studentSearch()" @blur="onStudentChange($event)" placeholder="Select student" required>
-                        <label for="student" class="text-capitalize">Select student</label>
-                    </div>
-                    <div class="col-6 form-floating mb-4">
-                        <select class="form-control" v-if="state.expenseGroupType === 'TRN'" id="expenseType" name="expenseType" v-model="state.expenseType" placeholder="Select expense Type" required>
-                            <option>TRN</option>
-                        </select>
-                        <select class="form-control" v-else-if="state.expenseGroupType === 'Road Test'" id="expenseType" name="expenseType" v-model="state.expenseType" placeholder="Select expense Type" required>
-                            <option selected>
-                                Road Test
-                            </option>
-                        </select>
-                        <select class="form-control" v-else id="expenseType" name="expenseType" v-model="state.expenseType" placeholder="Select expense Type" required>
-                            <option>Highway Code I</option>
-                            <option>Highway Code II</option>
-                        </select>
-                        <label for="expenseType">Expense Type</label>
-                    </div>
-                </div>
-                <div class="block-content block-content-full text-end">
-                    <button type="submit" @click="addStudentToGroup()" class="btn btn-primary">Add to list</button>
-                </div>
-                <h2 class="flex-grow-1 fs-5 fw-semibold my-2 my-sm-3 border-lg mb-5">Select students</h2>
-                    <hr>
-                <div>
-                    <div v-for="(student, index) in state.selectedStudents" :key="student.index">
-                        <div class="row mb-2">
-                            <div class="col-sm-6 text-uppercase">@{{ student.fname }} @{{ student.mname }} @{{ student.sname }}</div>
-                            <div class="col-sm-4">
-                                <div v-if="student.expenses && student.expenses.length">
-                                    <div v-for="expense in student.expenses" :key="expense.id">
-                                    <!-- Assuming pivot is part of each expense object -->
-                                    <div v-if="expense.pivot.expense_type">
-                                        @{{ expense.pivot.expense_type }}
-                                    </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm-2 text-end"><span><button class="btn btn-danger btn-sm" @click="removeStudentFromList(student.id, index)">Remove</button></span></div>
+            <div class="block-content">
+
+                <h2 class="flex-grow-1 fs-4 fw-semibold my-2 my-sm-3">Add student to the list</h2>
+                <div v-if="state">
+                    <div class="row haven-floating">
+                        <div class="col-6 form-floating mb-4 text-uppercase">
+                            <input class="form-control" id="student" name="student" :rules="isRequired" v-model="state.studentName" @input="studentSearch()" @blur="onStudentChange($event)" placeholder="Select student" required>
+                            <label for="student" class="text-capitalize">Select student</label>
                         </div>
-                        <hr>
+                        <div class="col-6 form-floating mb-4">
+                            <select class="form-control" v-if="state.expenseGroupType === 'TRN'" id="expenseType" name="expenseType" v-model="state.expenseType" placeholder="Select expense Type" required>
+                                <option>TRN</option>
+                            </select>
+                            <select class="form-control" v-else-if="state.expenseGroupType === 'Road Test'" id="expenseType" name="expenseType" v-model="state.expenseType" placeholder="Select expense Type" required>
+                                <option selected>
+                                    Road Test
+                                </option>
+                            </select>
+                            <select class="form-control" v-else id="expenseType" name="expenseType" v-model="state.expenseType" placeholder="Select expense Type" required>
+                                <option>Highway Code I</option>
+                                <option>Highway Code II</option>
+                            </select>
+                            <label for="expenseType">Expense Type</label>
+                        </div>
+                    </div>
+                    <div class="block-content block-content-full text-end">
+                        <button type="submit" @click="addStudentToGroup()" class="btn btn-primary">Add to list</button>
+                    </div>
+
+                    <h2 class="flex-grow-1 fs-5 fw-semibold my-2 my-sm-3 border-lg mb-5">Selected students</h2>
+
+                    <div v-if="state.loadingData" class="d-flex flex-column justify-content-center align-items-center" style="height: 300px;">
+                        <span class="spinner-border text-primary"></span>
+                        <p class="mt-3">Loading data...</p>
+                    </div>
+
+                    <div v-else>
+                        <div v-if="state.selectedStudents.length === 0" class="alert alert-info">
+                            No students selected yet.
+                        </div>
+
+                        <div v-else class="table responsive">
+                            <table class="table table-striped">
+                                <thead class="bg-primary text-white">
+                                    <tr>
+                                        <th class="col-sm-6 text-uppercase">Student</th>
+                                        <th class="col-sm-4">Expense Type</th>
+                                        <th class="col-sm-2 text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(student, index) in state.selectedStudents" :key="student.id">
+                                        <td class="text-uppercase">
+                                            @{{ student.fname }} @{{ student.mname }} <strong>@{{ student.sname }}</strong>
+                                        </td>
+                                        <td>
+                                            <div v-if="student.expenses && student.expenses.length">
+                                                @{{ student.expenses.map(e => e.pivot?.expense_type).filter(Boolean).join(', ') }}
+                                            </div>
+                                            <div v-else class="text-muted">N/A</div>
+                                        </td>
+                                        <td class="text-end">
+                                            <button
+                                                class="btn btn-danger btn-sm"
+                                                @click="removeStudentFromList(student.id, index)"
+                                                :disabled="state.expenseStatus !== 0"
+                                                :title="state.expenseStatus !== 0 ? 'Cannot remove at this stage' : 'Remove student'"
+                                            >
+                                                Remove
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -105,7 +142,7 @@
         <div class="block-content block-content-full text-end">
             <button type="submit" :disabled="state.isSubmitButtonDisabled" @click="updateExpense()" class="btn btn-primary">
                 <template v-if="state.isLoading">
-                    Processing...
+                    <i class="fas fa-spinner fa-spin me-1"></i> Processing...
                 </template>
                 <template v-else>
                     @{{ state.buttonText }}
@@ -144,15 +181,18 @@
             expenseType: '',            // Type of expense
             selectedStudents: [],       // Array of selected students (possibly for group payments or expenses)
             errors: [],                  // Array to store any validation or error messages
+            loadingData: false,
             isLoading: false,
             buttonText: 'Submit'
         })
 
         onMounted(async () => {
+            state.value.loadingData = true
             const res = await axios.get("/reviewExpenseData/{{ $expense->id }}")
             state.value.selectedStudents = res.data
             state.value.expenseGroupName = '{{ $expense->group }}'
             totalAmount()
+            state.value.loadingData = false
           })
 
         function formatDate(dateString) {
@@ -385,7 +425,7 @@
             isRequired,
             removeStudentFromList,
             formatter,
-            totalAmount
+            totalAmount,
 
         }
       }

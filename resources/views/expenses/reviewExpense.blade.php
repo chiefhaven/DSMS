@@ -19,8 +19,8 @@
         </div>
     @endif
 <div class="row">
-    <div class="col-md-4 block-rounded block-bordered">
-        <div class="block block-rounded block-themed block-transparent mb-0" style="background-color:#ffffff">
+    <div class="col-md-4 block block-rounded block-bordered">
+        <div class="block-themed block-transparent mb-0">
             <div class="block-content pb-4">
                 <div class="mb-2"><b>Booking date:</b> @{{ state.expenseGroupName }}</div>
                 <div class="mb-2"><b>Description:</b> @{{ state.expenseDescription }}</div>
@@ -30,56 +30,60 @@
             </div>
         </div>
     </div>
-    <div class="col-md-8">
+    <div class="col-md-8 block block-rounded block-bordered">
         <div v-if="state">
-            <div v-if="state.loadingData" class="block block-rounded block-bordered d-flex flex-column justify-content-center align-items-center" style="height: 300px;">
+            <div v-if="state.loadingData" class="d-flex flex-column justify-content-center align-items-center" style="height: 300px;">
                 <span class="spinner-border text-primary"></span>
                 <p class="mt-3">Loading data...</p>
             </div>
 
-            <div v-else>
-              <table class="block block-rounded block-bordered table table-striped">
-                <thead class="bg-primary text-white">
-                  <tr>
-                    <th scope="col">No.</th>
-                    <th scope="col">Student</th>
-                    <th scope="col">Fees balance</th>
-                    <th scope="col" class="text-center">Class</th>
-                    <th scope="col">Expense type</th>
-                    <th scope="col">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(student, index) in state.selectedStudents" :key="student.id">
-                    <td>@{{ index + 1 }}</td>
-                    <td class="text-uppercase">@{{ student.fname }} @{{ student.mname }} <strong>@{{ student.sname }}</strong></td>
-                    <td>
-                      <span v-if="student.invoice">
-                        @{{ formatter.format(student.invoice.invoice_balance) }}
-                      </span>
-                      <span v-else class="text-muted">Not enrolled</span>
-                    </td>
-                    <td class="text-center">
-                      <span v-if="student.course">
-                        @{{ student.course.class }}
-                      </span>
-                      <span v-else class="text-muted">Not enrolled</span>
-                    </td>
-                    <td>
-                      @{{ student.expenses[0]?.pivot?.expense_type || 'N/A' }}
-                    </td>
-                    <td>
-                      <button
-                        :disabled="state.expenseStatus !== 0"
-                        class="btn btn-danger btn-sm delete-confirm"
-                        @click="removeStudentFromList(student.id, index)"
-                      >
-                        Remove
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+            <div v-else class="block-content">
+                <strong>Students on the list</strong>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead class="bg-primary text-white">
+                        <tr>
+                            <th scope="col">No.</th>
+                            <th scope="col">Student</th>
+                            <th scope="col">Fees balance</th>
+                            <th scope="col" class="text-center">Class</th>
+                            <th scope="col">Expense type</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr v-for="(student, index) in state.selectedStudents" :key="student.id">
+                            <td>@{{ index + 1 }}</td>
+                            <td class="text-uppercase">@{{ student.fname }} @{{ student.mname }} <strong>@{{ student.sname }}</strong></td>
+                            <td>
+                            <span v-if="student.invoice">
+                                @{{ formatter.format(student.invoice.invoice_balance) }}
+                            </span>
+                            <span v-else class="text-muted">Not enrolled</span>
+                            </td>
+                            <td class="text-center">
+                            <span v-if="student.course">
+                                @{{ student.course.class }}
+                            </span>
+                            <span v-else class="text-muted">Not enrolled</span>
+                            </td>
+                            <td>
+                            @{{ student.expenses[0]?.pivot?.expense_type || 'N/A' }}
+                            </td>
+                            <td>
+                                <button
+                                :disabled="state.expenseStatus !== 0"
+                                :title="state.expenseStatus !== 0 ? 'Editing is disabled for this expense' : 'Editing is enabled for this expense'"
+                                class="btn btn-danger btn-sm delete-confirm"
+                                @click="removeStudentFromList(student.id, index)"
+                            >
+                                Remove
+                            </button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
           </div>
     </div>
