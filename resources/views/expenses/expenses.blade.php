@@ -32,7 +32,7 @@
             </div>
                 <div class="m-4 table-responsive">
                 @if(!$expenses->isEmpty())
-                  <table id="expense" class="table table-bordered table-striped table-vcenter">
+                  <table id="expenses" class="table table-bordered table-striped table-vcenter">
                       <thead class="thead-dark">
                           <tr>
                             <th class="text-center" style="width: 100px;">Actions</th>
