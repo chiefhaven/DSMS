@@ -213,11 +213,12 @@
         });
 
         $(document).ready(function() {
-
+            $.fn.dataTable.moment('DD MMM, YYYY');
             $('#expenses').DataTable({
                 columnDefs: [
                     {
                         targets: [1],
+                        type: 'date'
                     }
                 ],
                 order: [[1, 'desc']],

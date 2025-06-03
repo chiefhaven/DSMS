@@ -38,7 +38,7 @@ class ExpenseController extends Controller
             ->when(Auth::user()->hasRole('admin'), function ($query) {
                 $query->where('added_by', Auth::user()->administrator_id);
             })
-            ->orderBy('created_at', 'ASC')
+            ->orderBy('created_at', 'DESC')
             ->get();
 
         return view('expenses.expenses', compact('expenses'));
