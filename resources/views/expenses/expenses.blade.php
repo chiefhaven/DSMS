@@ -113,7 +113,7 @@
                             setTimeout(() => window.location.reload(), 1500);
                         } else {
                             showError('Something wrong happened');
-                            console.log (error.response)
+                            console.log (error)
                         }
                     } finally{
                         NProgress.done();
