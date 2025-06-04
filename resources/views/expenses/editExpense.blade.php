@@ -26,7 +26,7 @@
                     <form class="mb-5" action="{{ url('/add-expense') }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
                             @csrf
                             <div class="col-12 form-floating mb-4">
-                                <input type="text" class="form-control" id="expense_group_name" name="expense_group_name" v-model="state.expenseGroupName" placeholder="Enter Expense Group">
+                                <input type="text" class="form-control" id="expense_group_name" name="expense_group_name" v-model="state.expenseGroupName" placeholder="Enter Expense Group" />
                                 <label for="invoice_discount">Booking Date</label>
                             </div>
                             <div class="col-12 form-floating mb-4">
@@ -144,300 +144,301 @@
 </div>
 <!-- END Hero -->
 <script setup>
-    const { createApp, ref, reactive, onMounted } = Vue
-
-    function isRequired(value) {
-        if (value && value.trim()) {
-          return true;
-        }
-        return 'This is required';
-      }
+    const { createApp, ref, onMounted } = Vue
 
     const app = createApp({
       setup() {
-        const currentDate = new Date();
-        const options = { day: 'numeric', month: 'long', year: 'numeric'};
         const state = ref({
-            amount: {{ $expense->amount }},
-            totalAmount:0,
-            expenseGroupName: '',       // Name of the expense group or category
-            expenseGroupType: '{{ $expense->group_type }}',
-            expenseDescription: '{{ $expense->description }}',       // Name of the expense group or category
-            studentName: '', // Name of the student'
-            studentId:'',
-            fname: '', // Name of the student'
-            sname: '', // Name of the student'
-            mname: '', // Name of the student'
-            expenseId: '{{ $expense->id }}',
-            expenseType: '',            // Type of expense
-            selectedStudents: [],       // Array of selected students (possibly for group payments or expenses)
-            errors: [],                  // Array to store any validation or error messages
-            loadingData: false,
-            isLoading: false,
-            buttonText: 'Submit'
+          amount: {{ $expense->amount }},
+          totalAmount: 0,
+          expenseGroupName: '{{ $expense->group }}',
+          expenseGroupType: '{{ $expense->group_type }}',
+          expenseDescription: '{{ $expense->description }}',
+          studentName: '',
+          studentId: '',
+          fname: '',
+          sname: '',
+          mname: '',
+          expenseId: '{{ $expense->id }}',
+          expenseType: '',
+          selectedStudents: [],
+          errors: [],
+          loadingData: false,
+          isLoading: false,
+          buttonText: 'Submit',
+          isSubmitButtonDisabled: false
         })
 
-        onMounted(async () => {
-            state.value.loadingData = true
-            const res = await axios.get("/reviewExpenseData/{{ $expense->id }}")
-            state.value.selectedStudents = res.data
-            state.value.expenseGroupName = '{{ $expense->group }}'
-            totalAmount()
-            state.value.loadingData = false
-          })
-
-        function formatDate(dateString) {
-            const [year, month, day] = dateString.split('-');
-            return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-        }
-
-
         const formatter = new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'MMK',
-        });
+          style: 'currency',
+          currency: 'MMK',
+        })
 
         const groupExpenseTypeOptions = ref([
-            { text: 'TRN', value: 'TRN' },
-            { text: 'Theory', value: 'Theory' },
-            { text: 'Road Test', value: 'Road Test' }
+          { text: 'TRN', value: 'TRN' },
+          { text: 'Theory', value: 'Theory' },
+          { text: 'Road Test', value: 'Road Test' }
         ])
 
-        function groupExpenseTypeChange(event){
-            if(event.target.selectedOptions[0].value === 'Theory'){
-                state.value.expenseType = 'Choose Highway Code...'
-            }
+        const hasError = ref(false)
 
-            state.value.expenseType = event.target.selectedOptions[0].value
+        function isRequired(value) {
+          return value && value.trim() ? true : 'This is required'
         }
 
-        var hasError = ref(false)
+        function totalAmount() {
+          state.value.totalAmount = state.value.selectedStudents.length * state.value.amount
+        }
+
+        function initDatepicker() {
+            // Initialize datepicker
+            $("#expense_group_name").datepicker({
+              format: "dd/mm/yyyy",
+              autoclose: true,
+              todayHighlight: true
+            })
+
+            // Set initial date from Vue state if it exists, otherwise use today's date
+            const initialDate = state.value.expenseGroupName || new Date()
+            $("#expense_group_name").datepicker('setDate', initialDate)
+
+            // Update Vue state when date changes
+            $("#expense_group_name").on('changeDate', function(e) {
+              state.value.expenseGroupName = e.format('dd/mm/yyyy')
+            })
+
+            // Also watch for manual input changes
+            $("#expense_group_name").on('change', function() {
+              state.value.expenseGroupName = $(this).val()
+            })
+          }
+
+        function studentSearch() {
+          const path = "{{ route('expense-student-search') }}"
+
+          $('#student').typeahead({
+            minLength: 2,
+            autoSelect: true,
+            highlight: true,
+            source: function (query, process) {
+              return $.get(path, { query: query }, function (data) {
+                return process(data)
+              })
+            },
+            updater: function (item) {
+              state.value.studentId = item.id
+              return item
+            }
+          })
+        }
+
+        onMounted(async () => {
+          state.value.loadingData = true
+          const res = await axios.get("/reviewExpenseData/{{ $expense->id }}")
+          state.value.selectedStudents = res.data
+          totalAmount()
+          state.value.loadingData = false
+          studentSearch()
+          initDatepicker()
+        })
+
+        function groupExpenseTypeChange(event) {
+          const selected = event.target.selectedOptions[0].value
+          state.value.expenseType = selected === 'Theory' ? 'Choose Highway Code...' : selected
+        }
+
+        function onStudentChange(event) {
+          state.value.studentName = event.target.value
+        }
+
+        function expenseGroupNameChange(event) {
+          state.value.expenseGroupName = event.target.value
+        }
+
+        function notification(text, icon) {
+          Swal.fire({
+            toast: true,
+            position: "top-end",
+            html: text,
+            showConfirmButton: false,
+            timer: 5500,
+            timerProgressBar: true,
+            icon,
+            didOpen: (toast) => {
+              toast.onmouseenter = Swal.stopTimer
+              toast.onmouseleave = Swal.resumeTimer
+            }
+          })
+        }
+
+        function showAlert(message = '', detail = '', options = {}) {
+          const {
+            icon = 'info',
+            toast = true,
+            confirmText = 'OK',
+            showCancel = false,
+            cancelText = 'Cancel'
+          } = options
+
+          return Swal.fire({
+            icon,
+            title: message,
+            text: detail,
+            toast,
+            position: toast ? 'top-end' : 'center',
+            showConfirmButton: !toast,
+            confirmButtonText: confirmText,
+            showCancelButton,
+            cancelButtonText,
+            timer: toast ? 3000 : undefined,
+            timerProgressBar: toast,
+            didOpen: (toastEl) => {
+              if (toast) {
+                toastEl.addEventListener('mouseenter', Swal.stopTimer)
+                toastEl.addEventListener('mouseleave', Swal.resumeTimer)
+              }
+            }
+          })
+        }
 
         function addStudentToGroup() {
-            if (!state.value.studentName) {
-                notification('Student name must be filled', 'error')
-                hasError.value = true
-                return hasError
-            }
+          if (!state.value.studentName) {
+            notification('Student name must be filled', 'error')
+            return hasError.value = true
+          }
 
-            if (!state.value.expenseType) {
-                notification('Expense Type must be filled', 'error')
-                hasError.value = true
-                return hasError
-            }
+          if (!state.value.expenseType) {
+            notification('Expense Type must be filled', 'error')
+            return hasError.value = true
+          }
 
-            var student = state.value.studentName.split(" ")
-            if(!state.value.selectedStudents.some(item => item.studentId === state.value.studentId)){
+          const student = state.value.studentName.split(" ")
+          if (state.value.selectedStudents.some(item => item.studentId === state.value.studentId)) {
+            notification('Student already in list', 'error')
+            return hasError.value = true
+          }
 
-                axios.post('/checkStudent', {student:state.value.studentId, expenseType: state.value.expenseType}).then(response => {
-                    if(response.data.feedback == "success"){
-                        state.value.selectedStudents.push({fname:student[0], mname:student[1], sname:student[2],
-                            expenses: [{
-                                pivot: {
-                                    expense_type: state.value.expenseType
-                                  }
-                          }]
-                        })
-                        state.value.studentName =''
-                        notification(response.data.message, 'success')
-                    }
-                    else{
-                        notification(response.data.message, 'error')
-                    }
-                })
+          axios.post('/checkStudent', {
+            student: state.value.studentId,
+            expenseType: state.value.expenseType
+          }).then(response => {
+            if (response.data.feedback === "success") {
+              state.value.selectedStudents.push({
+                studentId: state.value.studentId,
+                fname: student[0],
+                mname: student[1],
+                sname: student[2],
+                expenses: [{
+                  pivot: { expense_type: state.value.expenseType }
+                }]
+              })
+              state.value.studentName = ''
+              state.value.studentId = ''
+              totalAmount()
+              notification(response.data.message, 'success')
+            } else {
+              notification(response.data.message, 'error')
             }
-            else{
-                notification('Student already in list', 'error')
-                hasError.value = true
-                return hasError
-            }
+          })
         }
 
         function removeStudentFromGroup(index) {
+          if (state.value.selectedStudents.length <= 1) {
+            showAlert('List can not be empty', 'You must have at least one student in the group.', {
+              toast: false,
+              icon: 'error',
+              confirmText: 'Ok'
+            })
+            return
+          }
 
-            if (state.value.selectedStudents.length <= 1) {
-                showAlert('List can not be empty', 'You must have at least one student in the group.', {
-                    toast: false,
-                    icon: 'error',
-                    confirmText: 'Ok'
-                });
-                return
-            }
-
-            state.value.selectedStudents.splice(index, 1)
-            totalAmount()
-        }
-
-        const showAlert = (
-                message = '', // title
-                detail = '',  // text
-                {
-                    icon = 'info',
-                    toast = true,
-                    confirmText = 'OK',
-                    showCancel = false,
-                    cancelText = 'Cancel'
-                } = {}
-            ) => {
-                const baseOptions = {
-                    icon,
-                    title: message,
-                    text: detail,
-                    toast,
-                    position: toast ? 'top-end' : 'center',
-                    showConfirmButton: !toast,
-                    confirmButtonText: confirmText,
-                    showCancelButton: showCancel,
-                    cancelButtonText: cancelText,
-                    timer: toast ? 3000 : undefined,
-                    timerProgressBar: toast,
-                    didOpen: (toastEl) => {
-                        if (toast) {
-                            toastEl.addEventListener('mouseenter', Swal.stopTimer);
-                            toastEl.addEventListener('mouseleave', Swal.resumeTimer);
-                        }
-                    }
-                };
-
-                return Swal.fire(baseOptions);
-            };
-
-        function updateExpense(){
-
-            if(Object.keys( state.value.selectedStudents ).length == 0){
-                notification('Student list must not be empty', 'error')
-                return false
-            }
-
-            if( !state.value.expenseGroupName){
-                notification('Expense Group Name, Payment Method and Amount must be filled and Amount must be greater than 0', 'error')
-                return false
-            }
-            state.value.isSubmitButtonDisabled = true
-            state.value.isLoading = true
-            axios.post('/updateExpense', {expenseId:state.value.expenseId, students:state.value.selectedStudents, expenseGroupName:state.value.expenseGroupName, expenseDescription:state.value.expenseDescription, expenseGroupType:state.value.expenseGroupType, expenseAmount: state.value.amount}).then(response => {
-                if(response.status==200){
-                    notification('Expense updated successfully','success')
-                    window.location.replace('/expenses')
-                }
-                else if(error.response.data.errors){
-                    notification('Something went wrong...','error')
-                }
-                else{
-                    return false
-                }
-            });
-
-            //
-        }
-
-        function onStudentChange(event){
-            state.value.studentName = event.target.value;  // Now you should have access to your selected option.
-         }
-
-        function totalAmount(){
-            state.value.totalAmount = Object.keys( state.value.selectedStudents ).length*state.value.amount
+          state.value.selectedStudents.splice(index, 1)
+          totalAmount()
         }
 
         function removeStudentFromList(studentId, index) {
+          if (state.value.selectedStudents.length <= 1) {
+            showAlert('List can not be empty', 'You must have at least one student in the group.', {
+              toast: false,
+              icon: 'error',
+              confirmText: 'Ok'
+            })
+            return
+          }
 
-            if (state.value.selectedStudents.length <= 1) {
-                showAlert('List can not be empty', 'You must have at least one student in the group.', {
-                    toast: false,
-                    icon: 'error',
-                    confirmText: 'Ok'
-                });
-                return
+          axios.post('/removeStudent', {
+            student: studentId,
+            expenseId: state.value.expenseId
+          }).then(response => {
+            if (response.status === 200) {
+              removeStudentFromGroup(index)
+              notification('Student removed successfully', 'success')
+            } else {
+              notification('Error removing student', 'error')
             }
-
-            axios.post('/removeStudent', {student:studentId, expenseId: state.value.expenseId}).then(response => {
-                if(response.status==200){
-                    removeStudentFromGroup(index)
-                    totalAmount()
-                    notification('Student removed successfully','success')
-                }
-                else if(error.response.data.errors){
-                    notification('error.response.data.errors.message','error')
-                }
-                else{
-                    return false
-                }
-            });
+          })
         }
 
-        function studentSearch() {
-            var path = "{{ route('expense-student-search') }}";
+        const updateExpense = () => {
+          if (state.value.selectedStudents.length === 0) {
+            notification('Student list must not be empty', 'error')
+            return
+          }
 
-            $('#student').typeahead({
-                minLength: 2, // start searching after 2 characters
-                autoSelect: true,
-                highlight: true,
-                source: function (query, process) {
-                    return $.get(path, { query: query }, function (data) {
-                        return process(data);
-                    });
-                },
-                updater: function (item) {
+          if (!state.value.expenseGroupName || state.value.amount <= 0) {
+            notification('Expense Group Name, Payment Method and Amount must be filled and Amount must be greater than 0', 'error')
+            return
+          }
 
-                    state.value.studentId = item.id;
+          state.value.isLoading = true
 
-                    return item;
-                }
-            });
+          axios.post('/updateExpense', {
+            expenseId: state.value.expenseId,
+            students: state.value.selectedStudents,
+            expenseGroupName: state.value.expenseGroupName,
+            expenseDescription: state.value.expenseDescription,
+            expenseGroupType: state.value.expenseGroupType,
+            expenseAmount: state.value.amount
+          }).then(response => {
+            if (response.status === 200) {
+              notification('Expense updated successfully', 'success')
+
+              setTimeout(() => {
+                window.location.replace('/expenses')
+              }, 1500)
+
+            } else {
+              notification('Something went wrong...', 'error')
+            }
+          }).catch(() => {
+            notification('Something went wrong...', 'error')
+          }).finally(() => {
+            state.value.isLoading = false
+          })
         }
-
-        function notification($text, $icon){
-            Swal.fire({
-                toast: true,
-                position: "top-end",
-                html: $text,
-                showConfirmButton: false,
-                timer: 5500,
-                timerProgressBar: true,
-                icon: $icon,
-                didOpen: (toast) => {
-                    toast.onmouseenter = Swal.stopTimer;
-                    toast.onmouseleave = Swal.resumeTimer;
-                  }
-              });
-        }
-
 
         return {
-            addStudentToGroup,
-            removeStudentFromGroup,
-            updateExpense,
-            studentSearch,
-            onStudentChange,
-            state,
-            hasError,
-            groupExpenseTypeOptions,
-            groupExpenseTypeChange,
-            isRequired,
-            removeStudentFromList,
-            formatter,
-            totalAmount,
-
+          addStudentToGroup,
+          removeStudentFromGroup,
+          removeStudentFromList,
+          updateExpense,
+          studentSearch,
+          onStudentChange,
+          expenseGroupNameChange,
+          groupExpenseTypeChange,
+          isRequired,
+          formatter,
+          state,
+          hasError,
+          groupExpenseTypeOptions,
+          totalAmount
         }
       }
     })
-    app.mount('#expense')
-</script>
-<script type="text/javascript">
-    // Set the datepicker with current date as default value
-    $(document).ready(function() {
-        var today = new Date();
-        var day = ("0" + today.getDate()).slice(-2); // Get day with leading zero
-        var month = ("0" + (today.getMonth() + 1)).slice(-2); // Get month with leading zero (Months are zero-based)
-        var year = today.getFullYear();
 
-        // Set the datepicker
-        $("#expense_group_name").datepicker({
-            format: "dd/mm/yyyy",
-            autoclose: true,
-            todayHighlight: true
-        }).datepicker('setDate', day + '/' + month + '/' + year);
-    });
-</script>
+    app.mount('#expense')
+    </script>
+
+
 @endsection
 
