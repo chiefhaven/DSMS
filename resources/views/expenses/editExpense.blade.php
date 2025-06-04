@@ -23,39 +23,32 @@
         <div class="col-md-5 block block-rounded block-bordered">
             <div class="block-themed block-transparent mb-0">
                 <div class="block-content">
-                    <div v-if="state.loadingData" class="d-flex flex-column justify-content-center align-items-center" style="height: 300px;">
-                        <span class="spinner-border text-primary"></span>
-                        <p class="mt-3">Loading data...</p>
-                    </div>
-
-                    <div v-else>
-                        <form class="mb-5" action="{{ url('/add-expense') }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
-                                @csrf
-                                <div class="col-12 form-floating mb-4">
-                                    <input type="text" timezone="Africa/Blantyre" class="form-control" id="expense_group_name" name="expense_group_name" v-model="state.expenseGroupName" placeholder="Enter Expense Group">
-                                    <label for="invoice_discount">Booking Date</label>
-                                </div>
-                                <div class="col-12 form-floating mb-4">
-                                    <select class="form-control" id="expenseType" @blur="groupExpenseTypeChange($event)" name="expenseType" v-model="state.expenseGroupType" placeholder="Select expense Type" :disabled="Object.keys(state.selectedStudents).length != 0">
-                                        <option v-for="option in groupExpenseTypeOptions" :value="option.value">
-                                            @{{ option.text }}
-                                        </option>
-                                    </select>
-                                    <label for="expenseType">List Expense Type</label>
-                                </div>
-                                <div class="col-12 form-floating mb-4">
-                                    <input type="text" class="form-control" id="expense_description" name="expense_description" v-model="state.expenseDescription" placeholder="Enter Expense Description">
-                                    <label for="invoice_discount">Expense notes</label>
-                                </div>
-                                <div class="col-12 form-floating mb-4">
-                                    <input type="number" class="form-control" id="amount" @input="totalAmount()" name="amount" v-model="state.amount">
-                                    <label for="amount">Amount per student</label>
-                                </div>
-                                <div class="col-12 form-floating mb-4">
-                                    Total Amount: @{{ formatter.format(state.totalAmount) }}
-                                </div>
-                        </form>
-                    </div>
+                    <form class="mb-5" action="{{ url('/add-expense') }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
+                            @csrf
+                            <div class="col-12 form-floating mb-4">
+                                <input type="text" timezone="Africa/Blantyre" class="form-control" id="expense_group_name" name="expense_group_name" v-model="state.expenseGroupName" placeholder="Enter Expense Group">
+                                <label for="invoice_discount">Booking Date</label>
+                            </div>
+                            <div class="col-12 form-floating mb-4">
+                                <select class="form-control" id="expenseType" @blur="groupExpenseTypeChange($event)" name="expenseType" v-model="state.expenseGroupType" placeholder="Select expense Type" :disabled="Object.keys(state.selectedStudents).length != 0">
+                                    <option v-for="option in groupExpenseTypeOptions" :value="option.value">
+                                        @{{ option.text }}
+                                    </option>
+                                </select>
+                                <label for="expenseType">List Expense Type</label>
+                            </div>
+                            <div class="col-12 form-floating mb-4">
+                                <input type="text" class="form-control" id="expense_description" name="expense_description" v-model="state.expenseDescription" placeholder="Enter Expense Description">
+                                <label for="invoice_discount">Expense notes</label>
+                            </div>
+                            <div class="col-12 form-floating mb-4">
+                                <input type="number" class="form-control" id="amount" @input="totalAmount()" name="amount" v-model="state.amount">
+                                <label for="amount">Amount per student</label>
+                            </div>
+                            <div class="col-12 form-floating mb-4">
+                                Total Amount: @{{ formatter.format(state.totalAmount) }}
+                            </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -125,8 +118,6 @@
                                             <button
                                                 class="btn btn-danger btn-sm"
                                                 @click="removeStudentFromList(student.id, index)"
-                                                :disabled="state.expenseStatus !== 0"
-                                                :title="state.expenseStatus !== 0 ? 'Cannot remove at this stage' : 'Remove student'"
                                             >
                                                 Remove
                                             </button>

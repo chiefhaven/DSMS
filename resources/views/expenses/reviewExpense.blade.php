@@ -22,7 +22,7 @@
     <div class="col-md-4 block block-rounded block-bordered">
         <div class="block-themed block-transparent mb-0">
             <div class="block-content pb-4">
-                <div class="mb-2"><b>Booking date:</b> @{{ state.expenseGroupName }}</div>
+                <div class="mb-2"><b>Booking date:</b> @{{ formatDate(state.expenseGroupName) }}</div>
                 <div class="mb-2"><b>Description:</b> @{{ state.expenseDescription }}</div>
                 <div class="mb-2"><b>Amount/student:</b> @{{ formatter.format(state.amount) }}</div>
                 <div class="mb-2"><b>Total students:</b> {{ $expense->Students->count() }}</div>
@@ -160,6 +160,10 @@
                     state.value.loadingData = false;
                 }
             });
+
+            const formatDate = (dateString) => {
+                return dayjs(dateString).format('DD MMM, YYYY');
+            };
 
             const paymentMethodOptions = ref([
                 { text: 'Cash', value: 'Cash' },
@@ -353,7 +357,8 @@
                 paymentMethodOptions,
                 removeStudentFromList,
                 approveList,
-                formatter
+                formatter,
+                formatDate
             }
         }
         })
