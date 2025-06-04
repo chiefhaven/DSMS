@@ -29,195 +29,202 @@
     <div class="content content-full" id="expenses">
         <div class="block block-rounded block-bordered">
             <div class="block-content">
-                <div class="table-responsive">
-                    <table id="expensesTable" class="table table-bordered table-striped table-vcenter">
-                        <thead class="thead-dark">
-                            <tr>
-                                <th class="text-center" style="width: 100px;">Actions</th>
-                                <th style="min-width: 12rem;">Group</th>
-                                <th class="text-center" style="min-width: 7rem;">Students count</th>
-                                <th class="text-center" style="min-width: 7rem;">Status</th>
-                                <th style="min-width: 7rem;">Type</th>
-                                <th style="min-width: 10rem;">Description</th>
-                                <th style="min-width: 10rem;">Posted by</th>
-                                <th style="min-width: 10rem;">Amount/student</th>
-                                <th style="min-width: 10rem;">Approved by</th>
-                                <th style="min-width: 10rem;">Date Approved</th>
-                                <th style="min-width: 10rem;">Last edited</th>
-                            </tr>
-                        </thead>
-                    </table>
+                <!-- Loading spinner -->
+                <div v-if="loadingData" class="d-flex flex-column justify-content-center align-items-center" style="height: 300px;">
+                <span class="spinner-border text-primary"></span>
+                <p class="mt-3">Loading expenses...</p>
+                </div>
+
+                <!-- DataTable -->
+                <div v-show="!loadingData" class="table-responsive">
+                <table id="expensesTable" class="table table-bordered table-striped table-vcenter">
+                    <thead class="thead-dark">
+                    <tr>
+                        <th class="text-center" style="width: 100px;">Actions</th>
+                        <th style="min-width: 12rem;">Group</th>
+                        <th class="text-center" style="min-width: 7rem;">Students count</th>
+                        <th class="text-center" style="min-width: 7rem;">Status</th>
+                        <th style="min-width: 7rem;">Type</th>
+                        <th style="min-width: 10rem;">Description</th>
+                        <th style="min-width: 10rem;">Posted by</th>
+                        <th style="min-width: 10rem;">Amount/student</th>
+                        <th style="min-width: 10rem;">Approved by</th>
+                        <th style="min-width: 10rem;">Date Approved</th>
+                        <th style="min-width: 10rem;">Last edited</th>
+                    </tr>
+                    </thead>
+                </table>
                 </div>
             </div>
         </div>
     </div>
     <script setup>
-        const { createApp, ref, reactive, onMounted, nextTick } = Vue
+        const { createApp, ref, reactive, onMounted, nextTick } = Vue;
 
         const expenses = createApp({
-        setup() {
-
+          setup() {
             const showStatusChangeModal = ref(false);
+            const loadingData = ref(false);
+            const status = ref('all'); // Default filter value
 
             onMounted(() => {
-                nextTick(() => {
-                  setTimeout(() => {
-                    getExpenses();
-                  }, 100);
-                });
+              nextTick(() => {
+                setTimeout(() => {
+                  getExpenses();
+                }, 100);
+              });
             });
 
             const reloadTable = (val) => {
-                status.value = val
-                if ($.fn.DataTable.isDataTable('#expensesTable')) {
-                    $('#expensesTable').DataTable().ajax.reload();
-                  }
-            }
+              status.value = val;
+              if ($.fn.DataTable.isDataTable('#expensesTable')) {
+                $('#expensesTable').DataTable().ajax.reload();
+              }
+            };
 
             const getExpenses = () => {
-                NProgress.start();
-                const table = $('#expensesTable').DataTable();
-                if ($.fn.DataTable.isDataTable('#expensesTable')) {
-                    table.destroy();
-                }
-                $('#expensesTable').DataTable({
-                  serverSide: true,
-                  processing: true,
-                  scrollCollapse: true,
-                  scrollX: true,
-                  ajax: async function(data, callback, settings) {
-                    try {
-                        const csrfToken = $('meta[name="csrf-token"]').attr('content');
-                        axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
-                        const response = await axios.get('/api/expenses', {
-                            params: { ...data, status: status.value },
-                            withCredentials: true,
-                            headers: {
-                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                            }
-                        });
+              NProgress.start();
+              loadingData.value = true;
 
-                        callback(response.data);
+              // Destroy old DataTable instance if exists
+              if ($.fn.DataTable.isDataTable('#expensesTable')) {
+                $('#expensesTable').DataTable().destroy();
+              }
 
-                    } catch (error) {
-                        let errorMessage = 'An error occurred while fetching data. Please try again later.';
+              $('#expensesTable').DataTable({
+                serverSide: true,
+                processing: true,
+                scrollCollapse: true,
+                scrollX: true,
+                ajax: async function (data, callback) {
+                  try {
+                    const csrfToken = $('meta[name="csrf-token"]').attr('content');
+                    axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
 
-                        if (error.response?.data?.error) {
-                            errorMessage = error.response.data.error;
-                        } else if (error.response?.data) {
-                            errorMessage = error.response.data;
-                        }
+                    const response = await axios.get('/api/expenses', {
+                      params: { ...data, status: status.value },
+                      withCredentials: true,
+                      headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                      },
+                    });
 
-                        if ([401, 403, 409].includes(error.response?.status)) {
-                            showError('Session expired, reloading...');
-                            setTimeout(() => window.location.reload(), 1500);
-                        } else {
-                            showError('Something wrong happened');
-                            console.log (error)
-                        }
-                    } finally{
-                        NProgress.done();
+                    callback(response.data);
+                  } catch (error) {
+                    let errorMessage = 'An error occurred while fetching data. Please try again later.';
+
+                    if (error.response?.data?.error) {
+                      errorMessage = error.response.data.error;
+                    } else if (error.response?.data) {
+                      errorMessage = error.response.data;
                     }
+
+                    if ([401, 403, 409].includes(error.response?.status)) {
+                      showError('Session expired, reloading...');
+                      setTimeout(() => window.location.reload(), 1500);
+                    } else {
+                      showError('Something went wrong');
+                      console.error(error);
+                    }
+                  } finally {
+                    loadingData.value = false;
+                    NProgress.done();
+                  }
                 },
                 columns: [
-                    { data: 'actions', className: 'text-center', orderable: false },
-                    { data: 'group' },
-                    { data: 'students' },
-                    { data: 'status' },
-                    { data: 'type' },
-                    { data: 'description' },
-                    { data: 'posted_by' },
-                    { data: 'amount', className: 'text-right' },
-                    { data: 'approved_by' },
-                    { data: 'date_approved', className: 'text-center' },
-                    { data: 'last_edited', className: 'text-center' }
-                  ],
-                  drawCallback: function () {
-
-                    $('.delete-confirm').on('click', function (e) {
-                      e.preventDefault();
-                      var form = $(this).closest('form');
-                      Swal.fire({
-                        title: 'Delete expense',
-                        text: 'Do you want to delete this expense?',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#d33',
-                        cancelButtonColor: '#3085d6',
-                        confirmButtonText: 'Delete!',
-                        cancelButtonText: 'Cancel'
-                      }).then((result) => {
-                        if (result.isConfirmed) {
-                          form.submit();
-                          $('#expensesTable').DataTable().ajax.reload();
-                        }
-                      });
+                  { data: 'actions', className: 'text-center', orderable: false },
+                  { data: 'group' },
+                  { data: 'students' },
+                  { data: 'status' },
+                  { data: 'type' },
+                  { data: 'description' },
+                  { data: 'posted_by' },
+                  { data: 'amount', className: 'text-right' },
+                  { data: 'approved_by' },
+                  { data: 'date_approved', className: 'text-center' },
+                  { data: 'last_edited', className: 'text-center' },
+                ],
+                drawCallback: function () {
+                  $('.delete-confirm').on('click', function (e) {
+                    e.preventDefault();
+                    var form = $(this).closest('form');
+                    Swal.fire({
+                      title: 'Delete expense',
+                      text: 'Do you want to delete this expense?',
+                      icon: 'warning',
+                      showCancelButton: true,
+                      confirmButtonColor: '#d33',
+                      cancelButtonColor: '#3085d6',
+                      confirmButtonText: 'Delete!',
+                      cancelButtonText: 'Cancel',
+                    }).then((result) => {
+                      if (result.isConfirmed) {
+                        form.submit();
+                        $('#expensesTable').DataTable().ajax.reload();
+                      }
                     });
-                  }
-                });
+                  });
+                },
+              });
             };
 
             const showError = (
-                message,
-                detail,
-                {
-                    confirmText = 'OK',
-                    icon = 'error',
-                } = {}
-                ) => {
-                const baseOptions = {
-                    icon,
-                    title: message,
-                    text: detail,
-                    confirmButtonText: confirmText,
-                    didOpen: (toast) => {
-                    toast.addEventListener('mouseenter', Swal.stopTimer);
-                    toast.addEventListener('mouseleave', Swal.resumeTimer);
-                    }
-                };
+              message,
+              detail,
+              { confirmText = 'OK', icon = 'error' } = {}
+            ) => {
+              const baseOptions = {
+                icon,
+                title: message,
+                text: detail,
+                confirmButtonText: confirmText,
+                didOpen: (toast) => {
+                  toast.addEventListener('mouseenter', Swal.stopTimer);
+                  toast.addEventListener('mouseleave', Swal.resumeTimer);
+                },
+              };
 
-                // Clean up undefined options
-                const cleanOptions = Object.fromEntries(
-                    Object.entries(baseOptions).filter(([_, v]) => v !== undefined)
-                );
+              const cleanOptions = Object.fromEntries(
+                Object.entries(baseOptions).filter(([_, v]) => v !== undefined)
+              );
 
-                return Swal.fire(cleanOptions);
+              return Swal.fire(cleanOptions);
             };
 
             const showAlert = (
-                message = '', // Optional title
-                detail = '',  // Optional detail text
-                { icon = 'info' } = {}
+              message = '',
+              detail = '',
+              { icon = 'info' } = {}
             ) => {
-                const baseOptions = {
-                    icon,
-                    toast: true,
-                    timer: 3000,
-                    timerProgressBar: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    didOpen: (toast) => {
-                        toast.addEventListener('mouseenter', Swal.stopTimer);
-                        toast.addEventListener('mouseleave', Swal.resumeTimer);
-                    }
-                };
+              const baseOptions = {
+                icon,
+                toast: true,
+                timer: 3000,
+                timerProgressBar: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                didOpen: (toast) => {
+                  toast.addEventListener('mouseenter', Swal.stopTimer);
+                  toast.addEventListener('mouseleave', Swal.resumeTimer);
+                },
+              };
 
-                // Only include title and text if they’re not empty
-                if (message) baseOptions.title = message;
-                if (detail) baseOptions.text = detail;
+              if (message) baseOptions.title = message;
+              if (detail) baseOptions.text = detail;
 
-                return Swal.fire(baseOptions);
+              return Swal.fire(baseOptions);
             };
 
-
             return {
-                reloadTable,
-            }
-
-        }})
+              reloadTable,
+              loadingData,
+            };
+          },
+        });
 
         expenses.mount('#expenses');
-    </script>
+        </script>
+
 <!-- END Hero -->
 
 

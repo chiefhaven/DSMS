@@ -326,7 +326,10 @@ class ExpenseController extends Controller
 
             $expense = Expense::find($post['expenseId']);
 
-
+            // Check if expense exists
+            if (!$expense) {
+                throw new ModelNotFoundException('Expense not found');
+            }
             // Update expense
             $expense->group = $post['expenseGroupName'];
             $expense->group_type = $post['expenseGroupType'] ?? null;

@@ -112,20 +112,18 @@
 </div>
 <!-- END Hero -->
 <script>
-        // Set the datepicker with current date as default value
-        $(document).ready(function() {
-            var today = new Date();
-            var day = ("0" + today.getDate()).slice(-2); // Get day with leading zero
-            var month = ("0" + (today.getMonth() + 1)).slice(-2); // Get month with leading zero (Months are zero-based)
-            var year = today.getFullYear();
+    $(document).ready(function () {
+        var today = new Date();
+        var day = ("0" + today.getDate()).slice(-2);
+        var month = ("0" + (today.getMonth() + 1)).slice(-2);
+        var year = today.getFullYear();
 
-            // Set the datepicker
-            $("#expense_group_name").datepicker({
-                format: "dd/mm/yyyy",
-                autoclose: true,
-                todayHighlight: true
-            }).datepicker('setDate', day + '-' + month + '-' + year);
-        });
+        $("#expense_group_name").datepicker({
+            format: "dd/mm/yyyy",   // Use slashes here
+            autoclose: true,
+            todayHighlight: true
+        }).datepicker('setDate', day + '/' + month + '/' + year); // Match format with slashes
+    });
 </script>
     <script setup>
         const { createApp, ref, reactive } = Vue
@@ -255,15 +253,12 @@
                     window.location.replace('/expenses');
                 }catch (error) {
                     notification('An error occurred while saving the expense. Please try again.', 'error');
-                    NProgress.done();
                     state.value.isSubmitButtonDisabled = false;
                     state.value.isLoading = false;
                     state.value.buttonText = 'Submit';
                 } finally {
-
+                    NProgress.done();
                 }
-
-                //
             }
 
             const onStudentChange = async(event) => {
@@ -357,8 +352,5 @@
         })
         app.mount('#expense')
     </script>
-<script type="text/javascript">
-
-</script>
 @endsection
 

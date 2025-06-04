@@ -26,7 +26,7 @@
                     <form class="mb-5" action="{{ url('/add-expense') }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
                             @csrf
                             <div class="col-12 form-floating mb-4">
-                                <input type="text" timezone="Africa/Blantyre" class="form-control" id="expense_group_name" name="expense_group_name" v-model="state.expenseGroupName" placeholder="Enter Expense Group">
+                                <input type="text" class="form-control" id="expense_group_name" name="expense_group_name" v-model="state.expenseGroupName" placeholder="Enter Expense Group">
                                 <label for="invoice_discount">Booking Date</label>
                             </div>
                             <div class="col-12 form-floating mb-4">
@@ -321,7 +321,7 @@
                     window.location.replace('/expenses')
                 }
                 else if(error.response.data.errors){
-                    notification('error.response.data.errors.message','error')
+                    notification('Something went wrong...','error')
                 }
                 else{
                     return false
