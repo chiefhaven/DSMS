@@ -18,6 +18,9 @@ use PDF;
 use DB;
 use Illuminate\Support\Facades\Log;
 use RealRashid\SweetAlert\Facades\Alert;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\JsonResponse;
+use Yajra\DataTables\Facades\DataTables;
 
 class ExpenseController extends Controller
 {
@@ -34,16 +37,153 @@ class ExpenseController extends Controller
      */
     public function index()
     {
-        $expenses = Expense::with('Students')
-            ->when(Auth::user()->hasRole('admin'), function ($query) {
-                $query->where('added_by', Auth::user()->administrator_id);
-            })
-            ->orderBy('created_at', 'DESC')
-            ->get();
-
-        return view('expenses.expenses', compact('expenses'));
+        return view('expenses.expenses');
     }
 
+    public function fetchExpenses(Request $request): JsonResponse
+    {
+        // Capture the search keyword from the request if provided
+        $search = $request->input('search.value'); // This is the global search input
+
+        $expenses = Expense::with('Students')
+        ->when(Auth::user()->hasRole('admin'), function ($query) {
+            $query->where('added_by', Auth::user()->administrator_id);
+        })
+        ->orderBy('created_at', 'DESC');
+
+        if ($search) {
+            $expenses->where(function($query) use ($search) {
+                $query->where('group', 'like', "%$search%")
+                    ->orWhere('type', 'like', "%$search%");
+                    // ->orWhereHas('students', function($q) use ($search) {
+                    //     $q->where('fname', 'like', "%$search%");
+                    // });
+            });
+        }
+
+        return DataTables::of($expenses)
+            ->addColumn('group', function ($expense) {
+                return Carbon::parse($expense->group)->format('j F, Y');
+            })
+            ->addColumn('students', function ($expense) {
+                return '<div class="text-center">'.
+                            $expense->students->count().
+                        '</div>';
+            })
+            ->addColumn('status', function ($expense) {
+                if ($expense->approved == '1') {
+                    return '<div class="text-center p-1 text-success">
+                                <i class="fa fa-check" aria-hidden="true"></i> Approved
+                            </div>';
+                } else {
+                    return '<div class="text-center p-1 text-danger">
+                                <i class="fa fa-times" aria-hidden="true"></i> Unapproved
+                            </div>';
+                }
+            })
+            ->addColumn('type', function ($expense) {
+                return $expense->group_type;
+            })
+            ->addColumn('description', function ($expense) {
+                return $expense->description;
+            })
+            ->addColumn('posted_by', function ($expense) {
+                return $expense->administrator->fname .' '. $expense->administrator->sname;
+            })
+            ->addColumn('amount', function ($expense) {
+                return '<div class="text-end">
+                            <strong>K' . number_format($expense->amount, 2) . '</strong>
+                        </div>';
+            })
+            ->addColumn('approved_by', function ($expense) {
+                return Administrator::find($expense->approved_by)?->fname .' '. Administrator::find($expense->approved_by)?->sname ?? '-';
+            })
+            ->addColumn('date_approved', function ($expense) {
+                return $expense->date_approved ? $expense->date_approved->format('j F, Y') : '-';
+            })
+            ->addColumn('last_edited', function ($expense) {
+                $editedBy = 'You';
+
+                if ($expense->edited_by != Auth::user()->administrator->id) {
+                    $admin = Administrator::find($expense->edited_by);
+                    $editedBy = $admin ? $admin->fname . ' ' . $admin->sname : 'Unknown';
+                }
+
+                $date = $expense->updated_at ? $expense->updated_at->format('j F, Y H:i:s') : '-';
+
+                return <<<HTML
+                    By: {$editedBy}
+                    <div class="sm-text" style="font-size: 12px">
+                        {$date}
+                    </div>
+                HTML;
+            })
+            ->addColumn('payment_method', function ($expense) {
+                return $expense->payment_method ? $expense->payment_method : '-';
+            })
+            ->addColumn('actions', function ($expense) {
+                $download = '';
+                $edit = '';
+                $delete = '';
+                $review = '';
+
+                // Check if user has either role
+                if (auth()->user()->hasAnyRole(['superAdmin', 'admin'])) {
+
+                    // Edit only allowed if not approved
+                    if ($expense->approved != true) {
+                        $edit = '<a class="dropdown-item nav-main-link btn" href="' . url('/editexpense', $expense->id) . '">
+                                    <i class="fa fa-pencil me-3"></i> Edit
+                                </a>';
+                    }
+
+                    // Download logic
+                    if ($expense->group_type !== 'TRN') {
+                        if ($expense->approved == true) {
+                            $download = '<form class="dropdown-item nav-main-link" method="GET" action="' . url('expensedownload', $expense->id) . '">
+                                            ' . csrf_field() . '
+                                            <button class="btn download-confirm" type="submit">
+                                                <i class="fa fa-download me-3"></i> Download
+                                            </button>
+                                         </form>';
+                        } else {
+                            $download = '<p class="dropdown-item text-danger">Download not available</p>';
+                        }
+                    } else {
+                        $download = '<p class="dropdown-item text-success">Go to student profile for TRN reference</p>';
+                    }
+
+                    // Only superAdmin can review
+                    if (auth()->user()->hasRole('superAdmin')) {
+                        $review = '<a class="dropdown-item nav-main-link btn" href="' . url('/review-expense', $expense->id) . '">
+                                        <i class="fa fa-magnifying-glass me-3"></i> Review
+                                    </a>';
+                    }
+
+                    // Only superAdmin can delete if not approved
+                    if (auth()->user()->hasRole('superAdmin') && $expense->approved == false) {
+                        $delete = '<form method="POST" action="' . url('expenses', $expense->id) . '" style="display:inline;">
+                                        ' . csrf_field() . method_field('DELETE') . '
+                                        <button type="submit" class="btn dropdown-item nav-main-link delete-confirm text-danger">
+                                            <i class="fa fa-trash me-3"></i> Delete
+                                        </button>
+                                   </form>';
+                    }
+                }
+
+                // Combine and return the full dropdown
+                return '
+                    <div class="dropdown d-inline-block">
+                        <button class="btn btn-primary" data-bs-toggle="dropdown">Actions</button>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            ' . $download . $review . $edit . $delete . '
+                        </div>
+                    </div>
+                ';
+            })
+            ->rawColumns(['actions', 'last_edited', 'status', 'amount', 'students']) // allow HTML in 'actions'
+            ->make(true);
+    }
 
     /**
      * Show the form for creating a new resource.

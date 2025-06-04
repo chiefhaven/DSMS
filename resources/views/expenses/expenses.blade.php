@@ -26,192 +26,196 @@
     </div>
   </div>
 
-    <div class="content content-full">
-        @php
-            use Carbon\Carbon;
-        @endphp
+    <div class="content content-full" id="expenses">
         <div class="block block-rounded block-bordered">
             <div class="block-content">
-                @if(!$expenses->isEmpty())
-                    <div class="table-responsive">
-                        <table id="expenses" class="table table-bordered table-striped table-vcenter">
-                            <thead class="thead-dark">
-                                <tr>
-                                    <th class="text-center" style="width: 100px;">Actions</th>
-                                    <th style="min-width: 12rem;">Group</th>
-                                    <th style="min-width: 12rem;">Students</th>
-                                    <th style="min-width: 10rem;">Status</th>
-                                    <th style="min-width: 7rem;">Type</th>
-                                    <th style="min-width: 10rem;">Description</th>
-                                    @role(['superAdmin'])
-                                        <th style="min-width: 10rem;">Posted by</th>
-                                    @endcan
-                                    <th style="min-width: 10rem;">Amount per student</th>
-                                    <th style="min-width: 10em;">Approved Amount</th>
-                                    <th style="min-width: 10rem;">Approved by</th>
-                                    <th style="min-width: 10rem;">Date Approved</th>
-                                    <th style="min-width: 10rem;">Last edited</th>
-                                    <th style="min-width: 10rem;">Payment method</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($expenses as $expense)
-                                    <tr>
-                                        <td class="text-center">
-                                            <div class="dropdown d-inline-block">
-                                                <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                    <span class="d-sm-inline-block">Action</span>
-                                                </button>
-                                                <div class="dropdown-menu dropdown-menu-end p-0">
-                                                    <div class="p-2">
-                                                        @role(['superAdmin|admin'])
-                                                            @if($expense->group_type != 'TRN')
-                                                                @if($expense->approved == true)
-                                                                    <form class="dropdown-item nav-main-link" method="get" action="{{ url('expensedownload', $expense) }}">
-                                                                        {{ csrf_field() }}
-                                                                        <i class="nav-main-link-icon fa fa-download"></i>
-                                                                        <button class="btn download-confirm" type="submit">Download</button>
-                                                                    </form>
-                                                                @else
-                                                                    <p class="text-danger">Download not available, list not approved yet</p>
-                                                                @endif
-                                                            @else
-                                                                <p class="text-danger">Go to individual student profile to download TRN reference</p>
-                                                            @endif
-                                                            @if ($expense->approved == '0')
-                                                                <a class="dropdown-item nav-main-link" href="{{ url('editexpense', $expense) }}">
-                                                                    {{ csrf_field() }}
-                                                                    <i class="nav-main-link-icon fa fa-pen"></i>
-                                                                    <div class="btn">Edit</div>
-                                                                </a>
-                                                            @endcan
-                                                            @role(['superAdmin'])
-                                                                <a class="dropdown-item nav-main-link" href="{{ url('review-expense', $expense) }}">
-                                                                    {{ csrf_field() }}
-                                                                    <i class="nav-main-link-icon fa fa-magnifying-glass"></i>
-                                                                    <div class="btn">Review</div>
-                                                                </a>
-                                                                @if ($expense->approved == '0')
-                                                                    <form class="dropdown-item nav-main-link" method="POST" action="{{ url('expenses', $expense) }}">
-                                                                        {{ csrf_field() }}
-                                                                        {{ method_field('DELETE') }}
-                                                                        <i class="nav-main-link-icon text-danger fa fa-trash"></i>
-                                                                        <button class="btn delete-confirm text-danger" type="submit">Delete</button>
-                                                                    </form>
-                                                                @endcan
-                                                            @endcan
-                                                        @endcan
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            @php
-                                                $dateRaw = trim(preg_replace('/[^0-9\/\-]/', '', $expense->group));
-                                                $formats = ['d/m/Y', 'Y-m-d'];
-                                                $formattedDate = 'Invalid date';
-                                                foreach ($formats as $format) {
-                                                    try {
-                                                        $formattedDate = Carbon::createFromFormat($format, $dateRaw)->format('d M, Y');
-                                                        break;
-                                                    } catch (\Exception $e) {
-                                                        continue;
-                                                    }
-                                                }
-                                            @endphp
-                                            {{ $formattedDate }}<br>
-                                        </td>
-                                        <td>
-                                            <div class="muted-text">
-                                                {{ $expense->students->count() }} Students paid for!
-                                            </div>
-                                        </td>
-                                        <td>
-                                            @if ($expense->approved == '1')
-                                                <div class="text-center p-1 text-success">
-                                                    <i class="fa fa-check" aria-hidden="true"></i> Approved
-                                                </div>
-                                            @else
-                                                <div class="text-center p-1 text-danger">
-                                                    <i class="fa fa-times" aria-hidden="true"></i> Unapproved
-                                                </div>
-                                            @endif
-                                        </td>
-                                        <td>{{ $expense->group_type }}</td>
-                                        <td>{{ $expense->description }}</td>
-                                        @role(['superAdmin'])
-                                            <td>
-                                                @if ($expense->administrator)
-                                                    {{ $expense->administrator->fname }} {{ $expense->administrator->sname }}
-                                                @else
-                                                    -
-                                                @endif
-                                            </td>
-                                        @endcan
-                                        <td>K{{ number_format($expense->amount) }}</td>
-                                        <td>K{{ number_format($expense->approved_amount) }}</td>
-                                        <td>
-                                            @if ($expense->approved == true)
-                                                {{ App\Models\Administrator::find($expense->approved_by)?->fname }}
-                                                {{ App\Models\Administrator::find($expense->approved_by)?->sname }}
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if ($expense->approved == true)
-                                                {{ $expense->date_approved->format('j F, Y') }}
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if ($expense->edited_by)
-                                                By:
-                                                @if ($expense->edited_by != Auth::user()->administrator->id)
-                                                    {{ App\Models\Administrator::find($expense->edited_by)?->fname }}
-                                                    {{ App\Models\Administrator::find($expense->edited_by)?->sname }}
-                                                @else
-                                                    You
-                                                @endif
-                                                <div class="sm-text" style="font-size: 12px">
-                                                    {{ $expense->updated_at->format('j F, Y H:i:s') }}
-                                                </div>
-                                            @endif
-                                        </td>
-                                        <td>Cash</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @else
-                    <p class="p-5">No expenses found!</p>
-                @endif
+                <div class="table-responsive">
+                    <table id="expensesTable" class="table table-bordered table-striped table-vcenter">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th class="text-center" style="width: 100px;">Actions</th>
+                                <th style="min-width: 12rem;">Group</th>
+                                <th class="text-center" style="min-width: 7rem;">Students count</th>
+                                <th class="text-center" style="min-width: 7rem;">Status</th>
+                                <th style="min-width: 7rem;">Type</th>
+                                <th style="min-width: 10rem;">Description</th>
+                                <th style="min-width: 10rem;">Posted by</th>
+                                <th style="min-width: 10rem;">Amount/student</th>
+                                <th style="min-width: 10rem;">Approved by</th>
+                                <th style="min-width: 10rem;">Date Approved</th>
+                                <th style="min-width: 10rem;">Last edited</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
             </div>
         </div>
-
     </div>
-    <script type="text/javascript">
-        $('.delete-confirm').on('click', function (e) {
-            e.preventDefault();
-            var form = $(this).parents('form');
-            Swal.fire({
-                title: 'Delete Expense',
-                text: 'Do you want to delete this expense?',
-                icon: 'error',
-                confirmButtonText: 'Yes'
-            }).then((result) => {
-                if (result.isConfirmed)
-                    form.submit();
-            });
-        });
+    <script setup>
+        const { createApp, ref, reactive, onMounted, nextTick } = Vue
 
-        $(document).ready(function() {
-            $.fn.dataTable.moment('DD MMM, YYYY');
-            $('#expenses').DataTable({
-                responsive: true,
-                "scrollX": true,
-                order: [[1, 'desc']],
-            });
-        });
+        const expenses = createApp({
+        setup() {
 
+            const showStatusChangeModal = ref(false);
+
+            onMounted(() => {
+                nextTick(() => {
+                  setTimeout(() => {
+                    getExpenses();
+                  }, 100);
+                });
+            });
+
+            const reloadTable = (val) => {
+                status.value = val
+                if ($.fn.DataTable.isDataTable('#expensesTable')) {
+                    $('#expensesTable').DataTable().ajax.reload();
+                  }
+            }
+
+            const getExpenses = () => {
+                NProgress.start();
+                const table = $('#expensesTable').DataTable();
+                if ($.fn.DataTable.isDataTable('#expensesTable')) {
+                    table.destroy();
+                }
+                $('#expensesTable').DataTable({
+                  serverSide: true,
+                  processing: true,
+                  scrollCollapse: true,
+                  scrollX: true,
+                  ajax: async function(data, callback, settings) {
+                    try {
+                        const csrfToken = $('meta[name="csrf-token"]').attr('content');
+                        axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
+                        const response = await axios.get('/api/expenses', {
+                            params: { ...data, status: status.value },
+                            withCredentials: true,
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            }
+                        });
+
+                        callback(response.data);
+
+                    } catch (error) {
+                        let errorMessage = 'An error occurred while fetching data. Please try again later.';
+
+                        if (error.response?.data?.error) {
+                            errorMessage = error.response.data.error;
+                        } else if (error.response?.data) {
+                            errorMessage = error.response.data;
+                        }
+
+                        if ([401, 403, 409].includes(error.response?.status)) {
+                            showError('Session expired, reloading...');
+                            setTimeout(() => window.location.reload(), 1500);
+                        } else {
+                            showError(errorMessage);
+                        }
+                    } finally{
+                        NProgress.done();
+                    }
+                },
+                columns: [
+                    { data: 'actions', className: 'text-center', orderable: false },
+                    { data: 'group' },
+                    { data: 'students' },
+                    { data: 'status' },
+                    { data: 'type' },
+                    { data: 'description' },
+                    { data: 'posted_by' },
+                    { data: 'amount', className: 'text-right' },
+                    { data: 'approved_by' },
+                    { data: 'date_approved', className: 'text-center' },
+                    { data: 'last_edited', className: 'text-center' }
+                  ],
+                  drawCallback: function () {
+
+                    $('.delete-confirm').on('click', function (e) {
+                      e.preventDefault();
+                      var form = $(this).closest('form');
+                      Swal.fire({
+                        title: 'Delete expense',
+                        text: 'Do you want to delete this expense?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Delete!',
+                        cancelButtonText: 'Cancel'
+                      }).then((result) => {
+                        if (result.isConfirmed) {
+                          form.submit();
+                          $('#expensesTable').DataTable().ajax.reload();
+                        }
+                      });
+                    });
+                  }
+                });
+            };
+
+            const showError = (
+                message,
+                detail,
+                {
+                    confirmText = 'OK',
+                    icon = 'error',
+                } = {}
+                ) => {
+                const baseOptions = {
+                    icon,
+                    title: message,
+                    text: detail,
+                    confirmButtonText: confirmText,
+                    didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer);
+                    toast.addEventListener('mouseleave', Swal.resumeTimer);
+                    }
+                };
+
+                // Clean up undefined options
+                const cleanOptions = Object.fromEntries(
+                    Object.entries(baseOptions).filter(([_, v]) => v !== undefined)
+                );
+
+                return Swal.fire(cleanOptions);
+            };
+
+            const showAlert = (
+                message = '', // Optional title
+                detail = '',  // Optional detail text
+                { icon = 'info' } = {}
+            ) => {
+                const baseOptions = {
+                    icon,
+                    toast: true,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer);
+                        toast.addEventListener('mouseleave', Swal.resumeTimer);
+                    }
+                };
+
+                // Only include title and text if they’re not empty
+                if (message) baseOptions.title = message;
+                if (detail) baseOptions.text = detail;
+
+                return Swal.fire(baseOptions);
+            };
+
+
+            return {
+                reloadTable,
+            }
+
+        }})
+
+        expenses.mount('#expenses');
     </script>
 <!-- END Hero -->
 
