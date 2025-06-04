@@ -162,7 +162,7 @@
             });
 
             const formatDate = (dateString) => {
-                return dayjs(dateString).format('DD MMM, YYYY');
+                return dayjs(dateString, ['DD/MM/YYYY', 'YYYY-MM-DD']).format('DD MMM, YYYY');
             };
 
             const paymentMethodOptions = ref([

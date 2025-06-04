@@ -436,7 +436,7 @@
             format: "dd/mm/yyyy",
             autoclose: true,
             todayHighlight: true
-        }).datepicker('setDate', day + '-' + month + '-' + year);
+        }).datepicker('setDate', day + '/' + month + '/' + year);
     });
 </script>
 @endsection
