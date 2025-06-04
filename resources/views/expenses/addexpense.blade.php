@@ -187,7 +187,6 @@
 
                 if(!state.value.selectedStudents.some(item => item.studentId === state.value.studentId)){
 
-                    console.log(state.value.studentId);
 
                     axios.post('/checkStudent', {student:state.value.studentId, expenseType: state.value.expenseType}).then(response => {
                         if(response.data.feedback == "success"){
@@ -212,7 +211,7 @@
                 state.value.selectedStudents.splice(index, 1)
             }
 
-            function saveExpense(){
+            const saveExpense = async()=> {
                 if(Object.keys( state.value.selectedStudents ).length == 0){
                     showAlert('Can not save', 'Student list must not be empty; add students or cancel the creation.', {
                         toast: false,
@@ -238,20 +237,31 @@
                     notification('Expense Group Name, Payment Method and Amount must be filled and Amount must be greater than 0', 'error')
                     return false
                 }
-                state.value.isSubmitButtonDisabled = true
-                state.value.isLoading = true
-                axios.post('/storeexpense', {students:state.value.selectedStudents, expenseGroupName:state.value.expenseGroupName, expenseDescription:state.value.expenseDescription, expenseGroupType:state.value.expenseGroupType, expenseAmount: state.value.amount}).then(response => {
-                    if(response.status==200){
-                        notification('Expense added successfully','success')
-                        window.location.replace('/expenses')
-                    }
-                    else if(error.response.data.errors){
-                        notification('error.response.data.errors.message','error')
-                    }
-                    else{
-                        return false
-                    }
-                });
+
+                try{
+                    NProgress.start();
+                    state.value.isSubmitButtonDisabled = true;
+                    state.value.isLoading = true;
+
+                    const response = await axios.post('/storeexpense', {
+                        students: state.value.selectedStudents,
+                        expenseGroupName: state.value.expenseGroupName,
+                        expenseDescription: state.value.expenseDescription,
+                        expenseGroupType: state.value.expenseGroupType,
+                        expenseAmount: state.value.amount
+                    });
+
+                    notification('Expense added successfully, page redirecting...', 'success');
+                    window.location.replace('/expenses');
+                }catch (error) {
+                    notification('An error occurred while saving the expense. Please try again.', 'error');
+                    NProgress.done();
+                    state.value.isSubmitButtonDisabled = false;
+                    state.value.isLoading = false;
+                    state.value.buttonText = 'Submit';
+                } finally {
+
+                }
 
                 //
             }
@@ -276,7 +286,6 @@
 
                         state.value.studentId = item.id;
 
-                        console.log("Selected Student:", item, state.value.studentId);
                         return item;
                     }
                 });

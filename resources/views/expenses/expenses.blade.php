@@ -108,7 +108,7 @@
                                         <td>
                                             @php
                                                 $dateRaw = trim(preg_replace('/[^0-9\/\-]/', '', $expense->group));
-                                                $formats = ['d-m-Y', 'Y-m-d'];
+                                                $formats = ['d/m/Y', 'Y-m-d'];
                                                 $formattedDate = 'Invalid date';
                                                 foreach ($formats as $format) {
                                                     try {
