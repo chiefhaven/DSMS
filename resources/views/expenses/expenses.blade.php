@@ -112,7 +112,8 @@
                             showError('Session expired, reloading...');
                             setTimeout(() => window.location.reload(), 1500);
                         } else {
-                            showError(errorMessage);
+                            showError('Something wrong happened');
+                            console.log (errorMessage)
                         }
                     } finally{
                         NProgress.done();
