@@ -63,7 +63,7 @@ class ExpenseController extends Controller
 
         return DataTables::of($expenses)
             ->addColumn('group', function ($expense) {
-                return $expense->group;
+                return Carbon::createFromFormat('d/m/Y', $expense->group)->format('j F, Y');
             })
             ->addColumn('students', function ($expense) {
                 return '<div class="text-center">'.
