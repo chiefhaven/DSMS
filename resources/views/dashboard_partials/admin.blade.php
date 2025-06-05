@@ -100,7 +100,7 @@
                       </tr>
                     </thead>
                     <tbody>
-                      @foreach($invoice as $invoice)
+                      @foreach($invoices as $invoice)
                       <tr>
                         <td>
                           <span class="fw-semibold"><a href="{{ url('/view-invoice', $invoice->invoice_number) }}">{{$invoice->invoice_number}}</a></span>

@@ -45,7 +45,7 @@ class HomeController extends Controller
             ->take(10)
             ->get();
 
-        $invoice = Invoice::with('Student')
+        $invoices = Invoice::with('Student')
             ->orderBy('created_at', 'DESC')
             ->take(10)
             ->get();
@@ -61,7 +61,8 @@ class HomeController extends Controller
 
         $settings = Setting::find(1);
 
-        return view('dashboard', compact(['settings', 'attendanceCount', 'instructors', 'activities', 'student', 'time']));
+        return view('dashboard', compact(['settings', 'attendanceCount', 'instructors', 'activities', 'student', 'time', 'invoices', 'filter']))
+            ->with('title', 'Dashboard');
     }
 
     public function summaryData()
