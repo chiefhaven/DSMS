@@ -437,11 +437,11 @@ class StudentController extends Controller
             $students = $students->get();
 
             $theoryCount = Student::whereHas('Course', function ($query) {
-                $query->where('trainingLevel_id', TrainingLevel::where('name', 'theory')->first());
+                $query->where('trainingLevel_id', TrainingLevel::where('name', 'theory')->first()->id);
             })->count();
 
             $practicalCount = Student::whereHas('Course', function ($query) {
-                $query->where('trainingLevel_id', TrainingLevel::where('name', 'practical')->first());
+                $query->where('trainingLevel_id', TrainingLevel::where('name', 'practical')->first()->id);
             })->count();
 
             return view('students.students', compact('students', 'fleet', 'theoryCount', 'practicalCount'));
@@ -449,11 +449,11 @@ class StudentController extends Controller
         } catch (ModelNotFoundException $e) {
             Alert::error(__('No students'), $e->getMessage());
             Log::error($e);
-            //return redirect('/');
+            return redirect('/');
         } catch (\Exception $e) {
             Alert::error(__('Error'), __('An unexpected error occurred.'));
             Log::error($e);
-            //return redirect('/');
+            return redirect('/');
         }
     }
 
