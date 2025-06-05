@@ -103,7 +103,7 @@
                       @foreach($invoices as $invoice)
                       <tr>
                         <td>
-                          <span class="fw-semibold"><a href="{{ url('/view-invoice', $invoice->invoice_number) }}">{{$invoice->invoice_number}}</a></span>
+                          <span class="fw-semibold"><a href="{{ url('/view-invoice', $invoice->id) }}">{{$invoice->invoice_number}}</a></span>
                         </td>
                         <td class="d-none d-sm-table-cell">
                           <span class="fs-sm text-muted">{{$invoice->date_created->format('j F, Y')}}</span>
@@ -115,8 +115,8 @@
                           <span class="fw-semibold text-warning">K{{number_format($invoice->invoice_balance, 2)}}</span>
                         </td>
                         <td class="text-center">
-                          <a href="{{ url('/view-invoice', $invoice->invoice_number) }}" data-bs-toggle="tooltip" data-bs-placement="left" title="" class="js-bs-tooltip-enabled" data-bs-original-title="Manage">
-                            <i class="fa fa-fw fa-life-ring"></i>
+                          <a href="{{ url('/view-invoice', $invoice->id) }}" data-bs-toggle="tooltip" data-bs-placement="left" title="" class="js-bs-tooltip-enabled" data-bs-original-title="Manage">
+                            <i class="fa fa-fw fa-life-ring me-2"></i> View
                           </a>
                         </td>
                       </tr>
