@@ -37,54 +37,93 @@
 
       <div class="row">
         @foreach ($administrator as $administrator)
-        <div class="col-md-6 col-xl-4">
-            <div class="block block-rounded block-link-shadow text-center" href="javascript:void(0)">
-                <div class="block-content block-content-full">
-                    <img class="img-avatar" src="media/avatars/avatar6.jpg" alt="">
-                </div>
-                <div class="block-content block-content-full block-content-sm bg-body-light">
-                    <p class="font-w600 mb-0">{{$administrator->fname}} {{$administrator->sname}}</p>
-                </div>
-                <div class="block-content block-content-full">
-                    <div class="row">
-                        <div class="col-8 text-left">
-                            <p class="font-size-sm text-muted mb-0">
-                                Phone: {{$administrator->phone}}<br>
-                                Email:
-                                @if(isset($administrator->user->email))
+            <div class="col-md-6 col-xl-4 mb-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <!-- Profile Row (Avatar + Info) -->
+                        <div class="row align-items-center mb-3">
+                            <!-- Avatar Column -->
+                            <div class="col-auto">
+                                <img class="rounded-circle"
+                                    src="{{ $administrator->avatar ?? 'media/avatars/avatar6.jpg' }}"
+                                    alt="{{ $administrator->fname }}'s avatar"
+                                    width="80"
+                                    height="80">
+                            </div>
 
-                                  {{$administrator->user->email}}
-
-                                @else
-
-                                @endif
-                                <br>
-                            </p>
+                            <!-- Info Column -->
+                            <div class="col ps-0">
+                                <h5 class="mb-1">{{ $administrator->fname }} {{ $administrator->sname }}</h5>
+                                <ul class="list-unstyled text-muted small mb-0">
+                                    <li class="mb-1">
+                                        <i class="fas fa-phone-alt me-1"></i>
+                                        {{ $administrator->phone ?? 'N/A' }}
+                                    </li>
+                                    <li>
+                                        <i class="fas fa-envelope me-1"></i>
+                                        {{ $administrator->user->email ?? 'N/A' }}
+                                    </li>
+                                    <li>
+                                        <i class="fas fa-user-tag me-1"></i>
+                                        @if($administrator->user->roles->count() > 0)
+                                            @php
+                                                $primaryRole = $administrator->user->roles->first();
+                                                $roleName = match($primaryRole->name) {
+                                                    'admin' => 'Admin',
+                                                    'superAdmin' => 'Super Admin',
+                                                    'financeAdmin' => 'Finance Admin',
+                                                    default => $primaryRole->name,
+                                                };
+                                            @endphp
+                                            <span class="badge bg-primary">{{ $roleName }}</span>
+                                            @if($administrator->user->roles->count() > 1)
+                                                <span class="badge bg-secondary ms-1">+{{ $administrator->user->roles->count()-1 }}</span>
+                                            @endif
+                                        @else
+                                            <span class="badge bg-secondary">Staff</span>
+                                        @endif
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
-                        <div class="col-4 text-right">
-                            <div class="dropdown d-inline-block">
-                                  <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <span class="d-none d-sm-inline-block">Action</span>
-                                  </button>
-                                  <div class="dropdown-menu dropdown-menu-end p-0">
-                                    <div class="p-2">
-                                      <form method="POST" action="{{ url('/editadministrator', $administrator->id) }}">
-                                        {{ csrf_field() }}
-                                        <button class="dropdown-item" type="submit">Edit</button>
-                                      </form>
-                                      <form method="POST" action="{{ url('/deleteadministrator', $administrator->id) }}">
-                                        {{ csrf_field() }}
-                                        {{ method_field('DELETE') }}
-                                        <button class="dropdown-item" onclick="return confirm('Are you sure you want to delete {{$administrator->fname}} {{$administrator->sname}}?')" type="submit">Delete</button>
-                                      </form>
-                                    </div>
-                                  </div>
+
+                        <!-- Action Button at Bottom -->
+                        <div class="d-grid mt-5">
+                            <div class="dropdown">
+                                <button class="btn btn-outline-primary dropdown-toggle w-100"
+                                        type="button"
+                                        id="adminActionsDropdown"
+                                        data-bs-toggle="dropdown"
+                                        aria-expanded="false">
+                                    Manage Administrator
+                                </button>
+                                <ul class="dropdown-menu w-100" aria-labelledby="adminActionsDropdown">
+                                    <li>
+                                        <form method="get" action="{{ url('/editadministrator', $administrator->id) }}">
+                                            @csrf
+                                            <button class="dropdown-item d-flex align-items-center" type="submit">
+                                                <i class="fas fa-edit me-2"></i> Edit Profile
+                                            </button>
+                                        </form>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form method="POST" action="{{ url('/deleteadministrator', $administrator->id) }}">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="dropdown-item d-flex align-items-center text-danger"
+                                                    onclick="return confirm('Are you sure you want to delete {{ $administrator->fname }} {{ $administrator->sname }}?')"
+                                                    type="submit">
+                                                <i class="fas fa-trash-alt me-2"></i> Delete
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
         @endforeach
       </div>
 

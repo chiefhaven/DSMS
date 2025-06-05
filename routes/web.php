@@ -22,6 +22,7 @@ use App\Http\Controllers\havenUtils;
 use App\Http\Controllers\InstructorPaymentController;
 use App\Http\Controllers\knowledgeController;
 use App\Http\Controllers\QrCodeController;
+use App\Http\Controllers\RoleController;
 use App\Http\Controllers\ScheduleLessonController;
 use App\Models\Announcement;
 use App\Models\knowledge;
@@ -163,7 +164,7 @@ Route::get('/administrators', [AdministratorController::class, 'index'])->middle
 Route::get('/viewadministrator', [AdministratorController::class, 'show'])->middleware('auth')->name('viewadministrator');
 Route::get('/addadministrator', [AdministratorController::class, 'create'])->middleware('auth')->name('addadministrator');
 Route::post('/storeadministrator', [AdministratorController::class, 'store'])->middleware('auth')->name('storeadministrator');
-Route::post('/editadministrator/{id}', [AdministratorController::class, 'edit'])->middleware('auth')->name('editadministrator');
+Route::get('/editadministrator/{id}', [AdministratorController::class, 'edit'])->middleware('auth')->name('editadministrator');
 Route::post('/updateadministrator', [AdministratorController::class, 'update'])->middleware('auth')->name('updateadministrator');
 Route::delete('/deleteadministrator/{id}', [AdministratorController::class, 'destroy'])->middleware('auth')->name('deleteadministrator');
 
@@ -247,7 +248,6 @@ Route::get("/scanqrcode", function(){
 Route::get('/lesson-search', [havenUtils::class, 'autocompleteLessonSearch'])->middleware('auth')->name('lesson-search');
 Route::post('/check-class-fleet-assignment', [havenUtils::class, 'checkInstructorClassFleetAssignment'])->middleware('auth')->name('check-class-fleet-assignment');
 
-
 Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index')->middleware('auth');
 Route::get('/load-notifications', [NotificationController::class, 'loadNotifications'])->name('notifications.loadNotications')->middleware('auth');
 Route::patch('/notifications/{notificationId}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read')->middleware('auth');
@@ -255,3 +255,5 @@ Route::patch('/notifications/{notificationId}/read', [NotificationController::cl
 Route::patch('/notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.markAllRead')->middleware('auth');
 
 Route::get('/knowledge', [knowledgeController::class, 'index'])->middleware('auth')->name('knolwedge')->middleware('auth');
+
+Route::get('/roles', [RoleController::class, 'index'])->middleware('auth')->name('roles');

@@ -12,21 +12,21 @@
   </div>
 
   <div class="content content-full">
-          @if(Session::has('message'))
+        @if(Session::has('message'))
             <div class="alert alert-success">
-              {{Session::get('message')}}
+            {{Session::get('message')}}
             </div>
-          @endif
+        @endif
 
-          @if ($errors->any())
-              <div class="alert alert-danger">
-                  <ul>
-                      @foreach ($errors->all() as $error)
-                          <li>{{ $error }}</li>
-                      @endforeach
-                  </ul>
-              </div>
-          @endif
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
         <div class="block block-rounded">
             <div class="block-content">
               <form action="{{ url('/updateadministrator') }}" enctype="multipart/form-data" method="POST">
@@ -54,12 +54,13 @@
                     </div>
                     <div class="col-4 form-floating mb-4">
                         <select class="form-select" id="gender" name="gender">
-                          <option value="{{$administrator->gender}}" selected>{{$administrator->gender}}</option>
-                          <option value="female">Female</option>
-                          <option value="female">Male</option>
-                          <option value="other">Other</option>
+                            @foreach($genders as $value => $label)
+                                <option value="{{ $value }}" {{ old('gender', $administrator->gender) == $value ? 'selected' : '' }}>
+                                    {{ $label }}
+                                </option>
+                            @endforeach
                         </select>
-                        <label for="district">Gender</label>
+                        <label for="gender">Gender</label>
                     </div>
                     <div class="mb-4 form-floating">
                       <input type="date" class="form-control @error('date_of_birth') is-invalid @enderror" id="date_of_birth" name="date_of_birth" placeholder="DDMMYY" value="{{$administrator->date_of_birth}}" formnovalidate="">
@@ -86,30 +87,45 @@
                       <label for="district">Distirct</label>
                     </div>
                     <div class="form-floating mb-4">
-                      <select class="form-select" id="role" name="role">
-                        @foreach ($role as $role)
-                           <option value="{{$role->name}}" {{ $role->name == $administrator->user->pluck('name')->implode(',')? 'selected' : '' }}>{{$role->name}}</option>
-                        @endforeach
-                      </select>
+                        <select class="form-select" id="role" name="role">
+                            @foreach ($role as $role)
+                                <option value="{{ $role->name }}"
+                                        {{ $administrator->user->roles->contains('name', $role->name) ? 'selected' : '' }}>
+                                    @switch($role->name)
+                                        @case('admin')
+                                            Admin
+                                            @break
+                                        @case('financeAdmin')
+                                            Finance Admin
+                                            @break
+                                        @case('superAdmin')
+                                            Super Admin
+                                            @break
+                                        @default
+                                            {{ ucfirst($role->name) }}
+                                    @endswitch
+                                </option>
+                            @endforeach
+                        </select>
                       <label for="district">Role</label>
                     </div>
                   </div>
                   <div class=" content-heading"><p>&nbsp;</p></div>
-                  <div class="col-lg-4">
-                    <p class="text-muted">
-                      Login details
-                    </p>
-                  </div>
-                  <div class="col-lg-8 col-xl-5">
-                      <div class="form-floating mb-4">
-                        <input type="text" class="form-control" id="username" name="username" placeholder="Administrator's username">
-                        <label class="form-label" for="example-email-input-floating">Username</label>
-                      </div>
-                      <div class="form-floating mb-4">
-                        <input type="password" class="form-control" id="password" name="password" placeholder="password">
-                        <label class="form-label" for="example-email-input-floating">Password</label>
-                      </div>
-                  </div>
+                    {{--  <div class="col-lg-4">
+                        <p class="text-muted">
+                        Login details
+                        </p>
+                    </div>
+                    <div class="col-lg-8 col-xl-5">
+                        <div class="form-floating mb-4">
+                            <input type="text" class="form-control" id="username" name="username" placeholder="Administrator's username">
+                            <label class="form-label" for="example-email-input-floating">Username</label>
+                        </div>
+                        <div class="form-floating mb-4">
+                            <input type="password" class="form-control" id="password" name="password" placeholder="password">
+                            <label class="form-label" for="example-email-input-floating">Password</label>
+                        </div>
+                    </div>  --}}
                 </div>
                 <div class="row push">
                   <div class="col-lg-8 col-xl-5 offset-lg-4">
@@ -122,7 +138,7 @@
                 </div>
               </form>
             </div>
-          </div>
+        </div>
   </div>
   <!-- END Hero -->
 

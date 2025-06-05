@@ -156,7 +156,8 @@ class AdministratorController extends Controller
         $administrator = Administrator::with('User')->find($id);
         $district = District::get();
         $role = Role::get();
-        return view('administrators.editadministrator', [ 'administrator' => $administrator ], compact('administrator', 'district', 'role'));
+        $genders = ['female' => 'Female', 'male' => 'Male', 'other' => 'Other'];
+        return view('administrators.editadministrator', [ 'administrator' => $administrator ], compact('administrator', 'district', 'role', 'genders'));
     }
 
     /**
@@ -217,15 +218,13 @@ class AdministratorController extends Controller
 
         $Administrator->save();
         $user->save();
-        if($post['role'] == 'superAdmin'){
-
-            $user->syncRoles(['superAdmin']);
-        }
-
-        else{
-
-            $user->syncRoles(['admin']);
-        }
+        $user->syncRoles([
+            match($post['role']) {
+                'superAdmin' => 'superAdmin',
+                'financeAdmin' => 'financeAdmin',
+                default => 'admin'
+            }
+        ]);
 
         return redirect('/administrators')->with('message', 'Administrator updated!');
     }
