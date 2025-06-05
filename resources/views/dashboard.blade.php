@@ -24,6 +24,9 @@
       @role('admin')
         @include('dashboard_partials.admin')
       @endcan
+      @role('financeAdmin')
+        @include('dashboard_partials.admin')
+      @endcan
       @role('instructor')
         @include('dashboard_partials.instructor')
       @endcan
