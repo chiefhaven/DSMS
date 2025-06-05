@@ -45,6 +45,11 @@ class HomeController extends Controller
             ->take(10)
             ->get();
 
+        $invoice = Invoice::with('Student')
+            ->orderBy('created_at', 'DESC')
+            ->take(10)
+            ->get();
+
         $activities = Activity::orderBy('created_at', 'DESC')->paginate(500);
 
         $instructors = Instructor::where('status', 'active')

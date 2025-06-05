@@ -74,7 +74,7 @@
               </div>
             </div>
           </div>
-          {{--  <div class="col-xl-6">
+          <div class="col-xl-6">
             <div class="block block-rounded block-bordered block-mode-loading-refresh h-100 mb-0">
               <div class="block-header border-bottom">
                 <h3 class="block-title">Invoices</h3>
@@ -126,5 +126,5 @@
                 </div>
               </div>
             </div>
-          </div>  --}}
+          </div>
         </div>
