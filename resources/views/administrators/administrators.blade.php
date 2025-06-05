@@ -90,7 +90,7 @@
                         <!-- Action Button at Bottom -->
                         <div class="d-grid mt-5">
                             <div class="dropdown">
-                                <button class="btn btn-outline-primary dropdown-toggle w-100"
+                                <button class="btn btn-outline-black dropdown-toggle w-100"
                                         type="button"
                                         id="adminActionsDropdown"
                                         data-bs-toggle="dropdown"

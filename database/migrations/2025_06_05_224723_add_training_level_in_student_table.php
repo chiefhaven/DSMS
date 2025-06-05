@@ -13,19 +13,20 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('roles', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::table('students', function (Blueprint $table) {
+            $table->uuid('trainingLevel_id')->nullable();
+
+
         });
     }
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
     public function down()
     {
-        Schema::dropIfExists('roles');
+        Schema::table('students', function (Blueprint $table) {
+            $table->dropColumn('trainingLevel_id');
+        });
     }
 };

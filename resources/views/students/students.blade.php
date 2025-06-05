@@ -41,7 +41,7 @@
     <div class="content content-full" id="students">
         <div class="row">
             <!-- Active Students -->
-            <div class="col-md-4 col-xl-4 col-sm-4">
+            <div class="col-md-4 col-lg-2 col-6 mb-4">
                 <div class="block block-rounded block-link-shadow border" @click="reloadTable('active')" style="cursor: pointer;">
                     <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                         <div>
@@ -51,42 +51,93 @@
                             <p class="font-size-h3 font-w300 mb-0">
                                 {{ \App\Models\Student::where('status', '!=', 'Finished')->count() }}
                             </p>
-                            <p class="mb-0">Active</p>
+                            <p class="text-muted mb-0">Active</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theory Students -->
+            <div class="col-md-4 col-lg-2 col-6 mb-4">
+                <div class="block block-rounded block-link-shadow border" @click="reloadTable('theory')" style="cursor: pointer;">
+                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                        <div>
+                            <i class="fa fa-2x fa-book text-info"></i>
+                        </div>
+                        <div class="ml-3 text-right">
+                            <p class="font-size-h3 font-w300 mb-0">
+                                {{ $theoryCount }}
+                            </p>
+                            <p class="text-muted mb-0">Theory</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Practical Students -->
+            <div class="col-md-4 col-lg-2 col-6 mb-4">
+                <div class="block block-rounded block-link-shadow border" @click="reloadTable('practical')" style="cursor: pointer;">
+                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                        <div>
+                            <i class="fa fa-2x fa-car text-warning"></i>
+                        </div>
+                        <div class="ml-3 text-right">
+                            <p class="font-size-h3 font-w300 mb-0">
+                                {{  $practicalCount }}
+                            </p>
+                            <p class="text-muted mb-0">Practical</p>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Unassigned Students -->
-            <div class="col-md-4 col-xl-4 col-sm-4">
-            <div class="block block-rounded block-link-shadow border" @click="reloadTable('unassigned')" style="cursor: pointer;">
-                <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                <div>
-                    <i class="fa fa-2x fa-times-circle text-danger"></i>
+            <div class="col-md-4 col-lg-2 col-6 mb-4">
+                <div class="block block-rounded block-link-shadow border" @click="reloadTable('unassigned')" style="cursor: pointer;">
+                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                        <div>
+                            <i class="fa fa-2x fa-times-circle text-danger"></i>
+                        </div>
+                        <div class="ml-3 text-right">
+                            <p class="font-size-h3 font-w300 mb-0">
+                                {{ \App\Models\Student::whereNull('fleet_id')->whereNull('classroom_id')->where('status', '!=', 'Finished')->count() }}
+                            </p>
+                            <p class="text-muted mb-0">Unassigned</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="mr-3 text-right">
-                    <p class="font-size-h3 font-w900 mb-0">
-                        {{ \App\Models\Student::whereNull('fleet_id')->whereNull('classroom_id')->where('status', '!=', 'Finished')->count() }}
-                    </p>
-                    <p class="mb-0">Unassigned</p>
-                </div>
-                </div>
-            </div>
             </div>
 
             <!-- Finished Students -->
-            <div class="col-md-4 col-xl-4 col-sm-4">
+            <div class="col-md-4 col-lg-2 col-6 mb-4">
                 <div class="block block-rounded block-link-shadow border" @click="reloadTable('finished')" style="cursor: pointer;">
                     <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                    <div>
-                        <i class="fa fa-2x fa-check-circle text-primary"></i>
+                        <div>
+                            <i class="fa fa-2x fa-check-circle text-primary"></i>
+                        </div>
+                        <div class="ml-3 text-right">
+                            <p class="font-size-h3 font-w300 mb-0">
+                                {{ \App\Models\Student::where('status', 'Finished')->count() }}
+                            </p>
+                            <p class="text-muted mb-0">Finished</p>
+                        </div>
                     </div>
-                    <div class="ml-3 text-right">
-                        <p class="font-size-h3 font-w900 mb-0">
-                            {{ \App\Models\Student::where('status', 'Finished')->count() }}
-                        </p>
-                        <p class="mb-0">Finished/Cancelled</p>
-                    </div>
+                </div>
+            </div>
+
+            <!-- Cancelled Students -->
+            <div class="col-md-4 col-lg-2 col-6 mb-4">
+                <div class="block block-rounded block-link-shadow border" @click="reloadTable('cancelled')" style="cursor: pointer;">
+                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                        <div>
+                            <i class="fa fa-2x fa-ban text-secondary"></i>
+                        </div>
+                        <div class="ml-3 text-right">
+                            <p class="font-size-h3 font-w300 mb-0">
+                                {{ \App\Models\Student::where('status', 'Cancelled')->count() }}
+                            </p>
+                            <p class="text-muted mb-0">Cancelled</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -106,6 +157,7 @@
                                         <th>Fees</th>
                                         <th>Balance</th>
                                         <th style="min-width: 10rem;">Registered on</th>
+                                        <th style="min-width: 7rem;">Level</th>
                                         <th style="min-width: 10rem;">Assigned</th>
                                         <th>Attendance</th>
                                         <th style="min-width: 10rem;">Course Status</th>
@@ -264,6 +316,7 @@
                     { data: 'fees', className: 'text-right' },
                     { data: 'balance', className: 'text-right' },
                     { data: 'registered_on', className: 'text-center' },
+                    { data: 'level', className: 'text-center' },
                     { data: 'car_assigned', className: 'text-center' },
                     { data: 'attendance', className: 'text-center' },
                     { data: 'course_status', className: 'text-wrap' },

@@ -87,6 +87,11 @@ class Student extends Model
         return $this->belongsTo(Classroom::class, 'classroom_id', 'id');
     }
 
+    public function trainingLevel()
+    {
+        return $this->belongsTo(TrainingLevel::class, 'trainingLevel_id');
+    }
+
     //Delete relationships!
     protected static function booted () {
         static::deleting(function(Student $student) {

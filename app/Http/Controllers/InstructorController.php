@@ -50,7 +50,7 @@ class InstructorController extends Controller
 
         $status = $request->status;
 
-        $students = Student::with(['user', 'course', 'fleet', 'invoice', 'classroom'])
+        $students = Student::with(['user', 'course', 'fleet', 'invoice', 'classroom', 'trainingLevel'])
             ->when($status === 'active', function ($query) {
                 $query->where(function ($q) {
                     $q->whereNotNull('fleet_id')

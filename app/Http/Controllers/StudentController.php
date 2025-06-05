@@ -19,6 +19,7 @@ use App\Models\Administrator;
 use App\Models\Classroom;
 use App\Models\Fleet;
 use App\Models\Instructor;
+use App\Models\TrainingLevel;
 use App\Notifications\StudentCarAssigned;
 use App\Notifications\StudentClassAssignment;
 use App\Notifications\StudentRegistered;
@@ -49,7 +50,7 @@ class StudentController extends Controller
 
         $status = $request->status;
 
-        $students = Student::with(['user', 'course', 'fleet', 'invoice', 'classroom'])
+        $students = Student::with(['user', 'course', 'fleet', 'invoice', 'classroom', 'trainingLevel'])
             ->when($status === 'active', function ($query) {
                 $query->where(function ($q) {
                     $q->whereNotNull('fleet_id')
@@ -57,13 +58,22 @@ class StudentController extends Controller
                 })->where('status', '!=', 'Finished');
             })
             ->when($status === 'unassigned', function ($query) {
-                // Unassigned means no fleet or classroom assigned and not finished
                 $query->whereNull('fleet_id')
                     ->whereNull('classroom_id')
                     ->where('status', '!=', 'Finished');
             })
             ->when($status === 'finished', function ($query) {
                 $query->where('status', 'Finished');
+            })
+            ->when($status === 'theory', function ($query) {
+                $traingingLevel = TrainingLevel::where('name', 'theory')->first()->id;
+                $query->where('trainingLevel_id', $traingingLevel)
+                    ->where('status', '!=', 'Finished');
+            })
+            ->when($status === 'practical', function ($query) {
+                $traingingLevel = TrainingLevel::where('name', 'practical')->first()->id;
+                $query->where('trainingLevel_id', $traingingLevel)
+                    ->where('status', '!=', 'Finished');
             })
             ->orderBy('created_at', 'desc');
 
@@ -131,6 +141,9 @@ class StudentController extends Controller
             })
             ->addColumn('registered_on', function ($student) {
                 return $student->created_at->format('d M, Y');
+            })
+            ->addColumn('level', function ($student) {
+                return '<div class="text-capitalize">' . ($student->trainingLevel ? $student->trainingLevel->name : 'Not assigned') . '</div>';
             })
             ->addColumn('car_assigned', function ($student) {
                 if ($student->fleet) {
@@ -212,7 +225,7 @@ class StudentController extends Controller
                     </div>
                 ';
             })
-            ->rawColumns(['actions', 'full_name', 'attendance', 'balance', 'course_status']) // allow HTML in 'actions'
+            ->rawColumns(['actions', 'full_name', 'attendance', 'balance', 'course_status', 'level']) // allow HTML in 'actions'
             ->make(true);
     }
 
@@ -423,7 +436,15 @@ class StudentController extends Controller
 
             $students = $students->get();
 
-            return view('students.students', compact('students', 'fleet'));
+            $theoryCount = Student::whereHas('Course', function ($query) {
+                $query->where('trainingLevel_id', TrainingLevel::where('name', 'theory')->first()->id);
+            })->count();
+
+            $practicalCount = Student::whereHas('Course', function ($query) {
+                $query->where('trainingLevel_id', TrainingLevel::where('name', 'practical')->first()->id);
+            })->count();
+
+            return view('students.students', compact('students', 'fleet', 'theoryCount', 'practicalCount'));
 
         } catch (ModelNotFoundException $e) {
             Alert::error(__('No students'), $e->getMessage());
