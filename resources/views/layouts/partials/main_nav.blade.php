@@ -198,7 +198,7 @@
                     </a>
                 </li>
                 <li>
-                    <a class="nav-main-link" href="{{ url('/#') }}">
+                    <a class="nav-main-link" href="{{ url('#') }}">
                         <i class="nav-main-link-icon fa fa-user-tag"></i>
                         <span class="nav-main-link-name">Roles & permisions</span>
                     </a>
