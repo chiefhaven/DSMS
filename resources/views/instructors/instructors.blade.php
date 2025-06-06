@@ -59,10 +59,10 @@
                                         <i class="fas fa-phone-alt me-1"></i>
                                         {{ $instructor->phone ?? 'N/A' }}
                                     </li>
-                                    <li class="mb-1">
+                                    {{--  <li class="mb-1">
                                         <i class="fas fa-envelope me-1"></i>
                                         {{ $instructor->user->email ?? 'N/A' }}
-                                    </li>
+                                    </li>  --}}
                                     <li class="d-flex align-items-center">
                                         <i class="fas fa-user-tag me-1"></i>
                                         <span class="badge bg-{{ $instructor->status === 'Active' ? 'success' : 'danger' }}">
