@@ -90,12 +90,12 @@
                         <!-- Action Button at Bottom -->
                         <div class="d-grid mt-5">
                             <div class="dropdown">
-                                <button class="btn btn-outline-black dropdown-toggle w-100"
+                                <button class="btn btn-outline-dark dropdown-toggle w-100"
                                         type="button"
                                         id="adminActionsDropdown"
                                         data-bs-toggle="dropdown"
                                         aria-expanded="false">
-                                    Manage Administrator
+                                        <i class="fa fa-user-shield me-2"></i>Manage Administrator
                                 </button>
                                 <ul class="dropdown-menu w-100" aria-labelledby="adminActionsDropdown">
                                     <li>
@@ -111,7 +111,7 @@
                                         <form method="POST" action="{{ url('/deleteadministrator', $administrator->id) }}">
                                             @csrf
                                             @method('DELETE')
-                                            <button class="dropdown-item d-flex align-items-center text-danger"
+                                            <button class="dropdown-item d-flex align-items-center"
                                                     onclick="return confirm('Are you sure you want to delete {{ $administrator->fname }} {{ $administrator->sname }}?')"
                                                     type="submit">
                                                 <i class="fas fa-trash-alt me-2"></i> Delete

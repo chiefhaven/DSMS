@@ -37,89 +37,111 @@
 
       <div class="row">
         @foreach ($instructors as $instructor)
-            <div class="col-md-6 col-xl-4">
-                <div class="block block-rounded block-link-shadow text-center" href="javascript:void(0)">
-                    <div class="block-content block-content-full">
-                        <div class="row">
-                            <div class="col-md-12">
-                                <img class="img-avatar" src="media/avatars/avatar6.jpg" alt="">
+            <div class="col-md-6 col-xl-4 mb-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <!-- Profile Row (Avatar + Info) -->
+                        <div class="row align-items-center mb-3">
+                            <!-- Avatar Column -->
+                            <div class="col-auto">
+                                <img class="rounded-circle"
+                                    src="{{ $instructor->avatar_url ?? 'media/avatars/avatar6.jpg' }}"
+                                    alt="{{ $instructor->fname }}'s avatar"
+                                    width="80"
+                                    height="80">
+                            </div>
+
+                            <!-- Info Column -->
+                            <div class="col ps-0">
+                                <h5 class="mb-1">{{ $instructor->fname }} {{ $instructor->sname }}</h5>
+                                <ul class="list-unstyled text-muted small mb-0">
+                                    <li class="mb-1">
+                                        <i class="fas fa-phone-alt me-1"></i>
+                                        {{ $instructor->phone ?? 'N/A' }}
+                                    </li>
+                                    <li class="mb-1">
+                                        <i class="fas fa-envelope me-1"></i>
+                                        {{ $instructor->user->email ?? 'N/A' }}
+                                    </li>
+                                    <li class="d-flex align-items-center">
+                                        <i class="fas fa-user-tag me-1"></i>
+                                        <span class="badge bg-{{ $instructor->status === 'Active' ? 'success' : 'danger' }}">
+                                            {{ $instructor->status }}
+                                        </span>
+                                        @if($instructor->department)
+                                            <span class="badge bg-info ms-1 text-capitalize">
+                                                {{ $instructor->department->name }}
+                                            </span>
+                                        @endif
+                                    </li>
+                                </ul>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="block-content block-content-full block-content-sm bg-body-light text-center py-3">
-                        <a href="{{ route('viewinstructor', $instructor->id) }}">
-                            <h3 class="font-w600 mb-1">{{$instructor->fname}} {{$instructor->sname}}</h3>
-                        </a>
-                        <p class="text-muted mb-0">
-                            <span class="font-w600">Department:</span>
-                            @if(!empty($instructor->department->name))
-                                {{$instructor->department->name}}
-                            @else
-                                <span class="text-danger">Not assigned</span>
-                            @endif
-                        </p>
-                        <p class="text-muted mb-0">
-                            @if($instructor->status === 'Active')
-                                <span class="text-success">{{ $instructor->status }}</span>
-                            @else
-                                <span class="text-danger">{{ $instructor->status }}</span>
-                            @endif
-                        </p>
-                    </div>
+                        <!-- Assignments Section -->
+                        <div class="border-top pt-3 mt-3">
+                            <h6 class="text-uppercase fs-sm text-muted mb-2">Assignments</h6>
 
-                    <div class="block-content block-content-full">
-                        <div class="row">
-                            <div class="col-12">
-                                <p class="text-muted mb-0" style="font-size: 10px;">
-                                    Phone: {{$instructor->phone}}<br>
-                                    Email: @if(isset($instructor->user->email))
-                                        {{$instructor->user->email}}
-                                    @else
+                            @if($instructor->fleet || $instructor->classrooms->isNotEmpty())
+                                <ul class="list-unstyled small">
+                                    @if($instructor->fleet)
+                                        <li class="mb-2">
+                                            <i class="fas fa-car me-1"></i>
+                                            {{ $instructor->fleet->car_registration_number }}
+                                            ({{ $instructor->fleet->car_brand_model }})
+                                        </li>
                                     @endif
-                                    <br>
-                                </p>
-                                <p class="text-muted mt-3 mb-0" style="font-size: 12px;">
-                                    Assigned<br>
-                                    @if(!empty($instructor->fleet?->car_registration_number) || $instructor->classrooms->isNotEmpty())
-                                        @if(!empty($instructor->fleet?->car_registration_number))
-                                            Car: {{ $instructor->fleet->car_registration_number }} - {{ $instructor->fleet->car_brand_model }}<br>
-                                        @endif
 
-                                        @if($instructor->classrooms->isNotEmpty())
-                                            Classes:
+                                    @if($instructor->classrooms->isNotEmpty())
+                                        <li>
+                                            <i class="fas fa-chalkboard-teacher me-1"></i>
                                             @foreach($instructor->classrooms as $classroom)
-                                                {{ $classroom->name }} - {{ $classroom->location }}@if(!$loop->last), @endif
+                                                <span class="d-block">{{ $classroom->name }} - {{ $classroom->location }}</span>
                                             @endforeach
-                                        @endif
-                                    @else
-                                        Not assigned yet
+                                        </li>
                                     @endif
-                                </p>
-                            </div>
+                                </ul>
+                            @else
+                                <p class="text-muted small mb-0">No assignments</p>
+                            @endif
+                        </div>
 
-                            <div class="col-12 pt-4">
-                                <div class="dropdown d-inline-block">
-                                    <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        <span class="d-sm-inline-block">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-end p-0">
-                                        <div class="p-2">
-                                            <a href="{{ route('viewinstructor', $instructor->id) }}" class="dropdown-item">
-                                                View
-                                            </a>
-                                            <form method="GET" action="{{ url('/editinstructor', $instructor->id) }}">
-                                                {{ csrf_field() }}
-                                                <button class="dropdown-item" type="submit">Edit</button>
-                                            </form>
-                                            <form method="POST" action="{{ url('/deleteinstructor', $instructor->id) }}">
-                                                {{ csrf_field() }}
-                                                {{ method_field('DELETE') }}
-                                                <button class="dropdown-item delete-confirm" type="submit">Delete</button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
+                        <!-- Action Button at Bottom -->
+                        <div class="d-grid mt-4">
+                            <div class="dropdown">
+                                <button class="btn btn-outline-dark dropdown-toggle w-100"
+                                        type="button"
+                                        id="instructorActionsDropdown"
+                                        data-bs-toggle="dropdown"
+                                        aria-expanded="false">
+                                        <i class="fas fa-user-tie me-2"></i> Manage Instructor
+                                </button>
+                                <ul class="dropdown-menu w-100" aria-labelledby="instructorActionsDropdown">
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center"
+                                           href="{{ route('viewinstructor', $instructor->id) }}">
+                                            <i class="fas fa-eye me-2"></i> View Profile
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center"
+                                           href="{{ route('editinstructor', $instructor->id) }}">
+                                            <i class="fas fa-edit me-2"></i> Edit Profile
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form method="POST" action="{{ url('/deleteinstructor', $instructor->id) }}">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="dropdown-item d-flex align-items-center"
+                                                    onclick="return confirm('Are you sure you want to delete {{ $instructor->fname }} {{ $instructor->sname }}?')"
+                                                    type="submit">
+                                                <i class="fas fa-trash-alt me-2"></i> Delete
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
                     </div>
