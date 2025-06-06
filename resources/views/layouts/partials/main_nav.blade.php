@@ -67,12 +67,17 @@
                     </li>
                     <li class="nav-main-item">
                         <a class="nav-main-link" href="{{ url('/classes') }}">
-                            <span class="nav-main-link-name">Class rooms</span>
+                            <span class="nav-main-link-name">Classrooms</span>
                         </a>
                     </li>
                     <li class="nav-main-item">
                         <a class="nav-main-link" href="{{ url('/courses') }}">
                             <span class="nav-main-link-name">Courses</span>
+                        </a>
+                    </li>
+                    <li class="nav-main-item">
+                        <a class="nav-main-link" href="{{ url('#') }}">
+                            <span class="nav-main-link-name">Training levels</span>
                         </a>
                     </li>
                     <li class="nav-main-item">
