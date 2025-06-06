@@ -39,6 +39,7 @@
     </div>
 
     <div class="content content-full" id="students">
+        @role(['superAdmin', 'admin'])
         <div class="row">
             <!-- Active Students -->
             <div class="col-md-4 col-lg-2 col-6 mb-4">
@@ -142,6 +143,7 @@
                 </div>
             </div>
         </div>
+        @endcan
 
         <div class="block block-rounded block-bordered">
             <div class="content-full">
