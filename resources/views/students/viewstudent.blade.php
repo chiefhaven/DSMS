@@ -69,148 +69,243 @@
                 <div class="content-full">
                     <div class="row">
                         <div class="col-md-6 py-4">
-                            <div class="card p-4">
-                                <img class="img-avatar img-avatar96 img-avatar-thumb" src="/../media/avatars/avatar2.jpg" alt="">
-                                <h1 class="my-2">{{$student->fname}} {{$student->mname}} {{$student->sname}}</h1>
-                                <p>
-                                    Gender: {{$student->gender}}<br>
-                                    Address: {{$student->address}} <br>Phone: {{$student->phone}}<br>Email: {{$student->user->email ?? '-'}}<br>TRN: {{$student->trn}}
-                                </p>
-                                @role(['superAdmin','admin'])
+                            <div class="card p-4 h-100">
+                                <!-- Profile Header -->
+                                <div class="text-center mb-4">
+                                    <img class="img-avatar img-avatar96 img-avatar-thumb mb-3"
+                                         src="{{ $student->avatar_url ?? asset('media/avatars/avatar2.jpg') }}"
+                                         alt="{{ $student->fname }}'s avatar">
+                                    <h2 class="mb-1">
+                                        {{ $student->fname }} {{ $student->mname }} {{ $student->sname }}
+                                    </h2>
+                                    <span class="badge bg-primary">{{ $student->student_id }}</span>
+                                </div>
+
+                                <!-- Personal Details -->
+                                <div class="mb-4">
+                                    <h5 class="border-bottom pb-2 mb-3">Personal Details</h5>
                                     <div class="row">
-                                        @if(isset($student->fleet->car_brand_model))
-                                            <h3 class="">Car assigned</h3>
-                                            <hr>
-                                            <div class="col-sm-4">
-                                                {{$student->fleet->car_registration_number}}
-                                                <div style="font-size: 10px">{{$student->fleet->car_brand_model}}</div>
+                                        <div class="col-md-6 mb-2">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-venus-mars me-2 text-muted"></i>
+                                                <span>{{ $student->gender }}</span>
                                             </div>
-                                            <div class="col-sm-4">
-                                                <button type="submit" @click="getFleet()" class="btn btn-warning" data-bs-toggle="modal" data-bs-target=".assignCar">Reassign</button>
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-phone me-2 text-muted"></i>
+                                                <span>{{ $student->phone ?? '-' }}</span>
                                             </div>
-                                            <div class="col-sm-4">
-                                                <button type="submit" @click="unAssignCar()" class="btn btn-danger">Unassign</button>
+                                        </div>
+                                        <div class="col-12 mb-2">
+                                            <div class="d-flex">
+                                                <i class="fas fa-envelope me-2 text-muted mt-1"></i>
+                                                <span>{{ $student->user->email ?? '-' }}</span>
                                             </div>
-                                        @else
-                                            <div class="col-sm-6 text-danger">
-                                                <strong>Unassigned car</strong>
+                                        </div>
+                                        <div class="col-12 mb-2">
+                                            <div class="d-flex">
+                                                <i class="fas fa-map-marker-alt me-2 text-muted mt-1"></i>
+                                                <span>{{ $student->address ?? '-' }}</span>
                                             </div>
-                                            <div class="col-sm-4">
-                                                <button type="submit" @click="getFleet()" class="btn btn-primary" data-bs-toggle="modal" data-bs-target=".assignCar">Assign</button>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="d-flex">
+                                                <i class="fas fa-id-card me-2 text-muted mt-1"></i>
+                                                <span>TRN: {{ $student->trn ?? '-' }}</span>
                                             </div>
-                                        @endif
+                                        </div>
                                     </div>
+                                </div>
+
+                                <!-- Car Assignment Section (Admin Only) -->
+                                @role(['superAdmin','admin'])
+                                <div class="mt-auto">
+                                    <h5 class="border-bottom pb-2 mb-3">Vehicle Assignment</h5>
+                                    @if(isset($student->fleet->car_brand_model))
+                                        <div class="alert alert-warning py-2">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-6">
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="fas fa-car me-3"></i>
+                                                        <div>
+                                                            <strong>{{ $student->fleet->car_registration_number }}</strong>
+                                                            <div class="small">{{ $student->fleet->car_brand_model }}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 text-end">
+                                                    <button type="button"
+                                                            @click="getFleet()"
+                                                            class="btn btn-sm btn-outline-warning me-2"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target=".assignCar">
+                                                        <i class="fas fa-sync-alt me-1"></i> Reassign
+                                                    </button>
+                                                    <button type="button"
+                                                            @click="unAssignCar()"
+                                                            class="btn btn-sm btn-outline-danger">
+                                                        <i class="fas fa-times me-1"></i> Unassign
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @else
+                                        <div class="alert alert-danger py-2">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-6">
+                                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                                    <strong>No vehicle assigned</strong>
+                                                </div>
+                                                <div class="col-md-6 text-end">
+                                                    <button type="button"
+                                                            @click="getFleet()"
+                                                            class="btn btn-sm btn-primary"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target=".assignCar">
+                                                        <i class="fas fa-plus me-1"></i> Assign Vehicle
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
                                 @endrole
                             </div>
                         </div>
                         <div class="col-md-6 py-4">
-                            <div class="card p-4">
-                                <p><strong>General Information</strong></p>
-                                <table class="table table-bordered table-responsive">
-                                    <thead>
-                                    </thead>
-                                    <tbody>
-                                        @role(['superAdmin', 'admin'])
+                            <div class="card p-4 h-100">
+                                <!-- General Information Section -->
+                                <h5 class="card-title border-bottom pb-2 mb-4">General Information</h5>
+
+                                <div class="table-responsive">
+                                    <table class="table table-borderless">
+                                        <tbody>
+                                            @role(['superAdmin', 'admin'])
                                             <tr>
-                                                <td>
-                                                    Enrolled on
-                                                </td>
+                                                <th width="40%" class="text-muted">Enrollment Date</th>
                                                 <td>
                                                     @if(isset($student->invoice->created_at))
-                                                        {{$student->invoice->created_at->format('j F, Y')}}
+                                                        {{ $student->invoice->created_at->format('j F, Y') }}
                                                     @else
-                                                        <a href="{{ url('/addinvoice', $student->id) }}">Enroll Course</a>
+                                                        <a href="{{ url('/addinvoice', $student->id) }}" class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-plus-circle me-1"></i> Enroll Course
+                                                        </a>
                                                     @endif
                                                 </td>
                                             </tr>
-                                        @endcan
-                                        <tr>
-                                            <td>
-                                                Course
-                                            </td>
-                                            <td>
-                                                @if(isset($student->invoice) && isset($student->course))
-                                                    {{$student->course->name}}<br>{{$student->course->duration}} days
-                                                @else
-                                                    -
-                                                @endif
-                                            </td>
-                                        </tr>
-                                        @role(['superAdmin', 'admin'])
+                                            @endrole
+
                                             <tr>
+                                                <th class="text-muted">Course</th>
                                                 <td>
-                                                    Classroom
-                                                </td>
-                                                <td>
-                                                    @if(isset($student->classroom))
-                                                        <a data-bs-toggle="collapse" href="#collapseButton" role="button" aria-expanded="false" aria-controls="collapseButton">
-                                                            {{ $student->classroom->name }}<br>{{ $student->classroom->location }}
-                                                        </a>
-                                                        <div class="collapse mt-2" id="collapseButton">
-                                                                <button type="button" @click="getClassRooms()" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target=".assignClassRoom">
-                                                                    Re-assign
-                                                                </button>
+                                                    @if(isset($student->invoice) && isset($student->course))
+                                                        <div class="d-flex align-items-center">
+                                                            <div>
+                                                                <strong>{{ $student->course->name }}</strong>
+                                                                <div class="small text-muted">{{ $student->course->duration }} days program</div>
+                                                            </div>
                                                         </div>
                                                     @else
-                                                        <button type="button" @click="getClassRooms()" class="btn btn-primary" data-bs-toggle="modal" data-bs-target=".assignClassRoom">
-                                                            Assign
+                                                        <span class="text-muted">Not enrolled</span>
+                                                    @endif
+                                                </td>
+                                            </tr>
+
+                                            @role(['superAdmin', 'admin'])
+                                            <tr>
+                                                <th class="text-muted">Classroom</th>
+                                                <td>
+                                                    @if(isset($student->classroom))
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div>
+                                                                <strong>{{ $student->classroom->name }}</strong>
+                                                                <div class="small text-muted">{{ $student->classroom->location }}</div>
+                                                            </div>
+                                                            <button type="button"
+                                                                    @click="getClassRooms()"
+                                                                    class="btn btn-sm btn-outline-warning"
+                                                                    data-bs-toggle="modal"
+                                                                    data-bs-target=".assignClassRoom">
+                                                                <i class="fas fa-sync-alt me-1"></i> Reassign
+                                                            </button>
+                                                        </div>
+                                                    @else
+                                                        <button type="button"
+                                                                @click="getClassRooms()"
+                                                                class="btn btn-sm btn-primary"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target=".assignClassRoom">
+                                                            <i class="fas fa-plus me-1"></i> Assign Classroom
                                                         </button>
                                                     @endif
                                                 </td>
                                             </tr>
-                                            <tr>
-                                                <td>
-                                                    Fees
-                                                </td>
-                                                <td>
-                                                    @if(isset($student->invoice->created_at))
-                                                    K{{number_format($student->invoice->invoice_total)}}
-                                                    @else
 
+                                            <!-- Payment Information -->
+                                            <tr class="border-top">
+                                                <th class="text-muted">Course Fees</th>
+                                                <td>
+                                                    @if(isset($student->invoice->created_at))
+                                                        <span class="fw-bold">K{{ number_format($student->invoice->invoice_total) }}</span>
+                                                    @else
+                                                        <span class="text-muted">-</span>
                                                     @endif
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <td>
-                                                    Paid
-                                                </td>
+                                                <th class="text-muted">Amount Paid</th>
                                                 <td>
                                                     @if(isset($student->invoice->created_at))
-                                                    K{{number_format($student->invoice->invoice_amount_paid)}}
+                                                        <span class="text-success fw-bold">K{{ number_format($student->invoice->invoice_amount_paid) }}</span>
                                                     @else
-                                                        -
+                                                        <span class="text-muted">-</span>
                                                     @endif
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <td>
-                                                    Balance
-                                                </td>
+                                                <th class="text-muted">Balance</th>
                                                 <td>
                                                     @if(isset($student->invoice->created_at))
-                                                    K{{number_format($student->invoice->invoice_balance)}}
+                                                        <span class="{{ $student->invoice->invoice_balance > 0 ? 'text-danger' : 'text-success' }} fw-bold">
+                                                            K{{ number_format($student->invoice->invoice_balance) }}
+                                                        </span>
                                                     @else
-                                                        -
+                                                        <span class="text-muted">-</span>
                                                     @endif
                                                 </td>
                                             </tr>
-                                            @endcan
-                                    </tbody>
-                                </table>
-                                <div class="mb-4">
-                                    <h4 class="mb-4">Attendande progress</h4>
-                                    <div class="progress push">
-                                        <div class="progress-bar progress-bar-striped" role="progressbar" style="width: {{$attendancePercent}}%;" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100">
-                                            <span class="fs-sm fw-semibold">{{$attendancePercent}}%</span>
+                                            @endrole
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Attendance Progress -->
+                                <div class="mt-4">
+                                    <h5 class="border-bottom pb-2 mb-3">Attendance Progress</h5>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="fw-semibold">Completion: {{ $attendancePercent }}%</span>
+                                        <span class="text-muted small">{{ $attendanceTheoryCount }} theory / {{ $attendancePracticalCount }} practical</span>
+                                    </div>
+                                    <div class="progress" style="height: 10px;">
+                                        <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated"
+                                             role="progressbar"
+                                             style="width: {{ $attendancePercent }}%"
+                                             aria-valuenow="{{ $attendancePercent }}"
+                                             aria-valuemin="0"
+                                             aria-valuemax="100">
                                         </div>
                                     </div>
-                                    <div class="push">
-                                        <p>{{$attendanceTheoryCount}} days of Theory done, {{$attendancePracticalCount}} Practicals done</p>
-                                    </div>
                                 </div>
-                                <div class="mb-1">
-                                    Course Status:
-                                    <strong class="">{{ $student->status }}</strong>
+
+                                <!-- Course Status -->
+                                <div class="mt-4 pt-3 border-top">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0">Course Status</h5>
+                                        <span class="badge bg-{{ $student->status === 'Active' ? 'success' : ($student->status === 'Completed' ? 'primary' : 'warning') }}">
+                                            {{ $student->status }}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
