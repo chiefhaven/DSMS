@@ -23,7 +23,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" @click="saveStatusChange">Save</button>
+                <button type="button" class="btn btn-primary" @click="confirmChangeStatus">Save</button>
                 <button type="button" class="btn btn-default" @click="closeStatusChangeModal">Cancel</button>
             </div>
         </div>

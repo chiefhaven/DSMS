@@ -11,7 +11,8 @@
     use App\Models\Attendance;
     use App\Models\PaymentMethod;
     use App\Models\Invoice_Setting;
-    use Carbon\Carbon;
+use App\Models\TrainingLevel;
+use Carbon\Carbon;
     use SimpleSoftwareIO\QrCode\Facades\QrCode;
     use Auth;
     use Illuminate\Http\Request;
@@ -103,6 +104,11 @@
 
             $course = Course::where('name', $courseName)->firstOrFail();
             return $course->id;
+        }
+
+        static function trainingLevelID($trainingName){
+            $trainingLevel = TrainingLevel::where('name', $trainingName)->first();
+            return $trainingLevel->id;
         }
 
         static function invoiceDiscountedPrice($courseName, $discount){

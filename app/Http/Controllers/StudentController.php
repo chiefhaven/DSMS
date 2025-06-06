@@ -534,6 +534,8 @@ class StudentController extends Controller
             $student->signature = $signatureName;
         }
 
+        $trainingLevel = havenUtils::trainingLevelID('registered');
+
         $student->fname = $post['fname'];
         $student->mname = $post['mname'];
         $student->sname = $post['sname'];
@@ -543,6 +545,9 @@ class StudentController extends Controller
         $student->address = $post['address'];
         $student->date_of_birth = $post['date_of_birth'];
         $student->district_id = $district;
+        if ($trainingLevel) {
+            $student->trainingLevel_id = $trainingLevel;
+        }
         $student->added_by = $user->administrator_id;
 
         $student->save();
@@ -689,6 +694,15 @@ class StudentController extends Controller
 
         $student = Student::findOrFail($student);
         $student->status = $validated['status'];
+        if($validated['status'] == 'Finished'){
+            $student->trainingLevel_id = havenUtils::trainingLevelID('finished');
+            $student->fleet_id = Null;
+            $student->classroom_id = Null;
+        }
+        else{
+            $student->trainingLevel_id = havenUtils::trainingLevelID('registered');
+        }
+
         $student->save();
 
         return response()->json([
@@ -939,10 +953,10 @@ class StudentController extends Controller
     {
         $fleet = Fleet::with('instructor')->where('car_registration_number', $request['fleet'])->firstOrFail();
 
-        //$fleet_id = havenUtils::fleetID($request['fleet']);
-
         $student = Student::find($request['student']);
         $student->fleet_id = $fleet->id;
+        $student->classroom_id = Null;
+        $student->trainingLevel_id = havenUtils::trainingLevelID('practical');
         $student->save();
 
 
@@ -1002,6 +1016,7 @@ class StudentController extends Controller
 
             // Assign the classroom
             $student->classroom_id = $request->classroom;
+            $student->trainingLevel_id = havenUtils::trainingLevelID('theory');
             $student->save();
 
             $classRoom = Classroom::with('instructors')->find($student->classroom_id);

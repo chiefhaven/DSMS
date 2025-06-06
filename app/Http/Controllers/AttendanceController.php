@@ -267,9 +267,10 @@ class AttendanceController extends Controller
 
         if($attendance->save()){
 
-            if($studentCourseDuration-self::attendanceCount($student_id) == 0){
+            if ($studentCourseDuration - self::attendanceCount($student_id) == 0) {
                 $student->status = 'Finished';
-                $message = 'This marks course completion for '.$student->fname.' '.$student->sname;
+                $student->trainingLevel_id = havenUtils::trainingLevelID('finished');
+                $message = 'This marks course and level completion for ' . $student->fname . ' ' . $student->sname . '. Student un-assigned from your car';
             }
 
             else{

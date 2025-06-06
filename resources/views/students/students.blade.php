@@ -45,7 +45,7 @@
                 <div class="block block-rounded block-link-shadow border" @click="reloadTable('active')" style="cursor: pointer;">
                     <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                         <div>
-                            <i class="fa fa-2x fa-check-circle text-success"></i>
+                            <i class="fa fa-2x fa-check-circle"></i>
                         </div>
                         <div class="ml-3 text-right">
                             <p class="font-size-h3 font-w300 mb-0">
@@ -62,7 +62,7 @@
                 <div class="block block-rounded block-link-shadow border" @click="reloadTable('theory')" style="cursor: pointer;">
                     <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                         <div>
-                            <i class="fa fa-2x fa-book text-info"></i>
+                            <i class="fa fa-2x fa-book"></i>
                         </div>
                         <div class="ml-3 text-right">
                             <p class="font-size-h3 font-w300 mb-0">
@@ -79,7 +79,7 @@
                 <div class="block block-rounded block-link-shadow border" @click="reloadTable('practical')" style="cursor: pointer;">
                     <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                         <div>
-                            <i class="fa fa-2x fa-car text-warning"></i>
+                            <i class="fa fa-2x fa-car"></i>
                         </div>
                         <div class="ml-3 text-right">
                             <p class="font-size-h3 font-w300 mb-0">
@@ -96,13 +96,13 @@
                 <div class="block block-rounded block-link-shadow border" @click="reloadTable('unassigned')" style="cursor: pointer;">
                     <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                         <div>
-                            <i class="fa fa-2x fa-times-circle text-danger"></i>
+                            <i class="fa fa-2x fa-times-circle"></i>
                         </div>
                         <div class="ml-3 text-right">
                             <p class="font-size-h3 font-w300 mb-0">
                                 {{ \App\Models\Student::whereNull('fleet_id')->whereNull('classroom_id')->where('status', '!=', 'Finished')->count() }}
                             </p>
-                            <p class="text-muted mb-0">Unassigned</p>
+                            <p class="text-muted mb-0">Not assigned</p>
                         </div>
                     </div>
                 </div>
@@ -113,7 +113,7 @@
                 <div class="block block-rounded block-link-shadow border" @click="reloadTable('finished')" style="cursor: pointer;">
                     <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                         <div>
-                            <i class="fa fa-2x fa-check-circle text-primary"></i>
+                            <i class="fa fa-2x fa-check-circle"></i>
                         </div>
                         <div class="ml-3 text-right">
                             <p class="font-size-h3 font-w300 mb-0">
@@ -388,27 +388,48 @@
                 showStatusChangeModal.value = false;  // Close the modal
             };
 
-            const saveStatusChange = () => {
+            const saveStatusChange = async () => {
+                NProgress.start(); // Start the progress bar
 
-                axios.post(`/updateStudentStatus/${studentId.value}`, {
-                    status: studentStatus.value
-                }, {
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    }
-                })
-                .then(response => {
+                try {
+                    const response = await axios.post(`/updateStudentStatus/${studentId.value}`, {
+                        status: studentStatus.value
+                    }, {
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        }
+                    });
+
                     showAlert('', 'Student status updated successfully.', { icon: 'success' });
 
-                    showStatusChangeModal.value = false; // Hide modal the Vue way
+                    showStatusChangeModal.value = false;
                     reloadTable();
-
-                    // Optionally refresh your table here
-                })
-                .catch(error => {
+                } catch (error) {
                     console.error('Error updating status:', error);
                     showError('Oops!', 'Something went wrong while updating the status.', { confirmText: 'Ok' });
-                });
+                } finally {
+                    NProgress.done(); // Always stop the progress bar
+                }
+            };
+
+            const confirmChangeStatus = async () => {
+                if (studentStatus.value === 'Finished') {
+                    const result = await Swal.fire({
+                        title: 'Change status to Finished?',
+                        text: 'This will unassign the student from the classroom and car.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Change',
+                        cancelButtonText: 'Cancel'
+                    });
+
+                    if (result.isConfirmed) {
+                        saveStatusChange();
+                    }
+                } else {
+                    // For other statuses, just save directly (optional)
+                    saveStatusChange();
+                }
             };
 
 
@@ -475,7 +496,8 @@
                 studentStatus,
                 openStatusChangeModal,
                 closeStatusChangeModal,
-                studentName
+                studentName,
+                confirmChangeStatus
             }
 
         }})
