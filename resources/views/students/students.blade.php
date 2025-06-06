@@ -41,7 +41,7 @@
     <div class="content content-full" id="students">
         <div class="row">
             <!-- Active Students -->
-            <div class="col-md-4 col-lg-3 col-6 mb-4">
+            <div class="col-md-4 col-lg-2 col-6 mb-4">
                 <div class="block block-rounded block-link-shadow border" @click="reloadTable('active')" style="cursor: pointer;">
                     <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                         <div>
@@ -58,7 +58,7 @@
             </div>
 
             <!-- Theory Students -->
-            <div class="col-md-4 col-lg-3 col-6 mb-4">
+            <div class="col-md-4 col-lg-2 col-6 mb-4">
                 <div class="block block-rounded block-link-shadow border" @click="reloadTable('theory')" style="cursor: pointer;">
                     <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                         <div>
@@ -75,7 +75,7 @@
             </div>
 
             <!-- Practical Students -->
-            <div class="col-md-4 col-lg-3 col-6 mb-4">
+            <div class="col-md-4 col-lg-2 col-6 mb-4">
                 <div class="block block-rounded block-link-shadow border" @click="reloadTable('practical')" style="cursor: pointer;">
                     <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                         <div>
@@ -92,7 +92,7 @@
             </div>
 
             <!-- Unassigned Students -->
-            <div class="col-md-4 col-lg-3 col-6 mb-4">
+            <div class="col-md-4 col-lg-2 col-6 mb-4">
                 <div class="block block-rounded block-link-shadow border" @click="reloadTable('unassigned')" style="cursor: pointer;">
                     <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                         <div>
@@ -109,7 +109,7 @@
             </div>
 
             <!-- Finished Students -->
-            <div class="col-md-4 col-lg-3 col-6 mb-4">
+            <div class="col-md-4 col-lg-2 col-6 mb-4">
                 <div class="block block-rounded block-link-shadow border" @click="reloadTable('finished')" style="cursor: pointer;">
                     <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                         <div>
@@ -126,7 +126,7 @@
             </div>
 
             <!-- Cancelled Students -->
-            <div class="col-md-4 col-lg-3 col-6 mb-4">
+            <div class="col-md-4 col-lg-2 col-6 mb-4">
                 <div class="block block-rounded block-link-shadow border" @click="reloadTable('cancelled')" style="cursor: pointer;">
                     <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                         <div>
