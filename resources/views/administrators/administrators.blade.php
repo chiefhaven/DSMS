@@ -59,10 +59,10 @@
                                         <i class="fas fa-phone-alt me-1"></i>
                                         {{ $administrator->phone ?? 'N/A' }}
                                     </li>
-                                    <li>
+                                    {{--  <li>
                                         <i class="fas fa-envelope me-1"></i>
                                         {{ $administrator->user->email ?? 'N/A' }}
-                                    </li>
+                                    </li>  --}}
                                     <li>
                                         <i class="fas fa-user-tag me-1"></i>
                                         @if($administrator->user->roles->count() > 0)
