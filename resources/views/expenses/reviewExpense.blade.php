@@ -19,99 +19,151 @@
         </div>
     @endif
 <div class="row">
-    <div class="col-md-4 block block-rounded block-bordered">
-        <div class="block-themed block-transparent mb-0">
-            <div class="block-content pb-4">
-                <div class="mb-2"><b>Booking date:</b> @{{ formatDate(state.expenseGroupName) }}</div>
-                <div class="mb-2"><b>Description:</b> @{{ state.expenseDescription }}</div>
-                <div class="mb-2"><b>Amount/student:</b> @{{ formatter.format(state.amount) }}</div>
-                <div class="mb-2"><b>Total students:</b> {{ $expense->Students->count() }}</div>
-                <div class="mb-2"><b>Requested by:</b> {{ $expense->administrator->fname }} {{ $expense->administrator->mname }} {{ $expense->administrator->sname }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-8 block block-rounded block-bordered">
-        <div v-if="state">
-            <div v-if="state.loadingData" class="d-flex flex-column justify-content-center align-items-center" style="height: 300px;">
-                <span class="spinner-border text-primary"></span>
-                <p class="mt-3">Loading data...</p>
-            </div>
-
-            <div v-else class="block-content">
-                <strong>Students on the list</strong>
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead class="bg-primary text-white">
-                        <tr>
-                            <th scope="col">No.</th>
-                            <th scope="col">Student</th>
-                            <th scope="col">Fees balance</th>
-                            <th scope="col" class="text-center">Class</th>
-                            <th scope="col">Expense type</th>
-                            <th scope="col">Action</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr v-for="(student, index) in state.selectedStudents" :key="student.id">
-                            <td>@{{ index + 1 }}</td>
-                            <td class="text-uppercase">@{{ student.fname }} @{{ student.mname }} <strong>@{{ student.sname }}</strong></td>
-                            <td>
-                            <span v-if="student.invoice">
-                                @{{ formatter.format(student.invoice.invoice_balance) }}
-                            </span>
-                            <span v-else class="text-muted">Not enrolled</span>
-                            </td>
-                            <td class="text-center">
-                            <span v-if="student.course">
-                                @{{ student.course.class }}
-                            </span>
-                            <span v-else class="text-muted">Not enrolled</span>
-                            </td>
-                            <td>
-                            @{{ student.expenses[0]?.pivot?.expense_type || 'N/A' }}
-                            </td>
-                            <td>
-                                <button
-                                :disabled="state.expenseStatus !== 0"
-                                :title="state.expenseStatus !== 0 ? 'Editing is disabled for this expense' : 'Editing is enabled for this expense'"
-                                class="btn btn-danger btn-sm delete-confirm"
-                                @click="removeStudentFromList(student.id, index)"
-                            >
-                                Remove
-                            </button>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
+    <div class="row">
+        <!-- Expense Summary Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Expense Details</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span class="fw-bold">Booking Date:</span>
+                            <span>@{{ formatDate(state.expenseGroupName) }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span class="fw-bold">Type:</span>
+                            <span class="badge bg-info">@{{ state.expenseGroupType }}</span>
+                        </li>
+                        <li class="list-group-item">
+                            <span class="fw-bold">Description:</span>
+                            <p class="mb-0">@{{ state.expenseDescription }}</p>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span class="fw-bold">Amount/Student:</span>
+                            <span class="text-success">@{{ formatter.format(state.amount) }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span class="fw-bold">Total Students:</span>
+                            <span class="badge bg-primary rounded-pill">{{ $expense->Students->count() }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span class="fw-bold">Requested By:</span>
+                            <span>{{ $expense->administrator->fname }} {{ $expense->administrator->sname }}</span>
+                        </li>
+                    </ul>
                 </div>
             </div>
-          </div>
-    </div>
-    <div v-if="state">
-        <div v-if="state.expenseStatus === 0" class="block-content block-content-full text-end">
-            List not approved
-            <button type="submit"
-                    @click="approveList"
-                    :disabled="state.processing"
-                    class="btn btn-success">
-                <span v-if="state.processing">
-                    <i class="fas fa-spinner fa-spin me-1"></i> Processing...
-                </span>
-                <span v-else>Approve</span>
-            </button>
         </div>
 
-        <div v-else class="block-content block-content-full text-end">
-            List approved
-            <button type="submit"
-                    @click="approveList"
-                    :disabled="state.processing"
-                    class="btn btn-danger">
-                <span v-if="state.processing">
-                    <i class="fas fa-spinner fa-spin me-1"></i> Processing...
-                </span>
-                <span v-else>Unapprove</span>
-            </button>
+        <!-- Students List -->
+        <div class="col-md-8 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="card-title mb-0">Students List</h5>
+                </div>
+
+                <div v-if="state.loadingData" class="card-body d-flex flex-column justify-content-center align-items-center" style="min-height: 300px;">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-3 mb-0">Loading student data...</p>
+                </div>
+
+                <div v-else class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="5%">#</th>
+                                    <th>Student</th>
+                                    <th>Balance</th>
+                                    <th class="text-center">Class</th>
+                                    <th>Expense Type</th>
+                                    <th width="15%">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(student, index) in state.selectedStudents" :key="student.id">
+                                    <td>@{{ index + 1 }}</td>
+                                    <td>
+                                        <div class="d-flex flex-column">
+                                            <strong>@{{ student.sname }}</strong>
+                                            <small class="text-muted">@{{ student.fname }} @{{ student.mname }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span v-if="student.invoice" :class="{'text-danger': student.invoice.invoice_balance > 0, 'text-success': student.invoice.invoice_balance <= 0}">
+                                            @{{ formatter.format(student.invoice.invoice_balance) }}
+                                        </span>
+                                        <span v-else class="badge bg-secondary">Not enrolled</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span v-if="student.course" class="badge bg-primary">
+                                            @{{ student.course.class }}
+                                        </span>
+                                        <span v-else class="badge bg-secondary">N/A</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">
+                                            @{{ student.expenses[0]?.pivot?.expense_type || 'N/A' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button
+                                            :disabled="state.expenseStatus !== 0"
+                                            class="btn btn-sm btn-outline-danger"
+                                            @click="removeStudentFromList(student.id, index)"
+                                            :title="state.expenseStatus !== 0 ? 'Editing disabled for approved expenses' : 'Remove student'"
+                                        >
+                                            <i class="fas fa-trash-alt me-2"></i> Remove
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Approval Section -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-footer bg-white text-end py-3">
+                    <template v-if="state.expenseStatus === 0">
+                        <span class="text-warning me-3"><i class="fas fa-exclamation-circle"></i> List not approved</span>
+                        <button
+                            type="button"
+                            @click="approveList"
+                            :disabled="state.processing"
+                            class="btn btn-success"
+                        >
+                            <span v-if="state.processing">
+                                <i class="fas fa-spinner fa-spin me-1"></i> Processing...
+                            </span>
+                            <span v-else>
+                                <i class="fas fa-check-circle me-1"></i> Approve
+                            </span>
+                        </button>
+                    </template>
+                    <template v-else>
+                        <span class="text-success me-3"><i class="fas fa-check-circle"></i> List approved</span>
+                        <button
+                            type="button"
+                            @click="approveList"
+                            :disabled="state.processing"
+                            class="btn btn-danger"
+                        >
+                            <span v-if="state.processing">
+                                <i class="fas fa-spinner fa-spin me-1"></i> Processing...
+                            </span>
+                            <span v-else>
+                                <i class="fas fa-times-circle me-1"></i> Unapprove
+                            </span>
+                        </button>
+                    </template>
+                </div>
+            </div>
         </div>
     </div>
 </div>
