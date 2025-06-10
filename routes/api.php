@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\studentController as ApiStudentController;
 use App\Http\Controllers\Api\StudentProfileController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InstructorPaymentController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\StudentController;
 
 /*
@@ -62,7 +63,9 @@ Route::post('/bonuses/pay-early', [InstructorPaymentController::class, 'store'])
 
 Route::get('/dashboardSummary', [ApiHomeController::class, 'dashboardSummary'])->middleware('auth:sanctum')->name('dashboardSummary');
 
-Route::get('/expenses', [ExpenseController::class, 'fetchExpenses'])->name('expenses')->middleware('auth:sanctum');
+Route::get('/expenses', [ExpenseController::class, 'fetchExpenses'])->name('payments')->middleware('auth:sanctum');
+
+Route::get('/payments', [PaymentController::class, 'fetchPayments'])->name('payments')->middleware('auth:sanctum');
 
 
 

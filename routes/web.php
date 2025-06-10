@@ -131,6 +131,7 @@ Route::delete('/invoice-delete/{invoice}', [InvoiceController::class, 'destroy']
 Route::post('/invoice-update', [InvoiceController::class, 'update'])->middleware('auth')->name('invoice-update');
 Route::get('/search-invoice', [InvoiceController::class, 'search'])->middleware('auth')->name('searchInvoice');
 
+Route::get('/payments', [PaymentController::class, 'index'])->middleware('auth')->name('payments');
 Route::post('/add-payment', [PaymentController::class, 'store'])->middleware('auth')->name('add-payment');
 Route::delete('/delete-payment/{id}', [PaymentController::class, 'destroy'])->middleware('auth')->name('delete-payment');
 Route::post('/edit-payment', [PaymentController::class, 'edit'])->middleware('auth')->name('edit-payment');

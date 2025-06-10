@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Administrator;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -11,7 +12,12 @@ use PDF;
 use App\Models\Invoice;
 use App\Models\Course;
 use App\Models\Student;
+use App\Notifications\Expense;
+use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Yajra\DataTables\Facades\DataTables;
 
 class PaymentController extends Controller
 {
@@ -22,7 +28,126 @@ class PaymentController extends Controller
      */
     public function index()
     {
-        //
+        return view('payments.payments');
+    }
+
+    public function fetchPayments(Request $request): JsonResponse
+    {
+        // Capture the search keyword from the request if provided
+        $search = $request->input('search.value'); // This is the global search input
+
+        $payments = Payment::with('Student')
+        ->when(Auth::user()->hasRole('admin'), function ($query) {
+            $query->where('added_by', Auth::user()->administrator_id);
+        })
+        ->orderBy('created_at', 'DESC');
+
+        if ($search) {
+            $payments->where(function($query) use ($search) {
+                $query->where('transaction_id', 'like', "%$search%")
+                    ->orWhere('type', 'like', "%$search%")
+                    ->orWhereHas('students', function($q) use ($search) {
+                         $q->where('fname', 'like', "%$search%");
+                    });
+            });
+        }
+
+        return DataTables::of($payments)
+        ->addColumn('actions', function ($payment) {
+            $download = '';
+            $edit = '';
+            $delete = '';
+            $review = '';
+
+            if (auth()->user()->hasAnyRole(['superAdmin', 'admin'])) {
+                if ($payment->approved != true) {
+                    $edit = '<a class="dropdown-item nav-main-link btn" href="' . url('#', $payment->id) . '">
+                                <i class="fa fa-pencil me-3"></i> Edit
+                            </a>';
+                }
+
+                if (auth()->user()->hasRole('superAdmin')) {
+                    $review = '<a class="dropdown-item nav-main-link btn" href="' . url('#', $payment->id) . '">
+                                    <i class="fa fa-eye me-3"></i> View
+                                </a>';
+                }
+
+                if (auth()->user()->hasRole('superAdmin')) {
+                    $delete = '<form method="POST" action="' . url('delete-payment', $payment->id) . '" style="display:inline;">
+                                    ' . csrf_field() . method_field('DELETE') . '
+                                    <button type="submit" class="btn dropdown-item nav-main-link delete-confirm text-danger">
+                                        <i class="fa fa-trash me-3"></i> Delete
+                                    </button>
+                               </form>';
+                }
+            }
+
+            return '
+                <div class="dropdown d-inline-block">
+                    <button class="btn btn-primary" data-bs-toggle="dropdown">Actions</button>
+                    <div class="dropdown-menu dropdown-menu-end">
+                        ' . $download . $review . $edit . $delete . '
+                    </div>
+                </div>
+            ';
+        })
+        ->addColumn('transaction_id', function ($payment) {
+            return $payment->transaction_id ?? '-';
+        })
+        ->addColumn('student', function ($payment) {
+            // Check if student relationship exists
+            if (!$payment->student) {
+                return '-';
+            }
+
+            // Build name parts, handling empty middle names
+            $nameParts = [
+                $payment->student->fname ?? '',
+                $payment->student->mname ?? '',
+                $payment->student->sname ?? ''
+            ];
+
+            // Filter out empty parts and join with spaces
+            $fullName = implode(' ', array_filter($nameParts));
+
+            return '<span class="text-title">' . ($fullName ?: '-') . '</span>';
+        })
+        ->addColumn('payment_method', function ($payment) {
+            return $payment->payment_method ?? 'Cash'; // Default to 'Cash' if not specified
+        })
+        ->addColumn('amount', function ($payment) {
+            return '<div class="text-end">
+                        <strong>K' . number_format($payment->amount_paid, 2) . '</strong>
+                    </div>';
+        })
+        ->addColumn('entered_by', function ($payment) {
+            return $payment->entered_by;
+        })
+        ->addColumn('date', function ($payment) {
+            return $payment->created_at ? $payment->created_at->format('j F, Y') : '-';
+        })
+        ->addColumn('payment_proof', function ($payment) {
+            if ($payment->payment_proof) {
+                return '
+                    <div class="text-center">
+                        <img src="'.Storage::url('paymentProofs/'.$payment->payment_proof).'"
+                             width="200px"
+                             class="img-thumbnail"
+                             alt="Proof of Payment">
+                        <div class="mt-2">
+                            <a href="'.Storage::url('paymentProofs/'.$payment->payment_proof).'"
+                               target="_blank"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="fa fa-expand me-2"></i> View Full Size
+                            </a>
+                        </div>
+                    </div>
+                ';
+            }
+            return '-';
+        })
+        ->rawColumns(['actions', 'amount', 'payment_proof','student'])
+        ->make(true);
     }
 
     /**
@@ -54,6 +179,7 @@ class PaymentController extends Controller
         $rules = [
             'invoice_number'   => 'required',
             'payment_method' => 'required|exists:payment_methods,id',
+            'payment_proof' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
             'paid_amount'     => [
                 'required',
                 'numeric',
