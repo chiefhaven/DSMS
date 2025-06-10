@@ -15,6 +15,30 @@ class Payment extends Model
 
     protected $fillable = ['amount_paid'];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            $datePrefix = now()->format('Ymd');
+            $prefix = 'DARON' . $datePrefix;
+
+            // Locking the query to avoid race conditions
+            $lastPayment = Payment::where('transaction_id', 'like', $prefix . '%')
+                ->lockForUpdate()
+                ->orderBy('transaction_id', 'desc')
+                ->first();
+
+            $lastNumber = $lastPayment
+                ? (int)substr($lastPayment->transaction_id, -4)
+                : 0;
+
+            $sequentialNumber = $lastNumber + 1;
+
+            $model->transaction_id = sprintf('%s%04d', $prefix, $sequentialNumber);
+        });
+    }
+
     public function Student()
     {
        return $this->belongsTo(Student::class);

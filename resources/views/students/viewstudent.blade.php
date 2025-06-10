@@ -658,7 +658,7 @@
 
         Swal.fire({
             title: 'Delete Payment',
-            text: 'Are you sure you want to delete payment number ' + transactionId + '?',
+            text: 'Are you sure you want to delete transaction number ' + transactionId + '?',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonText: 'Delete'

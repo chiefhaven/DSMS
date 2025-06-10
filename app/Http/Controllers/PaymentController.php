@@ -18,6 +18,10 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
+use BD;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
@@ -131,22 +135,18 @@ class PaymentController extends Controller
                 $imagePath = 'media/paymentProof/' . $payment->payment_proof;
                 return '
                     <div class="text-center">
-                        <img src="'.asset($imagePath).'"
-                             width="200px"
-                             class="img-thumbnail"
-                             alt="Proof of Payment"
-                             onerror="this.onerror=null;this.src=\''.asset('media/default-image.png').'\'">
-                        <div class="mt-2">
-                            <a href="'.asset($imagePath).'"
-                               target="_blank"
-                               class="btn btn-sm btn-outline-primary">
-                                <i class="fa fa-expand me-2"></i> View Full Size
-                            </a>
-                        </div>
+                        <a href="'.asset($imagePath).'"
+                            target="_blank"
+                            class="">
+                            <img src="'.asset($imagePath).'"
+                                width="100px"
+                                alt="Proof of Payment"
+                                onerror="this.onerror=null;this.src=\''.asset('media/default-image.png').'\'">
+                        </a>
                     </div>
                 ';
             }
-            return '-';
+            return 'No proof uploaded';
         })
         ->rawColumns(['actions', 'amount', 'payment_proof','student'])
         ->make(true);
@@ -219,11 +219,14 @@ class PaymentController extends Controller
 
         // Handle payment proof file
         if ($request->hasFile('payment_proof')) {
-            $paymentProofPath = $request->file('payment_proof')->storeAs(
-                time() . '_' . $request->file('payment_proof')->getClientOriginalName(),
-                'public'
-            );
-            $payment->payment_proof = $paymentProofPath;
+            // Generate a unique filename
+            $filename = time() . '_' . $request->file('payment_proof')->getClientOriginalName();
+
+            // Store the file in public/media/paymentProof/
+            $request->file('payment_proof')->move(public_path('media/paymentProof'), $filename);
+
+            // Store just the filename in the database
+            $payment->payment_proof = $filename;
         }
 
         // Assign payment details
@@ -290,30 +293,61 @@ class PaymentController extends Controller
      */
     public function destroy($id)
     {
-        if (!Auth::user()->hasRole('superAdmin')) {
-            Alert::toast('You do not have permission to delete payment. Please contact the administrator for assistance.', 'warning');
+        try {
+            // Authorization check
+            if (!Auth::user()->hasRole('superAdmin')) {
+                throw new \Exception('You do not have permission to delete payments.');
+            }
+
+            // Find payment with proper exception handling
+            $payment = Payment::findOrFail($id);
+
+            // Begin database transaction
+            DB::beginTransaction();
+
+            // Update invoice balance if exists
+            if ($invoice = Invoice::where('student_id', $payment->student_id)->first()) {
+                $invoice->invoice_balance += $payment->amount_paid;
+                $invoice->invoice_amount_paid -= $payment->amount_paid;
+
+                if (!$invoice->save()) {
+                    throw new \Exception('Failed to update invoice balance.');
+                }
+            }
+
+            // Delete payment proof file if exists
+            if ($payment->payment_proof) {
+                $filePath = public_path('media/paymentProof/' . $payment->payment_proof);
+
+                if (File::exists($filePath)) {
+                    if (!File::delete($filePath)) {
+                        throw new \Exception('Failed to delete payment proof file.');
+                    }
+                }
+            }
+
+            // Delete payment record
+            if (!$payment->delete()) {
+                throw new \Exception('Failed to delete payment record.');
+            }
+
+            // Commit transaction if all operations succeeded
+            DB::commit();
+
+            Alert::toast('Payment deleted successfully.', 'success');
             return back();
-        }
 
-        $payment = Payment::find($id);
-
-        if (!$payment) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollBack();
             Alert::toast('Payment not found.', 'error');
             return back();
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Payment deletion failed: ' . $e->getMessage());
+            Alert::toast($e->getMessage() ?: 'An error occurred while deleting the payment.', 'error');
+            return back();
         }
-
-        $invoice = Invoice::where('student_id', $payment->student_id)->first();
-
-        if ($invoice) {
-            $invoice->invoice_balance += $payment->amount_paid;
-            $invoice->invoice_amount_paid -= $payment->amount_paid;
-            $invoice->save();
-        }
-
-        $payment->delete();
-
-        Alert::toast('Payment deleted successfully.', 'success');
-        return back();
     }
 
 }

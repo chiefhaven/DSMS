@@ -67,13 +67,13 @@
         <table class="table table-bordered table-striped table-vcenter">
             <thead>
                 <tr>
-                    <th>Date</th>
+                    <th style="min-width: 7em;">Date</th>
                     <th>Reference number</th>
-                    <th style="width: 20%;">Payment Method</th>
-                    <th style="width: 15%;">Amount</th>
-                    <th style="width: 15%;">Entered By</th>
-                    <th style="width: 15%;">Payment Proof</th>
-                    <th class="text-center" style="width: 100px;">Actions</th>
+                    <th style="min-width: 7em;">Payment Method</th>
+                    <th style="min-width: 7em;">Amount</th>
+                    <th style="min-width: 7em;">Entered By</th>
+                    <th style="min-width: 7em;">Payment Proof</th>
+                    <th class="text-center" style="min-width: 7em;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -84,8 +84,35 @@
                     <td>{{ $payment->paymentMethod->name ?? '' }}</td>
                     <td>K{{ number_format($payment->amount_paid) }}</td>
                     <td>{{ $payment->entered_by }}</td>
-                    <td>
-                        <img src="{{ asset('media/paymentProofs/' . $payment->payment_proof) }}" width="200px" alt="Proof of Payment">
+                    <td class="text-center align-middle">
+                        @if($payment->payment_proof)
+                            @php
+                                $proofPath = 'media/paymentProof/' . $payment->payment_proof;
+                                $fullPath = public_path($proofPath);
+                            @endphp
+
+                            @if(file_exists($fullPath))
+                                <div class="d-inline-block" style="max-width: 200px;">
+                                    <a href="{{ asset($proofPath) }}"
+                                       target="_blank"
+                                       class="image-preview d-block"
+                                       data-bs-toggle="tooltip"
+                                       title="View full size">
+                                        <img src="{{ asset($proofPath) }}"
+                                             width="200"
+                                             height="50"
+                                             style="width: 100%; height: auto; max-height: 50px;"
+                                             alt="Payment Proof"
+                                             loading="lazy"
+                                             onerror="this.onerror=null;this.src='{{ asset('images/default-proof.png') }}'">
+                                    </a>
+                                </div>
+                            @else
+                                <span class="badge bg-warning text-dark">File missing</span>
+                            @endif
+                        @else
+                            <span class="badge bg-secondary">No proof</span>
+                        @endif
                     </td>
                     <td class="text-center">
                         <div class="dropdown d-inline-block">
