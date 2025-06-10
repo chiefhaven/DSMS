@@ -85,7 +85,7 @@
                     <td>K{{ number_format($payment->amount_paid) }}</td>
                     <td>{{ $payment->entered_by }}</td>
                     <td>
-                        <img src="{{ asset('media/paymentProof/' . $payment->payment_proof) }}" width="200px" alt="Proof of Payment">
+                        <img src="{{ asset('media/paymentProofs/' . $payment->payment_proof) }}" width="200px" alt="Proof of Payment">
                     </td>
                     <td class="text-center">
                         <div class="dropdown d-inline-block">

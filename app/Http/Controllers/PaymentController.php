@@ -130,7 +130,7 @@ class PaymentController extends Controller
             if ($payment->payment_proof) {
                 return '
                     <div class="text-center">
-                        <img src="'.Storage::url('paymentProofs/'.$payment->payment_proof).'"
+                        <img src="'.Storage::url('app/public/'.$payment->payment_proof).'"
                              width="200px"
                              class="img-thumbnail"
                              alt="Proof of Payment">
