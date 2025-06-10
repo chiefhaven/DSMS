@@ -128,14 +128,16 @@ class PaymentController extends Controller
         })
         ->addColumn('payment_proof', function ($payment) {
             if ($payment->payment_proof) {
+                $imagePath = 'media/paymentProof/' . $payment->payment_proof;
                 return '
                     <div class="text-center">
-                        <img src="'.Storage::url('app/public/'.$payment->payment_proof).'"
+                        <img src="'.asset($imagePath).'"
                              width="200px"
                              class="img-thumbnail"
-                             alt="Proof of Payment">
+                             alt="Proof of Payment"
+                             onerror="this.onerror=null;this.src=\''.asset('media/default-image.png').'\'">
                         <div class="mt-2">
-                            <a href="'.Storage::url('paymentProofs/'.$payment->payment_proof).'"
+                            <a href="'.asset($imagePath).'"
                                target="_blank"
                                class="btn btn-sm btn-outline-primary">
                                 <i class="fa fa-expand me-2"></i> View Full Size
@@ -218,7 +220,6 @@ class PaymentController extends Controller
         // Handle payment proof file
         if ($request->hasFile('payment_proof')) {
             $paymentProofPath = $request->file('payment_proof')->storeAs(
-                'paymentProofs',
                 time() . '_' . $request->file('payment_proof')->getClientOriginalName(),
                 'public'
             );
