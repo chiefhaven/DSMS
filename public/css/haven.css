@@ -210,7 +210,7 @@
     max-height: 500px; /* Adjust as needed */
 }
 
-.block-header, .modal-header {
+.modal-header {
     border-bottom: none;
     background: linear-gradient(135deg, #0104b9 0%, #00a6b5 100%);
 }

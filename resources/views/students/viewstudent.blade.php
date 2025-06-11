@@ -387,7 +387,7 @@
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content border-0 shadow-lg">
                     <!-- Header -->
-                    <div class="modal-header bg-gradient-info p-4">
+                    <div class="block-header modal-header bg-gradient-info p-4">
                         <h5 class="modal-title text-white fs-5 fw-bold">
                             <i class="fas fa-credit-card me-2"></i>Add Payment
                         </h5>
