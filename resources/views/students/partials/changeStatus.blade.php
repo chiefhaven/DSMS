@@ -1,39 +1,56 @@
 @role(['superAdmin', 'admin', 'instructor'])
-    <div class="modal" id="change-status" tabindex="-1" aria-labelledby="modal-block-vcenter" style="display: none;" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="block block-rounded block-themed block-transparent mb-0">
-            <div class="block-header bg-primary-dark">
-                <h3 class="block-title">Change students status</h3>
-                <div class="block-options">
-                    <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
-                        <i class="fa fa-fw fa-times"></i>
-                    </button>
-                </div>
+<div class="modal fade" id="change-status" tabindex="-1" aria-labelledby="statusModalLabel" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <!-- Header -->
+            <div class="modal-header bg-gradient-warning p-4">
+                <h5 class="modal-title text-white fs-5 fw-bold">
+                    <i class="fas fa-user-edit me-2"></i>Update Student Status
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="block-content">
-                <form class="mb-5" action="{{ url('/updateStudentStatus', $student->id) }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
+
+            <!-- Body -->
+            <div class="modal-body p-4">
+                <form id="statusForm" action="{{ url('/updateStudentStatus', $student->id) }}" method="post">
                     @csrf
-                    <div class="row">
-                        <div class="col-sm-12 mb-4">
-                            <label for="invoice_discount">Date</label>
-                            <select class="form-select dropdown-toggle" id="status" name="status">
-                                @role(['superAdmin'])
-                                    <option value="Pending" {{ $student->status == 'Pending' ? 'selected' : '' }}>Pending</option>
-                                    <option value="In progress" {{ $student->status == 'In progress' ? 'selected' : '' }}>In progress</option>
-                                @endrole
-                                <option value="Finished" {{ $student->status == 'Finished' ? 'selected' : '' }}>Finished</option>
-                            </select>
-                        </div>
-                        <div class="block-content block-content-full text-end bg-body">
-                            <button type="submit" class="btn btn-primary rounded-pill px-4">Save</button>
-                            <button type="button" class="btn btn-alt-secondary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
-                        </div>
+
+                    <!-- Status Selection -->
+                    <div class="mb-4">
+                        <label for="status" class="form-label text-muted mb-3">
+                            <i class="fas fa-user-tag me-2"></i>Current Status
+                        </label>
+                        <select class="form-select border-2 rounded-3 py-3"
+                                id="status"
+                                name="status"
+                                style="background-image: none; padding-right: 2.5rem;">
+                            @role(['superAdmin'])
+                            <option value="Pending" {{ $student->status == 'Pending' ? 'selected' : '' }}>
+                                <i class="fas fa-clock me-2"></i>Pending
+                            </option>
+                            <option value="In progress" {{ $student->status == 'In progress' ? 'selected' : '' }}>
+                                <i class="fas fa-spinner me-2"></i>In Progress
+                            </option>
+                            @endrole
+                            <option value="Finished" {{ $student->status == 'Finished' ? 'selected' : '' }}>
+                                <i class="fas fa-check-circle me-2"></i>Finished
+                            </option>
+                        </select>
+                        <div class="form-text mt-2">Select the new status for this student</div>
+                    </div>
+
+                    <!-- Footer Buttons -->
+                    <div class="modal-footer border-0 pt-3 px-0">
+                        <button type="submit" class="btn btn-primary rounded-pill px-4">
+                            <i class="fas fa-save me-2"></i>Update Status
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
-        </div>
-        </div>
     </div>
+</div>
 @endrole
