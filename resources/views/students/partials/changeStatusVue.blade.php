@@ -14,27 +14,13 @@
             <!-- Header -->
             <div class="modal-header bg-gradient-primary p-4">
                 <h5 class="modal-title text-white fs-5 fw-bold">
-                    <i class="fas fa-user-edit me-2"></i>Update Student Status
+                    <i class="fas fa-user-edit me-2"></i>Update @{{ studentName }}
                 </h5>
                 <button type="button" class="btn-close btn-close-white" @click="closeStatusChangeModal" aria-label="Close"></button>
             </div>
 
             <!-- Body -->
             <div class="modal-body p-4">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="flex-shrink-0">
-                        <img :src="studentAvatar || '/images/default-avatar.jpg'"
-                             class="rounded-circle"
-                             width="50"
-                             height="50"
-                             alt="Student Avatar">
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <h6 class="mb-0">@{{ studentName }}</h6>
-                        <small class="text-muted">ID: @{{ studentId }}</small>
-                    </div>
-                </div>
-
                 <div class="mb-4">
                     <label for="studentStatus" class="form-label text-muted mb-2">
                         <i class="fas fa-user-tag me-2"></i>Select New Status
