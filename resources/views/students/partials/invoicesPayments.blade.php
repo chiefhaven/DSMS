@@ -33,7 +33,7 @@
                                         <button class="dropdown-item" type="submit">Edit</button>
                                     </form>
                                     @role('superAdmin')
-                                    <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal-block-vcenter">Add payment</button>
+                                    <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#paymentModal">Add payment</button>
                                     @endrole
                                     <a class="dropdown-item" href="{{ url('/invoice-pdf', $student->invoice->id) }}">Print Invoice</a>
                                     @role('superAdmin')

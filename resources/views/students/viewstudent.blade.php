@@ -23,7 +23,7 @@
                                     <i class="nav-main-link-icon  fas fa-pencil"></i>Edit profile
                                 </button>
                             </form>
-                            <button class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#modal-block-vcenter">
+                            <button class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#paymentModal">
                                 <i class="nav-main-link-icon  fas fa-file-invoice"></i>Add payment
                             </button>
                         @endrole
@@ -383,111 +383,110 @@
 
     @role(['superAdmin', 'admin'])
         <!-- Payment Modal -->
-        <div class="modal" id="modal-block-vcenter" tabindex="-1" aria-labelledby="modal-block-vcenter" style="display: none;" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="block block-rounded block-themed block-transparent mb-0">
-                <div class="block-header bg-primary-dark">
-                    <h3 class="block-title">Add Payment</h3>
-                    <div class="block-options">
-                    <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
-                        <i class="fa fa-fw fa-times"></i>
-                    </button>
+        <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" style="display: none;" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg">
+                    <!-- Header -->
+                    <div class="modal-header bg-gradient-info p-4">
+                        <h5 class="modal-title text-white fs-5 fw-bold">
+                            <i class="fas fa-credit-card me-2"></i>Add Payment
+                        </h5>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="modal-body p-4">
+                        <form id="paymentForm" action="{{ url('/add-payment') }}" method="post" enctype="multipart/form-data">
+                            @csrf
+
+                            <!-- Error Display -->
+                            <div id="formErrors" class="alert alert-danger d-none">
+                                <ul class="mb-0" id="errorList"></ul>
+                            </div>
+
+                            @if(isset($student->invoice->created_at))
+                                <input type="hidden" name="invoice_number" value="{{ $student->invoice->invoice_number }}">
+                            @endif
+
+                            <!-- Date Field -->
+                            <div class="mb-4">
+                                <label for="date_created" class="form-label text-muted">
+                                    <i class="far fa-calendar-alt me-2"></i>Payment Date
+                                </label>
+                                <input type="date" class="form-control border-2 rounded-3 py-3 @error('date_created') is-invalid @enderror"
+                                    id="date_created" name="date_created"
+                                    value="{{ old('date_created', now()->format('Y-m-d')) }}"
+                                    required>
+                                @error('date_created')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <!-- Amount and Method Row -->
+                            <div class="row g-3 mb-4">
+                                <!-- Amount -->
+                                <div class="col-md-6">
+                                    <label for="paid_amount" class="form-label text-muted">
+                                        <i class="fas fa-money-bill-wave me-2"></i>Amount (MMK)
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control border-2 rounded-3 @error('paid_amount') is-invalid @enderror"
+                                            id="paid_amount" name="paid_amount"
+                                            value="{{ old('paid_amount', 0) }}"
+                                            min="0" step="0.01" required>
+                                        @error('paid_amount')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                <!-- Payment Method -->
+                                <div class="col-md-6">
+                                    <label for="payment_method" class="form-label text-muted">
+                                        <i class="fas fa-wallet me-2"></i>Payment Method
+                                    </label>
+                                    <select class="form-select border-2 rounded-3 py-3 @error('payment_method') is-invalid @enderror"
+                                            id="payment_method" name="payment_method" required>
+                                        @foreach (App\Models\PaymentMethod::all() as $paymentMethod)
+                                            <option value="{{ $paymentMethod->id }}" {{ old('payment_method') == $paymentMethod->id ? 'selected' : '' }}>
+                                                {{ $paymentMethod->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('payment_method')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <!-- Payment Proof -->
+                            <div class="mb-4">
+                                <label for="payment_proof" class="form-label text-muted">
+                                    <i class="fas fa-file-invoice me-2"></i>Payment Proof
+                                </label>
+                                <input type="file" class="form-control border-2 rounded-3 @error('payment_proof') is-invalid @enderror"
+                                    id="payment_proof" name="payment_proof"
+                                    accept="image/*,.pdf,.doc,.docx">
+                                <div class="form-text">Accepted: JPG, PNG, PDF, DOC (Max 5MB)</div>
+                                @error('payment_proof')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <!-- Footer Buttons -->
+                            <div class="modal-footer border-0 pt-4 px-0">
+                                <button type="submit" class="btn btn-primary rounded-pill px-4">
+                                    <i class="fas fa-save me-2"></i>Save
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
-                <div class="block-content">
-                    <form class="mb-5" action="{{ url('/add-payment') }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
-                        @csrf
-
-                        @if($errors->any())
-                            <div class="alert alert-danger">
-                                <ul>
-                                    @foreach($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
-
-                        @if($errors->any())
-                            <script>
-                                Swal.fire({
-                                    icon: '{{ Session::get('alert-type', 'error') }}',
-                                    title: 'Payment not entered',
-                                    html: `
-                                        <ul>
-                                            @foreach($errors->all() as $error)
-                                                <li>{{ $error }}</li>
-                                            @endforeach
-                                        </ul>
-                                    `,
-                                    showConfirmButton: false,
-                                    timer: 3000
-                                });
-                            </script>
-                        @endif
-
-                        @if(isset($student->invoice->created_at))
-                            <input type="text" class="form-control" id="invoice_number" name="invoice_number" value="{{$student->invoice->invoice_number}}" hidden>
-                        @else
-                        @endif
-
-                        <!-- Date Created Field -->
-                        <div class="col-md-12 form-floating mb-4">
-                            <input type="date" class="form-control @error('date_created') is-invalid @enderror" id="date_created" name="date_created" placeholder="Enter invoice date" value="{{ old('date_created') }}">
-                            <label for="invoice_discount">Date</label>
-                            @error('date_created')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="row">
-                            <!-- Paid Amount Field -->
-                            <div class="col-6 form-floating mb-4">
-                                <input type="number" class="form-control @error('paid_amount') is-invalid @enderror" id="paid_amount" name="paid_amount" value="{{ old('paid_amount', 0) }}">
-                                <label for="invoice_discount">Amount</label>
-                                @error('paid_amount')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <!-- Payment Method Field -->
-                            <div class="col-6 form-floating mb-4">
-                                <select class="form-select @error('payment_method') is-invalid @enderror" id="payment_method" name="payment_method">
-                                    @foreach (App\Models\PaymentMethod::all() as $paymentMethod)
-                                        <option value="{{ $paymentMethod->id }}" {{ old('payment_method') == $paymentMethod->id ? 'selected' : '' }}>
-                                            {{ $paymentMethod->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <label for="district">Payment Method</label>
-                                @error('payment_method')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <!-- Payment Proof Field -->
-                        <div class="col-12 form-floating mb-4">
-                            <input type="file" class="form-control @error('payment_proof') is-invalid @enderror" id="payment_proof" name="payment_proof" placeholder="Upload a receipt">
-                            <label for="invoice_discount">Payment proof</label>
-                            @error('payment_proof')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <!-- Submit and Close Buttons -->
-                        <div class="block-content block-content-full text-end bg-body">
-                            <button type="submit" class="btn btn-primary">Save</button>
-                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            </div>
             </div>
         </div>
-    @endcan
+    @endrole
 
     @include('students.partials.assignCarModal')
     @include('students.partials.assignClassRoomModal')
@@ -506,115 +505,214 @@
         const fleet = ref('')
         const classRoom = ref('{{ $student->classroom->id ?? null }}');
         const classRooms = ref([]);
+        const form = ref({
+            payment_method: '',
+        });
 
-        function getFleet(){
-            NProgress.start();
+        // Fetch fleet vehicles with proper error handling
+        const getFleet = async () => {
+            try {
+                NProgress.start();
 
-            axios.get('/getFleet').then(response => {
-                if(response.status==200){
-                    cars.value = response.data
+                const response = await axios.get('/getFleet');
+
+                if (response.status === 200) {
+                    cars.value = response.data;
+                } else {
+                    notification('Received unexpected response format', 'warning');
                 }
-                else if(error.response.data.errors){
-                    notification('error.response.data.errors.message','error')
-                }
-                else{
-                    return false
-                }
-            });
 
-            NProgress.done();
-
-        }
-
-        const getClassRooms = () => {
-            NProgress.start();
-
-            axios.get('/getClassRooms')
-                .then(response => {
-                    if (response.status === 200 && response.data) {
-                        classRooms.value = response.data;
+            } catch (error) {
+                if (error.response) {
+                    // Server responded with error status
+                    if (error.response.data.errors) {
+                        const errorMessages = Object.values(error.response.data.errors)
+                            .flat()
+                            .join('\n');
+                        notification(errorMessages, 'error', 5000);
                     } else {
-                        notification('Unexpected response from server', 'error');
+                        notification(error.response.data.message || 'Failed to load fleet data', 'error');
                     }
-                })
-                .catch(error => {
-                    if (error.response && error.response.data && error.response.data.errors) {
-                        notification(error.response.data.errors.message, 'error');
-                    } else {
-                        notification('An error occurred while fetching classrooms', 'error');
-                    }
-                })
-                .finally(() => {
-                    NProgress.done();
-                });
+                } else if (error.request) {
+                    // No response received
+                    notification('Network error - please check your connection', 'error');
+                } else {
+                    // Request setup error
+                    notification(`Error: ${error.message}`, 'error');
+                }
+
+                console.error('Fleet loading error:', error);
+                return false;
+            } finally {
+                NProgress.done();
+            }
         };
 
-        function assign(){
+        // Fetch classrooms with consistent error handling
+        const getClassRooms = async () => {
+            try {
+                NProgress.start();
 
-            NProgress.start();
+                const response = await axios.get('/getClassRooms');
 
-            axios.post('/assignCar', { student: '{{ $student->id }}', fleet: fleetRegNumber.value  }).then(response => {
-                if(response.status==200){
-                    notification(response.data,'success')
-                    location.reload();
-                }
-                else if(error.response.data.errors){
-                    notification('error.response.data.errors.message','error')
-                }
-                else{
-                    return false
-                }
-            });
-
-            NProgress.done();
-        }
-
-        function unAssignCar(){
-
-            NProgress.start();
-
-            axios.post('/unAssignCar', { student: '{{ $student->id }}', fleet: fleetRegNumber.value  }).then(response => {
-                if(response.status==200){
-                    notification(response.data,'success')
-                    location.reload();
-                }
-                else if(error.response.data.errors){
-                    notification('error.response.data.errors.message','error')
-                }
-                else{
-                    return false
-                }
-            });
-
-            NProgress.done();
-        }
-
-        const assignClassRoom = () => {
-            NProgress.start();
-
-            axios.post('/assign-class-room', {
-                student: '{{ $student->id }}',
-                classroom: classRoom.value
-            })
-            .then(response => {
-                if (response.status === 200) {
-                    notification(response.data, 'success');
-                    location.reload();
+                if (response.status === 200 && response.data) {
+                    classRooms.value = response.data;
                 } else {
-                    notification('Unexpected response from server', 'error');
+                    notification('Received empty or invalid classroom data', 'warning');
                 }
-            })
-            .catch(error => {
-                if (error.response && error.response.data && error.response.data.errors) {
-                    notification(error.response.data.errors.message, 'error');
+
+            } catch (error) {
+                if (error.response) {
+                    // Server responded with error status
+                    if (error.response.data.errors) {
+                        const errorMessages = Object.values(error.response.data.errors)
+                            .flat()
+                            .join('\n');
+                        notification(errorMessages, 'error', 5000);
+                    } else {
+                        notification(error.response.data.message || 'Failed to load classrooms', 'error');
+                    }
+                } else if (error.request) {
+                    // No response received
+                    notification('Network error - please check your connection', 'error');
                 } else {
-                    console.log(error);
-                    notification('An error occurred while assigning the classroom', 'error');
+                    // Request setup error
+                    notification(`Error: ${error.message}`, 'error');
                 }
-            })
-            .finally(() => {
+
+                console.error('Classroom loading error:', error);
+                return false;
+            } finally {
                 NProgress.done();
-            });
+            }
+        };
+
+        const assign = async () => {
+            try {
+                NProgress.start();
+
+                const response = await axios.post('/assignCar', {
+                    student: '{{ $student->id }}',
+                    fleet: fleetRegNumber.value
+                });
+
+                if (response.status === 200) {
+                    notification(response.data.message || 'Assignment successful', 'success');
+                    setTimeout(() => location.reload(), 1500); // Delay reload to show notification
+                } else {
+                    notification(response.data.message || 'Unknown response from server', 'warning');
+                }
+
+            } catch (error) {
+                if (error.response) {
+                    // Server responded with error status (4xx, 5xx)
+                    if (error.response.data.errors) {
+                        // Laravel validation errors
+                        const errorMessages = Object.values(error.response.data.errors).flat().join('\n');
+                        notification(errorMessages, 'error');
+                    } else {
+                        notification(error.response.data.message || 'Request failed', 'error');
+                    }
+                } else if (error.request) {
+                    // No response received
+                    notification('No response from server. Please check your connection.', 'error');
+                } else {
+                    // Something wrong in request setup
+                    notification('Error: ' + error.message, 'error');
+                }
+            } finally {
+                NProgress.done();
+            }
+        };
+
+        const unAssignCar = async () => {
+            try {
+                NProgress.start();
+
+                const response = await axios.post('/unAssignCar', {
+                    student: '{{ $student->id }}',
+                    fleet: fleetRegNumber.value
+                });
+
+                if (response.status === 200) {
+                    notification(response.data.message || 'Car unassigned successfully', 'success');
+                    setTimeout(() => location.reload(), 1200); // Delay reload to show notification
+                } else {
+                    notification(response.data.message || 'Operation completed with unexpected response', 'warning');
+                }
+
+            } catch (error) {
+                // Handle different types of errors
+                if (error.response) {
+                    // Server responded with error status (4xx, 5xx)
+                    if (error.response.data.errors) {
+                        // Laravel validation errors
+                        const errorMessages = Object.values(error.response.data.errors)
+                            .flat()
+                            .join('<br>'); // Use <br> for HTML notifications
+                        notification(errorMessages, 'error', 5000); // Longer display for multiple errors
+                    } else {
+                        notification(error.response.data.message || 'Failed to unassign car', 'error');
+                    }
+                } else if (error.request) {
+                    // The request was made but no response received
+                    notification('Network error - please check your connection', 'error');
+                } else {
+                    // Something happened in setting up the request
+                    notification('Error: ' + error.message, 'error');
+                }
+
+            } finally {
+                NProgress.done();
+            }
+        };
+
+        const assignClassRoom = async () => {
+            try {
+                NProgress.start();
+
+                const response = await axios.post('/assign-class-room', {
+                    student: '{{ $student->id }}',
+                    classroom: classRoom.value
+                });
+
+                // Successful response
+                if (response.status === 200) {
+                    const message = response.data.message || 'Classroom assigned successfully';
+                    notification(message, 'success');
+
+                    // Delay reload to allow user to see the success message
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    notification(response.data.message || 'Operation completed with unexpected response', 'warning');
+                }
+
+            } catch (error) {
+                // Handle different types of errors
+                if (error.response) {
+                    // Server responded with error status (4xx, 5xx)
+                    if (error.response.data.errors) {
+                        // Handle Laravel validation errors
+                        const errorMessages = Object.values(error.response.data.errors)
+                            .flat()
+                            .join('\n');
+                        notification(errorMessages, 'error', 5000); // Show for 5 seconds
+                    } else if (error.response.data.message) {
+                        notification(error.response.data.message, 'error');
+                    } else {
+                        notification(`Request failed with status ${error.response.status}`, 'error');
+                    }
+                } else if (error.request) {
+                    // The request was made but no response received
+                    notification('Network error - please check your connection', 'error');
+                } else {
+                    // Something happened in setting up the request
+                    notification(`Error: ${error.message}`, 'error');
+                }
+
+            } finally {
+                NProgress.done();
+            }
         };
 
         function notification($text, $icon){

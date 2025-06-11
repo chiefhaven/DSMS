@@ -599,7 +599,22 @@ class StudentController extends Controller
         $attendancePercent = havenUtils::attendancePercent($id);
         $attendanceTheoryCount = Attendance::where('student_id', $id)->where('lesson_id', 1)->count();
         $attendancePracticalCount = Attendance::where('student_id', $id)->where('lesson_id', 2)->count();
-        return view('students.viewstudent', [ 'student' => $student ], compact('student', 'attendancePercent', 'attendanceTheoryCount', 'attendancePracticalCount'));
+
+        if (request()->wantsJson()) {
+            return response()->json(compact(
+                'student',
+                'attendancePercent',
+                'attendanceTheoryCount',
+                'attendancePracticalCount'
+            ));
+        }
+
+        return view('students.viewstudent', compact(
+            'student',
+            'attendancePercent',
+            'attendanceTheoryCount',
+            'attendancePracticalCount'
+        ));
     }
 
     /**
@@ -1016,6 +1031,7 @@ class StudentController extends Controller
 
             // Assign the classroom
             $student->classroom_id = $request->classroom;
+            $student->fleet_id = Null;
             $student->trainingLevel_id = havenUtils::trainingLevelID('theory');
             $student->save();
 

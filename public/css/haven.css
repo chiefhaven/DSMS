@@ -22,10 +22,6 @@
     padding: 1rem .625rem !important;
 }
 
-.btn{
-    border-radius: 0px !important;
-}
-
 .haven-floating .form-floating>label {
     left: 20px !important;
 }
@@ -147,7 +143,7 @@
 }
 
 #nprogress .bar {
-    background: var(--livewire-progress-bar-color, rgb(17, 0, 255));
+    background: linear-gradient(135deg, #0104b9 0%, #00a6b5 100%);
     position: fixed;
     z-index: 99999 !important;
     top: 0;
@@ -213,3 +209,10 @@
     overflow: auto;
     max-height: 500px; /* Adjust as needed */
 }
+
+.block-header, .modal-header {
+    border-bottom: none;
+    background: linear-gradient(135deg, #0104b9 0%, #00a6b5 100%);
+}
+
+
