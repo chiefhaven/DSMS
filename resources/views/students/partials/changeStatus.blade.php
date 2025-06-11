@@ -42,7 +42,7 @@
                     <!-- Footer Buttons -->
                     <div class="modal-footer border-0 pt-3 px-0">
                         <button type="submit" class="btn btn-primary rounded-pill px-4">
-                            <i class="fas fa-save me-2"></i>Update Status
+                            <i class="fas fa-save me-2"></i>Update
                         </button>
                         <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
                             <i class="fas fa-times me-2"></i>Cancel

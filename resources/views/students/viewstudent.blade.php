@@ -395,7 +395,7 @@
 
                     <!-- Body -->
                     <div class="modal-body p-4">
-                        <form id="paymentForm" action="{{ url('/add-payment') }}" method="post" enctype="multipart/form-data">
+                        <form @submit.prevent="submitPaymentForm" enctype="multipart/form-data">
                             @csrf
 
                             <!-- Error Display -->
@@ -404,21 +404,16 @@
                             </div>
 
                             @if(isset($student->invoice->created_at))
-                                <input type="hidden" name="invoice_number" value="{{ $student->invoice->invoice_number }}">
+                                <input type="hidden" name="invoice_id" :value="paymentForm.invoice_id">
                             @endif
 
                             <!-- Date Field -->
                             <div class="mb-4">
                                 <label for="date_created" class="form-label text-muted">
-                                    <i class="far fa-calendar-alt me-2"></i>Payment Date
+                                    Payment Date
                                 </label>
-                                <input type="date" class="form-control border-2 rounded-3 py-3 @error('date_created') is-invalid @enderror"
-                                    id="date_created" name="date_created"
-                                    value="{{ old('date_created', now()->format('Y-m-d')) }}"
-                                    required>
-                                @error('date_created')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                <input type="date" class="form-control border-2 rounded-3 py-3"
+                                    id="date_created" name="date_created" v-model="paymentForm.date" required>
                             </div>
 
                             <!-- Amount and Method Row -->
@@ -426,50 +421,60 @@
                                 <!-- Amount -->
                                 <div class="col-md-6">
                                     <label for="paid_amount" class="form-label text-muted">
-                                        <i class="fas fa-money-bill-wave me-2"></i>Amount (MMK)
+                                        Amount (MMK)
                                     </label>
-                                    <div class="input-group">
-                                        <input type="number" class="form-control border-2 rounded-3 @error('paid_amount') is-invalid @enderror"
-                                            id="paid_amount" name="paid_amount"
-                                            value="{{ old('paid_amount', 0) }}"
-                                            min="0" step="0.01" required>
-                                        @error('paid_amount')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
+                                    <input type="number" class="form-control border-2 rounded-3"
+                                        id="paid_amount" name="paid_amount" v-model="paymentForm.paid_amount"
+                                        min="0" step="0.01" required>
                                 </div>
 
                                 <!-- Payment Method -->
                                 <div class="col-md-6">
                                     <label for="payment_method" class="form-label text-muted">
-                                        <i class="fas fa-wallet me-2"></i>Payment Method
+                                        Payment Method
                                     </label>
-                                    <select class="form-select border-2 rounded-3 py-3 @error('payment_method') is-invalid @enderror"
-                                            id="payment_method" name="payment_method" required>
-                                        @foreach (App\Models\PaymentMethod::all() as $paymentMethod)
-                                            <option value="{{ $paymentMethod->id }}" {{ old('payment_method') == $paymentMethod->id ? 'selected' : '' }}>
-                                                {{ $paymentMethod->name }}
-                                            </option>
-                                        @endforeach
+                                    <select class="form-select border-2 rounded-3 py-3"
+                                        id="payment_method"
+                                        name="payment_method"
+                                        v-model="paymentForm.payment_method"
+                                        required>
+                                        <option disabled value="">-- Select Method --</option>
+                                        <option
+                                            v-for="paymentMethod in paymentMethods"
+                                            :key="paymentMethod.id"
+                                            :value="paymentMethod.id">
+                                            @{{ paymentMethod.name }}
+                                        </option>
                                     </select>
-                                    @error('payment_method')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
                                 </div>
                             </div>
 
-                            <!-- Payment Proof -->
-                            <div class="mb-4">
-                                <label for="payment_proof" class="form-label text-muted">
-                                    <i class="fas fa-file-invoice me-2"></i>Payment Proof
-                                </label>
-                                <input type="file" class="form-control border-2 rounded-3 @error('payment_proof') is-invalid @enderror"
-                                    id="payment_proof" name="payment_proof"
-                                    accept="image/*,.pdf,.doc,.docx">
-                                <div class="form-text">Accepted: JPG, PNG, PDF, DOC (Max 5MB)</div>
-                                @error('payment_proof')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                            <!-- Conditional Fields -->
+                            <div class="row g-3 mb-4" v-if="paymentForm.payment_method != cashPaymentId">
+                                <!-- Transaction number -->
+                                <div class="col-md-12">
+                                    <label for="transaction_number" class="form-label text-muted">
+                                        Transaction/Reference no.
+                                    </label>
+                                    <input type="text" class="form-control border-2 rounded-3"
+                                        id="transaction_number" name="transaction_number"
+                                        v-model="paymentForm.transaction_number" required>
+                                </div>
+
+                                <!-- Payment Proof -->
+                                <div class="mb-4">
+                                    <label for="payment_proof" class="form-label text-muted">
+                                        Payment Proof
+                                    </label>
+                                    <input type="file"
+                                        class="form-control border-2 rounded-3"
+                                        id="payment_proof"
+                                        name="payment_proof"
+                                        @change="handleFileUpload"
+                                        accept="image/*,.pdf,.doc,.docx"
+                                        required>
+                                    <div class="form-text">Accepted: JPG, PNG, PDF, DOC (Max 5MB)</div>
+                                </div>
                             </div>
 
                             <!-- Footer Buttons -->
@@ -488,6 +493,7 @@
         </div>
     @endrole
 
+
     @include('students.partials.assignCarModal')
     @include('students.partials.assignClassRoomModal')
 </div>
@@ -495,7 +501,7 @@
 @include('students.partials.changeStatus')
 
 <script setup>
-    const { createApp, ref, reactive } = Vue
+    const { createApp, ref, reactive, onMounted } = Vue
 
     const app = createApp({
       setup() {
@@ -505,9 +511,20 @@
         const fleet = ref('')
         const classRoom = ref('{{ $student->classroom->id ?? null }}');
         const classRooms = ref([]);
-        const form = ref({
-            payment_method: '',
+        const paymentMethods = ref([]);
+        const cashPaymentId = ref(null)
+        const paymentForm = ref({
+            payment_method: null,
+            invoice_id: '{{ $student->invoice->id ?? null }}',
+            amount: "",
+            date:"",
+            payment_proof:"",
+            wantsJson: true,
         });
+
+        onMounted(() => {
+            getPaymentMethods()
+        })
 
         // Fetch fleet vehicles with proper error handling
         const getFleet = async () => {
@@ -729,7 +746,111 @@
                     toast.onmouseleave = Swal.resumeTimer;
                   }
               });
-        }
+        };
+
+        const handleFileUpload = async(event) => {
+            paymentForm.value.payment_proof = event.target.files[0];
+        };
+        
+        const submitPaymentForm = async () => {
+            NProgress.start();
+            const formData = new FormData();
+        
+            for (let key in paymentForm.value) {
+                formData.append(key, paymentForm.value[key]);
+            }
+
+        
+            try {
+
+                const response = await axios.post('/add-payment', formData, {
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+        
+                if (response.status === 200) {          
+                    //close modal
+                    $('#paymentModal').modal('hide');
+
+                    //Show success toast or alert
+                    notification('The payment was added successfully!', 'success')
+
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+            
+                    //Reset form fields
+                    paymentForm.value = {
+                        payment_method: null,
+                        invoice_id: '{{ $student->invoice->id ?? null }}',
+                        amount: "",
+                        date: "",
+                        payment_proof: "",
+                        wantsJson: true,
+                    };
+                }
+            } catch (error) {
+                if (error.response && error.response.status === 422) {
+                    const errors = error.response.data.message;
+                    console.log(errors);
+                    notification(errors, 'error')
+                } else {
+                    console.error("Something went wrong:", error);
+                }
+            } finally{
+                NProgress.done()
+            }
+        };
+               
+
+        const getPaymentMethods = async () => {
+            try {
+                NProgress.start();
+
+                const response = await axios.get('/api/getPaymentMethods');
+
+                if (response.status === 200) {
+                    paymentMethods.value = response.data;
+
+                    const cash = paymentMethods.value.find(pm => pm.name === "Cash");
+
+                    if (cash) {
+                        cashPaymentId.value = cash.id;
+                        paymentForm.value.payment_method = cashPaymentId.value;
+                    }
+
+                    console.log(paymentMethods.value)
+                } else {
+                    notification('Received unexpected response format', 'warning');
+                }
+
+            } catch (error) {
+                if (error.response) {
+                    // Server responded with error status
+                    if (error.response.data.errors) {
+                        const errorMessages = Object.values(error.response.data.errors)
+                            .flat()
+                            .join('\n');
+                        notification(errorMessages, 'error', 5000);
+                    } else {
+                        notification(error.response.data.message || 'Failed to load payment methods', 'error');
+                    }
+                } else if (error.request) {
+                    // No response received
+                    notification('Network error - please check your connection', 'error');
+                } else {
+                    // Request setup error
+                    notification(`Error: ${error.message}`, 'error');
+                }
+
+                console.error('Payment methods loading error:', error);
+                return false;
+            } finally {
+                NProgress.done();
+            }
+        };
 
         return {
             cars,
@@ -741,7 +862,12 @@
             classRoom,
             classRooms,
             getClassRooms,
-            unAssignCar
+            unAssignCar,
+            paymentForm,
+            handleFileUpload,
+            submitPaymentForm,
+            paymentMethods,
+            cashPaymentId
         }
       }
     })

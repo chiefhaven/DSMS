@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\PaymentMethod;
 use App\Http\Requests\StorePaymentMethodRequest;
 use App\Http\Requests\UpdatePaymentMethodRequest;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class PaymentMethodController extends Controller
 {
@@ -16,6 +18,13 @@ class PaymentMethodController extends Controller
     public function index()
     {
         //
+    }
+
+    public function fetchPaymentMethods(Request $request): JsonResponse
+    {
+        $paymentMethods = PaymentMethod::orderBy('name')->get();
+
+        return response()->json($paymentMethods);
     }
 
     /**

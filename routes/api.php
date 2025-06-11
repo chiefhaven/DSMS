@@ -13,7 +13,9 @@ use App\Http\Controllers\Api\StudentProfileController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InstructorPaymentController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\StudentController;
+use App\Models\PaymentMethod;
 
 /*
 |--------------------------------------------------------------------------
@@ -66,6 +68,8 @@ Route::get('/dashboardSummary', [ApiHomeController::class, 'dashboardSummary'])-
 Route::get('/expenses', [ExpenseController::class, 'fetchExpenses'])->name('payments')->middleware('auth:sanctum');
 
 Route::get('/payments', [PaymentController::class, 'fetchPayments'])->name('payments')->middleware('auth:sanctum');
+
+Route::get('/getPaymentMethods', [PaymentMethodController::class, 'fetchPaymentMethods'])->name('paymentMethods')->middleware('auth:sanctum');
 
 
 

@@ -143,7 +143,7 @@ use Carbon\Carbon;
 
         static function invoicePaid($invoiceNumber, $paid_amount){
 
-            $invoicePaid = Invoice::where('invoice_number', $invoiceNumber)->first()->invoice_amount_paid + $paid_amount;
+            $invoicePaid = Invoice::find($invoiceNumber)->invoice_amount_paid + $paid_amount;
             return $invoicePaid;
         }
 

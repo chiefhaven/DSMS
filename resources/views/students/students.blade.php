@@ -16,7 +16,7 @@
 
             @role(['superAdmin', 'admin'])
                 <div class="dropdown d-inline-block">
-                    <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <button type="button" class="btn btn-primary rounded-pill px-4" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <span class="d-sm-inline-block">Action</span>
                     </button>
                     <div class="dropdown-menu dropdown-menu-end p-0">
@@ -46,7 +46,7 @@
                 <div class="block block-rounded block-link-shadow border" @click="reloadTable('active')" style="cursor: pointer;">
                     <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                         <div>
-                            <i class="fa fa-2x fa-check-circle"></i>
+                            <i class="fa fa-2x fa-check-circle text-primary"></i>
                         </div>
                         <div class="ml-3 text-right">
                             <p class="font-size-h3 font-w300 mb-0">
@@ -63,7 +63,7 @@
                 <div class="block block-rounded block-link-shadow border" @click="reloadTable('theory')" style="cursor: pointer;">
                     <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                         <div>
-                            <i class="fa fa-2x fa-book"></i>
+                            <i class="fa fa-2x fa-book text-info"></i>
                         </div>
                         <div class="ml-3 text-right">
                             <p class="font-size-h3 font-w300 mb-0">
@@ -80,7 +80,7 @@
                 <div class="block block-rounded block-link-shadow border" @click="reloadTable('practical')" style="cursor: pointer;">
                     <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                         <div>
-                            <i class="fa fa-2x fa-car"></i>
+                            <i class="fa fa-2x fa-car text-warning"></i>
                         </div>
                         <div class="ml-3 text-right">
                             <p class="font-size-h3 font-w300 mb-0">
@@ -97,7 +97,7 @@
                 <div class="block block-rounded block-link-shadow border" @click="reloadTable('unassigned')" style="cursor: pointer;">
                     <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                         <div>
-                            <i class="fa fa-2x fa-times-circle"></i>
+                            <i class="fa fa-2x fa-times-circle text-danger"></i>
                         </div>
                         <div class="ml-3 text-right">
                             <p class="font-size-h3 font-w300 mb-0">
@@ -114,7 +114,7 @@
                 <div class="block block-rounded block-link-shadow border" @click="reloadTable('finished')" style="cursor: pointer;">
                     <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                         <div>
-                            <i class="fa fa-2x fa-check-circle"></i>
+                            <i class="fa fa-2x fa-check-circle text-success"></i>
                         </div>
                         <div class="ml-3 text-right">
                             <p class="font-size-h3 font-w300 mb-0">
@@ -251,6 +251,7 @@
             const studentId = ref(null);
             const studentName = ref('');
             const studentStatus = ref('');
+            const completionNotes = ref('');
 
             onMounted(() => {
                 nextTick(() => {
@@ -395,7 +396,7 @@
 
                 try {
                     const response = await axios.post(`/updateStudentStatus/${studentId.value}`, {
-                        status: studentStatus.value
+                        status: studentStatus.value, completionNotes: completionNotes.value
                     }, {
                         headers: {
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
@@ -499,7 +500,8 @@
                 openStatusChangeModal,
                 closeStatusChangeModal,
                 studentName,
-                confirmChangeStatus
+                confirmChangeStatus,
+                completionNotes
             }
 
         }})

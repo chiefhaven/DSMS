@@ -187,7 +187,7 @@ class StudentController extends Controller
             })
             ->addColumn('actions', function ($student) {
                 $view = '<a class="dropdown-item" href="' . url('/viewstudent', $student->id) . '">
-                            <i class="fa fa-user"></i> View
+                            <i class="fa fa-user me-2"></i> View
                         </a>';
 
                 $edit = '';
@@ -200,25 +200,25 @@ class StudentController extends Controller
                                     data-sname=\"" . e($student->sname) . "\"
                                     data-id=\"" . e($student->id) . "\"
                                     data-status=\"" . e($student->status) . "\">
-                                        <i class='fas fa-toggle-on'></i> Change status
+                                        <i class='fas fa-toggle-on me-2'></i> Change status
                                 </button>";
 
                 if (auth()->user()->hasRole('superAdmin')) {
                     $edit = '<a class="dropdown-item" href="' . url('/edit-student', $student->id) . '">
-                                <i class="fa fa-pencil"></i> Edit
+                                <i class="fa fa-pencil me-2"></i> Edit
                             </a>';
 
                     $delete = '<form method="POST" action="' . url('student-delete', $student->id) . '" style="display:inline;">
                                     ' . csrf_field() . method_field('DELETE') . '
                                     <button type="submit" class="dropdown-item delete-confirm">
-                                        <i class="fa fa-trash"></i> Delete
+                                        <i class="fa fa-trash me-2"></i> Delete
                                     </button>
                                 </form>';
                 }
 
                 return '
                     <div class="dropdown d-inline-block">
-                        <button class="btn btn-primary" data-bs-toggle="dropdown">Actions</button>
+                        <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown">Actions</button>
                         <div class="dropdown-menu dropdown-menu-end">
                             ' . $view . $edit . $delete . $changeStatus . '
                         </div>

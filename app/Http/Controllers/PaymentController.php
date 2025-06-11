@@ -22,6 +22,7 @@ use BD;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class PaymentController extends Controller
 {
@@ -171,72 +172,70 @@ class PaymentController extends Controller
     public function store(Request $request)
     {
         $messages = [
-            'invoice_number.required' => 'No invoice is being paid for!',
+            'invoice_id.required' => 'No invoice is being paid for!',
             'paid_amount.numeric' => 'Amount Paid must be a number',
             'paid_amount.min' => 'Amount Paid must be at least one',
-            'payment_method.exists' => 'Payment method you selected does not exist'
+            'payment_method.exists' => 'Payment method you selected does not exist',
         ];
 
-        // Validate the request
         $rules = [
-            'invoice_number'   => 'required',
+            'invoice_id'     => 'required',
             'payment_method' => 'required|exists:payment_methods,id',
-            'payment_proof' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
-            'paid_amount'     => [
-                'required',
-                'numeric',
-                'min:1',
-            ],
+            'payment_proof'  => 'nullable|image|mimes:jpeg,png,jpg,gif,pdf|max:5120',
+            'paid_amount'    => 'required|numeric|min:1',
         ];
 
-        $validatedData = $request->validate($rules, $messages);
-        $post = $request->all();
+        $validator = Validator::make($request->all(), $rules, $messages);
 
-        // Fetch invoice once
-        $invoice = Invoice::where('invoice_number', $post['invoice_number'])->first();
+        if ($validator->fails()) {
+            return response()->json([
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $post = $request->all();
+        $invoice = Invoice::find($post['invoice_id']);
 
         if (!$invoice) {
-            return back()->withErrors(['invoice_number' => 'Invoice not found.']);
+            return response()->json([
+                'message' => 'Invoice not found.',
+            ], 404);
         }
 
         if ($post['paid_amount'] > $invoice->invoice_balance) {
-            Alert::error('Payment not entered', 'Payment amount cannot be more than the remaining balance');
-            return back()->with([
-                'message' => 'Payment amount cannot be more than the remaining balance!',
-                'alert-type' => 'danger'
-            ]);
+            return response()->json([
+                'message' => 'Payment amount cannot be more than the remaining balance.',
+            ], 422);
         }
 
-        $payment = new Payment;
-        $invoice = havenUtils::studentID_InvoiceNumber($post['invoice_number']);
+        // Resolve invoice again if needed by invoice_number
+        $invoice = Invoice::find($post['invoice_id']);
 
         if (!$invoice || !$invoice->student) {
-            return back()->withErrors(['invoice_number' => 'Invalid invoice number. Student not found.']);
+            return response()->json([
+                'message' => 'Invalid invoice number. Student not found.',
+            ], 404);
         }
 
-        $invoice_amount_paid = havenUtils::invoicePaid($post['invoice_number'], $post['paid_amount']);
+        $invoice_amount_paid = havenUtils::invoicePaid($post['invoice_id'], $post['paid_amount']);
         $invoice_balance = $invoice->invoice_total - $invoice_amount_paid;
 
-        // Handle payment proof file
+        $payment = new Payment;
+
+        // Handle file upload
         if ($request->hasFile('payment_proof')) {
-            // Generate a unique filename
             $filename = time() . '_' . $request->file('payment_proof')->getClientOriginalName();
-
-            // Store the file in public/media/paymentProof/
             $request->file('payment_proof')->move(public_path('media/paymentProof'), $filename);
-
-            // Store just the filename in the database
             $payment->payment_proof = $filename;
         }
 
-        // Assign payment details
         $payment->amount_paid = $post['paid_amount'];
         $payment->payment_method_id = $post['payment_method'];
         $payment->transaction_id = Str::random(14);
         $payment->student_id = $invoice->student->id;
         $payment->entered_by = Auth::user()->name;
 
-        // Update invoice balance
+        // Update invoice amounts
         $invoice->invoice_amount_paid = $invoice_amount_paid;
         $invoice->invoice_balance = $invoice_balance;
 
@@ -247,8 +246,10 @@ class PaymentController extends Controller
         $sms = new NotificationController;
         $sms->balanceSMS($invoice->student->id, 'Payment');
 
-        Alert::toast('Payment added successfully', 'success');
-        return back();
+        return response()->json([
+            'message' => 'Payment added successfully.',
+            'transaction_id' => $payment->transaction_id,
+        ]);
     }
 
     /**
