@@ -11,7 +11,7 @@
                 <ol class="breadcrumb">
 
                     <div class="dropdown d-inline-block">
-                    <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <button type="button" class="btn btn-primary rounded-pill px-4" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <span class="d-sm-inline-block">Action</span>
                     </button>
                     <div class="dropdown-menu dropdown-menu-end p-0">
@@ -137,14 +137,14 @@
                                                 <div class="col-md-6 text-end">
                                                     <button type="button"
                                                             @click="getFleet()"
-                                                            class="btn btn-sm btn-outline-warning me-2"
+                                                            class="btn btn-sm btn-outline-warning me-2 rounded-pill px-4"
                                                             data-bs-toggle="modal"
                                                             data-bs-target=".assignCar">
                                                         <i class="fas fa-sync-alt me-1"></i> Reassign
                                                     </button>
                                                     <button type="button"
                                                             @click="unAssignCar()"
-                                                            class="btn btn-sm btn-outline-danger">
+                                                            class="btn btn-sm btn-outline-danger rounded-pill px-4">
                                                         <i class="fas fa-times me-1"></i> Unassign
                                                     </button>
                                                 </div>
@@ -160,7 +160,7 @@
                                                 <div class="col-md-6 text-end">
                                                     <button type="button"
                                                             @click="getFleet()"
-                                                            class="btn btn-sm btn-primary"
+                                                            class="btn btn-sm btn-primary rounded-pill px-4"
                                                             data-bs-toggle="modal"
                                                             data-bs-target=".assignCar">
                                                         <i class="fas fa-plus me-1"></i> Assign Vehicle
@@ -188,7 +188,7 @@
                                                     @if(isset($student->invoice->created_at))
                                                         {{ $student->invoice->created_at->format('j F, Y') }}
                                                     @else
-                                                        <a href="{{ url('/addinvoice', $student->id) }}" class="btn btn-sm btn-outline-primary">
+                                                        <a href="{{ url('/addinvoice', $student->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-4">
                                                             <i class="fas fa-plus-circle me-1"></i> Enroll Course
                                                         </a>
                                                     @endif
@@ -224,7 +224,7 @@
                                                             </div>
                                                             <button type="button"
                                                                     @click="getClassRooms()"
-                                                                    class="btn btn-sm btn-outline-warning"
+                                                                    class="btn btn-sm btn-outline-warning rounded-pill px-4"
                                                                     data-bs-toggle="modal"
                                                                     data-bs-target=".assignClassRoom">
                                                                 <i class="fas fa-sync-alt me-1"></i> Reassign
@@ -233,7 +233,7 @@
                                                     @else
                                                         <button type="button"
                                                                 @click="getClassRooms()"
-                                                                class="btn btn-sm btn-primary"
+                                                                class="btn btn-sm btn-primary rounded-pill px-4"
                                                                 data-bs-toggle="modal"
                                                                 data-bs-target=".assignClassRoom">
                                                             <i class="fas fa-plus me-1"></i> Assign Classroom
@@ -325,7 +325,7 @@
                                         <td>
                                             <form method="POST" action="{{ url('/trafic-card-reference-letter', $student->id) }}">
                                             {{ csrf_field() }}
-                                            <button class="btn btn-primary" type="submit">Download</button>
+                                            <button class="btn btn-primary rounded-pill px-4" type="submit">Download</button>
                                             </form>
                                         </td>
                                         </tr>
@@ -335,7 +335,7 @@
                                         <td>
                                             <form method="POST" action="{{ url('/aptitude-test-reference-letter', $student->id) }}">
                                             {{ csrf_field() }}
-                                            <button class="btn btn-primary" type="submit">Download</button>
+                                            <button class="btn btn-primary rounded-pill px-4" type="submit">Download</button>
                                             </form>
                                         </td>
                                         </tr>
@@ -345,7 +345,7 @@
                                         <td>
                                             <form method="POST" action="{{ url('/second-aptitude-test-reference-letter', $student->id) }}">
                                             {{ csrf_field() }}
-                                            <button class="btn btn-primary" type="submit">Download</button>
+                                            <button class="btn btn-primary rounded-pill px-4" type="submit">Download</button>
                                             </form>
                                         </td>
                                         </tr>
@@ -355,7 +355,7 @@
                                         <td>
                                             <form method="POST" action="{{ url('/final-test-reference-letter', $student->id) }}">
                                             {{ csrf_field() }}
-                                            <button class="btn btn-primary" type="submit">Download</button>
+                                            <button class="btn btn-primary rounded-pill px-4" type="submit">Download</button>
                                             </form>
                                         </td>
                                         </tr>
@@ -365,7 +365,7 @@
                                         <td>
                                             <form method="POST" action="{{ url('/lesson-report', $student->id) }}">
                                             {{ csrf_field() }}
-                                            <button class="btn btn-primary" type="submit">Download</button>
+                                            <button class="btn btn-primary rounded-pill px-4" type="submit">Download</button>
                                             </form>
                                         </td>
                                         </tr>

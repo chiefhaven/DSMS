@@ -26,8 +26,8 @@
                             </select>
                         </div>
                         <div class="block-content block-content-full text-end bg-body">
-                            <button type="submit" class="btn btn-primary">Save</button>
-                            <button type="button" class="btn btn-alt-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary rounded-pill px-4">Save</button>
+                            <button type="button" class="btn btn-alt-secondary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
                         </div>
                     </div>
                 </form>

@@ -22,7 +22,7 @@
                     <td>{{ $student->invoice->invoice_payment_due_date->format('j F, Y') }}</td>
                     <td class="text-center">
                         <div class="dropdown d-inline-block">
-                            <button type="button" class="btn btn-primary" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="d-none d-sm-inline-block">Action</span>
                             </button>
                             <div class="dropdown-menu dropdown-menu-end p-0">
@@ -116,7 +116,7 @@
                     </td>
                     <td class="text-center">
                         <div class="dropdown d-inline-block">
-                            <button type="button" class="btn btn-primary" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="d-none d-sm-inline-block">Action</span>
                             </button>
                             @role('superAdmin')
