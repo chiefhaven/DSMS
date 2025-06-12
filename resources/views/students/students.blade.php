@@ -25,7 +25,7 @@
                             <a href="{{ url('/addstudent') }}" class="dropdown-item nav-main-link">
                                 <i class="fa fa-fw fa-user-plus mr-1"></i>&nbsp; Add student
                             </a>
-                            <button class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#modal-block-vcenter">
+                            <button class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#download-student-report">
                                 <i class="fa fa-download"></i> &nbsp; Students report
                             </button>
                         @endcan
@@ -180,13 +180,15 @@
     </div>
 
     @role(['superAdmin', 'admin'])
-        <!-- Payment Modal -->
-            <div class="modal" id="modal-block-vcenter" tabindex="-1" aria-labelledby="modal-block-vcenter" style="display: none;" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered" role="document">
-                    <div class="modal-content">
-                        <div class="block block-rounded block-themed block-transparent mb-0">
-                        <div class="block-header bg-primary-dark">
-                            <h3 class="block-title">Filter to download report</h3>
+        <!-- Download Student Report Modal -->
+        <div class="modal fade" id="download-student-report" tabindex="-1" aria-labelledby="download-student-report" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="block block-rounded block-themed block-transparent mb-0">
+                        <div class="block-header modal-header bg-primary-dark p-3">
+                            <h3 class="block-title text-white fs-4 fw-bold">
+                                Filter to download report
+                            </h3>
                             <div class="block-options">
                                 <button type="button" class="btn-block-option" data-bs-dismiss="modal" aria-label="Close">
                                     <i class="fa fa-fw fa-times"></i>
@@ -197,47 +199,53 @@
                             <form class="mb-5" action="{{ url('/studentsPdf') }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
                                 @csrf
                                 <div class="row">
-                                    <div class="col-sm-6 mb-4">
-                                        <label for="invoice_discount">Date</label>
-                                        <select class="form-select dropdown-toggle" id="date" name="date">
-                                                <option class="" value="all_time">All Time</option>
+                                    <div class="col-lg-12 mb-4">
+                                        <label class="form-label" for="date">Date</label>
+                                        <select class="form-select" id="date" name="date">
+                                            <option value="all_time">All Time</option>
+                                            <option value="this_week">This Week</option>
+                                            <option value="this_month">This Month</option>
+                                            <option value="last_3_months">Last 3 Months</option>
                                         </select>
                                     </div>
-                                    <div class="col-sm-6 mb-4">
-                                        <label for="balance">Balance</label>
-                                        <select class="form-control dropdown-toggle" id="balance" name="balance">
-                                                <option class="" value="all">All</option>
-                                                <option class="text-left" value="balance">With balance</option>
-                                                <option class="" value="no_balance">No balance</option>
+                                    <div class="col-lg-12 mb-4">
+                                        <label class="form-label" for="balance">Balance</label>
+                                        <select class="form-select" id="balance" name="balance">
+                                            <option value="all">All</option>
+                                            <option value="balance">With balance</option>
+                                            <option value="no_balance">No balance</option>
                                         </select>
                                     </div>
-                                    <div class="col-sm-6 mb-4">
-                                        <label for="car">Assigned Car</label>
+                                    <div class="col-lg-12 mb-4">
+                                        <label class="form-label" for="fleet">Assigned Car</label>
                                         <select class="form-select" id="fleet" name="fleet">
-                                            <option class="" value="alltime" selected>All</option>
+                                            <option value="alltime" selected>All</option>
                                             @foreach($fleet as $fleet_option)
                                                 <option value="{{$fleet_option->car_registration_number}}">{{$fleet_option->car_registration_number}} ({{$fleet_option->car_brand_model}})</option>
                                             @endforeach
                                         </select>
                                     </div>
-                                    <div class="col-sm-6 mb-4">
-                                        <label for="status">Student Status</label>
-                                        <select class="form-control dropdown-toggle form-select" id="status" name="status">
-                                                <option class="" value="allstatus" selected>All</option>
-                                                <option value="inprogress">In progress</option>
-                                                <option value="finished">Completed</option>
+                                    <div class="col-lg-12 mb-4">
+                                        <label class="form-label" for="status">Student Status</label>
+                                        <select class="form-select" id="status" name="status">
+                                            <option value="allstatus" selected>All</option>
+                                            <option value="inprogress">In progress</option>
+                                            <option value="finished">Completed</option>
                                         </select>
                                     </div>
-                                    <div class="block-content block-content-full text-end bg-body">
-                                        <button type="submit" class="btn btn-primary">Download</button>
-                                        <button type="button" class="btn btn-sm btn-alt-secondary" data-bs-dismiss="modal">Close</button>
-                                    </div>
+                                </div>
+                                <div class="block-content block-content-full text-end bg-body">
+                                    <button type="submit" class="btn btn-primary rounded-pill px-4">
+                                        <i class="fa fa-download me-1"></i> Download
+                                    </button>
+                                    <button type="button" class="btn btn-alt-secondary me-2 rounded-pill px-4" data-bs-dismiss="modal">Close</button>
                                 </div>
                             </form>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
     @endcan
 
     <script setup>
