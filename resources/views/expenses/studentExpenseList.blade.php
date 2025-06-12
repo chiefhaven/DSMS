@@ -160,7 +160,7 @@ const app = createApp({
 
                 await axios.post(`/api/studentExpensePayment/${studentId}/${expenseId}`, form)
 
-                showAlert('Payment successful.', error.response.data.message, {
+                showAlert('Payment successful.', {
                     icon: 'success',
                     toast: true,
                 })
