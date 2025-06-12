@@ -77,11 +77,11 @@
         <li class="nav-main-item">
             <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
                 <i class="nav-main-link-icon fa fa-file-invoice-dollar"></i>
-                <span class="nav-main-link-name">Billing</span>
+                <span class="nav-main-link-name">Student billing</span>
             </a>
             <ul class="nav-main-submenu">
                 <li><a class="nav-main-link" href="{{ url('/invoices') }}"><span class="nav-main-link-name">Invoices</span></a></li>
-                <li><a class="nav-main-link" href="{{ url('/payments') }}"><span class="nav-main-link-name">Payments</span></a></li>
+                <li><a class="nav-main-link" href="{{ url('/payments') }}"><span class="nav-main-link-name">Student payments</span></a></li>
             </ul>
         </li>
         {{--  <li>
@@ -112,7 +112,7 @@
             <ul class="nav-main-submenu">
                 <li><a class="nav-main-link" href="{{ url('/instructors') }}"><span class="nav-main-link-name">All instructors</span></a></li>
                 <li><a class="nav-main-link" href="{{ url('/addinstructor') }}"><span class="nav-main-link-name">Add instructor</span></a></li>
-                <li><a class="nav-main-link" href="{{ url('/instructor-payments') }}"><span class="nav-main-link-name">Payments</span></a></li>
+                <li><a class="nav-main-link" href="{{ url('/instructor-payments') }}"><span class="nav-main-link-name">Bonus payments</span></a></li>
             </ul>
         </li>
         @endrole

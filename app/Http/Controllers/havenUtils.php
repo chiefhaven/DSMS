@@ -186,7 +186,7 @@ use Carbon\Carbon;
             }
 
 
-            return number_format((integer)$attendancePercent);
+            return ['attendancePercent' => number_format((integer)$attendancePercent), 'attendanceCount' => $attendanceCount];
         }
 
         //check for course Duration a students is enrolled in based on current invoice

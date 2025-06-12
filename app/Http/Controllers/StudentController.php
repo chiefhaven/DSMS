@@ -153,19 +153,22 @@ class StudentController extends Controller
                 } else {
                     return 'Not assigned';
                 }
-            })
-            ->addColumn('attendance', function ($student) {
+            })->addColumn('attendance', function ($student) {
                 $attendanceCount = $student->attendance ? $student->attendance->count() : 0;
                 $courseDuration = $student->course->duration ?? 0;
-                $percentage = ($courseDuration > 0) ? round(($attendanceCount / $courseDuration) * 100, 1) : 0;
+                $percentage = ($courseDuration > 0) ? number_format(($attendanceCount / $courseDuration) * 100, 1) : 0;
+
+                $text = "{$attendanceCount} of {$courseDuration} ";
 
                 if ($percentage >= 100) {
-                    return '<span class="badge bg-success">Completed</span>';
+                    $badge = '<span class="badge bg-success">Completed</span>';
                 } elseif ($percentage >= 50) {
-                    return '<span class="badge bg-info">' . $percentage . '%</span>';
+                    $badge = '<span class="badge bg-info">' . $percentage . '%</span>';
                 } else {
-                    return '<span class="badge bg-warning">' . $percentage . '%</span>';
+                    $badge = '<span class="badge bg-warning">' . $percentage . '%</span>';
                 }
+
+                return $text . '<br>' . $badge;
             })
             ->addColumn('course_status', function ($student) {
                 return '<span class="status-span"
@@ -330,15 +333,23 @@ class StudentController extends Controller
             ->addColumn('attendance', function ($student) {
                 $attendanceCount = $student->attendance ? $student->attendance->count() : 0;
                 $courseDuration = $student->course->duration ?? 0;
-                $percentage = ($courseDuration > 0) ? round(($attendanceCount / $courseDuration) * 100, 1) : 0;
+
+                if ($courseDuration <= 0) {
+                    return '<span class="text-danger">No course info</span>';
+                }
+
+                $percentage = number_format(($attendanceCount / $courseDuration) * 100, 1);
+                $text = "{$attendanceCount} of {$courseDuration} ";
 
                 if ($percentage >= 100) {
-                    return '<span class="badge bg-success">Completed</span>';
+                    $badge = '<span class="badge bg-success">Completed</span>';
                 } elseif ($percentage >= 50) {
-                    return '<span class="badge bg-info">' . $percentage . '%</span>';
+                    $badge = '<span class="badge bg-info">' . $percentage . '%</span>';
                 } else {
-                    return '<span class="badge bg-warning">' . $percentage . '%</span>';
+                    $badge = '<span class="badge bg-warning">' . $percentage . '%</span>';
                 }
+
+                return $text . $badge;
             })
             ->addColumn('course_status', function ($student) {
                 return '<span class="status-span"
@@ -596,7 +607,9 @@ class StudentController extends Controller
 
         havenUtils::checkStudentInstructor($id);
 
-        $attendancePercent = havenUtils::attendancePercent($id);
+        $attendancePercent = havenUtils::attendancePercent($id)['attendanceCount'] ?? 0;
+        $courseDuration = havenUtils::courseDuration($student->course->id) ?? 0;
+        $attendancePercent = havenUtils::attendancePercent($id)['attendanceCount'] ?? 0;
         $attendanceTheoryCount = Attendance::where('student_id', $id)->where('lesson_id', 1)->count();
         $attendancePracticalCount = Attendance::where('student_id', $id)->where('lesson_id', 2)->count();
 
@@ -604,6 +617,7 @@ class StudentController extends Controller
             return response()->json(compact(
                 'student',
                 'attendancePercent',
+                'courseDuration',
                 'attendanceTheoryCount',
                 'attendancePracticalCount'
             ));
@@ -612,6 +626,7 @@ class StudentController extends Controller
         return view('students.viewstudent', compact(
             'student',
             'attendancePercent',
+            'courseDuration',
             'attendanceTheoryCount',
             'attendancePracticalCount'
         ));

@@ -285,7 +285,7 @@
                                     <h5 class="border-bottom pb-2 mb-3">Attendance Progress</h5>
                                     <div class="d-flex justify-content-between mb-2">
                                         <span class="fw-semibold">Completion: {{ $attendancePercent }}%</span>
-                                        <span class="text-muted small">{{ $attendanceTheoryCount }} theory / {{ $attendancePracticalCount }} practical</span>
+                                        <span class="text-muted small">{{ $attendanceTheoryCount }} theory / {{ $attendancePracticalCount }} practical of {{ $courseDuration }}</span>
                                     </div>
                                     <div class="progress" style="height: 10px;">
                                         <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated"
