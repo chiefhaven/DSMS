@@ -160,34 +160,28 @@ use Carbon\Carbon;
             return $lesson->id;
         }
 
-        static function attendancePercent($studentID){
+        static function attendancePercent($studentID)
+        {
+            $course_id = Student::where('id', $studentID)->value('course_id');
 
-            $course_id = Student::where('id', $studentID)->firstOrFail()->course_id;
+            $attendanceCount = 0;
+            $attendancePercent = 0;
 
-            if(!is_null($course_id)){
-
+            if (!is_null($course_id)) {
                 $courseDuration = self::courseDuration($course_id);
                 $attendanceCount = Attendance::where('student_id', $studentID)->count();
 
-                if($attendanceCount > 0 && $courseDuration > 0){
-
-                    $attendancePercent = $attendanceCount/$courseDuration*100;
-                }
-
-                else{
-
-                    $attendancePercent = 0;
+                if ($attendanceCount > 0 && $courseDuration > 0) {
+                    $attendancePercent = ($attendanceCount / $courseDuration) * 100;
                 }
             }
 
-            else{
-
-                $attendancePercent = 0;
-            }
-
-
-            return ['attendancePercent' => number_format((integer)$attendancePercent), 'attendanceCount' => $attendanceCount];
+            return [
+                'attendancePercent' => number_format((int)$attendancePercent),
+                'attendanceCount' => $attendanceCount
+            ];
         }
+
 
         //check for course Duration a students is enrolled in based on current invoice
         static function courseDuration($course_id){
