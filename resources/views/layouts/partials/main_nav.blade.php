@@ -100,6 +100,7 @@
             <ul class="nav-main-submenu">
                 <li><a class="nav-main-link" href="{{ url('/expenses') }}"><span class="nav-main-link-name">All expenses</span></a></li>
                 <li><a class="nav-main-link" href="{{ url('/addexpense') }}"><span class="nav-main-link-name">Add expense</span></a></li>
+                <li><a class="nav-main-link" href="{{ url('/addexpense') }}"><span class="nav-main-link-name">Scan to pay</span></a></li>
             </ul>
         </li>
 
