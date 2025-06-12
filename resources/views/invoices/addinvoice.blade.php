@@ -70,7 +70,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4">Save</button>
                     </div>
                 </form>
             </div>

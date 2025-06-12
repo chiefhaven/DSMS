@@ -9,32 +9,34 @@
                     <span class="spinner-border text-primary" role="status"></span>
                     <p>Loading summary</p>
                 </div>
-        
+
                 <div v-else class="row">
                     <div class="col-md-12 mb-3">
                         <div class="col-md-12 block-rounded block-bordered p-4 d-inline-block">
                             <form @submit.prevent class="row g-2 align-items-end">
                                 @csrf
-                            
-                                <div class="col-auto">
-                                    <label for="filter" class="form-label mb-1">Filter</label>
-                                    <select class="form-control form-control rounded-0"
-                                            id="filter"
-                                            v-model="filter"
-                                            name="filter"
-                                            @change="onFilterChange">
-                                        <option value="today">Today</option>
-                                        <option value="yesterday">Yesterday</option>
-                                        <option value="thisweek">This Week</option>
-                                        <option value="thismonth">This Month</option>
-                                        <option value="lastmonth">Last Month</option>
-                                        <option value="thisyear">This Year</option>
-                                        <option value="lastyear">Last Year</option>
-                                        <option value="alltime">All Time</option>
-                                        <option value="custom">Custom</option>
+
+                                <div class="col-auto d-flex align-items-center gap-2">
+                                    <label for="filter" class="form-label mb-0 fw-semibold">Filter</label>
+                                    <select
+                                      id="filter"
+                                      v-model="filter"
+                                      name="filter"
+                                      class="form-select px-3 py-2 shadow-sm border rounded-pill"
+                                      @change="onFilterChange"
+                                    >
+                                      <option value="today">Today</option>
+                                      <option value="yesterday">Yesterday</option>
+                                      <option value="thisweek">This Week</option>
+                                      <option value="thismonth">This Month</option>
+                                      <option value="lastmonth">Last Month</option>
+                                      <option value="thisyear">This Year</option>
+                                      <option value="lastyear">Last Year</option>
+                                      <option value="alltime">All Time</option>
+                                      <option value="custom">Custom</option>
                                     </select>
                                 </div>
-                            
+
                                 <template v-if="filter === 'custom'">
                                     <div class="col-auto">
                                         <label for="startDate" class="form-label mb-1">Start Date</label>
@@ -44,7 +46,7 @@
                                                @change="onCustomDateChange"
                                                placeholder="YYYY-MM-DD" />
                                     </div>
-                            
+
                                     <div class="col-auto">
                                         <label for="endDate" class="form-label mb-1">End Date</label>
                                         <input type="text" id="endDate"
@@ -55,68 +57,23 @@
                                     </div>
                                 </template>
                             </form>
-                            
+
                         </div>
                     </div>
-        
+
                     <!-- Dashboard cards (Sales, Balances, Students, etc.) -->
-                    <div class="col-md-4 col-xl-4">
-                        <div class="block block-rounded block-link-shadow border">
-                            <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                                <div><i class="fa fa-2x fa-arrow-up"></i></div>
-                                <div class="ml-3 text-right">
-                                    <p class="font-size-h3 font-w300 mb-0">K@{{ formatCurrency(summaryInfo.earningsTotal) }}</p>
-                                    <p class="mb-0">Sales</p>
-                                </div>
+                    <div class="col-md-4 col-xl-4 mb-4" v-for="(card, index) in summaryCards" :key="index">
+                        <div class="block block-rounded block-link-shadow border shadow-sm h-100">
+                          <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+                            <div class=" ">
+                              <i :class="`fa fa-2x ${card.icon}`"></i>
                             </div>
-                        </div>
-                    </div>
-        
-                    <div class="col-md-4 col-xl-4">
-                        <div class="block block-rounded block-link-shadow border">
-                            <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                                <div><i class="fa fa-2x fa-wallet"></i></div>
-                                <div class="ml-3 text-right">
-                                    <p class="font-size-h3 font-w900 mb-0">K@{{ formatCurrency(summaryInfo.invoiceBalances) }}</p>
-                                    <p class="mb-0">Balances</p>
-                                </div>
+                            <div class="ms-3 text-end">
+                              <p class="fs-3 fw-semibold mb-0" v-if="card.currency">K@{{ formatCurrency(card.value) }}</p>
+                              <p class="fs-3 fw-semibold mb-0" v-else>@{{ card.value }}</p>
+                              <p class="mb-0 text-muted">@{{ card.label }}</p>
                             </div>
-                        </div>
-                    </div>
-        
-                    <div class="col-md-4 col-xl-4">
-                        <div class="block block-rounded block-link-shadow border">
-                            <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                                <div><i class="far fa-2x fa-user"></i></div>
-                                <div class="ml-3 text-right">
-                                    <p class="font-size-h3 font-w900 mb-0">@{{ summaryInfo.studentCount }}</p>
-                                    <p class="mb-0">Students</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-        
-                    <div class="col-md-4 col-xl-4">
-                        <div class="block block-rounded block-link-shadow border">
-                            <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                                <div><i class="fa fa-2x fa-chart-line"></i></div>
-                                <div class="ml-3 text-right">
-                                    <p class="font-size-h3 font-w900 mb-0">K@{{ formatCurrency(summaryInfo.expensesTotal) }}</p>
-                                    <p class="mb-0">Expenses</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-        
-                    <div class="col-md-4 col-xl-4">
-                        <div class="block block-rounded block-link-shadow border">
-                            <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                                <div><i class="far fa-2x fa-clock"></i></div>
-                                <div class="ml-3 text-right">
-                                    <p class="font-size-h3 font-w900 mb-0">@{{ formatCurrency(summaryInfo.attendanceCount) }}</p>
-                                    <p class="mb-0">Attendances</p>
-                                </div>
-                            </div>
+                          </div>
                         </div>
                     </div>
                 </div>
@@ -130,98 +87,120 @@
                 </div>
             </div>
 
-            <div class="row mt-2 p-0">
+            <div class="row mt-2 p-0 g-3">
+                <!-- Students Table -->
                 <div class="col-sm-12 col-md-12 p-0">
-                    <div class="block block-rounded block-bordered block-mode-loading-refresh mb-0">
-                    <div class="block-header border-bottom">
-                        <h3 class="block-title">Students</h3>
-                    </div>
-                    <div class="block-content" style="height: 30em !important; overflow-y:scroll">
-                        <div class="table-responsive">
-                        <table class="table table-striped table-hover table-borderless table-vcenter fs-sm">
-                            <thead>
-                            <tr class="text-uppercase">
-                                <th class="fw-bold text-center" style="width: 120px;">Photo</th>
-                                <th class="fw-bold">Name</th>
-                                <th class="fw-bold">Sex</th>
-                                <th class="d-none d-sm-table-cell fw-bold text-center">Course</th>
-                                <th class="fw-bold text-center" style="width: 60px;">Action</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            @foreach($student as $student)
-                            <tr>
-                                <td class="text-center">
-                                <img class="img-avatar img-avatar32 img-avatar-thumb" src="media/avatars/avatar2.jpg" alt="">
-                                </td>
-                                <td>
-                                <div class="fw-semibold fs-base">{{$student->fname}} {{$student->sname}}</div>
-                                <div class="text-muted">
-                                    @if(isset($student->user->email))
-
-                                        {{$student->user->email}}
-
-                                    @else
-
-                                    @endif
-                                </div>
-                                </td>
-                                <td>{{$student->gender}}</td>
-                                <td class="d-none d-sm-table-cell fs-base text-center">
-
-                                    @if(isset($student->course->name))
-                                    <span class="badge bg-dark">
-
-                                    {{$student->course->name}}
-                                        <div class="text-muted">{{$student->course->duration}} days</div>
-                                    </span>
-
-                                    @else
-                                    <a href="">
-                                        <span class="badge bg-danger">
-                                        Not enrolled yet
-                                        </span>
-                                    </a>
-                                    @endif
-                                </td>
-                                <td class="text-center">
-                                <a href="{{ url('/viewstudent', $student->id) }}" data-bs-toggle="tooltip" data-bs-placement="left" title="" class="js-bs-tooltip-enabled" data-bs-original-title="View Colleague">
-                                    <i class="fa fa-fw fa-user-circle"></i>
+                    <div class="block block-rounded block-bordered block-mode-loading-refresh mb-0 shadow-sm">
+                        <div class="block-header border-bottom bg-body-light">
+                            <h3 class="block-title text-primary"><i class="far fa-user me-2"></i>Students</h3>
+                            <div class="block-options">
+                                <a href="/students" class="btn-block-option" data-toggle="block-option" data-action="state_toggle" data-action-mode="demo">
+                                    More students...
                                 </a>
-                                </td>
-                            </tr>
-                            @endforeach
-                            </tbody>
-                        </table>
+                            </div>
                         </div>
-                    </div>
-                    </div>
-                </div>
-
-                <!-- Invoices snipest -->
-                <div class="col-sm-12 col-md-12 p-0 mt-4">
-                    <div class="block block-rounded block-bordered block-mode-loading-refresh mb-0">
-                    <div class="block-header border-bottom">
-                        <h3 class="block-title">Invoices</h3>
-                    </div>
-                        <div class="block-content" id="invoices" style="height: 30em !important; overflow-y:scroll">
+                        <div class="block-content" style="height: 30em; overflow-y: auto">
                             <div class="table-responsive">
-                                <table class="table table-striped table-hover table-borderless table-vcenter fs-sm">
+                                <table class="table table-striped table-hover table-vcenter mb-0 fs-sm">
                                     <thead>
-                                    <tr class="text-uppercase">
-                                        <th class="fw-bold" style="min-width: 200px;">Invoice No</th>
-                                        <th class="d-none d-sm-table-cell fw-bold" style="min-width: 200px;">Date</th>
-                                        <th class="fw-bold" style="min-width: 200px;">Student</th>
-                                        <th class="fw-bold">Balance</th>
-                                    </tr>
+                                        <tr class="text-uppercase">
+                                            <th class="fw-bold text-center" style="width: 100px;">Photo</th>
+                                            <th class="fw-bold">Name</th>
+                                            <th class="fw-bold">Gender</th>
+                                            <th class="d-none d-sm-table-cell fw-bold text-center">Course</th>
+                                            <th class="fw-bold text-center" style="width: 80px;">View</th>
+                                        </tr>
                                     </thead>
                                     <tbody>
-                                            <tr v-for="item in info" :key="item.id">
-                                                <td><a :href="'view-invoice/' + item.id">@{{ item.invoice_number }}</td>
-                                                <td>@{{timeCreated(item.date_created)}}</td>
-                                                <td class="text-uppercase">@{{ item.student.fname }} @{{ item.student.mname }} @{{ item.student.sname }}</td>
-                                                <td>K@{{ formatPrice(item.invoice_balance) }}</td>
-                                            </tr>
+                                        @foreach($student as $student)
+                                        <tr>
+                                            <td class="text-center">
+                                                <img class="img-avatar img-avatar32 img-avatar-thumb" src="media/avatars/avatar2.jpg" alt="">
+                                            </td>
+                                            <td>
+                                                <div class="fw-semibold fs-base text-dark">{{$student->fname}} {{$student->sname}}</div>
+                                                <div class="text-muted small">
+                                                    @if(isset($student->user->email))
+                                                        {{$student->user->email}}
+                                                    @endif
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-{{ $student->gender == 'Male' ? 'primary' : 'pink' }}">
+                                                    {{$student->gender}}
+                                                </span>
+                                            </td>
+                                            <td class="d-none d-sm-table-cell text-center">
+                                                @if(isset($student->course->name))
+                                                    <b>{{$student->course->name}}</b>
+                                                    <div class="text-muted small">{{$student->course->duration}} days</div>
+                                                @else
+                                                <a href="#">
+                                                    <span class="badge bg-danger">
+                                                        Not enrolled
+                                                    </span>
+                                                </a>
+                                                @endif
+                                            </td>
+                                            <td class="text-center">
+                                                <a href="{{ url('/viewstudent', $student->id) }}"
+                                                   class="btn btn-sm btn-outline-primary js-bs-tooltip-enabled"
+                                                   data-bs-toggle="tooltip"
+                                                   data-bs-placement="left"
+                                                   title="View Student">
+                                                    <i class="fa fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-2 p-0 g-3">
+                <!-- Invoices Table -->
+                <div class="col-sm-12 col-md-12 p-0">
+                    <div class="block block-rounded block-bordered block-mode-loading-refresh mb-0 shadow-sm">
+                        <div class="block-header border-bottom bg-body-light">
+                            <h3 class="block-title text-success">
+                                <i class="far fa-file-invoice me-2"></i>Invoices
+                            </h3>
+                        </div>
+
+                        <div class="block-content" id="invoices" style="height: 30em; overflow-y: auto">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover table-vcenter mb-0 fs-sm">
+                                    <thead class="bg-success-lighter">
+                                        <tr class="text-uppercase">
+                                            <th class="fw-bold">Invoice No.</th>
+                                            <th class="d-none d-sm-table-cell fw-bold">Date</th>
+                                            <th class="fw-bold">Student</th>
+                                            <th class="fw-bold text-end">Balance</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="item in info" :key="item.id">
+                                            <td>
+                                                <a :href="'view-invoice/' + item.id" class="fw-semibold text-dark">
+                                                    @{{ item.invoice_number }}
+                                                </a>
+                                            </td>
+                                            <td class="d-none d-sm-table-cell">
+                                                <span class="text-muted">@{{ timeCreated(item.date_created) }}</span>
+                                            </td>
+                                            <td class="text-uppercase">
+                                                @{{ item.student.fname }} @{{ item.student.mname }} <div class="fw-semibold fs-base text-dark"> @{{ item.student.sname }} </div>
+                                            </td>
+                                            <td class="text-end">
+                                                <span class="fw-bold" :class="{'text-danger': item.invoice_balance > 0, 'text-success': item.invoice_balance == 0}">
+                                                    K@{{ formatPrice(item.invoice_balance) }}
+                                                </span>
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -232,35 +211,55 @@
 
             <div class="row mt-4 p-0">
                 <div class="col-sm-12 col-md-12 p-0">
-                    <div class="block block-rounded block-bordered block-mode-loading-refresh mb-0">
-                    <div class="block-header border-bottom">
-                        <h3 class="block-title">System activities</h3>
-                    </div>
-                    <div class="block-content h-100">
-                        <div class="table-responsive">
-                        <table id="activitiesTable" class="table table-striped table-hover table-borderless table-vcenter fs-sm">
-                            <thead>
-                            <tr class="text-uppercase">
-                                <th class="fw-bold">Activity</th>
-                                <th class="fw-bold">By</th>
-                                <th class="fw-bold">Date time</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            @foreach($activities as $activity)
-                                <tr>
-                                    <td>{{ $activity->description }}</td>
-                                    <td>
-                                        {{ $activity->causer->administrator?->fname ?? $activity->causer->instructor?->fname ?? 'System' }}
-                                        {{ $activity->causer->administrator?->sname ?? $activity->causer->instructor?->sname ?? 'System' }}
-                                    </td>
-                                    <td>{{ $activity->updated_at->format('j F, Y - H:m:s') }}</td>
-                                </tr>
-                            @endforeach
-                            </tbody>
-                        </table>
+                    <div class="block block-rounded block-bordered block-mode-loading-refresh mb-0 shadow-sm">
+                        <div class="block-header border-bottom bg-body-light">
+                            <h3 class="block-title text-info">
+                                <i class="far fa-list-alt me-2"></i>System Activities
+                            </h3>
                         </div>
-                    </div>
+                        <div class="block-content h-100" style="max-height: 500px; overflow-y: auto;">
+                            <div class="table-responsive">
+                                <table id="activitiesTable" class="table table-striped table-hover table-vcenter mb-0 fs-sm">
+                                    <thead class="bg-info-lighter">
+                                        <tr class="text-uppercase">
+                                            <th class="fw-bold" style="width: 60%;">Activity</th>
+                                            <th class="fw-bold" style="width: 20%;">Performed By</th>
+                                            <th class="fw-bold text-end" style="width: 20%;">Date & Time</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($activities as $activity)
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <span>{{ $activity->description }}</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <span>
+                                                        {{ $activity->causer->administrator?->fname ?? $activity->causer->instructor?->fname ?? 'System' }}
+                                                        {{ $activity->causer->administrator?->sname ?? $activity->causer->instructor?->sname ?? '' }}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td class="text-end">
+                                                <span class="text-muted" data-bs-toggle="tooltip" data-bs-placement="left" title="{{ $activity->updated_at->diffForHumans() }}">
+                                                    {{ $activity->updated_at->format('j M, Y - H:i:s') }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                            @if($activities->isEmpty())
+                            <div class="text-center py-4">
+                                <i class="far fa-clipboard-list fa-2x text-muted mb-2"></i>
+                                <p class="text-muted mb-0">No activities found</p>
+                            </div>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>
@@ -328,7 +327,7 @@
                             System will automatically pay bonuses on 28th
                         </p>
                         <div id="bonuses">
-                            <button class="btn btn-primary" :disabled="paymentLoading" @click="payEarly">
+                            <button class="btn btn-primary rounded-pill px-4" :disabled="paymentLoading" @click="payEarly">
                                 <span v-if="paymentLoading">
                                     <i class="fa fa-spinner fa-spin"></i> Processing...
                                 </span>
@@ -344,12 +343,11 @@
     </div>
 
     <script>
-        const { createApp, ref, onMounted, watch, nextTick } = Vue;
+        const { createApp, ref, onMounted, watch, nextTick, computed } = Vue;
 
         const bonuses = createApp({
             setup() {
                 const paymentLoading = ref(false)
-
 
                 const payEarly = () => {
                     Swal.fire({
@@ -383,13 +381,14 @@
 
                 return {
                     payEarly,
-                    paymentLoading
+                    paymentLoading,
+
                 };
             }
         }).mount('#bonuses');
 
 
-        const students = createApp({
+        const invoices = createApp({
             setup() {
                 const count = ref(0);
                 const info = ref([]);
@@ -404,6 +403,34 @@
                         .catch(error => {
                         });
                 });
+
+                const getStatusColor = async(status) => {
+                    const statusMap = {
+                        'paid': 'success',
+                        'pending': 'warning',
+                        'overdue': 'danger',
+                        'partial': 'info'
+                    };
+                    return statusMap[status.toLowerCase()] || 'secondary';
+                };
+
+                const getPaymentProgress = async (item) => {
+                    if (item.invoice_total === 0) return 0;
+                    const paid = item.invoice_total - item.invoice_balance;
+                    return Math.round((paid / item.invoice_total) * 100);
+                };
+
+                const getProgressBarClass = async(item) => {
+                    const progress = this.getPaymentProgress(item);
+                    if (progress === 100) return 'bg-success';
+                    if (progress > 50) return 'bg-info';
+                    if (progress > 0) return 'bg-warning';
+                    return 'bg-danger';
+                };
+
+                const filterInvoices = async() => {
+                    // Implement your filtering logic here
+                };
 
                 // Fetch single invoice view
                 const view_invoice = (invoice_number) => {
@@ -434,6 +461,9 @@
                     view_invoice,
                     timeCreated,
                     formatPrice,
+                    getStatusColor,
+                    getProgressBarClass,
+                    getPaymentProgress
                 };
             }
         }).mount('#invoices');
@@ -445,7 +475,22 @@
                 const endDate = ref()
                 const isLoading = ref(false)
 
-                const summaryInfo = ref([]);
+                const summaryInfo = ref({
+                    earningsTotal: 0,
+                    invoiceBalances: 0,
+                    studentCount: 0,
+                    expensesTotal: 0,
+                    attendanceCount: 0,
+                });
+
+                const summaryCards = computed(() => [
+                    { icon: 'fa-arrow-up', value: summaryInfo.value.earningsTotal, label: 'Sales', currency: true },
+                    { icon: 'fa-wallet', value: summaryInfo.value.invoiceBalances, label: 'Balances', currency: true },
+                    { icon: 'fa-user', value: summaryInfo.value.studentCount, label: 'Students', currency: false },
+                    { icon: 'fa-chart-line', value: summaryInfo.value.expensesTotal, label: 'Expenses', currency: true },
+                    { icon: 'fa-clock', value: summaryInfo.value.attendanceCount, label: 'Attendances', currency: false },
+                ]);
+
 
                 // Initialize datepickers on mount
                 onMounted(() => {
@@ -459,13 +504,14 @@
                     try {
                         const response = await axios.get('/api/dashboardSummary', {
                             params: {
-                                filter: filter.value,
-                                ...(filter.value === 'custom' && {
-                                    start_date: startDate.value,
-                                    end_date: endDate.value
-                                })
-                            }
-                        })
+                              filter: filter.value,
+                              ...(filter.value === 'custom' && {
+                                start_date: startDate.value,
+                                end_date: endDate.value,
+                              }),
+                            },
+                        });
+
                         summaryInfo.value = response.data;
                     } catch (error) {
                         const errorData = error.response.data;
@@ -496,10 +542,10 @@
                                 const day = String(today.getDate()).padStart(2, '0');
                                 const month = String(today.getMonth() + 1).padStart(2, '0');
                                 const year = today.getFullYear();
-                            
+
                                 // Set the date in yyyy-mm-dd format (adjusted for consistency)
                                 const formattedDate = `${year}-${month}-${day}`;
-                            
+
                                 $('#startDate').datepicker({
                                     format: 'yyyy-mm-dd',
                                     autoclose: true,
@@ -508,7 +554,7 @@
                                     startDate.value = e.format('yyyy-mm-dd'); // Ensure correct format
                                     onCustomDateChange();
                                 }).datepicker('setDate', formattedDate);
-                            
+
                                 $('#endDate').datepicker({
                                     format: 'yyyy-mm-dd',
                                     autoclose: true,
@@ -518,7 +564,7 @@
                                     onCustomDateChange();
                                 }).datepicker('setDate', formattedDate);
                             });
-                            
+
                         }
                     },
                     { immediate: true }
@@ -576,7 +622,9 @@
                     formatCurrency,
                     onFilterChange,
                     onCustomDateChange,
-                    isLoading
+                    isLoading,
+                    summaryCards,
+
                 };
             }
         }).mount('#dashboardSummary');
