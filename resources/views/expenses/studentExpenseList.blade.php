@@ -2,7 +2,7 @@
 
 @section('content')
 <!-- Hero -->
-<div id="studentExpenseList" class="bg-body-light">
+<div id="studentExpenseList">
     <div class="bg-body-light">
         <div class="content content-full">
             <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
@@ -55,10 +55,19 @@
                                         <span v-else class="badge bg-warning">Pending</span>
                                     </td>
                                     <td>
-                                        <button v-if="!expense.approved" @click="loadPaymentForm(expense)" class="btn btn-primary rounded-pill px-4">
-                                            Pay
-                                        </button>
-                                        <span v-else class="text-muted">—</span>
+                                        <div class="d-flex flex-column align-items-start">
+                                            <button
+                                                @click="loadPaymentForm(expense)"
+                                                class="btn btn-primary rounded-pill px-4 mb-1"
+                                                :disabled="!expense.approved"
+                                                data-bs-toggle="tooltip"
+                                                :title="!expense.approved ? 'Expense is not approved yet' : ''"
+                                                ref="tooltipBtn"
+                                            >
+                                                Pay
+                                            </button>
+                                            <small v-if="!expense.approved" class="text-muted">Not approved</small>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>
@@ -127,7 +136,7 @@
 </div>
 
 <script setup>
-const { createApp, ref, reactive, onMounted } = Vue
+const { createApp, ref, reactive, onMounted, nextTick } = Vue
 
 const app = createApp({
     setup() {
@@ -182,6 +191,11 @@ const app = createApp({
             const modal = bootstrap.Modal.getInstance(document.getElementById('paymentModal'))
             if (modal) modal.hide()
         }
+
+        onMounted(() => {
+            nextTick(() => {
+            });
+        });
 
         const showAlert = (
                 message = '', // title
