@@ -167,7 +167,7 @@
                     <div class="block block-rounded block-bordered block-mode-loading-refresh mb-0 shadow-sm">
                         <div class="block-header border-bottom bg-body-light">
                             <h3 class="block-title text-success">
-                                <i class="far fa-file-invoice me-2"></i>Invoices
+                                <i class="fa fa-file-invoice me-2"></i>Invoices
                             </h3>
                         </div>
 
@@ -192,8 +192,8 @@
                                             <td class="d-none d-sm-table-cell">
                                                 <span class="text-muted">@{{ timeCreated(item.date_created) }}</span>
                                             </td>
-                                            <td class="text-uppercase">
-                                                @{{ item.student.fname }} @{{ item.student.mname }} <div class="fw-semibold fs-base text-dark"> @{{ item.student.sname }} </div>
+                                            <td>
+                                                @{{ item.student.fname }} @{{ item.student.mname }} <div class="fw-semibold text-dark"> @{{ item.student.sname }} </div>
                                             </td>
                                             <td class="text-end">
                                                 <span class="fw-bold" :class="{'text-danger': item.invoice_balance > 0, 'text-success': item.invoice_balance == 0}">

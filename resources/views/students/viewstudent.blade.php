@@ -751,16 +751,16 @@
         const handleFileUpload = async(event) => {
             paymentForm.value.payment_proof = event.target.files[0];
         };
-        
+
         const submitPaymentForm = async () => {
             NProgress.start();
             const formData = new FormData();
-        
+
             for (let key in paymentForm.value) {
                 formData.append(key, paymentForm.value[key]);
             }
 
-        
+
             try {
 
                 const response = await axios.post('/add-payment', formData, {
@@ -769,8 +769,8 @@
                         'Content-Type': 'multipart/form-data',
                     },
                 });
-        
-                if (response.status === 200) {          
+
+                if (response.status === 200) {
                     //close modal
                     $('#paymentModal').modal('hide');
 
@@ -780,7 +780,7 @@
                     setTimeout(() => {
                         window.location.reload();
                     }, 2000);
-            
+
                     //Reset form fields
                     paymentForm.value = {
                         payment_method: null,
@@ -803,7 +803,7 @@
                 NProgress.done()
             }
         };
-               
+
 
         const getPaymentMethods = async () => {
             try {

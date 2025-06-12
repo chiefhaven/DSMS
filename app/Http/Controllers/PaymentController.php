@@ -171,21 +171,37 @@ class PaymentController extends Controller
      */
     public function store(Request $request)
     {
-        $messages = [
-            'invoice_id.required' => 'No invoice is being paid for!',
-            'paid_amount.numeric' => 'Amount Paid must be a number',
-            'paid_amount.min' => 'Amount Paid must be at least one',
-            'payment_method.exists' => 'Payment method you selected does not exist',
-        ];
+        $cashId = DB::table('payment_methods')->where('name', 'Cash')->value('id');
 
-        $rules = [
+        $validator = Validator::make($request->all(), [
             'invoice_id'     => 'required',
-            'payment_method' => 'required|exists:payment_methods,id',
-            'payment_proof'  => 'nullable|image|mimes:jpeg,png,jpg,gif,pdf|max:5120',
+            'payment_method' => ['required', Rule::exists('payment_methods', 'id')],
             'paid_amount'    => 'required|numeric|min:1',
-        ];
+            'transaction_number' => [
+                Rule::requiredIf(fn () => $request->payment_method != $cashId),
+                'min:1',
+            ],
+            'payment_proof'  => [
+                Rule::requiredIf(fn () => $request->payment_method != $cashId),
+                'nullable',
+                'image',
+                'mimes:jpeg,png,jpg,gif,pdf',
+                'max:5120'
+            ],
+        ], [
+            'invoice_id.required'         => 'No invoice is being paid for!',
+            'paid_amount.numeric'         => 'Amount Paid must be a number',
+            'paid_amount.min'             => 'Amount Paid must be at least one',
+            'payment_method.exists'       => 'The selected payment method does not exist.',
+            'payment_method.required'     => 'Please select a payment method.',
+            'transaction_number.required' => 'Transaction number is required for non-cash payments.',
+            'transaction_number.min'      => 'Transaction number must not be empty.',
+            'payment_proof.required'      => 'Payment proof is required for non-cash payments.',
+            'payment_proof.image'         => 'The payment proof must be an image.',
+            'payment_proof.mimes'         => 'The payment proof must be a file of type: jpeg, png, jpg, gif, or pdf.',
+            'payment_proof.max'           => 'The payment proof must not be greater than 5MB.',
+        ]);
 
-        $validator = Validator::make($request->all(), $rules, $messages);
 
         if ($validator->fails()) {
             return response()->json([

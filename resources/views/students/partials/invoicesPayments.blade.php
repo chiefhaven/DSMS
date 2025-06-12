@@ -108,7 +108,7 @@
                                     </a>
                                 </div>
                             @else
-                                <span class="badge bg-warning text-dark">File missing</span>
+                                <span class="badge bg-warning text-dark">No proof uploaded</span>
                             @endif
                         @else
                             <span class="badge bg-secondary">No proof</span>

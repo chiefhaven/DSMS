@@ -3,7 +3,7 @@
         <div class="modal-content border-0 shadow-lg">
             <div class="block block-rounded mb-0">
                 <!-- Header with gradient background -->
-                <div class="block-header bg-gradient-info p-3">
+                <div class="modal-header block-header bg-gradient-info p-3">
                     <h3 class="block-title text-white fs-4 fw-bold">
                         <i class="fas fa-chalkboard-teacher me-2"></i>Assign Classroom
                     </h3>
