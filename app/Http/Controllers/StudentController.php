@@ -606,8 +606,11 @@ class StudentController extends Controller
 
         havenUtils::checkStudentInstructor($id);
 
+        $courseId = optional($student->course)->id;
+        $courseDuration = $courseId ? havenUtils::courseDuration($courseId) : 0;
+
         $attendancePercent = havenUtils::attendancePercent($id)['attendanceCount'] ?? 0;
-        $courseDuration = havenUtils::courseDuration($student->course->id) ?? 0;
+
         $attendancePercent = havenUtils::attendancePercent($id)['attendanceCount'] ?? 0;
         $attendanceTheoryCount = Attendance::where('student_id', $id)->where('lesson_id', 1)->count();
         $attendancePracticalCount = Attendance::where('student_id', $id)->where('lesson_id', 2)->count();
