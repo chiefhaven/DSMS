@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\havenUtils;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
-
 use Illuminate\Http\Request;
 use App\Models\Student;
 use App\Models\Invoice;

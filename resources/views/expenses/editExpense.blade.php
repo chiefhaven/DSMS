@@ -79,7 +79,7 @@
                         </div>
                     </div>
                     <div class="block-content block-content-full text-end">
-                        <button type="submit" @click="addStudentToGroup()" class="btn btn-primary">Add to list</button>
+                        <button type="submit" @click="addStudentToGroup()" class="btn btn-primary rounded-pill px-4">Add to list</button>
                     </div>
 
                     <h2 class="flex-grow-1 fs-5 fw-semibold my-2 my-sm-3 border-lg mb-5">Selected students</h2>
@@ -131,7 +131,7 @@
             </div>
         </div>
         <div class="block-content block-content-full text-end">
-            <button type="submit" :disabled="state.isSubmitButtonDisabled" @click="updateExpense()" class="btn btn-primary">
+            <button type="submit" :disabled="state.isSubmitButtonDisabled" @click="updateExpense()" class="btn btn-primary rounded-pill px-4">
                 <template v-if="state.isLoading">
                     <i class="fas fa-spinner fa-spin me-1"></i> Processing...
                 </template>

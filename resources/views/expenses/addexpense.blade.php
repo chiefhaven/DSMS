@@ -99,7 +99,7 @@
             </div>
     </div>
     <div class="block-content block-content-full text-end">
-        <button type="submit" :disabled="state.isSubmitButtonDisabled" @click="saveExpense()" class="btn btn-primary">
+        <button type="submit" :disabled="state.isSubmitButtonDisabled" @click="saveExpense()" class="btn btn-primary rounded-pill px-4">
             <template v-if="state.isLoading">
                 Processing...
               </template>

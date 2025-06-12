@@ -549,4 +549,57 @@ class ExpenseController extends Controller
         return response()->json($dataModified);
     }
 
+    public function makePayment(Request $request, $studentId, $expenseId)
+    {
+        $request->validate([
+            'amount' => 'required|numeric|min:0',
+            'payment_method' => 'required|string|max:255',
+        ]);
+
+        $student = Student::findOrFail($studentId);
+
+        $expense = Expense::findOrFail($expenseId);
+
+        // Check if the expense is approved
+        if (!$expense->approved) {
+            return response()->json(['message' => 'Expense is not approved yet.'], 403);
+        }
+
+        // Check if the student is associated with the expense
+        if (!$student->expenses()->where('expenses.id', $expenseId)->exists()) {
+            return response()->json(['message' => 'Expense not found for this student.'], 404);
+        }
+
+        // Update pivot table data
+        $student->expenses()->updateExistingPivot($expenseId, [
+            'amount' => $request->amount,
+            'payment_method' => $request->payment_method,
+            'status' => 'paid',
+            'payment_entered_by' => auth()->id(),
+            'paid_at' => now(),
+        ]);
+
+        return response()->json(['message' => 'Payment recorded successfully.']);
+    }
+
+
+    public function studentExpenses(Request $request, $token)
+    {
+        $student = Student::with('expenses')->find($token);
+
+        if (!$student) {
+            Alert::error('Student Not Found', 'The student record could not be found, scan another document or contact the Admin.');
+            return redirect()->to('/scan-to-pay');
+        }
+
+        if ($student->expenses->isEmpty()) {
+            Alert::warning('No Expenses Found', 'No expenses list is available for this student.');
+            return redirect()->to('/scan-to-pay');
+        }
+
+        return view('expenses.studentExpenseList', [
+            'student' => $student,
+        ]);
+    }
+
 }

@@ -23,6 +23,7 @@ use App\Http\Controllers\InstructorPaymentController;
 use App\Http\Controllers\knowledgeController;
 use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\RoleDispatcherController;
 use App\Http\Controllers\ScheduleLessonController;
 use App\Models\Announcement;
 use App\Models\knowledge;
@@ -216,7 +217,11 @@ require __DIR__.'/auth.php';
 Auth::routes();
 
 //qrCode routes
-Route::get('/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/{token}', [AttendanceController::class, 'create'])
+// Route::get('/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/{token}', [AttendanceController::class, 'create'])
+//     ->middleware('redirectIfUnauthenticated')
+//     ->name('attendanceQrCode');
+
+Route::get('/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/{token}', [RoleDispatcherController::class, 'handle'])
     ->middleware('redirectIfUnauthenticated')
     ->name('attendanceQrCode');
 
@@ -258,3 +263,10 @@ Route::patch('/notifications/mark-all-read', [NotificationController::class, 'ma
 Route::get('/knowledge', [knowledgeController::class, 'index'])->middleware('auth')->name('knolwedge')->middleware('auth');
 
 Route::get('/roles', [RoleController::class, 'index'])->middleware('auth')->name('roles');
+
+Route::get("/scan-to-pay", function(){
+    return view("expenses.scanToPay");
+ })->middleware('auth');
+
+ Route::get('/expenses/pay/{student}/{expense}', [ExpenseController::class, 'makePayment'])->name('expense.pay');
+
