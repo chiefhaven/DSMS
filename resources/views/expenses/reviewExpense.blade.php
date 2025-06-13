@@ -7,7 +7,7 @@
       <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
         <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Review expense</h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
-            <a href="/expenses" class="btn btn-primary">All expenses</a>
+            <a href="/expenses" class="btn btn-primary rounded-pill px-4">All expenses</a>
         </nav>
       </div>
     </div>
