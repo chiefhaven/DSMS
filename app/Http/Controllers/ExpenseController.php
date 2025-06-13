@@ -174,7 +174,7 @@ class ExpenseController extends Controller
                 // Combine and return the full dropdown
                 return '
                     <div class="dropdown d-inline-block">
-                        <button class="btn btn-primary" data-bs-toggle="dropdown">Actions</button>
+                        <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown">Actions</button>
                         <div class="dropdown-menu dropdown-menu-end">
                             ' . $download . $review . $edit . $delete . '
                         </div>
