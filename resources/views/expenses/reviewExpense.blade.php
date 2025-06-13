@@ -87,8 +87,14 @@
                                     <td>@{{ index + 1 }}</td>
                                     <td>
                                         <div class="d-flex flex-column">
-                                            <strong>@{{ student.sname }}</strong>
-                                            <small class="text-muted">@{{ student.fname }} @{{ student.mname }}</small>
+                                            <strong>@{{ student.sname }} @{{ student.fname }} @{{ student.mname }}</strong>
+                                            <small class="text-muted">
+                                                <div
+                                                    v-if="student.expenses && student.expenses.some(e => e.pivot?.repeat === 1)"
+                                                    class="text-danger fw-bold small mt-1">
+                                                    Repeating
+                                                </div>
+                                            </small>
                                         </div>
                                     </td>
                                     <td>

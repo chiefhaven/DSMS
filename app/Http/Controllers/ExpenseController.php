@@ -411,13 +411,21 @@ class ExpenseController extends Controller
 
 
         if ($expenseTypeCount > 0) {
-            $expense = Expense::find($expenseTypeSet[0]->expense_id);
-            $groupDate = $expense ? $expense->group : 'Unknown date';
+            // Collect ALL related expenses by IDs
+            $expenseIds = $expenseTypeSet->pluck('expense_id')->toArray();
+            $expenses = Expense::whereIn('id', $expenseIds)->get();
 
+            // Extract all 'group' values as strings
+            $groupDates = $expenses->pluck('group')->filter()->unique()->toArray();
+
+            // Join dates into a string, or fallback
+            $groupDateString = !empty($groupDates)
+                ? implode(', ', $groupDates)
+                : 'Unknown date';
 
             $data = [
                 'feedback' => 'alreadyExists',
-                'message' => "{$fullName} was already selected for {$post['expenseType']} expenses dated {$groupDate}, Do you want to continue adding to another list?"
+                'message' => "{$fullName} was already selected for {$post['expenseType']} expenses dated {$groupDateString}. Do you want to continue adding to another list?"
             ];
 
             return response()->json($data, 200);
