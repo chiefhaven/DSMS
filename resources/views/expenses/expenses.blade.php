@@ -16,7 +16,7 @@
 
           @role(['superAdmin', 'admin'])
             <div class="">
-                <a class="btn btn-primary" href="/addexpense" data-bs-target="#modal-block-vcenter">
+                <a class="btn btn-primary rounded-pill px-4" href="/addexpense" data-bs-target="#modal-block-vcenter">
                     <i class="fa fa-file-invoice-dollar"></i>&nbsp; Add expense
                 </a>
             </div>
@@ -223,7 +223,7 @@
         });
 
         expenses.mount('#expenses');
-        </script>
+    </script>
 
 <!-- END Hero -->
 
