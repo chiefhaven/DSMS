@@ -600,7 +600,7 @@ class ExpenseController extends Controller
     public function studentExpenses(Request $request, $token)
     {
         $student = Student::with('expenses')->find($token);
-        $expenses = $student->expenses()->wherePivot('repeate', 0)->get();
+        $expenses = $student->expenses()->wherePivot('repeat', 0)->get();
 
         // Check if the student exists
         if (!$student) {
