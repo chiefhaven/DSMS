@@ -121,7 +121,7 @@
                                             @click="removeStudentFromList(student.id, index)"
                                             :title="state.expenseStatus !== 0 ? 'Editing disabled for approved expenses' : 'Remove student'"
                                         >
-                                            <i class="fas fa-trash-alt me-2"></i> Remove
+                                            Remove
                                         </button>
                                     </td>
                                 </tr>
