@@ -234,7 +234,8 @@ class ExpenseController extends Controller
         foreach ($students as $data) {
             $student = havenUtils::student($data['studentName']);
             $student->expenses()->attach($expense->id, [
-                'expense_type' => $data['expenseType']
+                'expense_type' => $data['expenseType'],
+                'repeat' => $data['expenses'][0]['pivot']['repeat'] ?? 0
             ]);
         }
 
@@ -347,7 +348,8 @@ class ExpenseController extends Controller
                 $student = havenUtils::student($fullName);
 
                 $student->expenses()->attach($expense->id, [
-                    'expense_type' => $data['expenses'][0]['pivot']['expense_type']
+                    'expense_type' => $data['expenses'][0]['pivot']['expense_type'],
+                    'repeat' => $data['expenses'][0]['pivot']['repeat'] ?? 0,
                 ]);
             }
 
@@ -414,11 +416,11 @@ class ExpenseController extends Controller
 
 
             $data = [
-                'feedback' => 'error',
-                'message' => "{$fullName} was already selected for {$post['expenseType']} expenses dated <strong>{$groupDate}</strong>"
+                'feedback' => 'alreadyExists',
+                'message' => "{$fullName} was already selected for {$post['expenseType']} expenses dated {$groupDate}, Do you want to continue adding to another list?"
             ];
 
-            return response()->json($data, 200); // or 200 if you prefer
+            return response()->json($data, 200);
         }
 
         switch ($expenseType) {
@@ -558,7 +560,7 @@ class ExpenseController extends Controller
 
         $student = Student::findOrFail($studentId);
 
-        $expense = Expense::findOrFail($expenseId);
+        $expense = $student->expenses()->where('expenses.id', $expenseId)->first();
 
         // Check if the expense is approved
         if (!$expense->approved) {
@@ -570,11 +572,15 @@ class ExpenseController extends Controller
             return response()->json(['message' => 'Expense not found for this student.'], 404);
         }
 
+        if (!$expense || $expense->pivot->status == 1) {
+            return response()->json(['message' => 'Student already paid.'], 404);
+        }
+
         // Update pivot table data
         $student->expenses()->updateExistingPivot($expenseId, [
             'amount' => $request->amount,
             'payment_method' => $request->payment_method,
-            'status' => 'paid',
+            'status' => 1,
             'payment_entered_by' => auth()->id(),
             'paid_at' => now(),
         ]);
@@ -586,13 +592,15 @@ class ExpenseController extends Controller
     public function studentExpenses(Request $request, $token)
     {
         $student = Student::with('expenses')->find($token);
+        $expenses = $student->expenses()->wherePivot('repeate', 0)->get();
 
+        // Check if the student exists
         if (!$student) {
             Alert::error('Student Not Found', 'The student record could not be found, scan another document or contact the Admin.');
             return redirect()->to('/scan-to-pay');
         }
 
-        if ($student->expenses->isEmpty()) {
+        if ($expenses->isEmpty()) {
             Alert::warning('No Expenses Found', 'No expenses list is available for this student.');
             return redirect()->to('/scan-to-pay');
         }

@@ -51,7 +51,7 @@
                                         <span v-else class="badge bg-warning">Pending</span>
                                     </td>
                                     <td>
-                                        <span v-if="expense.pivot?.status === 'paid'" class="badge bg-success">Paid</span>
+                                        <span v-if="expense.pivot?.status === 1" class="badge bg-success">Paid</span>
                                         <span v-else class="badge bg-warning">Pending</span>
                                     </td>
                                     <td>
@@ -59,7 +59,7 @@
                                             <button
                                                 @click="loadPaymentForm(expense)"
                                                 class="btn btn-primary rounded-pill px-4 mb-1"
-                                                :disabled="!expense.approved"
+                                                :disabled="!expense.approved || expense.pivot?.status === 1"
                                                 data-bs-toggle="tooltip"
                                                 :title="!expense.approved ? 'Expense is not approved yet' : ''"
                                                 ref="tooltipBtn"
@@ -160,7 +160,7 @@ const app = createApp({
 
                 await axios.post(`/api/studentExpensePayment/${studentId}/${expenseId}`, form)
 
-                showAlert('Payment successful.', {
+                showAlert('Payment successful.','', {
                     icon: 'success',
                     toast: true,
                 })

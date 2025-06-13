@@ -22,7 +22,8 @@ class expense extends Model
 
     public function Students()
     {
-        return $this->belongsToMany(Student::class)->withPivot('expense_type');
+        return $this->belongsToMany(Student::class)->withPivot('expense_type', 'repeat', 'status', 'paid_at', 'payment_entered_by')
+            ->withTimestamps();
     }
 
     public function Administrator()

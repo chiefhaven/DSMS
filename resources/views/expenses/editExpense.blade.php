@@ -105,8 +105,14 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="(student, index) in state.selectedStudents" :key="student.id">
-                                        <td class="text-uppercase">
-                                            @{{ student.fname }} @{{ student.mname }} <strong>@{{ student.sname }}</strong>
+                                        <td>
+                                            <div class="text-uppercase">
+                                              @{{ student.fname }} @{{ student.mname }} <strong>@{{ student.sname }}</strong>
+                                            </div>
+                                            <div v-if="student.expenses && student.expenses.some(e => e.pivot?.repeat === 1)"
+                                                class="sm-text text-danger" style="font-size: 0.85rem;">
+                                                Repeating
+                                            </div>
                                         </td>
                                         <td>
                                             <div v-if="student.expenses && student.expenses.length">
@@ -288,8 +294,8 @@
             position: toast ? 'top-end' : 'center',
             showConfirmButton: !toast,
             confirmButtonText: confirmText,
-            showCancelButton,
-            cancelButtonText,
+            showCancelButton: false,
+            cancelButtonText: cancelText,
             timer: toast ? 3000 : undefined,
             timerProgressBar: toast,
             didOpen: (toastEl) => {
@@ -302,45 +308,106 @@
         }
 
         function addStudentToGroup() {
-          if (!state.value.studentName) {
-            notification('Student name must be filled', 'error')
-            return hasError.value = true
-          }
+            hasError.value = false;
 
-          if (!state.value.expenseType) {
-            notification('Expense Type must be filled', 'error')
-            return hasError.value = true
-          }
-
-          const student = state.value.studentName.split(" ")
-          if (state.value.selectedStudents.some(item => item.studentId === state.value.studentId)) {
-            notification('Student already in list', 'error')
-            return hasError.value = true
-          }
-
-          axios.post('/checkStudent', {
-            student: state.value.studentId,
-            expenseType: state.value.expenseType
-          }).then(response => {
-            if (response.data.feedback === "success") {
-              state.value.selectedStudents.push({
-                studentId: state.value.studentId,
-                fname: student[0],
-                mname: student[1],
-                sname: student[2],
-                expenses: [{
-                  pivot: { expense_type: state.value.expenseType }
-                }]
-              })
-              state.value.studentName = ''
-              state.value.studentId = ''
-              totalAmount()
-              notification(response.data.message, 'success')
-            } else {
-              notification(response.data.message, 'error')
+            if (!state.value.studentName) {
+                notification('Student name must be filled', 'error');
+                return hasError.value = true;
             }
-          })
+
+            if (!state.value.expenseType) {
+                notification('Expense Type must be filled', 'error');
+                return hasError.value = true;
+            }
+
+            const student = state.value.studentName.trim().split(" ");
+            const fname = student[0] || '';
+            const mname = student[1] || '';
+            const sname = student[2] || '';
+
+            const alreadyInList = state.value.selectedStudents.some(
+                item => item.studentId === state.value.studentId
+            );
+
+            if (alreadyInList) {
+                notification('Student already in list', 'error');
+                return hasError.value = true;
+            }
+
+            axios.post('/checkStudent', {
+                student: state.value.studentId,
+                expenseType: state.value.expenseType
+            }).then(response => {
+                const { feedback, message } = response.data;
+
+                if (feedback === "success") {
+                    state.value.selectedStudents.push({
+                        studentId: state.value.studentId,
+                        fname,
+                        mname,
+                        sname,
+                        expenses: [
+                            {
+                                pivot: {
+                                    expense_type: state.value.expenseType,
+                                    repeat: 0
+                                }
+                            }
+                        ]
+                    });
+
+                    state.value.studentName = '';
+                    state.value.studentId = '';
+                    totalAmount();
+                    notification(message, 'success');
+
+                    console.log('Expense data loaded:', state.value.selectedStudents)
+
+
+                } else if (feedback === "alreadyExists") {
+                    Swal.fire({
+                        title: 'Student repeating?',
+                        text: message,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Continue',
+                        cancelButtonText: 'Cancel',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            state.value.selectedStudents.push({
+                                studentId: state.value.studentId,
+                                fname,
+                                mname,
+                                sname,
+                                expenses: [
+                                    {
+                                        pivot: {
+                                            expense_type: state.value.expenseType,
+                                            repeat: 1
+                                        }
+                                    }
+                                ]
+                            });
+
+                            state.value.studentName = '';
+                            state.value.studentId = '';
+                            totalAmount();
+                            notification('Student added despite repeat', 'info');
+
+                    console.log('Expense data loaded:', state.value.selectedStudents)
+
+                        }
+                    });
+                } else {
+                    notification(message, 'error');
+                }
+            }).catch(error => {
+                console.error(error);
+                notification('Something went wrong. Please try again.', 'error');
+            });
         }
+
 
         function removeStudentFromGroup(index) {
           if (state.value.selectedStudents.length <= 1) {

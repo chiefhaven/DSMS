@@ -87,14 +87,33 @@
                 <h2 class="flex-grow-1 fs-5 fw-semibold my-2 my-sm-3 border-lg mb-5">Select students</h2>
                     <hr>
                 <div>
-                    <div v-for="(student, index) in state.selectedStudents" :key="student.index">
-                        <div class="row mb-2">
-                            <div class="col-sm-4">@{{ student.studentName }}</div>
-                            <div class="col-sm-4">@{{ student.expenseType }}</div>
-                            <div class="col-sm-4 text-end"><span><button class="btn btn-danger btn-sm" @click="removeStudentFromGroup(index)">Remove</button></span></div>
-                        </div>
-                        <hr>
-                    </div>
+                    <table class="table table-striped">
+                        <thead class="bg-primary text-white">
+                          <tr>
+                            <th>Student Name</th>
+                            <th>Expense Type</th>
+                            <th class="text-end">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr v-for="(student, index) in state.selectedStudents" :key="index">
+                            <td>
+                              @{{ student.studentName }}
+                              <div
+                                v-if="student.expenses && student.expenses.some(e => e.pivot?.repeat === 1)"
+                                class="text-danger fw-bold small mt-1">
+                                Repeating
+                              </div>
+                            </td>
+                            <td>@{{ student.expenseType }}</td>
+                            <td class="text-end">
+                              <button class="btn btn-danger btn-sm" @click="removeStudentFromGroup(index)">
+                                Remove
+                              </button>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                 </div>
             </div>
     </div>
@@ -171,37 +190,114 @@
             var hasError = ref(false)
 
             function addStudentToGroup() {
+                hasError.value = false;
+
                 if (!state.value.studentName) {
-                    notification('Student name must be filled', 'error')
-                    hasError.value = true
-                    return hasError
+                    notification('Student name must be filled', 'error');
+                    hasError.value = true;
+                    return hasError;
                 }
 
                 if (!state.value.expenseType) {
-                    notification('Expense Type must be filled', 'error')
-                    hasError.value = true
-                    return hasError
+                    notification('Expense Type must be filled', 'error');
+                    hasError.value = true;
+                    return hasError;
                 }
 
-                if(!state.value.selectedStudents.some(item => item.studentId === state.value.studentId)){
+                const alreadyInList = state.value.selectedStudents.some(
+                    item => item.studentId === state.value.studentId
+                );
 
+                if (alreadyInList) {
+                    notification('Student already in list', 'error');
+                    hasError.value = true;
+                    return hasError;
+                }
 
-                    axios.post('/checkStudent', {student:state.value.studentId, expenseType: state.value.expenseType}).then(response => {
-                        if(response.data.feedback == "success"){
-                            state.value.selectedStudents.push({studentName:state.value.studentName, expenseType:state.value.expenseType})
-                            state.value.studentName =''
-                            notification(response.data.message, 'success')
+                axios.post('/checkStudent', {
+                    student: state.value.studentId,
+                    expenseType: state.value.expenseType
+                }).then(response => {
+                    const { feedback, message } = response.data;
+
+                    if (feedback === "success") {
+                        const alreadyExists = state.value.selectedStudents.some(
+                            s =>
+                                s.studentId === state.value.studentId &&
+                                s.expenseType === state.value.expenseType
+                        );
+
+                        if (!alreadyExists) {
+                            state.value.selectedStudents.push({
+                                studentId: state.value.studentId,
+                                studentName: state.value.studentName,
+                                expenseType: state.value.expenseType,
+                                expenses: [
+                                        {
+                                            pivot: {
+                                                repeat: 0
+                                            }
+                                        }
+                                    ]
+                            });
+
+                            state.value.studentName = '';
+                            notification(message, 'success');
+                        } else {
+                            showAlert('Student already selected.', '', {
+                                toast: true,
+                                icon: 'warning',
+                                confirmText: 'Ok'
+                            });
                         }
-                        else{
-                            notification(response.data.message, 'error')
-                        }
-                    })
-                }
-                else{
-                    notification('Student already in list', 'error')
-                    hasError.value = true
-                    return hasError
-                }
+
+                    } else if (feedback === "alreadyExists") {
+                        Swal.fire({
+                            title: 'Student repeating?',
+                            text: message,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: 'Continue',
+                            cancelButtonText: 'Cancel',
+                            reverseButtons: true
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                state.value.selectedStudents.push({
+                                    studentId: state.value.studentId,
+                                    studentName: state.value.studentName,
+                                    expenseType: state.value.expenseType,
+                                    expenses: [
+                                        {
+                                            pivot: {
+                                                repeat: 1
+                                            }
+                                        }
+                                    ]
+                                });
+
+                                console.log('Expense data loaded:', state.value.selectedStudents)
+
+                                state.value.studentName = '';
+                                notification('Student added despite repeat', 'info');
+                            }
+                        });
+
+                    } else {
+                        showAlert('Error', message, {
+                            toast: false,
+                            icon: 'error',
+                            confirmText: 'Ok'
+                        });
+                    }
+
+                }).catch(error => {
+                    console.error(error);
+                    showAlert('Error', 'Something went wrong. Please try again.', {
+                        toast: false,
+                        icon: 'error',
+                        confirmText: 'Close'
+                    });
+                });
             }
 
             function removeStudentFromGroup(index) {
@@ -240,6 +336,8 @@
                     NProgress.start();
                     state.value.isSubmitButtonDisabled = true;
                     state.value.isLoading = true;
+
+                    console.log('Expense data to be saved:', state.value.selectedStudents)
 
                     const response = await axios.post('/storeexpense', {
                         students: state.value.selectedStudents,
