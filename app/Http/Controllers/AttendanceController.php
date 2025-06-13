@@ -60,7 +60,7 @@ class AttendanceController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create($token)
+    public function create(Request $request, $token)
     {
         $instructor = Auth::user();
         $timeStart = Carbon::createFromTimeString($this->setting->attendance_time_start);
