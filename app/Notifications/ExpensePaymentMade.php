@@ -51,7 +51,7 @@ class ExpensePaymentMade extends Notification
             $this->student->sname,
             number_format($this->expense->pivot->amount, 2),
             $this->expense->pivot->expense_type,
-            url("/viewpayment/{$this->expense->id}")
+            url("/expense-payment-receipt/{$this->expense->pivot->id}")
         );
     }
 
@@ -67,7 +67,7 @@ class ExpensePaymentMade extends Notification
             ->subject('Receipt for RTD payment')
             ->greeting("Hello {$this->student->fname} {$this->student->sname},")
             ->line("You have been paid K" . number_format($this->expense->pivot->amount, 2) . " for expense: {$this->expense->pivot->expense_type}. Name: {$this->student->fname} {$this->student->mname} {$this->student->sname}.")
-            ->action('View Payment', url("/"))
+            ->action('View Payment', url("/expense-payment-receipt/{$this->expense->pivot->id}"))
             ->line('Thank you for using enrolling with Daron!');
     }
 
@@ -83,7 +83,7 @@ class ExpensePaymentMade extends Notification
             'title' => 'RTD payment made',
             'body' => "You have been paid K" . number_format($this->expense->pivot->amount, 2) . " for expense: {$this->expense->pivot->expense_type}.",
             'student_id' => $this->student->id,
-            'url' => url("/"),
+            'url' => url("/expense-payment-receipt/{$this->expense->pivot->id}"),
             'created_at' => now(),
         ];
     }
