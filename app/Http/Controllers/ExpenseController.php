@@ -573,37 +573,42 @@ class ExpenseController extends Controller
 
     public function makePayment(Request $request, $studentId, $expenseId)
     {
+        // Validate input first
         $request->validate([
-            'amount' => 'required|numeric|min:1',
-            'payment_method' => 'required|string|in:Cash,Bank Transfer,Mobile Money',
+            'amount' => ['required', 'numeric', 'min:1'],
+            'payment_method' => ['required', 'string', 'in:Cash,Bank Transfer,Mobile Money'],
         ]);
 
+        // Make sure student exists
         $student = Student::findOrFail($studentId);
 
         DB::transaction(function () use ($request, $student, $expenseId) {
-            // Lock expense row within transaction
-            $expense = $student->expenses()->where('expenses.id', $expenseId)->lockForUpdate()->first();
 
-            if (!$expense) {
-                abort(404, 'Expense not found for this student.');
-            }
+            // Lock expense row to prevent double payment
+            $expense = $student->expenses()
+                ->where('expenses.id', $expenseId)
+                ->lockForUpdate()
+                ->firstOrFail(); // simpler than manual null check
 
+            // Check if expense is approved
             if (!$expense->approved) {
                 abort(403, 'Expense is not approved yet.');
             }
 
+            // Validate pivot status
             if ($expense->pivot->status == 1) {
-                abort(422, 'Student already paid.');
+                abort(422, 'Student has already paid for this expense.');
             }
 
             if ($expense->pivot->repeat == 1) {
-                abort(422, 'Student is repeating, cannot be paid.');
+                abort(422, 'Student is repeating and cannot pay.');
             }
 
             if ($request->amount != $expense->amount) {
-                abort(422, 'Payment amount must match the expense amount exactly.');
+                abort(422, 'Payment amount must exactly match the expense amount.');
             }
 
+            // Update the pivot table safely
             $student->expenses()->updateExistingPivot($expenseId, [
                 'amount' => $request->amount,
                 'payment_method' => $request->payment_method,
@@ -612,14 +617,19 @@ class ExpenseController extends Controller
                 'paid_at' => now(),
             ]);
 
-            // Notify the student about the payment
-            $student->user->notify(new ExpensePaymentMade($student, $expense));
+            $updatedExpense = $student->expenses()->where('expenses.id', $expenseId)->first();
 
-
+            // Notify student (if they have a user)
+            if ($student->user) {
+                $student->user->notify(new ExpensePaymentMade($student, $updatedExpense));
+            }
         });
 
-        return response()->json(['message' => 'Payment recorded successfully.']);
+        return response()->json([
+            'message' => 'Payment recorded successfully.'
+        ]);
     }
+
 
     /**
      * Display a list of expenses for a specific student.

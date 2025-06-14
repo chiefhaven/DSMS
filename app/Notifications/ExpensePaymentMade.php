@@ -17,8 +17,6 @@ class ExpensePaymentMade extends Notification
 
     /**
      * Create a new notification instance.
-     *
-     * @return void
      */
     public function __construct($student, $expense)
     {
@@ -28,9 +26,6 @@ class ExpensePaymentMade extends Notification
 
     /**
      * Get the notification's delivery channels.
-     *
-     * @param  mixed  $notifiable
-     * @return array
      */
     public function via($notifiable)
     {
@@ -39,14 +34,11 @@ class ExpensePaymentMade extends Notification
 
     /**
      * Format SMS message.
-     *
-     * @param  mixed  $notifiable
-     * @return string
      */
     public function toSms($notifiable)
     {
         return sprintf(
-            "RTD payment receipt: Name: %s %s | Amount: K%s | Expense: %s. View: %s",
+            "RTD payment receipt:\nName: %s %s\nAmount: K%s\nExpense: %s\nView: %s",
             $this->student->fname,
             $this->student->sname,
             number_format($this->expense->pivot->amount, 2),
@@ -57,31 +49,25 @@ class ExpensePaymentMade extends Notification
 
     /**
      * Get the mail representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     * @return \Illuminate\Notifications\Messages\MailMessage
      */
     public function toMail($notifiable)
     {
         return (new MailMessage)
-            ->subject('Receipt for RTD payment')
+            ->subject('Receipt for RTD Payment')
             ->greeting("Hello {$this->student->fname} {$this->student->sname},")
-            ->line("You have been paid K" . number_format($this->expense->pivot->amount, 2) . " for expense: {$this->expense->pivot->expense_type}. Name: {$this->student->fname} {$this->student->mname} {$this->student->sname}.")
-            ->action('View Payment', url("/expense-payment-receipt/{$this->expense->pivot->id}"))
-            ->line('Thank you for using enrolling with Daron!');
+            ->line("A payment of K" . number_format($this->expense->pivot->amount, 2) . " has been recorded for the expense: {$this->expense->pivot->expense_type}.")
+            ->action('View Receipt', url("/expense-payment-receipt/{$this->expense->pivot->id}"))
+            ->line('Thank you for enrolling with Daron!');
     }
 
     /**
-     * Store in database.
-     *
-     * @param  mixed  $notifiable
-     * @return array
+     * Store notification in the database.
      */
     public function toDatabase($notifiable)
     {
         return [
-            'title' => 'RTD payment made',
-            'body' => "You have been paid K" . number_format($this->expense->pivot->amount, 2) . " for expense: {$this->expense->pivot->expense_type}.",
+            'title' => 'RTD Payment Made',
+            'body' => "Payment of K" . number_format($this->expense->pivot->amount, 2) . " recorded for: {$this->expense->pivot->expense_type}.",
             'student_id' => $this->student->id,
             'url' => url("/expense-payment-receipt/{$this->expense->pivot->id}"),
             'created_at' => now(),
@@ -89,15 +75,15 @@ class ExpensePaymentMade extends Notification
     }
 
     /**
-     * For broadcasting or other array uses.
+     * For broadcast or generic array usage.
      */
     public function toArray($notifiable)
     {
         return [
-            'title' => 'Receipt for RTD payment',
-            'body' => "Payment of K" . number_format($this->expense->pivot->amount, 2) . " has been made to {$this->student->fname} {$this->student->mname} {$this->student->sname}.",
+            'title' => 'RTD Payment Receipt',
+            'body' => "Payment of K" . number_format($this->expense->pivot->amount, 2) . " has been made for {$this->expense->pivot->expense_type}.",
             'student_id' => $this->student->id,
-            'url' => url("/"),
+            'url' => url("/expense-payment-receipt/{$this->expense->pivot->id}"),
             'created_at' => now(),
         ];
     }
