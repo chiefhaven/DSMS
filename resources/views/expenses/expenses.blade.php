@@ -40,7 +40,7 @@
                 <table id="expensesTable" class="table table-bordered table-striped table-vcenter">
                     <thead class="thead-dark">
                     <tr>
-                        <th class="text-center" style="width: 100px;">Actions</th>
+                        <th class="text-center" style="min-width: 7em;">Actions</th>
                         <th style="min-width: 12rem;">Group</th>
                         <th class="text-center" style="min-width: 7rem;">Students count</th>
                         <th class="text-center" style="min-width: 7rem;">Status</th>

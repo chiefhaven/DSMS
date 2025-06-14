@@ -35,7 +35,7 @@ class StudentController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['role:superAdmin|admin|instructor']);
+        $this->middleware(['role:superAdmin|admin|instructor|financeAdmin']);
     }
     /**
      * Display a listing of the resource.

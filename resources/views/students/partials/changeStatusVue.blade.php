@@ -1,4 +1,4 @@
-@role(['superAdmin', 'admin', 'instructor'])
+@role(['superAdmin', 'admin', 'instructor', 'financeAdmin'])
 <!-- Modal Backdrop -->
 <div v-if="showStatusChangeModal" class="modal-backdrop fade show" style="background-color: rgba(0,0,0,0.5);"></div>
 

@@ -557,8 +557,6 @@
                     // Request setup error
                     notification(`Error: ${error.message}`, 'error');
                 }
-
-                console.error('Fleet loading error:', error);
                 return false;
             } finally {
                 NProgress.done();
@@ -597,7 +595,6 @@
                     notification(`Error: ${error.message}`, 'error');
                 }
 
-                console.error('Classroom loading error:', error);
                 return false;
             } finally {
                 NProgress.done();
@@ -794,10 +791,26 @@
             } catch (error) {
                 if (error.response && error.response.status === 422) {
                     const errors = error.response.data.message;
-                    console.log(errors);
                     notification(errors, 'error')
                 } else {
-                    console.error("Something went wrong:", error);
+                    // Handle other errors
+                    if (error.response) {
+                        // Server responded with error status
+                        if (error.response.data.errors) {
+                            const errorMessages = Object.values(error.response.data.errors)
+                                .flat()
+                                .join('\n');
+                            notification(errorMessages, 'error', 5000);
+                        } else {
+                            notification(error.response.data.message || 'Failed to submit payment form', 'error');
+                        }
+                    } else if (error.request) {
+                        // No response received
+                        notification('Network error - please check your connection', 'error');
+                    } else {
+                        // Request setup error
+                        notification(`Error: ${error.message}`, 'error');
+                    }
                 }
             } finally{
                 NProgress.done()
@@ -821,7 +834,6 @@
                         paymentForm.value.payment_method = cashPaymentId.value;
                     }
 
-                    console.log(paymentMethods.value)
                 } else {
                     notification('Received unexpected response format', 'warning');
                 }
@@ -845,7 +857,6 @@
                     notification(`Error: ${error.message}`, 'error');
                 }
 
-                console.error('Payment methods loading error:', error);
                 return false;
             } finally {
                 NProgress.done();
@@ -867,7 +878,7 @@
             handleFileUpload,
             submitPaymentForm,
             paymentMethods,
-            cashPaymentId
+            cashPaymentId,
         }
       }
     })

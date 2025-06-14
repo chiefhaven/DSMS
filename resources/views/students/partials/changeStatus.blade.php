@@ -1,4 +1,4 @@
-@role(['superAdmin', 'admin', 'instructor'])
+@role(['superAdmin', 'admin', 'instructor', 'financeAdmin'])
 <div class="modal fade" id="change-status" tabindex="-1" aria-labelledby="statusModalLabel" style="display: none;" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">

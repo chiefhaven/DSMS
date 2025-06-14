@@ -11,6 +11,7 @@ use App\Models\Student;
 use App\Models\User;
 use App\Notifications\ExpenseApproved;
 use App\Notifications\ExpenseCreated;
+use App\Notifications\ExpensePaymentMade;
 use Auth;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -28,7 +29,7 @@ class ExpenseController extends Controller
 
     public function __construct()
     {
-        $this->middleware(['role:superAdmin|admin']);
+        $this->middleware(['role:superAdmin|admin|financeAdmin']);
         $this->setting = Setting::find(1);
     }/**
      * Display a listing of the resource.
@@ -126,23 +127,17 @@ class ExpenseController extends Controller
                 $edit = '';
                 $delete = '';
                 $review = '';
+                $view = '';
 
                 // Check if user has either role
-                if (auth()->user()->hasAnyRole(['superAdmin', 'admin'])) {
-
-                    // Edit only allowed if not approved
-                    if ($expense->approved != true) {
-                        $edit = '<a class="dropdown-item nav-main-link btn" href="' . url('/editexpense', $expense->id) . '">
-                                    <i class="fa fa-pencil me-3"></i> Edit
-                                </a>';
-                    }
+                if (auth()->user()->hasAnyRole(['superAdmin', 'admin', 'financeAdmin'])) {
 
                     // Download logic
                     if ($expense->group_type !== 'TRN') {
                         if ($expense->approved == true) {
-                            $download = '<form class="dropdown-item nav-main-link" method="GET" action="' . url('expensedownload', $expense->id) . '">
+                            $download = '<form method="GET" action="' . url('expensedownload', $expense->id) . '">
                                             ' . csrf_field() . '
-                                            <button class="btn download-confirm" type="submit">
+                                            <button class="dropdown-item nav-main-link btn download-confirm" type="submit">
                                                 <i class="fa fa-download me-3"></i> Download
                                             </button>
                                          </form>';
@@ -152,6 +147,21 @@ class ExpenseController extends Controller
                     } else {
                         $download = '<p class="dropdown-item text-success">Go to student profile for TRN reference</p>';
                     }
+
+                    // Edit only allowed if not approved
+                    if (auth()->user()->hasAnyRole(['superAdmin', 'admin', 'financeAdmin'])) {
+                        $view = '<a class="dropdown-item nav-main-link btn" href="' . url('/view-expense', $expense->id) . '">
+                                    <i class="fa fa-eye me-3"></i> View
+                                </a>';
+                    }
+
+                    // Edit only allowed if not approved
+                    if ($expense->approved != true && auth()->user()->hasAnyRole(['superAdmin', 'admin'])) {
+                        $edit = '<a class="dropdown-item nav-main-link btn" href="' . url('/editexpense', $expense->id) . '">
+                                    <i class="fa fa-pencil me-3"></i> Edit
+                                </a>';
+                    }
+
 
                     // Only superAdmin can review
                     if (auth()->user()->hasRole('superAdmin')) {
@@ -164,7 +174,7 @@ class ExpenseController extends Controller
                     if (auth()->user()->hasRole('superAdmin') && $expense->approved == false) {
                         $delete = '<form method="POST" action="' . url('expenses', $expense->id) . '" style="display:inline;">
                                         ' . csrf_field() . method_field('DELETE') . '
-                                        <button type="submit" class="btn dropdown-item nav-main-link delete-confirm text-danger">
+                                        <button type="submit" class="btn dropdown-item nav-main-link delete-confirm">
                                             <i class="fa fa-trash me-3"></i> Delete
                                         </button>
                                    </form>';
@@ -176,7 +186,7 @@ class ExpenseController extends Controller
                     <div class="dropdown d-inline-block">
                         <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown">Actions</button>
                         <div class="dropdown-menu dropdown-menu-end">
-                            ' . $download . $review . $edit . $delete . '
+                            ' . $download . $view . $review . $edit . $delete . '
                         </div>
                     </div>
                 ';
@@ -559,48 +569,68 @@ class ExpenseController extends Controller
         return response()->json($dataModified);
     }
 
+
     public function makePayment(Request $request, $studentId, $expenseId)
     {
         $request->validate([
-            'amount' => 'required|numeric|min:0',
-            'payment_method' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:1',
+            'payment_method' => 'required|string|in:Cash,Bank Transfer,Mobile Money',
         ]);
 
         $student = Student::findOrFail($studentId);
 
-        $expense = $student->expenses()->where('expenses.id', $expenseId)->first();
+        DB::transaction(function () use ($request, $student, $expenseId) {
+            // Lock expense row within transaction
+            $expense = $student->expenses()->where('expenses.id', $expenseId)->lockForUpdate()->first();
 
-        // Check if the expense is approved
-        if (!$expense->approved) {
-            return response()->json(['message' => 'Expense is not approved yet.'], 403);
-        }
+            if (!$expense) {
+                abort(404, 'Expense not found for this student.');
+            }
 
-        // Check if the student is associated with the expense
-        if (!$student->expenses()->where('expenses.id', $expenseId)->exists()) {
-            return response()->json(['message' => 'Expense not found for this student.'], 404);
-        }
+            if (!$expense->approved) {
+                abort(403, 'Expense is not approved yet.');
+            }
 
-        if (!$expense || $expense->pivot->status == 1) {
-            return response()->json(['message' => 'Student already paid.'], 404);
-        }
+            if ($expense->pivot->status == 1) {
+                abort(422, 'Student already paid.');
+            }
 
-        // Update pivot table data
-        $student->expenses()->updateExistingPivot($expenseId, [
-            'amount' => $request->amount,
-            'payment_method' => $request->payment_method,
-            'status' => 1,
-            'payment_entered_by' => auth()->id(),
-            'paid_at' => now(),
-        ]);
+            if ($expense->pivot->repeat == 1) {
+                abort(422, 'Student is repeating, cannot be paid.');
+            }
+
+            if ($request->amount != $expense->amount) {
+                abort(422, 'Payment amount must match the expense amount exactly.');
+            }
+
+            $student->expenses()->updateExistingPivot($expenseId, [
+                'amount' => $request->amount,
+                'payment_method' => $request->payment_method,
+                'status' => 1,
+                'payment_entered_by' => auth()->id(),
+                'paid_at' => now(),
+            ]);
+
+            // Notify the student about the payment
+            $student->user->notify(new ExpensePaymentMade($student, $expense));
+
+
+        });
 
         return response()->json(['message' => 'Payment recorded successfully.']);
     }
 
-
+    /**
+     * Display a list of expenses for a specific student.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  string  $token
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+     */
     public function studentExpenses(Request $request, $token)
     {
         $student = Student::with('expenses')->find($token);
-        $expenses = $student->expenses()->wherePivot('repeat', 0)->get();
+        $expenses = $student->expenses()->orWherePivot('repeat', null)->orWherePivot('repeat', 0)->get();
 
         // Check if the student exists
         if (!$student) {

@@ -9,12 +9,13 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Notifications\Notifiable;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 class Student extends Model
 {
-    use HasUuids, HasFactory, LogsActivity, SoftDeletes;
+    use HasUuids, HasFactory, LogsActivity, SoftDeletes, Notifiable;
     protected $keyType = 'string';
     public $incrementing = false;
 

@@ -14,21 +14,21 @@
             </div>
             @endif
 
-            @role(['superAdmin', 'admin'])
+            @role(['superAdmin', 'admin', 'financeAdmin'])
                 <div class="dropdown d-inline-block">
                     <button type="button" class="btn btn-primary rounded-pill px-4" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <span class="d-sm-inline-block">Action</span>
                     </button>
                     <div class="dropdown-menu dropdown-menu-end p-0">
                         <div class="p-2">
-                        @role(['superAdmin', 'admin'])
-                            <a href="{{ url('/addstudent') }}" class="dropdown-item nav-main-link">
-                                <i class="fa fa-fw fa-user-plus mr-1"></i>&nbsp; Add student
-                            </a>
+                            @role(['superAdmin', 'admin'])
+                                <a href="{{ url('/addstudent') }}" class="dropdown-item nav-main-link">
+                                    <i class="fa fa-fw fa-user-plus mr-1"></i>&nbsp; Add student
+                                </a>
+                            @endrole
                             <button class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#download-student-report">
                                 <i class="fa fa-download"></i> &nbsp; Students report
                             </button>
-                        @endcan
                         </div>
                     </div>
                 </div>
@@ -416,7 +416,6 @@
                     showStatusChangeModal.value = false;
                     reloadTable();
                 } catch (error) {
-                    console.error('Error updating status:', error);
                     showError('Oops!', 'Something went wrong while updating the status.', { confirmText: 'Ok' });
                 } finally {
                     NProgress.done(); // Always stop the progress bar
@@ -509,7 +508,8 @@
                 closeStatusChangeModal,
                 studentName,
                 confirmChangeStatus,
-                completionNotes
+                completionNotes,
+                isUpdating: ref(false),
             }
 
         }})

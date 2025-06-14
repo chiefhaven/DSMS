@@ -43,8 +43,18 @@
                             <tbody>
                                 <tr v-for="(expense, index) in student.expenses" :key="expense.id">
                                     <td>@{{ index + 1 }}</td>
-                                    <td>@{{ expense.group }}</td>
-                                    <td>@{{ expense.pivot?.expense_type || 'N/A' }}</td>
+                                    <td>
+                                        @{{ expense.group }}
+                                    </td>
+                                    <td>
+                                        @{{ expense.pivot?.expense_type || 'N/A' }}<br>
+                                        <span
+                                          v-if="expense.pivot?.repeat === 1"
+                                          class="badge bg-danger"
+                                          style="font-size: 0.8rem;">
+                                          <small>Repeating</small>
+                                        </span>
+                                    </td>
                                     <td>K@{{ formatCurrency(expense.amount) }}</td>
                                     <td>
                                         <span v-if="expense.approved" class="badge bg-success">Approved</span>
@@ -56,19 +66,28 @@
                                     </td>
                                     <td>
                                         <div class="d-flex flex-column align-items-start">
+
+                                          <!-- Wrap the button in a span for tooltip support when disabled -->
+                                          <span
+                                            :title="
+                                              !expense.approved ? 'Expense is not approved yet'
+                                              : expense.pivot?.status === 1 ? 'Already paid'
+                                              : expense.pivot?.repeat === 1 ? 'Student repeating'
+                                              : ''
+                                            "
+                                            data-bs-toggle="tooltip"
+                                          >
                                             <button
-                                                @click="loadPaymentForm(expense)"
-                                                class="btn btn-primary rounded-pill px-4 mb-1"
-                                                :disabled="!expense.approved || expense.pivot?.status === 1"
-                                                data-bs-toggle="tooltip"
-                                                :title="!expense.approved ? 'Expense is not approved yet' : ''"
-                                                ref="tooltipBtn"
+                                              @click="loadPaymentForm(expense)"
+                                              class="btn btn-primary rounded-pill px-4 mb-1"
+                                              :disabled="!expense.approved || expense.pivot?.status === 1 || expense.pivot?.repeat === 1"
                                             >
-                                                Pay
+                                              Pay
                                             </button>
-                                            <small v-if="!expense.approved" class="text-muted">Not approved</small>
+                                          </span>
+
                                         </div>
-                                    </td>
+                                      </td>
                                 </tr>
                             </tbody>
                         </table>

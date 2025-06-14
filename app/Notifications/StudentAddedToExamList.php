@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -11,15 +12,20 @@ class StudentAddedToExamList extends Notification
 {
     use Queueable;
 
+    protected $student;
+    protected $expense;
+    protected $formattedDate;
+
     /**
      * Create a new notification instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct($student, $expense)
     {
-        //
-    }
+        $this->student = $student;
+        $this->expense = $expense;
+        $this->formattedDate = Carbon::parse($this->expense->date)->format('d F, Y');}
 
     /**
      * Get the notification's delivery channels.
