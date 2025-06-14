@@ -142,9 +142,27 @@
                     </div>
 
                     <div class="d-flex justify-content-end">
-                        <button type="submit" class="btn btn-primary me-2 rounded-pill px-4">Submit</button>
-                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" @click="cancel">Cancel</button>
+                        <button
+                          type="submit"
+                          class="btn btn-primary me-2 rounded-pill px-4"
+                          :disabled="isSubmitting"
+                        >
+                          <span v-if="isSubmitting">
+                            <i class="fa fa-spinner fa-spin"></i> Submitting...
+                          </span>
+                          <span v-else>Submit</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          class="btn btn-outline-secondary rounded-pill px-4"
+                          @click="cancel"
+                          :disabled="isSubmitting"
+                        >
+                          Cancel
+                        </button>
                     </div>
+
                     </form>
                 </div>
             </div>
@@ -162,6 +180,7 @@ const app = createApp({
         const student = ref(@json($student))
         const showPaymentForm = ref(false)
         const selectedExpense = ref({})
+        const isSubmitting = ref(false)
         const form = reactive({
             amount: 0,
             payment_method: '',
@@ -173,6 +192,11 @@ const app = createApp({
 
 
         const submitPayment = async () => {
+            if (isSubmitting.value) return;
+
+            isSubmitting.value = true;
+            NProgress.start();
+
             try {
                 const studentId = student.value.id
                 const expenseId = selectedExpense.value.id
@@ -192,6 +216,10 @@ const app = createApp({
                     confirmText: 'OK',
                     showCancel: false
                 })
+            } finally {
+                isSubmitting.value = false;
+                NProgress.done();
+                cancel();
             }
         }
 
@@ -259,6 +287,8 @@ const app = createApp({
             loadPaymentForm,
             submitPayment,
             cancel,
+            isSubmitting,
+
         }
     }
 })

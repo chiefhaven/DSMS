@@ -65,7 +65,7 @@ class ExpensePaymentMade extends Notification
     {
         return (new MailMessage)
             ->subject('Reciept for RTD payment')
-            ->greeting("Hello {$notifiable->name},")
+            ->greeting("Hello {$this->student->fname} {$this->student->sname},")
             ->line("You have been paid K" . number_format($this->expense->pivot->amount, 2) . " for expense: {$this->expense->pivot->expense_type}. Name: {$this->student->fname} {$this->student->mname} {$this->student->sname}.")
             ->action('View Payment', url("/"))
             ->line('Thank you for using enrolling with Daron!');
@@ -80,7 +80,7 @@ class ExpensePaymentMade extends Notification
     public function toDatabase($notifiable)
     {
         return [
-            'title' => 'Reciept for RTD payment',
+            'title' => 'RTD payment made',
             'body' => "You have been paid K" . number_format($this->expense->pivot->amount, 2) . " for expense: {$this->expense->pivot->expense_type}.",
             'student_id' => $this->student->id,
             'url' => url("/"),
@@ -95,7 +95,7 @@ class ExpensePaymentMade extends Notification
     {
         return [
             'title' => 'Reciept for RTD payment',
-            'body' => "Payment of K" . number_format($this->expense->pivot->amount, 2) . " has been made by {$this->student->fname} {$this->student->mname} {$this->student->sname}.",
+            'body' => "Payment of K" . number_format($this->expense->pivot->amount, 2) . " has been made to {$this->student->fname} {$this->student->mname} {$this->student->sname}.",
             'student_id' => $this->student->id,
             'url' => url("/"),
             'created_at' => now(),
