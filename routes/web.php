@@ -201,7 +201,11 @@ Route::get('/reviewExpenseData/{expense}', [ExpenseController::class, 'reviewExp
 Route::post('/removeStudent', [ExpenseController::class, 'removeStudent'])->middleware('auth')->name('removeStudent');
 Route::post('/checkStudent', [ExpenseController::class, 'checkStudent'])->middleware('auth')->name('checkStudent');
 Route::post('/approveList', [ExpenseController::class, 'approveList'])->middleware('auth')->name('approveList');
+Route::get('/expenses/pay/{student}/{expense}', [ExpenseController::class, 'makePayment'])->name('expense.pay');
 
+Route::get("/expense-payments", function(){
+    return view("expenses.expensePaymentsList");
+ })->middleware('auth');
 
 
 Route::get('/dashboard', [HomeController::class,'index'])->middleware(['auth'])->name('dashboard');
@@ -267,6 +271,3 @@ Route::get('/roles', [RoleController::class, 'index'])->middleware('auth')->name
 Route::get("/scan-to-pay", function(){
     return view("expenses.scanToPay");
  })->middleware('auth');
-
- Route::get('/expenses/pay/{student}/{expense}', [ExpenseController::class, 'makePayment'])->name('expense.pay');
-

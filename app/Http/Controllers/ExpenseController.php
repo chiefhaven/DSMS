@@ -6,6 +6,7 @@ use App\Models\Expense;
 use App\Http\Requests\StoreexpenseRequest;
 use App\Http\Requests\UpdateexpenseRequest;
 use App\Models\Administrator;
+use App\Models\ExpensePayment;
 use App\Models\Setting;
 use App\Models\Student;
 use App\Models\User;
@@ -646,6 +647,124 @@ class ExpenseController extends Controller
         return view('expenses.studentExpenseList', [
             'student' => $student,
         ]);
+    }
+
+    public function expensePaymentsList(Request $request) {
+        // Capture the search keyword from the request if provided
+        $search = $request->input('search.value'); // This is the global search input
+
+        $expensePayments = ExpensePayment::with(['paymentUser.administrator', 'student', 'expense'])
+        ->where('status', 1);
+
+        if ($search) {
+            $expensePayments->where(function($q) use ($search) {
+                $q->whereHas('expense', function ($q2) use ($search) {
+                    $q2->where('group', 'like', "%$search%")
+                       ->orWhere('type', 'like', "%$search%");
+                })
+                ->orWhereHas('student', function ($q3) use ($search) {
+                    $q3->where('fname', 'like', "%$search%")
+                       ->orWhere('sname', 'like', "%$search%");
+                });
+            });
+        }
+
+        return DataTables::eloquent($expensePayments)
+        ->addColumn('student', fn ($payment) =>
+            $payment->student
+                ? trim($payment->student->fname . ' ' . $payment->student->mname . ' ' . $payment->student->sname)
+                : '-'
+        )
+        ->addColumn('group', fn ($payment) => $payment->expense ? $payment->expense->group : '-')
+        ->addColumn('expense_type', fn ($payment) => $payment->expense_type ?? '-')
+        ->addColumn('amount', fn ($payment) => '<div class="text-end"><strong>K' . number_format($payment->amount, 2) . '</strong></div>')
+        ->addColumn('payment_method', fn ($payment) => $payment->payment_method ?? '-')
+        ->addColumn('date_paid', fn ($payment) => $payment->paid_at ? \Carbon\Carbon::parse($payment->paid_at)->format('j F, Y') : '-')
+        ->addColumn('paid_by', function ($payment) {
+            return optional($payment->paymentUser->administrator)
+                ? $payment->paymentUser->administrator->fname . ' ' . $payment->paymentUser->administrator->sname
+                : '-';
+        })
+        ->addColumn('actions', function ($payment) {
+            $receipt = '';
+            $reverse = '';
+            $delete = '';
+
+            // Roles allowed
+            if (auth()->user()->hasAnyRole(['superAdmin', 'financeAdmin'])) {
+
+                // Receipt download always available
+                $receipt = '<form method="GET" action="' . url('expense-payment-receipt', $payment->id) . '">
+                                ' . csrf_field() . '
+                                <button class="dropdown-item nav-main-link btn download-confirm" type="submit">
+                                    <i class="fa fa-download me-3"></i> Receipt
+                                </button>
+                            </form>';
+
+                // Reverse allowed for superAdmin
+                if (auth()->user()->hasRole('superAdmin')) {
+                    $reverse = '<a href="javascript:void(0);" class="dropdown-item nav-main-link btn" onclick="reversePayment(' . $payment->id . ')">
+                                    <i class="fa fa-undo me-3"></i> Reverse
+                                </a>';
+                }
+
+                // Delete allowed for superAdmin if not approved
+                if (auth()->user()->hasRole('superAdmin') && $payment->approved == false) {
+                    $delete = '<form method="POST" action="' . url('expense-payments', $payment->id) . '" style="display:inline;">
+                                    ' . csrf_field() . method_field('DELETE') . '
+                                    <button type="submit" class="btn dropdown-item nav-main-link delete-confirm">
+                                        <i class="fa fa-trash me-3"></i> Delete
+                                    </button>
+                               </form>';
+                }
+            }
+
+            return '
+                <div class="dropdown d-inline-block">
+                    <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown">Actions</button>
+                    <div class="dropdown-menu dropdown-menu-end">
+                        ' . $receipt . $reverse . $delete . '
+                    </div>
+                </div>
+            ';
+        })
+        ->rawColumns(['amount', 'actions', 'action'])
+        ->make(true);
+
+    }
+
+    public function reverseExpensePayment($id)
+    {
+        try {
+            DB::beginTransaction();
+
+            // 1️⃣ Find the payment
+            $payment = ExpensePayment::findOrFail($id);
+
+            // 2️⃣ Check if it’s already reversed or approved if needed
+            if (!$payment->status) {
+                return response()->json(['error' => 'Payment is already reversed.'], 409);
+            }
+
+            // 3️⃣ Update payment status
+            $payment->status = false;
+            $payment->save();
+
+            // 4️⃣ Optionally: adjust balances or related models
+            if ($payment->amount) {
+                $payment->amount -= $payment->amount;
+                $payment->save();
+            }
+
+            DB::commit();
+
+            return response()->json(['message' => 'Payment reversed successfully.'], 200);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            report($e);
+            return response()->json(['error' => 'Something went wrong.'], 500);
+        }
     }
 
 }

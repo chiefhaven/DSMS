@@ -69,13 +69,16 @@ Route::get('/expenses', [ExpenseController::class, 'fetchExpenses'])->name('paym
 
 Route::get('/payments', [PaymentController::class, 'fetchPayments'])->name('payments')->middleware('auth:sanctum');
 
+Route::get('/expense-payments', [ExpenseController::class, 'expensePaymentsList'])->name('expense.expensePayments');
+
+Route::post('/reverse-payment/{id}', [ExpenseController::class, 'reverseExpensePayment'])
+    ->name('expense-payment.reverse-payment');
+
 Route::post('/studentExpensePayment/{student}/{expense}', [ExpenseController::class, 'makePayment'])
     ->name('studentExpensePayment')
     ->middleware('auth:sanctum');
 
 Route::get('/getPaymentMethods', [PaymentMethodController::class, 'fetchPaymentMethods'])->name('paymentMethods')->middleware('auth:sanctum');
-
-
 
 
 
