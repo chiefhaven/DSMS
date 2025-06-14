@@ -6,7 +6,7 @@
         body {
             font-family: DejaVu Sans, sans-serif;
             font-size: 10px;
-            max-width: 50mm; /* thermal roll width, adjust if needed */
+            max-width: 60mm; /* thermal roll width, adjust if needed */
             margin: 0 auto;
             padding: 0;
         }
