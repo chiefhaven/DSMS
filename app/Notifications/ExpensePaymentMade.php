@@ -46,12 +46,12 @@ class ExpensePaymentMade extends Notification
     public function toSms($notifiable)
     {
         return sprintf(
-            "RTD payment reciept: K%s for %s %s to expense #%s. View: %s",
-            number_format($this->expense->pivot->amount, 2),
+            "RTD payment receipt: Name: %s %s | Amount: K%s | Expense: %s. View: %s",
             $this->student->fname,
             $this->student->sname,
+            number_format($this->expense->pivot->amount, 2),
             $this->expense->pivot->expense_type,
-            url("/")
+            url("/viewpayment/{$this->expense->id}")
         );
     }
 
@@ -64,7 +64,7 @@ class ExpensePaymentMade extends Notification
     public function toMail($notifiable)
     {
         return (new MailMessage)
-            ->subject('Reciept for RTD payment')
+            ->subject('Receipt for RTD payment')
             ->greeting("Hello {$this->student->fname} {$this->student->sname},")
             ->line("You have been paid K" . number_format($this->expense->pivot->amount, 2) . " for expense: {$this->expense->pivot->expense_type}. Name: {$this->student->fname} {$this->student->mname} {$this->student->sname}.")
             ->action('View Payment', url("/"))
@@ -94,7 +94,7 @@ class ExpensePaymentMade extends Notification
     public function toArray($notifiable)
     {
         return [
-            'title' => 'Reciept for RTD payment',
+            'title' => 'Receipt for RTD payment',
             'body' => "Payment of K" . number_format($this->expense->pivot->amount, 2) . " has been made to {$this->student->fname} {$this->student->mname} {$this->student->sname}.",
             'student_id' => $this->student->id,
             'url' => url("/"),
