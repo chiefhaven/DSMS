@@ -43,6 +43,7 @@
         "realrashid/sweet-alert": "^7.1",
         "sadiqsalau/laravel-otp": "^1.0",
         "simplesoftwareio/simple-qrcode": "^4.2",
+        "spatie/browsershot": "^5.0",
         "spatie/flysystem-dropbox": "^2.0",
         "spatie/laravel-activitylog": "^4.4",
         "spatie/laravel-backup": "^8.0",
