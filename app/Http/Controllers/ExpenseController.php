@@ -796,5 +796,4 @@ class ExpenseController extends Controller
         return $pdf->download($fileName);
     }
 
-
 }
