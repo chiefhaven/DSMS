@@ -46,11 +46,11 @@ class ExpensePaymentMade extends Notification
     public function toSms($notifiable)
     {
         return sprintf(
-            "RTD payment reciept: K%s by %s %s for expense #%s. View: %s",
+            "RTD payment reciept: K%s for %s %s to expense #%s. View: %s",
             number_format($this->expense->pivot->amount, 2),
             $this->student->fname,
             $this->student->sname,
-            $this->expense->id,
+            $this->expense->pivot->expense_type,
             url("/")
         );
     }
