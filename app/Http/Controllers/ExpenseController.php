@@ -22,9 +22,7 @@ use Illuminate\Support\Facades\Log;
 use RealRashid\SweetAlert\Facades\Alert;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
-use Spatie\Browsershot\Browsershot;
 use Yajra\DataTables\Facades\DataTables;
-use Illuminate\Support\Str;
 
 class ExpenseController extends Controller
 {
@@ -773,39 +771,29 @@ class ExpenseController extends Controller
 
     public function downloadExpensePaymentReceipt($id)
     {
+        // Find the payment
         $payment = ExpensePayment::with(['student', 'expense', 'paymentUser.administrator'])
-            ->findOrFail($id);
+                        ->findOrFail($id);
 
-        // Check permission
+        // Optional: check permission
         if (!auth()->user()->hasAnyRole(['superAdmin', 'financeAdmin'])) {
             abort(403, 'Unauthorized.');
         }
 
-        // Render the Blade HTML to a string
-        $html = view('pdf_templates.paymentReceipt', [
+        // Prepare PDF with thermal printer paper size
+        $pdf = Pdf::loadView('pdf_templates.paymentReceipt', [
             'payment' => $payment
-        ])->render();
-
-        // Generate a unique image file name
-        $fileName = 'receipt_' . Str::uuid() . '.png';
-        $imagePath = storage_path('media/' . $fileName);
-
-        // Use Browsershot to generate an image from HTML
-        Browsershot::html($html)
-            ->windowSize(380, 800) // adjust width/height to match thermal slip
-            ->deviceScaleFactor(2) // high resolution
-            ->waitUntilNetworkIdle()
-            ->save($imagePath);
-
-        // Now create a simple PDF with the image
-        $pdf = Pdf::loadView('pdf_templates.receiptImagePdf', [
-            'imagePath' => public_path('storage/' . $fileName)
         ]);
 
-        // Optional: delete the image file later if you wish
-        // Storage::delete('public/' . $fileName);
+        // Example for 58mm thermal roll: width ~ 164 points, height auto (use long height)
+        $customPaper = [0, 0, 164, 500]; // width 58mm (164pt), height ~7 inch (500pt) or adjust
 
-        return $pdf->download("ExpensePaymentReceipt_{$id}.pdf");
+        $pdf->setPaper($customPaper);
+
+        // Suggest filename
+        $fileName = 'ExpensePaymentReceipt_' . $payment->id . '.pdf';
+
+        return $pdf->download($fileName);
     }
 
 
