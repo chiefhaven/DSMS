@@ -13,7 +13,7 @@
         .text-center { text-align: center; }
         .text-right { text-align: right; }
         .receipt-title {
-            font-size: 12px;
+            font-size: 18px;
             font-weight: bold;
             margin-bottom: 5px;
         }
