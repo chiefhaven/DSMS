@@ -780,15 +780,21 @@ class ExpenseController extends Controller
             abort(403, 'Unauthorized.');
         }
 
-        // Pass data to a Blade view and render PDF
+        // Prepare PDF with thermal printer paper size
         $pdf = Pdf::loadView('pdf_templates.paymentReceipt', [
             'payment' => $payment
         ]);
+
+        // Example for 58mm thermal roll: width ~ 164 points, height auto (use long height)
+        $customPaper = [0, 0, 164, 500]; // width 58mm (164pt), height ~7 inch (500pt) or adjust
+
+        $pdf->setPaper($customPaper);
 
         // Suggest filename
         $fileName = 'ExpensePaymentReceipt_' . $payment->id . '.pdf';
 
         return $pdf->download($fileName);
     }
+
 
 }
