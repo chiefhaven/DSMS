@@ -74,6 +74,9 @@ Route::get('/expense-payments', [ExpenseController::class, 'expensePaymentsList'
 Route::post('/reverse-payment/{id}', [ExpenseController::class, 'reverseExpensePayment'])
     ->name('expense-payment.reverse-payment');
 
+Route::get('/expense-payment-receipt/{id}', [ExpenseController::class, 'downloadExpensePaymentReceipt'])
+    ->name('expense-payments.download-receipt');
+
 Route::post('/studentExpensePayment/{student}/{expense}', [ExpenseController::class, 'makePayment'])
     ->name('studentExpensePayment')
     ->middleware('auth:sanctum');

@@ -693,13 +693,11 @@ class ExpenseController extends Controller
             // Roles allowed
             if (auth()->user()->hasAnyRole(['superAdmin', 'financeAdmin'])) {
 
-                // Receipt download always available
                 $receipt = '<form method="GET" action="' . url('expense-payment-receipt', $payment->id) . '">
-                                ' . csrf_field() . '
-                                <button class="dropdown-item nav-main-link btn download-confirm" type="submit">
-                                    <i class="fa fa-download me-3"></i> Receipt
-                                </button>
-                            </form>';
+                    <button class="dropdown-item nav-main-link btn download-confirm" type="submit">
+                        <i class="fa fa-download me-3"></i> Receipt
+                    </button>
+                </form>';
 
                 // Reverse allowed for superAdmin
                 if (auth()->user()->hasRole('superAdmin')) {
@@ -735,6 +733,10 @@ class ExpenseController extends Controller
 
     public function reverseExpensePayment($id)
     {
+        if (!auth()->user()->hasAnyRole(['superAdmin'])) {
+            abort(403, 'Unauthorized.');
+        }
+
         try {
             DB::beginTransaction();
 
@@ -765,6 +767,28 @@ class ExpenseController extends Controller
             report($e);
             return response()->json(['error' => 'Something went wrong.'], 500);
         }
+    }
+
+    public function downloadExpensePaymentReceipt($id)
+    {
+        // Find the payment
+        $payment = ExpensePayment::with(['student', 'expense', 'paymentUser.administrator'])
+                        ->findOrFail($id);
+
+        // Optional: check permission
+        if (!auth()->user()->hasAnyRole(['superAdmin', 'financeAdmin'])) {
+            abort(403, 'Unauthorized.');
+        }
+
+        // Pass data to a Blade view and render PDF
+        $pdf = Pdf::loadView('pdf_templates.paymentReceipt', [
+            'payment' => $payment
+        ]);
+
+        // Suggest filename
+        $fileName = 'ExpensePaymentReceipt_' . $payment->id . '.pdf';
+
+        return $pdf->download($fileName);
     }
 
 }
