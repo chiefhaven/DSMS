@@ -743,7 +743,7 @@ class ExpenseController extends Controller
 
     public function reverseExpensePayment($id)
     {
-        if (!auth()->user()->hasAnyRole(['superAdmin'])) {
+        if (!auth()->user()->hasAnyRole(['superAdmin', 'admin', 'instructor', 'student'])) {
             abort(403, 'Unauthorized.');
         }
 
