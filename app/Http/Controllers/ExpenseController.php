@@ -56,7 +56,7 @@ class ExpenseController extends Controller
         if ($search) {
             $expenses->where(function($query) use ($search) {
                 $query->where('group', 'like', "%$search%")
-                    ->orWhere('type', 'like', "%$search%");
+                    ->orWhere('expense_type', 'like', "%$search%");
                     // ->orWhereHas('students', function($q) use ($search) {
                     //     $q->where('fname', 'like', "%$search%");
                     // });
