@@ -74,6 +74,17 @@
                     </ul>
                 </li>
 
+                <li class="nav-main-item">
+                    <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
+                        <i class="nav-main-link-icon fa fa-car"></i>
+                        <span class="nav-main-link-name">Fleet</span>
+                    </a>
+                    <ul class="nav-main-submenu">
+                        <li><a class="nav-main-link" href="{{ url('/fleet') }}"><span class="nav-main-link-name">Fleet</span></a></li>
+                        <li><a class="nav-main-link" href="{{ url('/track-fleet') }}"><span class="nav-main-link-name">Track fleet</span></a></li>
+                    </ul>
+                </li>
+
                 {{-- Invoices --}}
                 <li class="nav-main-item">
                     <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
@@ -171,19 +182,21 @@
 
         {{-- Instructor Quick Tools --}}
         @role('instructor')
-        <li>
-            <a class="nav-main-link" href="{{ url('/scanqrcode') }}">
-                <i class="nav-main-link-icon fa fa-qrcode"></i>
-                <span class="nav-main-link-name">Scan for attendance</span>
-            </a>
-        </li>
-        <li>
-            <a class="nav-main-link" href="{{ url('/schedule-lesson-index') }}">
-                <i class="nav-main-link-icon fa fa-calendar-alt"></i>
-                <span class="nav-main-link-name">Schedule lesson</span>
-                <span class="badge bg-danger ms-1">New</span>
-            </a>
-        </li>
+            <li>
+                <a class="nav-main-link" href="{{ url('/scanqrcode') }}">
+                    <i class="nav-main-link-icon fa fa-qrcode"></i>
+                    <span class="nav-main-link-name">Scan for attendance</span>
+                </a>
+            </li>
+            <li>
+                <a class="nav-main-link" href="{{ url('/schedule-lesson-index') }}">
+                    <i class="nav-main-link-icon fa fa-calendar-alt"></i>
+                    <span class="nav-main-link-name">Schedule lesson</span>
+                    <span class="badge bg-danger ms-1">New</span>
+                </a>
+            </li>
+
+            @include('partials.location')
         @endrole
 
         {{-- Knowledge Navigation --}}

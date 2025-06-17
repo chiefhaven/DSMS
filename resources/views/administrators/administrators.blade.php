@@ -37,7 +37,7 @@
 
       <div class="row">
         @foreach ($administrator as $administrator)
-            <div class="col-md-6 col-xl-4 mb-4">
+            <div class="col-md-6 col-xl-6 mb-4">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body">
                         <!-- Profile Row (Avatar + Info) -->

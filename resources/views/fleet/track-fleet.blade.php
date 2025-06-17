@@ -1,0 +1,70 @@
+@extends('layouts.backend')
+
+@section('content')
+<!-- Hero -->
+  <div class="bg-body-light">
+    <div class="content content-full">
+      <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
+        <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Vehicle location</h1>
+        <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <div class="dropdown d-inline-block">
+
+            </div>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+<div class="content content-full">
+    <div class="block block-rounded">
+        <div id="vehicleLocation" style="height: 500px;"></div>
+    </div>
+</div>
+<script>
+    const { createApp, ref, onMounted } = Vue;
+
+    const vehicleLocation = createApp({
+    setup() {
+        let map;
+        const markers = {}; // Store markers by fleet_id
+
+        const initMap = () => {
+        map = L.map('vehicleLocation').setView([0, 0], 7);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        };
+
+        const updateLocations = () => {
+        axios.get('/api/get-all-vehicle-locations').then(res => {
+            const data = res.data;
+
+            data.forEach(item => {
+            const latLng = [item.latitude, item.longitude];
+
+            if (markers[item.fleet_id]) {
+                // Update existing marker
+                markers[item.fleet_id].setLatLng(latLng);
+            } else {
+                // Create new marker
+                markers[item.fleet_id] = L.marker(latLng)
+                .addTo(map)
+                .bindPopup(`Fleet ID: ${item.fleet_id}`);
+            }
+            });
+        });
+        };
+
+        onMounted(() => {
+        initMap();
+        updateLocations();
+        setInterval(updateLocations, 2000); // Update every 2 seconds
+        });
+
+        return {};
+    }
+    })
+
+    vehicleLocation.mount('#vehicleLocation');
+</script>
+@endsection

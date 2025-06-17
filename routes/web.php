@@ -25,9 +25,11 @@ use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\RoleDispatcherController;
 use App\Http\Controllers\ScheduleLessonController;
+use App\Http\Controllers\VehicleTrackerController;
 use App\Models\Announcement;
 use App\Models\knowledge;
 use App\Models\ScheduleLesson;
+use App\Models\VehicleTracker;
 use Illuminate\Support\Facades\Artisan;
 
 /*
@@ -178,6 +180,11 @@ Route::post('/storefleet', [FleetController::class, 'store'])->middleware('auth'
 Route::get('/editfleet/{id}', [FleetController::class, 'edit'])->middleware('auth')->name('editfleet');
 Route::post('/updatefleet', [FleetController::class, 'update'])->middleware('auth')->name('updatefleet');
 Route::delete('/deletefleet/{id}', [FleetController::class, 'destroy'])->middleware('auth')->name('deletefleet');
+
+Route::get("/track-fleet", function(){
+    return view("fleet.track-fleet");
+ })->middleware('auth');
+
 
 Route::get('/settings', [SettingController::class, 'edit'])->middleware('auth')->name('settings');
 Route::post('/settings-update', [SettingController::class, 'update'])->middleware('auth')->name('settings-update');

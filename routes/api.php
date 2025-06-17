@@ -15,7 +15,9 @@ use App\Http\Controllers\InstructorPaymentController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\VehicleTrackerController;
 use App\Models\PaymentMethod;
+use App\Models\VehicleTracker;
 
 /*
 |--------------------------------------------------------------------------
@@ -79,6 +81,9 @@ Route::post('/studentExpensePayment/{student}/{expense}', [ExpenseController::cl
     ->middleware('auth:sanctum');
 
 Route::get('/getPaymentMethods', [PaymentMethodController::class, 'fetchPaymentMethods'])->name('paymentMethods')->middleware('auth:sanctum');
+
+Route::post('/save-vehicle-location', [VehicleTrackerController::class, 'store'])->name('vehicle-location')->middleware('auth:sanctum');
+Route::get('/get-all-vehicle-locations', [VehicleTrackerController::class, 'show'])->name('vehicle-location')->middleware('auth:sanctum');
 
 
 
