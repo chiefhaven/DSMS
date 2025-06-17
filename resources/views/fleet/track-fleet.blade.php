@@ -45,13 +45,13 @@
               const latLng = [item.latitude, item.longitude];
               bounds.push(latLng);
 
-              if (markers[item.fleet_id]) {
+              if (markers[item.fleet]) {
                 // Update existing marker
-                markers[item.fleet_id].setLatLng(latLng);
+                markers[item.fleet].setLatLng(latLng);
               } else {
-                markers[item.fleet_id] = L.marker(latLng)
+                markers[item.fleet] = L.marker(latLng)
                 .addTo(map)
-                .bindPopup(`<strong>Vehicle Reg#:</strong> ${item.registration_number || item.fleet_id}`)
+                .bindPopup(`<strong>${item.registration_number || item.fleet.car_brand_model}</strong><br>${item.registration_number || item.fleet.car_registration_number}`)
                 .openPopup();
               }
             });

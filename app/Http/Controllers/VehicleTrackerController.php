@@ -81,7 +81,7 @@ class VehicleTrackerController extends Controller
     {
         $locations = VehicleTracker::select('fleet_id', 'latitude', 'longitude', DB::raw('MAX(created_at) as latest_time'))
         ->whereDate('created_at', Carbon::today())
-        ->groupBy('fleet_id', 'latitude', 'longitude')
+        ->groupBy('fleet_id', 'latitude', 'longitude')->with('fleet')
         ->get();
 
         return response()->json($locations);

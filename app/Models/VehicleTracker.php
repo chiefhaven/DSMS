@@ -9,4 +9,11 @@ class VehicleTracker extends Model
 {
     use HasFactory;
     protected $fillable = ['fleet_id', 'user_id', 'latitude', 'longitude'];
+
+    public function Fleet()
+    {
+       return $this->belongsTo(Fleet::class);
+    }
+
+
 }
