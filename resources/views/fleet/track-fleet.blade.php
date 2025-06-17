@@ -32,7 +32,7 @@
 
         const initMap = () => {
           // Use a neutral default center
-          map = L.map('vehicleLocation').setView([-13.9626, 33.7741], 18);
+          map = L.map('vehicleLocation').setView([-13.9626, 33.7741], 12);
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
         };
 
