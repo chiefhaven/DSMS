@@ -26,45 +26,56 @@
     const { createApp, ref, onMounted } = Vue;
 
     const vehicleLocation = createApp({
-    setup() {
+      setup() {
         let map;
-        const markers = {}; // Store markers by fleet_id
+        const markers = {}; // Store markers keyed by fleet_id
 
         const initMap = () => {
-        map = L.map('vehicleLocation').setView([0, 0], 7);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+          // Use a neutral default center (Lilongwe example)
+          map = L.map('vehicleLocation').setView([-13.9626, 33.7741], 13);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
         };
 
         const updateLocations = () => {
-        axios.get('/api/get-all-vehicle-locations').then(res => {
+          axios.get('/api/get-all-vehicle-locations').then(res => {
             const data = res.data;
+            const bounds = [];
 
             data.forEach(item => {
-            const latLng = [item.latitude, item.longitude];
+              const latLng = [item.latitude, item.longitude];
+              bounds.push(latLng);
 
-            if (markers[item.fleet_id]) {
+              if (markers[item.fleet_id]) {
                 // Update existing marker
                 markers[item.fleet_id].setLatLng(latLng);
-            } else {
+              } else {
                 // Create new marker
                 markers[item.fleet_id] = L.marker(latLng)
-                .addTo(map)
-                .bindPopup(`Fleet ID: ${item.fleet_id}`);
-            }
+                  .addTo(map)
+                  .bindPopup(`Fleet ID: ${item.fleet_id}`);
+              }
             });
-        });
+
+            // Automatically fit map to show all fleet markers
+            if (bounds.length > 0) {
+              map.fitBounds(bounds, { padding: [50, 50] });
+            }
+          }).catch(err => {
+            console.error('Error fetching vehicle locations:', err);
+          });
         };
 
         onMounted(() => {
-        initMap();
-        updateLocations();
-        setInterval(updateLocations, 2000); // Update every 2 seconds
+          initMap();
+          updateLocations();
+          setInterval(updateLocations, 2000); // Update every 2 seconds
         });
 
         return {};
-    }
-    })
+      }
+    });
 
     vehicleLocation.mount('#vehicleLocation');
-</script>
+  </script>
+
 @endsection
