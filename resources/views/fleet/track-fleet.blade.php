@@ -31,31 +31,35 @@
         const markers = {};
 
         const initMap = () => {
-          // Set an initial center & zoom — for Lilongwe for example
-          map = L.map('vehicleLocation').setView([-13.9626, 33.7741], 15);
+          // Use a neutral default center
+          map = L.map('vehicleLocation').setView([-13.9626, 33.7741], 18);
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
         };
 
         const updateLocations = () => {
           axios.get('/api/get-all-vehicle-locations').then(res => {
             const data = res.data;
+            const bounds = [];
 
             data.forEach(item => {
               const latLng = [item.latitude, item.longitude];
+              bounds.push(latLng);
 
               if (markers[item.fleet_id]) {
-                // Update marker position
+                // Update existing marker
                 markers[item.fleet_id].setLatLng(latLng);
               } else {
-                // Create new marker
                 markers[item.fleet_id] = L.marker(latLng)
-                  .addTo(map)
-                  .bindPopup(`Vehicle Reg#: ${item.fleet_id}`);
+                .addTo(map)
+                .bindPopup(`<strong>Vehicle Reg#:</strong> ${item.registration_number || item.fleet_id}`)
+                .openPopup();
               }
             });
 
-            // ❌ Do NOT fit bounds automatically — so user controls the map
-            // (fitBounds removed)
+            // Automatically fit map to show all fleet markers
+            if (bounds.length > 0) {
+              map.fitBounds(bounds, { padding: [50, 50] });
+            }
           }).catch(err => {
             console.error('Error fetching vehicle locations:', err);
           });
@@ -73,5 +77,4 @@
 
     vehicleLocation.mount('#vehicleLocation');
 </script>
-
 @endsection
