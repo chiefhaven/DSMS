@@ -56,10 +56,7 @@
               }
             });
 
-            // Automatically fit map to show all fleet markers
-            if (bounds.length > 0) {
-              map.fitBounds(bounds, { padding: [50, 50] });
-            }
+
           }).catch(err => {
             console.error('Error fetching vehicle locations:', err);
           });
