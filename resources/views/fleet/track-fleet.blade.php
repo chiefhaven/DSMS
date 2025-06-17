@@ -28,11 +28,11 @@
     const vehicleLocation = createApp({
       setup() {
         let map;
-        const markers = {}; // Store markers keyed by fleet_id
+        const markers = {};
 
         const initMap = () => {
-          // Use a neutral default center (Lilongwe example)
-          map = L.map('vehicleLocation').setView([-13.9626, 33.7741], 13);
+          // Use a neutral default center
+          map = L.map('vehicleLocation').setView([-13.9626, 33.7741], 15);
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
         };
 
@@ -52,7 +52,7 @@
                 // Create new marker
                 markers[item.fleet_id] = L.marker(latLng)
                   .addTo(map)
-                  .bindPopup(`Fleet ID: ${item.fleet_id}`);
+                  .bindPopup(`Vehicle Reg#: ${item.fleet_id}`);
               }
             });
 
