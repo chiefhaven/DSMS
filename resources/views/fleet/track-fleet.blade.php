@@ -31,7 +31,7 @@
         const markers = {};
 
         const initMap = () => {
-          // Use a neutral default center
+          // Set an initial center & zoom — for Lilongwe for example
           map = L.map('vehicleLocation').setView([-13.9626, 33.7741], 15);
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
         };
@@ -39,14 +39,12 @@
         const updateLocations = () => {
           axios.get('/api/get-all-vehicle-locations').then(res => {
             const data = res.data;
-            const bounds = [];
 
             data.forEach(item => {
               const latLng = [item.latitude, item.longitude];
-              bounds.push(latLng);
 
               if (markers[item.fleet_id]) {
-                // Update existing marker
+                // Update marker position
                 markers[item.fleet_id].setLatLng(latLng);
               } else {
                 // Create new marker
@@ -56,10 +54,8 @@
               }
             });
 
-            // Automatically fit map to show all fleet markers
-            if (bounds.length > 0) {
-              map.fitBounds(bounds, { padding: [50, 50] });
-            }
+            // ❌ Do NOT fit bounds automatically — so user controls the map
+            // (fitBounds removed)
           }).catch(err => {
             console.error('Error fetching vehicle locations:', err);
           });
@@ -76,6 +72,6 @@
     });
 
     vehicleLocation.mount('#vehicleLocation');
-  </script>
+</script>
 
 @endsection
