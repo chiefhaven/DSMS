@@ -60,7 +60,7 @@
         @endrole
 
         {{-- School --}}
-        @role(['superAdmin', 'admin'])
+        @role(['superAdmin', 'admin', 'financeAdmin'])
             @role(['superAdmin', 'admin'])
                 <li class="nav-main-item">
                     <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
@@ -144,47 +144,47 @@
 
         {{-- Administrators --}}
         @role('superAdmin')
-        <li class="nav-main-item">
-            <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
-                <i class="nav-main-link-icon fa fa-users"></i>
-                <span class="nav-main-link-name">Administrators</span>
-            </a>
-            <ul class="nav-main-submenu">
-                <li><a class="nav-main-link" href="{{ url('/administrators') }}"><span class="nav-main-link-name">All administrators</span></a></li>
-                <li><a class="nav-main-link" href="{{ url('/addadministrator') }}"><span class="nav-main-link-name">Add administrator</span></a></li>
-            </ul>
-        </li>
+            <li class="nav-main-item">
+                <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
+                    <i class="nav-main-link-icon fa fa-users"></i>
+                    <span class="nav-main-link-name">Administrators</span>
+                </a>
+                <ul class="nav-main-submenu">
+                    <li><a class="nav-main-link" href="{{ url('/administrators') }}"><span class="nav-main-link-name">All administrators</span></a></li>
+                    <li><a class="nav-main-link" href="{{ url('/addadministrator') }}"><span class="nav-main-link-name">Add administrator</span></a></li>
+                </ul>
+            </li>
         @endrole
 
         {{-- Announcements --}}
         @role(['superAdmin', 'admin'])
-        <li class="nav-main-item">
-            <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false">
-                <i class="nav-main-link-icon fa fa-envelope"></i>
-                <span class="nav-main-link-name">Announcements</span>
-            </a>
-            <ul class="nav-main-submenu">
-                <li><a class="nav-main-link" href="{{ url('/send-announcement') }}"><span class="nav-main-link-name">Make Announcement</span></a></li>
-                <li><a class="nav-main-link" href="{{ url('/sms-templates') }}"><span class="nav-main-link-name">Templates</span></a></li>
-                <li><a class="nav-main-link" href="{{ url('#') }}"><span class="nav-main-link-name">Configuration</span></a></li>
-            </ul>
-        </li>
+            <li class="nav-main-item">
+                <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false">
+                    <i class="nav-main-link-icon fa fa-envelope"></i>
+                    <span class="nav-main-link-name">Announcements</span>
+                </a>
+                <ul class="nav-main-submenu">
+                    <li><a class="nav-main-link" href="{{ url('/send-announcement') }}"><span class="nav-main-link-name">Make Announcement</span></a></li>
+                    <li><a class="nav-main-link" href="{{ url('/sms-templates') }}"><span class="nav-main-link-name">Templates</span></a></li>
+                    <li><a class="nav-main-link" href="{{ url('#') }}"><span class="nav-main-link-name">Configuration</span></a></li>
+                </ul>
+            </li>
         @endrole
 
         {{-- Settings --}}
         @role('superAdmin')
-        <li>
-            <a class="nav-main-link" href="{{ url('/settings') }}">
-                <i class="nav-main-link-icon fa fa-cogs"></i>
-                <span class="nav-main-link-name">Settings</span>
-            </a>
-        </li>
-        <li>
-            <a class="nav-main-link" href="{{ url('#') }}">
-                <i class="nav-main-link-icon fa fa-user-tag"></i>
-                <span class="nav-main-link-name">Roles & permissions</span>
-            </a>
-        </li>
+            <li>
+                <a class="nav-main-link" href="{{ url('/settings') }}">
+                    <i class="nav-main-link-icon fa fa-cogs"></i>
+                    <span class="nav-main-link-name">Settings</span>
+                </a>
+            </li>
+            <li>
+                <a class="nav-main-link" href="{{ url('#') }}">
+                    <i class="nav-main-link-icon fa fa-user-tag"></i>
+                    <span class="nav-main-link-name">Roles & permissions</span>
+                </a>
+            </li>
         @endrole
 
         {{-- Instructor Quick Tools --}}
