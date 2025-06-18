@@ -22,7 +22,6 @@
         <div id="vehicleLocation" style="height: 500px;"></div>
     </div>
 </div>
-<script>
 
     const vehicleLocation = createApp({
       setup() {
@@ -72,5 +71,4 @@
     });
 
     vehicleLocation.mount('#vehicleLocation');
-</script>
 @endsection
