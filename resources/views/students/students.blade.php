@@ -249,7 +249,7 @@
     @endcan
 
     <script setup>
-        const { reactive, onMounted, nextTick } = Vue
+        const { reactive, nextTick } = Vue
 
         const students = createApp({
         setup() {
