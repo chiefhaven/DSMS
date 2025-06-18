@@ -118,7 +118,7 @@
 
 <script setup>
 
-    const app = createApp({
+    const addAttendance = createApp({
       setup() {
         const state = ref({
           isSubmitButtonDisabled: false,
@@ -170,7 +170,7 @@
       }
     });
 
-    app.mount('#attendance');
+    addAttendance.mount('#attendance');
 </script>
 
 @endsection
