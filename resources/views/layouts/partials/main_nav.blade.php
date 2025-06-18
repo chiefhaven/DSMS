@@ -1,6 +1,6 @@
 <div class="content-side content-side-full">
     <script>
-        const { createApp, ref, onMounted, watch, nextTick, computed, nBeforeUnmount } = Vue;
+        const { createApp, ref,reactive, onMounted, watch, nextTick, computed, nBeforeUnmount } = Vue;
 
     </script>
     <ul class="nav-main Sidebar">
