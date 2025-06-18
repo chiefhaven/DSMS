@@ -23,7 +23,6 @@
     </div>
 </div>
 <script>
-    const { createApp, ref, onMounted } = Vue;
 
     const vehicleLocation = createApp({
       setup() {
