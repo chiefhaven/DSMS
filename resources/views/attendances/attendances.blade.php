@@ -161,7 +161,6 @@
     </script>
 
     <script>
-        const { createApp, ref } = Vue;
 
         const attendances = createApp({
             setup() {
