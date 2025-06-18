@@ -24,6 +24,8 @@
 </div>
 <script setup>
 
+    const { createApp, ref, reactive, onMounted } = Vue
+
     const vehicleLocation = createApp({
       setup() {
         let map;
