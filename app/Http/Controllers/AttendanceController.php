@@ -160,8 +160,19 @@ class AttendanceController extends Controller
             $attendanceThreshold = $this->setting->attendance_threshold;
             $feesBalanceThreshold = $this->setting->fees_balance_threshold;
             $studentCourseDuration = $student->course->duration;
-            $feesBalancePercentage = ($student->invoice->invoice_amount_paid / $student->invoice->invoice_total) * 100;
-            $attendancePercentage = ($attendanceCount / $studentCourseDuration) * 100;
+
+            if ($student->invoice->invoice_total > 0) {
+                $feesBalancePercentage = ($student->invoice->invoice_amount_paid / $student->invoice->invoice_total) * 100;
+            } else {
+                $feesBalancePercentage = 0;
+            }
+
+            if ($studentCourseDuration > 0) {
+                $attendancePercentage = ($attendanceCount / $studentCourseDuration) * 100;
+            } else {
+                $attendancePercentage = 0;
+            }
+
 
             if ($attendancePercentage >= $attendanceThreshold && $feesBalancePercentage < $feesBalanceThreshold) {
                 Alert()->error('Fees balance', 'Attendance can not be entered, student has fees balance that must be paid...');
