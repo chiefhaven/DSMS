@@ -1,4 +1,8 @@
 <div class="content-side content-side-full">
+    <script>
+        const { createApp, ref, onMounted, watch, nextTick, computed, nBeforeUnmount } = Vue;
+
+    </script>
     <ul class="nav-main Sidebar">
         {{-- Dashboard --}}
         <li>
@@ -202,8 +206,4 @@
         {{-- Knowledge Navigation --}}
         @include('layouts.partials.knowledgeNav')
     </ul>
-    <script>
-        const { createApp, ref, onMounted, watch, nextTick, computed, nBeforeUnmount } = Vue;
-
-    </script>
 </div>
