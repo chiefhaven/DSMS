@@ -117,7 +117,6 @@
 </script>
 
 <script setup>
-    const { createApp, ref, onMounted } = Vue;
 
     const app = createApp({
       setup() {
