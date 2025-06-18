@@ -573,6 +573,12 @@ class ExpenseController extends Controller
 
     public function makePayment(Request $request, $studentId, $expenseId)
     {
+        if (!Auth::user()->hasRole(['superAdmin', 'financeAdmin'])) {
+            return response()->json([
+                'message' => 'You do not have permission to make a payment.'
+            ], 403);
+        }
+
         // Validate input first
         $request->validate([
             'amount' => ['required', 'numeric', 'min:1'],
@@ -640,6 +646,12 @@ class ExpenseController extends Controller
      */
     public function studentExpenses(Request $request, $token)
     {
+        if (!Auth::user()->hasRole(['superAdmin', 'financeAdmin'])) {
+            return response()->json([
+                'message' => 'You do not have permission to make a payment.'
+            ], 403);
+        }
+
         $student = Student::with('expenses')->find($token);
         $expenses = $student->expenses()->orWherePivot('repeat', null)->orWherePivot('repeat', 0)->get();
 
