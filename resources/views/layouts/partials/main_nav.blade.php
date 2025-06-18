@@ -202,4 +202,7 @@
         {{-- Knowledge Navigation --}}
         @include('layouts.partials.knowledgeNav')
     </ul>
+    <script>
+        const { createApp, ref, onMounted } = Vue;
+    </script>
 </div>
