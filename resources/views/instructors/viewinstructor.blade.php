@@ -243,7 +243,6 @@
     </div>
 
     <script>
-        const { createApp, ref, computed, onMounted, watch, onBeforeUnmount, reactive, nextTick } = Vue;
 
         const instructor = createApp({
             setup() {
