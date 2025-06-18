@@ -60,7 +60,7 @@
         @endrole
 
         {{-- School --}}
-        @role(['superAdmin', 'admin', 'financeAdmin'])
+        @role(['superAdmin', 'admin'])
             @role(['superAdmin', 'admin'])
                 <li class="nav-main-item">
                     <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
@@ -119,8 +119,11 @@
                     @role(['superAdmin', 'admin'])
                         <li><a class="nav-main-link" href="{{ url('/addexpense') }}"><span class="nav-main-link-name">Add expense</span></a></li>
                     @endrole
-                    <li><a class="nav-main-link" href="{{ url('/scan-to-pay') }}"><span class="nav-main-link-name">Scan to pay</span></a></li>
-                    <li><a class="nav-main-link" href="{{ url('/expense-payments') }}"><span class="nav-main-link-name">Expense payments</span></a></li>
+                    @role(['superAdmin', 'financeAdmin'])
+                        <li><a class="nav-main-link" href="{{ url('/scan-to-pay') }}"><span class="nav-main-link-name">Scan to pay</span></a></li>
+                        <li><a class="nav-main-link" href="{{ url('/expense-payments') }}"><span class="nav-main-link-name">Expense payments</span></a></li>
+                    @endrole
+
                 </ul>
             </li>
             @role(['superAdmin', 'admin'])
