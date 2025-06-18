@@ -1,6 +1,6 @@
 @role(['superAdmin', 'admin'])
 <div class="tab-pane fade" id="invoices" role="tabpanel" aria-labelledby="invoices-tab">
-    <div class="table-responsive" style="overflow-x: inherit;">
+    <div class="table-responsive">
         <table class="table table-bordered table-striped table-vcenter">
             <thead>
                 <tr>
@@ -23,7 +23,7 @@
                     <td class="text-center">
                         <div class="dropdown d-inline-block">
                             <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="d-none d-sm-inline-block">Action</span>
+                                Action
                             </button>
                             <div class="dropdown-menu dropdown-menu-end p-0">
                                 <div class="p-2">
@@ -117,7 +117,7 @@
                     <td class="text-center">
                         <div class="dropdown d-inline-block">
                             <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="d-none d-sm-inline-block">Action</span>
+                                Action
                             </button>
                             @role('superAdmin')
                             <div class="dropdown-menu dropdown-menu-end p-0">
