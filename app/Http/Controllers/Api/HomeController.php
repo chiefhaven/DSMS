@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\Expense; //capitals
+use App\Models\ExpensePayment;
 use App\Models\Instructor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -121,6 +122,7 @@ class HomeController extends Controller
                     $earningsTotal = Invoice::whereDate('created_at', Carbon::today())->sum('invoice_total');
                     $invoiceBalances = Invoice::whereDate('created_at', Carbon::today())->sum('invoice_balance');
                     $expensesTotal = Expense::whereDate('created_at', Carbon::today())->sum('approved_amount');
+                    $expensesPayments = ExpensePayment::whereDate('created_at', Carbon::today())->sum('amount');
                     break;
 
                 case 'yesterday':
@@ -130,6 +132,7 @@ class HomeController extends Controller
                     $earningsTotal = Invoice::whereDate('created_at', Carbon::yesterday())->sum('invoice_total');
                     $invoiceBalances = Invoice::whereDate('created_at', Carbon::yesterday())->sum('invoice_balance');
                     $expensesTotal = Expense::whereDate('created_at', Carbon::yesterday())->sum('approved_amount');
+                    $expensesPayments = ExpensePayment::whereDate('created_at', Carbon::yesterday())->sum('amount');
                     break;
 
                 case 'thisweek':
@@ -141,6 +144,7 @@ class HomeController extends Controller
                     $earningsTotal = Invoice::whereBetween('created_at', [$startOfWeek, $endOfWeek])->sum('invoice_total');
                     $invoiceBalances = Invoice::whereBetween('created_at', [$startOfWeek, $endOfWeek])->sum('invoice_balance');
                     $expensesTotal = Expense::whereBetween('created_at', [$startOfWeek, $endOfWeek])->sum('approved_amount');
+                    $expensesPayments = ExpensePayment::whereBetween('created_at', [$startOfWeek, $endOfWeek])->sum('amount');
                     break;
 
                 case 'thismonth':
@@ -150,6 +154,7 @@ class HomeController extends Controller
                     $earningsTotal = Invoice::whereMonth('created_at', Carbon::now()->month)->sum('invoice_total');
                     $invoiceBalances = Invoice::whereMonth('created_at', Carbon::now()->month)->sum('invoice_balance');
                     $expensesTotal = Expense::whereMonth('created_at', Carbon::now()->month)->sum('approved_amount');
+                    $expensesPayments = ExpensePayment::whereMonth('created_at', Carbon::now()->month)->sum('amount');
                     break;
 
                 case 'lastmonth':
@@ -159,6 +164,7 @@ class HomeController extends Controller
                     $earningsTotal = Invoice::whereMonth('created_at', Carbon::now()->subMonth()->month)->sum('invoice_total');
                     $invoiceBalances = Invoice::whereMonth('created_at', Carbon::now()->subMonth()->month)->sum('invoice_balance');
                     $expensesTotal = Expense::whereMonth('created_at', Carbon::now()->subMonth()->month)->sum('approved_amount');
+                    $expensesPayments = ExpensePayment::whereMonth('created_at', Carbon::now()->subMonth()->month)->sum('amount');
                     break;
 
                 case 'thisyear':
@@ -168,6 +174,7 @@ class HomeController extends Controller
                     $earningsTotal = Invoice::whereYear('created_at', Carbon::now()->year)->sum('invoice_total');
                     $invoiceBalances = Invoice::whereYear('created_at', Carbon::now()->year)->sum('invoice_balance');
                     $expensesTotal = Expense::whereYear('created_at', Carbon::now()->year)->sum('approved_amount');
+                    $expensesPayments = ExpensePayment::whereYear('created_at', Carbon::now()->year)->sum('amount');
                     break;
 
                 case 'lastyear':
@@ -177,6 +184,7 @@ class HomeController extends Controller
                     $earningsTotal = Invoice::whereYear('created_at', Carbon::now()->subYear()->year)->sum('invoice_total');
                     $invoiceBalances = Invoice::whereYear('created_at', Carbon::now()->subYear()->year)->sum('invoice_balance');
                     $expensesTotal = Expense::whereYear('created_at', Carbon::now()->subYear()->year)->sum('approved_amount');
+                    $expensesPayments = ExpensePayment::whereYear('created_at', Carbon::now()->subYear()->year)->sum('amount');
                     break;
 
                 case 'alltime':
@@ -186,10 +194,10 @@ class HomeController extends Controller
                     $earningsTotal = Invoice::sum('invoice_total');
                     $invoiceBalances = Invoice::sum('invoice_balance');
                     $expensesTotal = Expense::sum('approved_amount');
+                    $expensesPayments = ExpensePayment::sum('amount');
                     break;
 
                 case 'custom':
-
                     $request->validate([
                         'start_date' => 'required|date|before_or_equal:end_date',
                         'end_date' => 'required|date|after_or_equal:start_date',
@@ -205,6 +213,7 @@ class HomeController extends Controller
                     $earningsTotal = Invoice::whereBetween('created_at', [$startDate, $endDate])->sum('invoice_total');
                     $invoiceBalances = Invoice::whereBetween('created_at', [$startDate, $endDate])->sum('invoice_balance');
                     $expensesTotal = Expense::whereBetween('created_at', [$startDate, $endDate])->sum('approved_amount');
+                    $expensesPayments = ExpensePayment::whereBetween('created_at', [$startDate, $endDate])->sum('amount');
                     break;
 
                 default:
@@ -214,6 +223,7 @@ class HomeController extends Controller
                     $earningsTotal = Invoice::whereDate('created_at', Carbon::today())->sum('invoice_total');
                     $invoiceBalances = Invoice::whereDate('created_at', Carbon::today())->sum('invoice_balance');
                     $expensesTotal = Expense::whereDate('created_at', Carbon::today())->sum('approved_amount');
+                    $expensesPayments = ExpensePayment::whereDate('created_at', Carbon::today())->sum('amount');
                     break;
             }
 
@@ -236,6 +246,7 @@ class HomeController extends Controller
             'earningsTotal' => $earningsTotal,
             'invoiceBalances' => $invoiceBalances,
             'expensesTotal' => $expensesTotal,
+            'expensesPayments' => $expensesPayments,
             'attendances' => $attendanceMonthlyInfo,
             'schedules' => $schedulesMonthlyInfo
         ]);

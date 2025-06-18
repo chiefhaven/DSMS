@@ -485,14 +485,16 @@
                     invoiceBalances: 0,
                     studentCount: 0,
                     expensesTotal: 0,
+                    expensesPayments: 0,
                     attendanceCount: 0,
                 });
 
                 const summaryCards = computed(() => [
-                    { icon: 'fa-arrow-up', value: summaryInfo.value.earningsTotal, label: 'Sales', currency: true },
+                    { icon: 'fa-arrow-up', value: summaryInfo.value.earningsTotal, label: 'Invoices', currency: true },
                     { icon: 'fa-wallet', value: summaryInfo.value.invoiceBalances, label: 'Balances', currency: true },
                     { icon: 'fa-user', value: summaryInfo.value.studentCount, label: 'Students', currency: false },
-                    { icon: 'fa-chart-line', value: summaryInfo.value.expensesTotal, label: 'Expenses', currency: true },
+                    { icon: 'fa-chart-line', value: summaryInfo.value.expensesPayments, label: 'Expenses paid', currency: true },
+                    { icon: 'fa-chart-bar', value: summaryInfo.value.expensesTotal, label: 'Expenses posted', currency: true },
                     { icon: 'fa-clock', value: summaryInfo.value.attendanceCount, label: 'Attendances', currency: false },
                 ]);
 
@@ -518,6 +520,7 @@
                         });
 
                         summaryInfo.value = response.data;
+                        console.log(response.data);
                     } catch (error) {
                         const errorData = error.response.data;
 
