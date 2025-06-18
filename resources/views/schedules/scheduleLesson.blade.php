@@ -235,7 +235,6 @@
 </div>
 
 <script>
-    const { computed, watch } = Vue;
 
     const schedule = createApp({
       setup() {
