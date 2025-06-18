@@ -22,5 +22,55 @@
         <div id="vehicleLocation" style="height: 500px;"></div>
     </div>
 </div>
+<script setup>
 
+    const vehicleLocation = createApp({
+      setup() {
+        let map;
+        const markers = {};
+
+        const initMap = () => {
+          // Use a neutral default center
+          map = L.map('vehicleLocation').setView([-13.9626, 33.7741], 12);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        };
+
+        const updateLocations = () => {
+          axios.get('/api/get-all-vehicle-locations').then(res => {
+            const data = res.data;
+            const bounds = [];
+
+            data.forEach(item => {
+              const latLng = [item.latitude, item.longitude];
+              bounds.push(latLng);
+
+              if (markers[item.fleet]) {
+                // Update existing marker
+                markers[item.fleet].setLatLng(latLng);
+              } else {
+                markers[item.fleet] = L.marker(latLng)
+                .addTo(map)
+                .bindPopup(`<strong>${item.registration_number || item.fleet.car_brand_model}</strong><br>${item.registration_number || item.fleet.car_registration_number}`)
+                .openPopup();
+              }
+            });
+
+
+          }).catch(err => {
+            console.error('Error fetching vehicle locations:', err);
+          });
+        };
+
+        onMounted(() => {
+          initMap();
+          updateLocations();
+          setInterval(updateLocations, 2000); // Update every 2 seconds
+        });
+
+        return {};
+      }
+    });
+
+    vehicleLocation.mount('#vehicleLocation');
+</script>
 @endsection
