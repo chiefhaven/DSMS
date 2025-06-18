@@ -176,7 +176,6 @@
 </div>
 
 <script>
-    const { createApp, ref, onMounted, computed, watch } = Vue;
 
     const lessonSchedule = createApp({
       setup() {
