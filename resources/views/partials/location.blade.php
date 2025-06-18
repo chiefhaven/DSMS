@@ -2,7 +2,6 @@
 </div>
 
   <script>
-  const { createApp, ref, onMounted } = Vue;
 
   const app = createApp({
     setup() {
