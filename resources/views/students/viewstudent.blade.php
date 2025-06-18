@@ -501,7 +501,6 @@
 @include('students.partials.changeStatus')
 
 <script setup>
-    const { createApp, ref, reactive, onMounted } = Vue
 
     const app = createApp({
       setup() {
