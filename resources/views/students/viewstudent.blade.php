@@ -502,7 +502,7 @@
 
 <script setup>
 
-    const app = createApp({
+    const viewStudent = createApp({
       setup() {
 
         const cars = ref([])
@@ -881,7 +881,7 @@
         }
       }
     })
-    app.mount('#student')
+    viewStudent.mount('#student')
 </script>
 
 <script>
