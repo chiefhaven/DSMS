@@ -24,7 +24,7 @@
 </div>
 <script setup>
 
-    const { createApp, ref, reactive, onMounted } = Vue
+    const { createApp, ref, reactive, onMounted, computed, watch } = Vue;
 
     const vehicleLocation = createApp({
       setup() {
