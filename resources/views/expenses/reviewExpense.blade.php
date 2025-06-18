@@ -176,7 +176,6 @@
 </div>
 <!-- END Hero -->
     <script setup>
-        const { createApp, ref, reactive, onMounted } = Vue
 
         const formatter = new Intl.NumberFormat('en-US', {
             style: 'currency',

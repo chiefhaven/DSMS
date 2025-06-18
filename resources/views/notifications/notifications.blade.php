@@ -70,7 +70,6 @@
       </div>
 
     <script>
-        const { createApp, ref, onMounted, onUnmounted, nextTick } = Vue;
 
         const notificationsApp = createApp({
           setup() {

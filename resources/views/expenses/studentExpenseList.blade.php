@@ -173,7 +173,6 @@
 </div>
 
 <script setup>
-const { createApp, ref, reactive, onMounted, nextTick } = Vue
 
 const app = createApp({
     setup() {

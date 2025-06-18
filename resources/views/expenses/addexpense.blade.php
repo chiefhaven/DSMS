@@ -145,9 +145,8 @@
     });
 </script>
     <script setup>
-        const { createApp, ref, reactive } = Vue
 
-        const app = createApp({
+        const addExpense = createApp({
         setup() {
             const currentDate = new Date();
             const options = { day: 'numeric', month: 'long', year: 'numeric'};
@@ -448,7 +447,7 @@
             }
         }
         })
-        app.mount('#expense')
+        addExpense.mount('#expense')
     </script>
 @endsection
 

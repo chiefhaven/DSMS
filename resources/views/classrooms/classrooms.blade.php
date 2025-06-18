@@ -100,7 +100,6 @@
         });
     });
 
-    const { createApp, ref, reactive, onMounted } = Vue
 
     const classrooms = createApp({
       setup() {

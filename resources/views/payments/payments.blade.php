@@ -56,7 +56,6 @@
         </div>
     </div>
     <script setup>
-        const { createApp, ref, reactive, onMounted, nextTick } = Vue;
 
         const payments = createApp({
           setup() {

@@ -150,7 +150,6 @@
 </div>
 <!-- END Hero -->
 <script setup>
-    const { createApp, ref, onMounted } = Vue
 
     const app = createApp({
       setup() {

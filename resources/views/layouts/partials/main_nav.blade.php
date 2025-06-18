@@ -203,6 +203,7 @@
         @include('layouts.partials.knowledgeNav')
     </ul>
     <script>
-        const { createApp, ref, onMounted } = Vue;
+        const { createApp, ref, onMounted, watch, nextTick, computed, nBeforeUnmount } = Vue;
+
     </script>
 </div>

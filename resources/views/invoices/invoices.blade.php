@@ -61,7 +61,6 @@
 
 <!-- Vue app -->
 <script setup>
-    const { createApp, ref, onMounted } = Vue;
 
     const invoices = createApp({
       setup() {

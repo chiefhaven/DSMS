@@ -48,7 +48,6 @@
         </div>
     </div>
     <script setup>
-        const { createApp, ref, onMounted, nextTick } = Vue;
 
         const expensePaymentList = createApp({
           setup() {

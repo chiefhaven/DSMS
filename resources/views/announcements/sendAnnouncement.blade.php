@@ -74,9 +74,8 @@
   </div>
   <!-- END Hero -->
   <script setup>
-    const { createApp, ref, onMounted } = Vue;
 
-    const app = createApp({
+    const sendAnnouncement = createApp({
       setup() {
         const state = ref({
           isSubmitButtonDisabled: false,
@@ -168,7 +167,7 @@
       }
     });
 
-    app.mount('#announcement');
+    sendAnnouncement.mount('#announcement');
 </script>
 
 @endsection

@@ -349,7 +349,6 @@
     </div>
 
     <script>
-        const { createApp, ref, onMounted, watch, nextTick, computed } = Vue;
 
         const bonuses = createApp({
             setup() {

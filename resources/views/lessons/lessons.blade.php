@@ -88,7 +88,6 @@
         });
     });
 
-    const { createApp, ref, reactive, onMounted } = Vue
 
     const lessons = createApp({
       setup() {

@@ -87,7 +87,6 @@
 
 <script>
 
-    const { createApp, ref, reactive, onMounted, computed } = Vue
 
     const viewCourse = createApp({
       setup() {
