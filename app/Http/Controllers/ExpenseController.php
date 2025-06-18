@@ -647,9 +647,8 @@ class ExpenseController extends Controller
     public function studentExpenses(Request $request, $token)
     {
         if (!Auth::user()->hasRole(['superAdmin', 'financeAdmin'])) {
-            return response()->json([
-                'message' => 'You do not have permission to make a payment.'
-            ], 403);
+            Alert::toast('You do not have permission to make a payment', 'error');
+            return redirect()->back();
         }
 
         $student = Student::with('expenses')->find($token);
