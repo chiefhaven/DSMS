@@ -67,18 +67,30 @@
                     <!-- Dashboard cards (Sales, Balances, Students, etc.) -->
                     <div class="col-md-4 col-xl-4 mb-4" v-for="(card, index) in summaryCards" :key="index">
                         <div class="block block-rounded block-link-shadow border shadow-sm h-100">
-                          <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                            <div class=" ">
-                              <i :class="`fa fa-2x ${card.icon}`"></i>
+                          <div class="block-content block-content-full d-flex align-items-center justify-content-between flex-wrap">
+                            <!-- Icon -->
+                            <div class="flex-shrink-0">
+                              <i :class="`fa ${card.icon}`" style="font-size: 1.75rem;"></i>
                             </div>
-                            <div class="ms-3 text-end">
-                              <p class="fs-3 fw-semibold mb-0" v-if="card.currency">K@{{ formatCurrency(card.value) }}</p>
-                              <p class="fs-3 fw-semibold mb-0" v-else>@{{ card.value }}</p>
-                              <p class="mb-0 text-muted">@{{ card.label }}</p>
+                            
+                            <!-- Text -->
+                            <div class="ms-3 text-end flex-grow-1">
+                              <!-- Responsive number -->
+                              <p class="fw-bold mb-1 fs-4 fs-md-3 fs-lg-2" v-if="card.currency">
+                                K@{{ formatCurrency(card.value) }}
+                              </p>
+                              <p class="fw-bold mb-1 fs-4 fs-md-3 fs-lg-2" v-else>
+                                @{{ card.value }}
+                              </p>
+                      
+                              <!-- Responsive label -->
+                              <p class="text-muted mb-0 fs-sm fs-md-6 fs-lg-5">
+                                @{{ card.label }}
+                              </p>
                             </div>
                           </div>
                         </div>
-                    </div>
+                      </div>                    
                 </div>
             </div>
 
