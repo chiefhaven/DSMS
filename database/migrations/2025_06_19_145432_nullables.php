@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('expense_student', function (Blueprint $table) {
-            $table->timestamp('paid_at')->nullable()->change();
+            $table->datetime('paid_at')->nullable()->change();
         });
     }
 
