@@ -28,7 +28,6 @@
             <thead style="color: #ffffff !important; background-color:#0665d0; text-align:left !important">
                 <th class="invoice-td" style="text-align:left !important">Student</th>
                 <th class="invoice-td">Expense type</th>
-                <th class="invoice-td">Class</th>
                 <th class="invoice-td">Amount</th>
                 <th class="invoice-td">Status</th>
                 <th class="invoice-td">Paid by</th>
@@ -42,10 +41,7 @@
                             {{ $student->fname }} {{ $student->mname }} <strong>{{ $student->sname }}</strong>
                         </td>
                         <td class="invoice-td text-center">
-                            {{ $student->course->class ?? '-' }}
-                        </td>
-                        <td class="invoice-td text-center">
-                            {{ $student->course->expense_type ?? '-' }}
+                            {{ $student->pivot->expense_type ?? '-' }}
                         </td>
                         <td class="invoice-td text-center">
                             K{{ number_format($student->pivot->amount ?? 0, 2) }}
