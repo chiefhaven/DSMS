@@ -170,7 +170,7 @@ class HomeController extends Controller
             $earningsTotal = Invoice::whereBetween('created_at', [$start, $end])->sum('invoice_total');
             $invoiceBalances = Invoice::whereBetween('created_at', [$start, $end])->sum('invoice_balance');
             $expensesTotal = Expense::whereBetween('updated_at', [$start, $end])->sum('approved_amount');
-            $expensesPayments = ExpensePayment::whereBetween('paid_at', [$start, $end])->sum('amount');
+            $expensesPayments = ExpensePayment::whereBetween('updated_at', [$start, $end])->sum('amount');
         } else {
             $studentCount = Student::count();
             $attendanceCount = Attendance::count();
