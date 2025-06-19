@@ -27,6 +27,7 @@
         <table class="table table-striped table-responsive" style="font-size:12px; with: 100%;">
             <thead style="color: #ffffff !important; background-color:#0665d0; text-align:left !important">
                 <th class="invoice-td" style="text-align:left !important">Student</th>
+                <th class="invoice-td">Expense type</th>
                 <th class="invoice-td">Class</th>
                 <th class="invoice-td">Amount</th>
                 <th class="invoice-td">Status</th>
@@ -42,6 +43,9 @@
                         </td>
                         <td class="invoice-td text-center">
                             {{ $student->course->class ?? '-' }}
+                        </td>
+                        <td class="invoice-td text-center">
+                            {{ $student->course->expense_type ?? '-' }}
                         </td>
                         <td class="invoice-td text-center">
                             K{{ number_format($student->pivot->amount ?? 0, 2) }}
