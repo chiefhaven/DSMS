@@ -559,6 +559,12 @@ class ExpenseController extends Controller
 
     public function expensePaymentReport(expense $expense){
 
+        if (!Auth::user()->hasRole(['superAdmin', 'financeAdmin', 'admin'])) {
+            return response()->json([
+                'message' => 'You do not have permission to make a payment.'
+            ], 403);
+        }
+
         $setting = $this->setting;
         $date = date('j F, Y');
         $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/expense-payment-report/'.$expense->id);
