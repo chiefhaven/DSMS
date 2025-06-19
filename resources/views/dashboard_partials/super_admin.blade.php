@@ -490,7 +490,7 @@
                 });
 
                 const summaryCards = computed(() => [
-                    { icon: 'fa-arrow-up', value: summaryInfo.value.earningsTotal, label: 'Invoices', currency: true },
+                    { icon: 'fa-arrow-up', value: summaryInfo.value.earningsTotal, label: 'Sales', currency: true },
                     { icon: 'fa-wallet', value: summaryInfo.value.invoiceBalances, label: 'Balances', currency: true },
                     { icon: 'fa-user', value: summaryInfo.value.studentCount, label: 'Students', currency: false },
                     { icon: 'fa-chart-line', value: summaryInfo.value.expensesPayments, label: 'Expenses paid', currency: true },
