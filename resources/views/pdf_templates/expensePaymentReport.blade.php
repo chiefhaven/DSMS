@@ -20,7 +20,7 @@
     </h3>
     <p class="text-muted" style="font-size: 14px;">
         Expected payout: K{{ number_format($expense->amount * $expense->students->count(), 2) }}
-        | Actual Payment: K{{ number_format($expense->students->sum('pivot.amount'), 2) }}
+        | Actual: K{{ number_format($expense->students->sum('pivot.amount'), 2) }}
     </p>
 
     <div class="bg-body" style="z-index:999 !important">
