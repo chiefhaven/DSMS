@@ -72,7 +72,7 @@
                             <div class="flex-shrink-0">
                               <i :class="`fa ${card.icon}`" style="font-size: 1.75rem;"></i>
                             </div>
-                            
+
                             <!-- Text -->
                             <div class="ms-3 text-end flex-grow-1">
                               <!-- Responsive number -->
@@ -82,7 +82,7 @@
                               <p class="fw-bold mb-1 fs-4 fs-md-3 fs-lg-2" v-else>
                                 @{{ card.value }}
                               </p>
-                      
+
                               <!-- Responsive label -->
                               <p class="text-muted mb-0 fs-sm fs-md-6 fs-lg-5">
                                 @{{ card.label }}
@@ -90,7 +90,7 @@
                             </div>
                           </div>
                         </div>
-                      </div>                    
+                      </div>
                 </div>
             </div>
 

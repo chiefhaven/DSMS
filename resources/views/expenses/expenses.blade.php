@@ -64,7 +64,7 @@
           setup() {
             const showStatusChangeModal = ref(false);
             const loadingData = ref(false);
-            const status = ref('all'); // Default filter value
+            const status = ref('all');
 
             onMounted(() => {
               nextTick(() => {

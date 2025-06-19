@@ -218,6 +218,9 @@ Route::get("/expense-payments", function(){
 Route::get('/expense-payment-receipt/{id}', [ExpenseController::class, 'downloadExpensePaymentReceipt'])->middleware('auth')
 ->name('expense-payments.download-receipt');
 
+Route::get('/expense-payment-report/{expense}', [ExpenseController::class, 'expensePaymentReport'])->middleware('auth')->name('expense-payment-report');
+
+
 Route::get('/dashboard', [HomeController::class,'index'])->middleware(['auth'])->name('dashboard');
 
 //Announcement routes

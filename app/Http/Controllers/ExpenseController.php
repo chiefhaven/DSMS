@@ -125,6 +125,7 @@ class ExpenseController extends Controller
             })
             ->addColumn('actions', function ($expense) {
                 $download = '';
+                $paymentReport = '';
                 $edit = '';
                 $delete = '';
                 $review = '';
@@ -139,7 +140,7 @@ class ExpenseController extends Controller
                             $download = '<form method="GET" action="' . url('expensedownload', $expense->id) . '">
                                             ' . csrf_field() . '
                                             <button class="dropdown-item nav-main-link btn download-confirm" type="submit">
-                                                <i class="fa fa-download me-3"></i> Download
+                                                <i class="fa fa-download me-3"></i> RTD Letter
                                             </button>
                                          </form>';
                         } else {
@@ -147,6 +148,17 @@ class ExpenseController extends Controller
                         }
                     } else {
                         $download = '<p class="dropdown-item text-success">Go to student profile for TRN reference</p>';
+                    }
+
+                    if ($expense->approved == true && auth()->user()->hasAnyRole(['superAdmin', 'financeAdmin'])) {
+                        $paymentReport = '<form method="GET" action="' . url('expense-payment-report', $expense->id) . '">
+                                        ' . csrf_field() . '
+                                        <button class="dropdown-item nav-main-link btn download-confirm" type="submit">
+                                            <i class="fa fa-download me-3"></i> Payment report
+                                        </button>
+                                     </form>';
+                    } else {
+                        $download = '<p class="dropdown-item text-danger">Download not available</p>';
                     }
 
                     // Edit only allowed if not approved
@@ -187,7 +199,7 @@ class ExpenseController extends Controller
                     <div class="dropdown d-inline-block">
                         <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown">Actions</button>
                         <div class="dropdown-menu dropdown-menu-end">
-                            ' . $download . $view . $review . $edit . $delete . '
+                            ' . $download . $paymentReport . $view . $review . $edit . $delete .  '
                         </div>
                     </div>
                 ';
@@ -545,6 +557,37 @@ class ExpenseController extends Controller
         return $pdf->download('Daron Driving School-'.$expense->group.'-'.$expense->group_type.' Expense.pdf');
     }
 
+    public function expensePaymentReport(expense $expense){
+
+        $setting = $this->setting;
+        $date = date('j F, Y');
+        $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/expense-payment-report/'.$expense->id);
+
+        $template = 'pdf_templates.expensePaymentReport';
+
+        $expense = Expense::with(['students' => function ($query) {
+            $query->orderBy('fname', 'asc');
+        }])->findOrFail($expense->id);
+
+        // Get unique payment_entered_by values
+        $enteredByIds = $expense->students->pluck('pivot.payment_entered_by')->filter()->unique();
+
+        // Get User -> Administrator once
+        $enteredByAdmins = \App\Models\User::with('administrator')
+            ->whereIn('id', $enteredByIds)
+            ->get()
+            ->keyBy('id');
+
+        $pdf = PDF::loadView($template, compact(
+            'expense',
+            'qrCode',
+            'setting',
+            'date',
+            'enteredByAdmins'
+        ));
+        return $pdf->download('Daron Driving School-'.$expense->group.'-'.$expense->group_type.' Expense Payment Report.pdf');
+    }
+
     public function autocompletestudentSearch(Request $request)
     {
         $search = $request->get('student');
@@ -672,7 +715,7 @@ class ExpenseController extends Controller
 
     public function expensePaymentsList(Request $request) {
         // Capture the search keyword from the request if provided
-        $search = $request->input('search.value'); // This is the global search input
+        $search = $request->input('search.value');
 
         $expensePayments = ExpensePayment::with(['paymentUser.administrator', 'student', 'expense'])
         ->where('status', 1);
