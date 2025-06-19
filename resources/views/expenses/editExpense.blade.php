@@ -240,7 +240,7 @@
         onMounted(async () => {
           state.value.loadingData = true
           const res = await axios.get("/reviewExpenseData/{{ $expense->id }}")
-          state.value.selectedStudents = res.data
+          state.value.selectedStudents = res.data.students
           totalAmount()
           state.value.loadingData = false
           studentSearch()

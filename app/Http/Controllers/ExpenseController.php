@@ -295,16 +295,38 @@ class ExpenseController extends Controller
 
     public function reviewExpenseData(expense $expense)
     {
+        // 1️⃣ Fetch students linked to the given expense ID
         $expenseId = $expense->id;
-        $expenseStudents = Student::with('Invoice', 'Attendance', 'Course', 'Fleet')->whereHas('expenses', function ($query) use ($expenseId) {
-            $query->where('expense_id', $expenseId);
-        })
-        ->with(['expenses' => function ($query) use ($expenseId) {
-            $query->where('expense_id', $expenseId);
-        }])
-        ->get();
 
-        return response()->json($expenseStudents);
+        $students = Student::with(['Invoice', 'Attendance', 'Course', 'Fleet'])
+            ->whereHas('expenses', function ($query) use ($expenseId) {
+                $query->where('expense_id', $expenseId);
+            })
+            ->with(['expenses' => function ($query) use ($expenseId) {
+                $query->where('expense_id', $expenseId);
+            }])
+            ->get();
+
+        // 2️⃣ Extract all unique `payment_entered_by` IDs from the pivots
+        $enteredByIds = $students
+            ->flatMap(function ($student) {
+                return $student->expenses->pluck('pivot.payment_entered_by');
+            })
+            ->filter()
+            ->unique();
+
+        // 3️⃣ Load the User + Administrator data for those IDs
+        $enteredByAdmins = \App\Models\User::with('administrator')
+            ->whereIn('id', $enteredByIds)
+            ->get()
+            ->keyBy('id');
+
+        // 4️⃣ Return response
+        return response()->json([
+            'students' => $students,
+            'enteredByAdmins' => $enteredByAdmins
+        ], 200);
+
     }
 
     /**

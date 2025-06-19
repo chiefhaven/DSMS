@@ -27,6 +27,7 @@ use App\Http\Controllers\RoleDispatcherController;
 use App\Http\Controllers\ScheduleLessonController;
 use App\Http\Controllers\VehicleTrackerController;
 use App\Models\Announcement;
+use App\Models\expense;
 use App\Models\knowledge;
 use App\Models\ScheduleLesson;
 use App\Models\VehicleTracker;
@@ -194,7 +195,11 @@ Route::post('/invoicesettings-update', [InvoiceSettingController::class, 'update
 Route::get('/super-admin-profile', [InstructorController::class, 'show-super-admin'])->middleware('auth')->name('super-admin-profile');
 
 Route::get('/expenses', [ExpenseController::class, 'index'])->middleware('auth')->name('expenses');
-Route::get('/viewexpense', [ExpenseController::class, 'show'])->middleware('auth')->name('viewexpense');
+
+Route::get('/view-expense/{expense}', function (Expense $expense) {
+    return view('expenses.viewExpense', compact('expense'));
+})->middleware('auth');
+
 Route::get('/addexpense', [ExpenseController::class, 'create'])->middleware('auth')->name('addexpense');
 Route::post('/storeexpense', [ExpenseController::class, 'store'])->middleware('auth')->name('storeexpense');
 Route::post('/updateExpense', [ExpenseController::class, 'update'])->middleware('auth')->name('updateExpense');

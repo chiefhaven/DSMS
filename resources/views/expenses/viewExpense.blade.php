@@ -5,7 +5,7 @@
   <div class="bg-body-light">
     <div class="content content-full">
       <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
-        <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Review expense</h1>
+        <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">View expense</h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
             <a href="/expenses" class="btn btn-primary rounded-pill px-4">All expenses</a>
         </nav>
@@ -75,16 +75,22 @@
                             <thead class="table-light">
                                 <tr>
                                     <th width="5%">#</th>
-                                    <th>Student</th>
-                                    <th>Balance</th>
+                                    <th style="min-width: 14em">Student</th>
+                                    <th style="min-width: 10em">Fees balance</th>
                                     <th class="text-center">Class</th>
-                                    <th>Expense Type</th>
-                                    <th width="15%">Actions</th>
+                                    <th style="min-width: 10em">Expense type</th>
+                                    <th class="invoice-td" >Amount</th>
+                                    <th class="invoice-td" style="min-width: 6em">Status</th>
+                                    <th class="invoice-td" style="min-width: 9em">Paid by</th>
+                                    <th class="invoice-td" style="min-width: 10em">Date Paid</th>
+                                    <th class="invoice-td" style="min-width: 10em">Payment Method</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="(student, index) in state.selectedStudents" :key="student.id">
-                                    <td>@{{ index + 1 }}</td>
+                                    <td>
+                                        @{{ index + 1 }}
+                                    </td>
                                     <td>
                                         <div class="d-flex flex-column">
                                             <strong>@{{ student.sname }} @{{ student.fname }} @{{ student.mname }}</strong>
@@ -111,18 +117,35 @@
                                     </td>
                                     <td>
                                         <span class="badge bg-info">
-                                            @{{ student.expenses[0]?.pivot?.expense_type || 'N/A' }}
+                                            @{{ student.expenses[0]?.pivot?.expense_type ?? 'N/A' }}
                                         </span>
                                     </td>
                                     <td>
-                                        <button
-                                            :disabled="state.expenseStatus !== 0"
-                                            class="btn btn-sm btn-outline-danger"
-                                            @click="removeStudentFromList(student.id, index)"
-                                            :title="state.expenseStatus !== 0 ? 'Editing disabled for approved expenses' : 'Remove student'"
-                                        >
-                                            Remove
-                                        </button>
+                                        <span>
+                                            K@{{ student.expenses[0]?.pivot?.amount !== undefined ? Number(student.expenses[0].pivot.amount).toFixed(2) : 'N/A' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span>
+                                            @{{ student.expenses[0]?.pivot?.status ? 'Paid' : 'Not Paid' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span>
+                                            @{{
+                                              state.admins[student.expenses[0]?.pivot?.payment_entered_by]?.administrator?.fname || '-'
+                                            }}
+                                          </span>
+                                    </td>
+                                    <td>
+                                        <span>
+                                            @{{ student.expenses[0]?.pivot?.paid_at ? formatDate(student.expenses[0].pivot.paid_at) : '-' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span>
+                                            @{{ student.expenses[0]?.pivot?.payment_method ?? '-' }}
+                                        </span>
                                     </td>
                                 </tr>
                             </tbody>
@@ -132,45 +155,6 @@
             </div>
         </div>
 
-        <!-- Approval Section -->
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-footer bg-white text-end py-3">
-                    <template v-if="state.expenseStatus === 0">
-                        <span class="text-warning me-3"><i class="fas fa-exclamation-circle"></i> List not approved</span>
-                        <button
-                            type="button"
-                            @click="approveList"
-                            :disabled="state.processing"
-                            class="btn btn-success"
-                        >
-                            <span v-if="state.processing">
-                                <i class="fas fa-spinner fa-spin me-1"></i> Processing...
-                            </span>
-                            <span v-else>
-                                <i class="fas fa-check-circle me-1"></i> Approve
-                            </span>
-                        </button>
-                    </template>
-                    <template v-else>
-                        <span class="text-success me-3"><i class="fas fa-check-circle"></i> List approved</span>
-                        <button
-                            type="button"
-                            @click="approveList"
-                            :disabled="state.processing"
-                            class="btn btn-danger"
-                        >
-                            <span v-if="state.processing">
-                                <i class="fas fa-spinner fa-spin me-1"></i> Processing...
-                            </span>
-                            <span v-else>
-                                <i class="fas fa-times-circle me-1"></i> Unapprove
-                            </span>
-                        </button>
-                    </template>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 </div>
@@ -200,6 +184,7 @@
                 errors: [],                  // Array to store any validation or error messages
                 loadingData: false,
                 processing: false,
+                admins: [],
             })
 
             onMounted(async () => {
@@ -208,6 +193,7 @@
                     state.value.loadingData = true;
                     const res = await axios.get(`/reviewExpenseData/{{ $expense->id }}`);
                     state.value.selectedStudents = res.data.students;
+                    state.value.admins = res.data.enteredByAdmins;
                     totalAmount();
                 } catch (error) {
                     console.error('Failed to load review expense data:', error);

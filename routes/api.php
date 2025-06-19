@@ -69,6 +69,8 @@ Route::get('/dashboardSummary', [ApiHomeController::class, 'dashboardSummary'])-
 
 Route::get('/expenses', [ExpenseController::class, 'fetchExpenses'])->name('payments')->middleware('auth:sanctum');
 
+Route::get('/viewExpenseData', [ExpenseController::class, 'show'])->middleware('auth')->name('viewExpenseData');
+
 Route::get('/payments', [PaymentController::class, 'fetchPayments'])->name('payments')->middleware('auth:sanctum');
 
 Route::get('/expense-payments', [ExpenseController::class, 'expensePaymentsList'])->name('expense.expensePayments');
