@@ -28,10 +28,10 @@
             <table class="table table-striped table-responsive" style="font-size: 10px; width: 100%; border-collapse: collapse;">
                 <thead style="color: #ffffff; background-color: #0665d0; text-align: left;">
                     <tr>
-                        <th class="invoice-td">Student</th>
+                        <th>Student</th>
                         <th class="invoice-td">Expense Type</th>
-                        <th class="invoice-td">Amount</th>
-                        <th class="invoice-td">Status</th>
+                        <th class="invoice-td">Expected</th>
+                        <th class="invoice-td">Paid</th>
                         <th class="invoice-td">Paid By</th>
                         <th class="invoice-td">Date Paid</th>
                         <th class="invoice-td">Payment Method</th>
@@ -47,10 +47,10 @@
                                 {{ $student->pivot->expense_type ?? '-' }}
                             </td>
                             <td class="invoice-td text-center">
-                                K{{ number_format($student->pivot->amount ?? 0, 2) }}
+                                K{{ number_format($expense->amount ?? 0, 2) }}
                             </td>
                             <td class="invoice-td text-center">
-                                {{ ($student->pivot->amount ?? 0) > 0 ? 'Paid' : 'Not Paid' }}
+                                {{ ($student->pivot->amount ?? 0) > 0 ? 'K'.number_format($student->pivot->amount) : 'Not Paid' }}
                             </td>
                             <td class="invoice-td text-center">
                                 {{
