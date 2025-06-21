@@ -200,8 +200,8 @@ Route::get('/view-expense/{expense}', function (Expense $expense) {
     return view('expenses.viewExpense', compact('expense'));
 })->middleware('auth');
 
-Route::get('/addexpense', [ExpenseController::class, 'create'])->middleware('auth')->name('addexpense');
-Route::post('/storeexpense', [ExpenseController::class, 'store'])->middleware('auth')->name('storeexpense');
+Route::get('/addexpense', [ExpenseController::class, 'create'])->middleware('auth')->name('expenses.index');
+Route::post('/storeexpense', [ExpenseController::class, 'store'])->middleware('auth')->name('expenses.store');
 Route::post('/updateExpense', [ExpenseController::class, 'update'])->middleware('auth')->name('updateExpense');
 Route::get('/editexpense/{expense}', [ExpenseController::class, 'edit'])->middleware('auth')->name('editexpense');
 Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->middleware('auth')->name('delete-expense');

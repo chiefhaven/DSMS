@@ -7,6 +7,7 @@ use App\Http\Requests\StoreexpenseRequest;
 use App\Http\Requests\UpdateexpenseRequest;
 use App\Models\Administrator;
 use App\Models\ExpensePayment;
+use App\Models\ExpenseType;
 use App\Models\Setting;
 use App\Models\Student;
 use App\Models\User;
@@ -16,13 +17,14 @@ use App\Notifications\ExpensePaymentMade;
 use Auth;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Yajra\DataTables\Facades\DataTables;
 use PDF;
 use DB;
 use Illuminate\Support\Facades\Log;
 use RealRashid\SweetAlert\Facades\Alert;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Http\JsonResponse;
-use Yajra\DataTables\Facades\DataTables;
+
 
 class ExpenseController extends Controller
 {
@@ -84,7 +86,7 @@ class ExpenseController extends Controller
                 }
             })
             ->addColumn('type', function ($expense) {
-                return $expense->group_type;
+                return $expense->group_type ? ExpenseType::find($expense->group_type)?->name : '-';
             })
             ->addColumn('description', function ($expense) {
                 return $expense->description;
@@ -228,7 +230,6 @@ class ExpenseController extends Controller
     {
         $messages = [
             'expenseGroupName.required' => 'Expense Group Name is required',
-            'expenseAmount.required'   => 'Expense amount is required',
             'students.required' => 'Please select at least one student',
             'students.array' => 'Invalid student data format',
             'students.min' => 'Please select at least one student',
@@ -236,7 +237,6 @@ class ExpenseController extends Controller
 
         $this->validate($request, [
             'expenseGroupName'  => 'required',
-            'expenseAmount'     => 'required',
             'students'          => 'required|array|min:1'
         ], $messages);
 
@@ -246,19 +246,22 @@ class ExpenseController extends Controller
         $user = Auth::user();
         $admin = Administrator::findOrFail($user->administrator_id);
 
+        $expenseGroupName = Carbon::createFromFormat($request->input('expenseGroupName'))->format('m/d/Y');
+
         $expense = new Expense();
-        $expense->group = $post['expenseGroupName'];
+        $expense->group = $expenseGroupName;
         $expense->group_type = $post['expenseGroupType'] ?? null;
         $expense->description = $post['expenseDescription'] ?? null;
-        $expense->amount = $post['expenseAmount'];
+        $expense->amount = 0;
         $expense->added_by = $user->administrator_id;
         $expense->save();
 
         foreach ($students as $data) {
             $student = havenUtils::student($data['studentName']);
             $student->expenses()->attach($expense->id, [
-                'expense_type' => $data['expenseType'],
-                'repeat' => $data['expenses'][0]['pivot']['repeat'] ?? 0
+                'expense_type' => $data['expenses'][0]['pivot']['expense_type'],
+                'repeat'       => $data['expenses'][0]['pivot']['repeat'] ?? 0,
+                'amount'       => $data['expenses'][0]['pivot']['amount'] ?? 0,
             ]);
         }
 
@@ -361,9 +364,13 @@ class ExpenseController extends Controller
         try {
             $this->validate($request, [
                 'expenseGroupName'  => 'required',
-                'expenseAmount'     => 'required',
                 'students'          => 'required|array|min:1'
             ], $messages);
+
+            // Check if the user has permission to update the expense
+            if (!auth()->user()->hasAnyRole(['superAdmin', 'admin'])) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
 
             DB::beginTransaction();
 
@@ -376,11 +383,15 @@ class ExpenseController extends Controller
             if (!$expense) {
                 throw new ModelNotFoundException('Expense not found');
             }
+
+            $expenseGroupName = Carbon::createFromFormat('d/m/Y', $request->input('expenseGroupName'))->format('d/m/Y');
+
+
             // Update expense
-            $expense->group = $post['expenseGroupName'];
+            $expense->group = $expenseGroupName;
             $expense->group_type = $post['expenseGroupType'] ?? null;
             $expense->description = $post['expenseDescription'] ?? null;
-            $expense->amount = $post['expenseAmount'];
+            $expense->amount = 0;
             $expense->edited_by = Auth::user()->administrator_id;
             $expense->save();
 
@@ -394,7 +405,8 @@ class ExpenseController extends Controller
 
                 $student->expenses()->attach($expense->id, [
                     'expense_type' => $data['expenses'][0]['pivot']['expense_type'],
-                    'repeat' => $data['expenses'][0]['pivot']['repeat'] ?? 0,
+                    'repeat'       => $data['expenses'][0]['pivot']['repeat'] ?? 0,
+                    'amount'       => $data['expenses'][0]['pivot']['amount'] ?? 0,
                 ]);
             }
 
@@ -439,94 +451,63 @@ class ExpenseController extends Controller
     {
         $request->validate([
             'student' => 'required',
+            'expenseTypesOption' => 'required',
         ]);
 
-        $post = $request->all();
+        $student = Student::find($request->student);
 
-        $student = Student::find($post['student']);
+        if (!$student) {
+            return response()->json([
+                'feedback' => 'error',
+                'message' => 'Student not found.'
+            ], 200);
+        }
 
-        // $student = havenUtils::student($post['student']);
+        $option = \App\Models\ExpenseTypeOption::find($request->expenseTypesOption);
 
-        $expenseType = $post['expenseType'];
+        if (!$option) {
+            return response()->json([
+                'feedback' => 'error',
+                'message' => 'Invalid expense type option selected.'
+            ], 200);
+        }
 
-        $expenseTypeSet = DB::table('expense_student')->where('student_id', $student->id)->where('expense_type', $request['expenseType'])->get();
-        $expenseTypeCount = $expenseTypeSet->count();
-
+        $optionName = $option->name;
         $fullName = trim($student->fname . ' ' . ($student->mname ?? '') . ' ' . $student->sname);
 
+        // ✅ Check if student already has that option
+        $existingExpenses = DB::table('expense_student')
+            ->where('student_id', $student->id)
+            ->where('expense_type', $option->id)
+            ->get();
 
-        if ($expenseTypeCount > 0) {
-            // Collect ALL related expenses by IDs
-            $expenseIds = $expenseTypeSet->pluck('expense_id')->toArray();
+        if ($existingExpenses->count() > 0) {
+            $expenseIds = $existingExpenses->pluck('expense_id')->toArray();
             $expenses = Expense::whereIn('id', $expenseIds)->get();
-
-            // Extract all 'group' values as strings
             $groupDates = $expenses->pluck('group')->filter()->unique()->toArray();
+            $groupDateString = !empty($groupDates) ? implode(', ', $groupDates) : 'Unknown date';
 
-            // Join dates into a string, or fallback
-            $groupDateString = !empty($groupDates)
-                ? implode(', ', $groupDates)
-                : 'Unknown date';
-
-            $data = [
+            return response()->json([
                 'feedback' => 'alreadyExists',
-                'message' => "{$fullName} was already selected for {$post['expenseType']} expenses dated {$groupDateString}. Do you want to continue adding to another list?"
-            ];
-
-            return response()->json($data, 200);
+                'message' => "{$fullName} was already selected for {$optionName} expenses dated {$groupDateString}. Do you want to continue adding to another list?"
+            ], 200);
         }
 
-        switch ($expenseType) {
-            case "Road Test":
-                if(($student->invoice->invoice_amount_paid / $student->invoice->invoice_total) * 100 < $this->setting->fees_road_threshold){
-                    $data = [
-                        'feedback'=>'error',
-                        'message' => "{$fullName} can not be selected for road test, There is K{$student->invoice->invoice_balance} balance that must be paid"
-                    ];
-                    return response()->json($data, 200);
-                }
-                break;
-            case "TRN":
-                if(($student->invoice->invoice_amount_paid / $student->invoice->invoice_total) * 100 < $this->setting->fees_trn_threshold){
-                    $data = [
-                        'feedback'=>'error',
-                        'message' => "{$fullName} can not be selected for TRN, There are balances that must be paid"
-                    ];
-                    return response()->json($data, 200);
-                }
-                break;
-            case "Highway Code I":
-                if(($student->Invoice->invoice_amount_paid / $student->Invoice->invoice_total) * 100 < $this->setting->fees_code_i_threshold){
-                    $data = [
-                        'feedback'=>'error',
-                        'message' => "{$fullName} can not be selected for Highway code I, There are balances that must be paid"
-                    ];
-                    return response()->json($data, 200);
-                }
-                break;
-            case "Highway Code II":
-                if(($student->Invoice->invoice_amount_paid / $student->Invoice->invoice_total) * 100 < $this->setting->fees_code_ii_threshold){
-                    $data = [
-                        'feedback'=>'error',
-                        'message' => "{$fullName} can not be selected for Highway code II, There are balances that must be paid"
-                    ];
-                    return response()->json($data, 200);
-                }
-                break;
-            default:
-                $data = [
-                    'feedback'=>'error',
-                    'message' => 'Something wrong happened!'
-                ];
-                return response()->json($data, 200);
+        // Calculate student's paid percentage once
+        $paidPercent = ($student->invoice->invoice_amount_paid / $student->invoice->invoice_total) * 100;
+
+        // Use the option's threshold directly
+        if ($option->fees_percent_threshhold !== null && $paidPercent < $option->fees_percent_threshhold) {
+            return response()->json([
+                'feedback' => 'error',
+                'message' => "{$fullName} cannot be selected for {$optionName}. There is K{$student->invoice->invoice_balance} balance that must be paid."
+            ], 200);
         }
 
-        $data = [
-            'feedback'=>'success',
-            'message' => 'Student added to list remember to click submit after selecting all students'
-        ];
-        return response()->json($data, 200);
-
+        return response()->json([
+            'feedback' => 'success',
+            'message' => 'Student added to list. Remember to click submit after selecting all students.'
+        ], 200);
     }
 
     public function approveList(StoreexpenseRequest $request)

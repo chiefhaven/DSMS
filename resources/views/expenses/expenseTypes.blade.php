@@ -1,49 +1,59 @@
 @extends('layouts.backend')
 
 @section('content')
-  <!-- Hero -->
-  <div class="bg-body-light">
-    <div class="content content-full">
-      <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
-        <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Expense types</h1>
-        <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
+<!-- Hero -->
+<div class="bg-body-light">
+  <div class="content content-full">
+    <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
+      <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Expense types</h1>
+      <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
 
-            @if(Session::has('message'))
-            <div class="alert alert-info">
-              {{Session::get('message')}}
-            </div>
-          @endif
+        @if(Session::has('message'))
+        <div class="alert alert-info">
+          {{ Session::get('message') }}
+        </div>
+        @endif
 
-          @role(['superAdmin', 'admin'])
-            <div class="">
-                <a class="btn btn-primary rounded-pill px-4" href="/add-expense-type" data-bs-target="#modal-block-vcenter">
-                    <i class="fa fa-file-plus"></i>&nbsp; Add expense type
-                </a>
-            </div>
-            @endcan
-        </nav>
-      </div>
+        @role(['superAdmin', 'admin'])
+        <div>
+          <button
+            type="button"
+            class="btn btn-primary rounded-pill px-4"
+            onclick="window.expenseTypeApp.openCreateModal()"
+          >
+            <i class="fa fa-file-plus me-3"></i> Add expense type
+          </button>
+        </div>
+        @endrole
+
+      </nav>
     </div>
   </div>
+</div>
 
-    <div class="content content-full" id="expenseTypes">
-        <div class="block block-rounded block-bordered">
-            <div class="block-content">
-                <!-- Loading spinner -->
-                <div v-if="loadingData" class="d-flex flex-column justify-content-center align-items-center" style="height: 300px;">
+<!-- Main Content -->
+<div class="content" id="expenseTypes">
+    <div class="block block-rounded block-bordered">
+        <div class="content-full">
+        <div class="row">
+            <!-- Loading Spinner -->
+            <div v-if="loadingData" class="d-flex flex-column justify-content-center align-items-center" style="height: 300px;">
                 <span class="spinner-border text-primary"></span>
                 <p class="mt-3">Loading expense types...</p>
-                </div>
+            </div>
 
-                <!-- DataTable -->
-                <div v-show="!loadingData" class="table-responsive">
+            <!-- DataTable -->
+            <div v-show="!loadingData">
+                <div class="col-md-12 py-4">
+                    <div class="m-4 table-responsive">
                     <table id="expenseTypesTable" class="table table-bordered table-striped table-vcenter">
                         <thead class="thead-dark">
                             <tr>
-                                <th class="text-center" style="min-width: 7em;">Actions</th>
-                                <th style="min-width: 12rem;">Type</th>
-                                <th style="min-width: 10rem;">Options</th>
-                                <th class="text-center" style="min-width: 7rem;">Status</th>
+                            <th class="text-center" style="min-width: 7em;">Actions</th>
+                            <th style="min-width: 12rem;">Type</th>
+                            <th style="min-width: 15rem;">Description</th>
+                            <th style="min-width: 15rem;">Options</th>
+                            <th class="text-center" style="min-width: 7rem;">Status</th>
                             </tr>
                         </thead>
                     </table>
@@ -51,159 +61,223 @@
             </div>
         </div>
     </div>
-    <script setup>
+  </div>
 
-        const expenseTypes = createApp({
-          setup() {
-            const showExpenseTypeModal = ref(false);
-            const loadingData = ref(false);
-            const status = ref('all');
+  <!-- ONE Modal for Create & Edit -->
+  <div class="modal fade" id="expenseTypeModal" tabindex="-1" aria-labelledby="expenseTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form @submit.prevent="submitExpenseType">
+          <div class="modal-header">
+            <h5 class="modal-title text-white" id="expenseTypeModalLabel">
+              @{{ isEditMode ? 'Edit Expense Type' : 'Create Expense Type' }}
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
 
-            onMounted(() => {
-              nextTick(() => {
-                setTimeout(() => {
-                  getExpenses();
-                }, 100);
-              });
-            });
+          <div class="modal-body">
+            <!-- Type Name -->
+            <div class="mb-3">
+              <label for="name" class="form-label">Type Name</label>
+              <input v-model="form.name" type="text" class="form-control" id="name" placeholder="Enter expense type name" required>
+            </div>
 
-            const reloadTable = (val) => {
-              status.value = val;
-              if ($.fn.DataTable.isDataTable('#expenseTypesTable')) {
-                $('#expenseTypesTable').DataTable().ajax.reload();
-              }
-            };
+            <!-- Description -->
+            <div class="mb-3">
+              <label for="description" class="form-label">Description</label>
+              <textarea v-model="form.description" class="form-control" id="description" placeholder="Enter description" rows="3"></textarea>
+            </div>
 
-            const getExpenses = () => {
-              NProgress.start();
-              loadingData.value = true;
+            <!-- Options -->
+            <div class="mb-3">
+              <label class="form-label me-3">Options</label>
+              <div v-for="(option, index) in form.options" :key="index" class="row g-2 mb-2 align-items-center">
+                <div class="col">
+                  <input v-model="option.name" type="text" class="form-control" placeholder="Option name" required>
+                </div>
+                <div class="col">
+                  <input v-model="option.amount_per_student" type="number" min="0" class="form-control" placeholder="Amount per student">
+                </div>
+                <div class="col-auto">
+                  <button type="button" class="btn btn-danger" @click="removeOption(index)">
+                    <i class="fa fa-times"></i>
+                  </button>
+                </div>
+              </div>
 
-              // Destroy old DataTable if exists
-              if ($.fn.DataTable.isDataTable('#expenseTypesTable')) {
-                $('#expenseTypesTable').DataTable().destroy();
-              }
+              <button type="button" class="btn btn-sm btn-secondary mt-2" @click="addOption">
+                <i class="fa fa-plus me-1"></i> Add Option
+              </button>
+            </div>
 
-              $('#expenseTypesTable').DataTable({
-                serverSide: true,
-                processing: true,
-                scrollCollapse: true,
-                scrollX: true,
-                ajax: async function (data, callback) {
-                  try {
-                    const csrfToken = $('meta[name="csrf-token"]').attr('content');
-                    axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
+            <!-- Status -->
+            <div class="mb-3">
+              <label class="form-label">Status</label><br>
+              <div class="form-check form-switch">
+                <input v-model="form.is_active" class="form-check-input" type="checkbox" id="isActive">
+                <label class="form-check-label" for="isActive">Active</label>
+              </div>
+            </div>
+          </div>
 
-                    const response = await axios.get('/api/expense-types', {
-                      params: { ...data },
-                      withCredentials: true,
-                      headers: {
-                        'X-CSRF-TOKEN': csrfToken,
-                      },
-                    });
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary rounded-pill px-4">
+              @{{ isEditMode ? 'Update' : 'Create' }}
+            </button>
+            <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 
-                    callback(response.data);
-                    console.log(response.data);
-                  } catch (error) {
-                    let errorMessage = 'An error occurred while fetching data. Please try again later.';
-                    if (error.response?.data?.error) {
-                      errorMessage = error.response.data.error;
-                    } else if (error.response?.data) {
-                      errorMessage = error.response.data;
-                    }
+<!-- Vue Script -->
+<script setup>
+const expenseTypes = createApp({
+  setup() {
+    const loadingData = ref(false);
+    const form = ref({
+      name: '',
+      description: '',
+      options: [],
+      is_active: true,
+    });
+    const isEditMode = ref(false);
 
-                    if ([401, 403, 409].includes(error.response?.status)) {
-                      showError('Session expired, reloading...');
-                      setTimeout(() => window.location.reload(), 1500);
-                    } else {
-                      showError('Something went wrong');
-                      console.error(error);
-                    }
-                  } finally {
-                    loadingData.value = false;
-                    NProgress.done();
-                  }
-                },
-                columns: [
-                  { data: 'actions', className: 'text-center', orderable: false },
-                  { data: 'type' },
-                  { data: 'options' },
-                  { data: 'status' },
-                ],
-                drawCallback: function () {
-                  $('.delete-confirm').on('click', function (e) {
-                    e.preventDefault();
-                    var form = $(this).closest('form');
-                    Swal.fire({
-                      title: 'Delete expense',
-                      text: 'Do you want to delete this expense type?',
-                      icon: 'warning',
-                      showCancelButton: true,
-                      confirmButtonColor: '#d33',
-                      cancelButtonColor: '#3085d6',
-                      confirmButtonText: 'Delete!',
-                      cancelButtonText: 'Cancel',
-                    }).then((result) => {
-                      if (result.isConfirmed) {
-                        form.submit();
-                        $('#expenseTypesTable').DataTable().ajax.reload();
-                      }
-                    });
-                  });
-                },
-              });
-            };
+    const showToast = (message, icon = 'success') => {
+      Swal.fire({
+        icon,
+        title: message,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      });
+    };
 
-            const showError = (message, detail, { confirmText = 'OK', icon = 'error' } = {}) => {
-              const baseOptions = {
-                icon,
-                title: message,
-                text: detail,
-                confirmButtonText: confirmText,
-                didOpen: (toast) => {
-                  toast.addEventListener('mouseenter', Swal.stopTimer);
-                  toast.addEventListener('mouseleave', Swal.resumeTimer);
-                },
-              };
+    const addOption = () => {
+      form.value.options.push({ name: '', amount_per_student: 0 });
+    };
 
-              const cleanOptions = Object.fromEntries(
-                Object.entries(baseOptions).filter(([_, v]) => v !== undefined)
-              );
+    const removeOption = (index) => {
+      form.value.options.splice(index, 1);
+    };
 
-              return Swal.fire(cleanOptions);
-            };
+    const openCreateModal = () => {
+      isEditMode.value = false;
+      form.value = { name: '', description: '', options: [], is_active: true };
+      new bootstrap.Modal(document.getElementById('expenseTypeModal')).show();
+    };
 
-            const showAlert = (message = '', detail = '', { icon = 'info' } = {}) => {
-              const baseOptions = {
-                icon,
-                toast: true,
-                timer: 3000,
-                timerProgressBar: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                didOpen: (toast) => {
-                  toast.addEventListener('mouseenter', Swal.stopTimer);
-                  toast.addEventListener('mouseleave', Swal.resumeTimer);
-                },
-              };
+    const openEditModal = (expenseType) => {
+      isEditMode.value = true;
+      form.value = {
+        id: expenseType.id,
+        name: expenseType.name,
+        description: expenseType.description,
+        options: expenseType.expense_type_options.map(opt => ({
+          name: opt.name,
+          amount_per_student: opt.amount_per_student,
+        })),
+        is_active: expenseType.is_active == 1 ? true : false,
+      };
+      new bootstrap.Modal(document.getElementById('expenseTypeModal')).show();
+    };
 
-              if (message) baseOptions.title = message;
-              if (detail) baseOptions.text = detail;
-
-              return Swal.fire(baseOptions);
-            };
-
-            return {
-              reloadTable,
-              loadingData,
-            };
-          },
+    const submitExpenseType = async () => {
+      try {
+        const url = isEditMode.value
+          ? `/api/expense-types/${form.value.id}`
+          : `/api/add-expense-types`;
+        const method = isEditMode.value ? 'put' : 'post';
+        await axios[method](url, {
+          name: form.value.name,
+          description: form.value.description,
+          options: form.value.options,
+          is_active: form.value.is_active ? 1 : 0,
         });
+        showToast(`Expense Type ${isEditMode.value ? 'updated' : 'created'} successfully!`);
+        bootstrap.Modal.getInstance(document.getElementById('expenseTypeModal')).hide();
+        $('#expenseTypesTable').DataTable().ajax.reload();
+      } catch (error) {
+        console.error(error);
+        showToast('Something went wrong!', 'error');
+      }
+    };
 
-        expenseTypes.mount('#expenseTypes');
-    </script>
+    const deleteExpenseType = async (expenseType) => {
+      Swal.fire({
+        title: 'Delete expense type?',
+        text: 'Are you sure you want to delete this expense type?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Delete',
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            await axios.delete(`/api/expense-types/${expenseType.id}`);
+            showToast('Expense type deleted.');
+            $('#expenseTypesTable').DataTable().ajax.reload();
+          } catch (error) {
+            console.error(error);
+            showToast('Failed to delete expense type.', 'error');
+          }
+        }
+      });
+    };
 
+    const getExpenseTypes = () => {
+      NProgress.start();
+      loadingData.value = true;
+      if ($.fn.DataTable.isDataTable('#expenseTypesTable')) {
+        $('#expenseTypesTable').DataTable().destroy();
+      }
+      $('#expenseTypesTable').DataTable({
+        serverSide: true,
+        processing: true,
+        processing: true,
+        scrollCollapse: true,
+        scrollX: true,
+        ajax: async function (data, callback) {
+          const response = await axios.get('/api/expense-types', { params: data });
+          callback(response.data);
+          loadingData.value = false;
+          NProgress.done();
+        },
+        columns: [
+          { data: 'actions', className: 'text-center', orderable: false },
+          { data: 'type' },
+          { data: 'description' },
+          { data: 'options', orderable: false, searchable: false },
+          { data: 'status', className: 'text-center' },
+        ],
+      });
+    };
 
-<!-- END Hero -->
+    onMounted(() => { getExpenseTypes(); });
 
+    return {
+      loadingData, form, isEditMode, addOption, removeOption,
+      openCreateModal, openEditModal, submitExpenseType, deleteExpenseType
+    };
+  },
+});
 
+window.expenseTypeApp = expenseTypes.mount('#expenseTypes');
+
+window.openEditExpenseType = el => {
+  const expenseType = JSON.parse(el.dataset.expenseType);
+  window.expenseTypeApp.openEditModal(expenseType);
+};
+
+window.openDeleteExpenseType = expenseType => {
+  window.expenseTypeApp.deleteExpenseType(expenseType);
+};
+</script>
 @endsection

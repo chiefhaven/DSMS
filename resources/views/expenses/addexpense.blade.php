@@ -26,26 +26,26 @@
                 <form class="mb-5" action="{{ url('/add-expense') }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
                     @csrf
                     <div class="col-12 form-floating mb-4">
-                        <input type="text" timezone="Africa/Blantyre" class="form-control" id="expense_group_name" name="expense_group_name" v-model="state.expenseGroupName" placeholder="DDMMYY" required>
+                        <input type="text" class="form-control" id="expense_group_name" name="expense_group_name" v-model="state.expenseGroupName" placeholder="DD MM YY" required>
                         <label for="invoice_discount">Booking Date</label>
                     </div>
                     <div class="col-12 form-floating mb-4">
-                        <select class="form-control" id="expenseType" @blur="groupExpenseTypeChange($event)" name="expenseType" v-model="state.expenseGroupType" placeholder="Select expense Type" :disabled="Object.keys(state.selectedStudents).length != 0">
-                            <option v-for="option in groupExpenseTypeOptions" :value="option.value">
-                                @{{ option.text }}
+                        <select class="form-control" id="expenseGroupType" name="expenseGroupType" v-model="state.expenseGroupType" placeholder="Select expense Type" :disabled="Object.keys(state.selectedStudents).length != 0">
+                            <option v-for="option in expenseTypes" :value="option.id">
+                                @{{ option.name }}
                             </option>
                         </select>
-                        <label for="expenseType">Group Expense Type</label>
+                        <label for="expenseGroupType">Group Expense Type</label>
                     </div>
                     <div class="col-12 form-floating mb-4">
                         <input type="text" class="form-control" id="expense_description" name="expense_description" v-model="state.expenseDescription" placeholder="Enter Expense Description">
                         <label for="invoice_discount">Expense notes</label>
                     </div>
-                    <div class="col-12 form-floating mb-4">
+                    {{--  <div class="col-12 form-floating mb-4">
                         <input type="number" class="form-control" id="amount" name="amount" v-model="state.amount" required>
                         <label for="amount">Amount per student</label>
-                    </div>
-            </form>
+                    </div>  --}}
+                </form>
             </div>
         </div>
     </div>
@@ -66,19 +66,16 @@
                         <label for="student" class="text-capitalize">Select student</label>
                     </div>
                     <div class="col-6 form-floating mb-4">
-                        <select class="form-control" v-if="state.expenseGroupType === 'TRN'" id="expenseType" name="expenseType" v-model="state.expenseType" placeholder="Select expense Type" required>
-                            <option>TRN</option>
-                        </select>
-                        <select class="form-control" v-else-if="state.expenseGroupType === 'Road Test'" id="expenseType" name="expenseType" v-model="state.expenseType" placeholder="Select expense Type" required>
-                            <option selected>
-                                Road Test
+                        <select class="form-control" v-if="selectedExpenseType" id="expenseTypesOption" name="expenseTypesOption" v-model="state.expenseTypesOption" placeholder="Select expense Type" required>
+                            <option disabled value="">Select option</option>
+                            <option
+                                v-for="opt in selectedExpenseType.expense_type_options"
+                                :value="opt.id"
+                            >
+                                @{{ opt.name }} - (@{{ opt.amount_per_student }})
                             </option>
                         </select>
-                        <select class="form-control" v-else id="expenseType" name="expenseType" v-model="state.expenseType" placeholder="Select expense Type" required>
-                            <option>Highway Code I</option>
-                            <option>Highway Code II</option>
-                        </select>
-                        <label for="expenseType">Expense Type</label>
+                        <label for="expenseTypesOption">Expense Type</label>
                     </div>
                 </div>
                 <div class="block-content block-content-full text-end">
@@ -92,6 +89,7 @@
                           <tr>
                             <th>Student Name</th>
                             <th>Expense Type</th>
+                            <th>Amount</th>
                             <th class="text-end">Action</th>
                           </tr>
                         </thead>
@@ -105,7 +103,8 @@
                                 Repeating
                               </div>
                             </td>
-                            <td>@{{ student.expenseType }}</td>
+                            <td>@{{ student.expenseTypesOptionName }}</td>
+                            <td>@{{ student.expenseTypesOptionAmount }}</td>
                             <td class="text-end">
                               <button class="btn btn-danger btn-sm" @click="removeStudentFromGroup(index)">
                                 Remove
@@ -113,7 +112,7 @@
                             </td>
                           </tr>
                         </tbody>
-                      </table>
+                    </table>
                 </div>
             </div>
     </div>
@@ -130,20 +129,7 @@
 </div>
 </div>
 <!-- END Hero -->
-<script>
-    $(document).ready(function () {
-        var today = new Date();
-        var day = ("0" + today.getDate()).slice(-2);
-        var month = ("0" + (today.getMonth() + 1)).slice(-2);
-        var year = today.getFullYear();
 
-        $("#expense_group_name").datepicker({
-            format: "dd/mm/yyyy",   // Use slashes here
-            autoclose: true,
-            todayHighlight: true
-        }).datepicker('setDate', day + '/' + month + '/' + year); // Match format with slashes
-    });
-</script>
     <script setup>
 
         const addExpense = createApp({
@@ -153,38 +139,27 @@
             const state = ref({
                 amount: 0,                 // Represents the amount an expense
                 expenseGroupName: currentDate.toLocaleDateString(options),       // Name of the expense group or category
-                expenseGroupType: 'Theory',
                 expenseDescription: '',       // Name of the expense group or category
                 studentName: '',
                 studentId:'',
-                expenseType: '',            // Type of expense
+                expenseTypesOption: '',            // Type of expense
                 selectedStudents: [],       // Array of selected students (possibly for group payments or expenses)
                 paymentMethod: 'Cash', // Preferred payment method (defaulting to 'Airtel Money')
                 errors: [],              // Array to store any validation or error messages
                 isSubmitButtonDisabled: false,
                 isLoading: false,
-                buttonText: 'Submit'
+                buttonText: 'Submit',
+                expenseGroupType: '',
             })
 
+            const expenseTypes = ref([])
+
+            // Options for payment methods
             const paymentMethodOptions = ref([
                 { text: 'Cash', value: 'Cash' },
                 { text: 'Bank', value: 'Bank' },
                 { text: 'AirtelMoney', value: 'AirtelMoney' }
             ])
-
-            const groupExpenseTypeOptions = ref([
-                { text: 'TRN', value: 'TRN' },
-                { text: 'Theory', value: 'Theory' },
-                { text: 'Road Test', value: 'Road Test' }
-            ])
-
-            function groupExpenseTypeChange(event){
-                if(event.target.selectedOptions[0].value === 'Theory'){
-                    state.value.expenseType = 'Choose Highway Code...'
-                }
-
-                state.value.expenseType = event.target.selectedOptions[0].value
-            }
 
             var hasError = ref(false)
 
@@ -197,7 +172,7 @@
                     return hasError;
                 }
 
-                if (!state.value.expenseType) {
+                if (!state.value.expenseTypesOption) {
                     notification('Expense Type must be filled', 'error');
                     hasError.value = true;
                     return hasError;
@@ -215,7 +190,7 @@
 
                 axios.post('/checkStudent', {
                     student: state.value.studentId,
-                    expenseType: state.value.expenseType
+                    expenseTypesOption: state.value.expenseTypesOption
                 }).then(response => {
                     const { feedback, message } = response.data;
 
@@ -223,21 +198,25 @@
                         const alreadyExists = state.value.selectedStudents.some(
                             s =>
                                 s.studentId === state.value.studentId &&
-                                s.expenseType === state.value.expenseType
+                                s.expenseTypesOption === state.value.expenseTypesOption
                         );
 
                         if (!alreadyExists) {
+                            const optionId = state.value.expenseTypesOption;
+                            const optionName = selectedExpenseType.value?.expense_type_options.find(opt => opt.id === optionId)?.name || 'Retry adding the student...';
+                            const optionAmount = selectedExpenseType.value?.expense_type_options.find(opt => opt.id === optionId)?.amount_per_student || 0;
+
                             state.value.selectedStudents.push({
                                 studentId: state.value.studentId,
                                 studentName: state.value.studentName,
-                                expenseType: state.value.expenseType,
+                                expenseTypesOption: optionId,
+                                expenseTypesOptionName: optionName,
+                                expenseTypesOptionAmount: optionAmount,
                                 expenses: [
-                                        {
-                                            pivot: {
-                                                repeat: 0
-                                            }
-                                        }
-                                    ]
+                                {
+                                    pivot: { repeat: 0 }
+                                }
+                                ]
                             });
 
                             state.value.studentName = '';
@@ -264,7 +243,7 @@
                                 state.value.selectedStudents.push({
                                     studentId: state.value.studentId,
                                     studentName: state.value.studentName,
-                                    expenseType: state.value.expenseType,
+                                    expenseTypesOption: state.value.expenseTypesOption,
                                     expenses: [
                                         {
                                             pivot: {
@@ -299,10 +278,23 @@
                 });
             }
 
+            // Helper function to ensure consistent date format
+            function formatDateForDatabase(dateInput) {
+                const date = new Date(dateInput);
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${day}/${month}/${year}`; // MySQL DATE format
+            }
+
             function removeStudentFromGroup(index) {
 
                 state.value.selectedStudents.splice(index, 1)
             }
+
+            const selectedExpenseType = computed(() => {
+                return expenseTypes.value.find(type => type.id === state.value.expenseGroupType);
+            });
 
             const saveExpense = async()=> {
                 if(Object.keys( state.value.selectedStudents ).length == 0){
@@ -315,19 +307,9 @@
                     return false
                 }
 
-                if (isNaN(state.value.amount) || Number(state.value.amount) <= 0) {
-                    showAlert('Amount per student', 'Expense amount per student must be a number greater than 0 and must be the actual figure', {
-                        toast: false,
-                        icon: 'error',
-                        confirmText: 'Ok'
-                    });
 
-                    return false;
-                }
-
-
-                if( !state.value.expenseGroupName || !state.value.paymentMethod){
-                    notification('Expense Group Name, Payment Method and Amount must be filled and Amount must be greater than 0', 'error')
+                if( !state.value.expenseGroupName){
+                    notification('Expense Group Name, must be filled', 'error')
                     return false
                 }
 
@@ -340,10 +322,9 @@
 
                     const response = await axios.post('/storeexpense', {
                         students: state.value.selectedStudents,
-                        expenseGroupName: state.value.expenseGroupName,
+                        expenseGroupName: formatDateForDatabase(state.value.expenseGroupName),
                         expenseDescription: state.value.expenseDescription,
                         expenseGroupType: state.value.expenseGroupType,
-                        expenseAmount: state.value.amount
                     });
 
                     notification('Expense added successfully, page redirecting...', 'success');
@@ -353,6 +334,22 @@
                     state.value.isSubmitButtonDisabled = false;
                     state.value.isLoading = false;
                     state.value.buttonText = 'Submit';
+                    console.log(error);
+                    if (error.response && error.response.data) {
+                        console.error('Error response:', error.response.data);
+                        showAlert('Error', error.response.data.message || 'An unexpected error occurred.', {
+                            toast: false,
+                            icon: 'error',
+                            confirmText: 'Close'
+                        });
+                    } else {
+                        console.error('Error:', error);
+                        showAlert('Error', 'An unexpected error occurred. Please try again later.', {
+                            toast: false,
+                            icon: 'error',
+                            confirmText: 'Close'
+                        });
+                    }
                 } finally {
                     NProgress.done();
                 }
@@ -399,6 +396,41 @@
                 });
             }
 
+            onMounted(() => {
+                getExpenseTypes();
+
+                // Initialize once
+                $('#expense_group_name').datepicker({
+                    format: 'dd/mm/yyyy',
+                    autoclose: true,
+                    todayHighlight: true
+                }).on('changeDate', function() {
+                    state.value.expenseGroupName = $('#expense_group_name').val();
+                });
+
+                // Set initial date
+                const today = new Date();
+                $('#expense_group_name').datepicker('setDate', today);
+
+                // Also update your Vue state
+                const day = String(today.getDate()).padStart(2, '0');
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const year = today.getFullYear();
+                state.value.expenseGroupName = `${day}/${month}/${year}`;
+            });
+
+            const getExpenseTypes = () => {
+                axios.get('/api/fetch-expense-types')
+                    .then(response => {
+                        expenseTypes.value = response.data;
+                        console.log('Expense types loaded:', expenseTypes.value);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching expense types:', error);
+                });
+            };
+
+
             const showAlert = (
                 message = '', // title
                 detail = '',  // text
@@ -442,8 +474,8 @@
                 state,
                 hasError,
                 paymentMethodOptions,
-                groupExpenseTypeOptions,
-                groupExpenseTypeChange,
+                expenseTypes,
+                selectedExpenseType,
             }
         }
         })

@@ -12,6 +12,9 @@ class ExpenseTypeOption extends Model
 
     protected $fillable = [
         'name',
+        'amount_per_student',
+        'expense_type_id',
+        'is_active',
     ];
 
     public function expenseType()

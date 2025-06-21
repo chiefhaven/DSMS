@@ -70,7 +70,9 @@ Route::get('/dashboardSummary', [ApiHomeController::class, 'dashboardSummary'])-
 
 Route::get('/expenses', [ExpenseController::class, 'fetchExpenses'])->name('payments')->middleware('auth:sanctum');
 
-Route::get('/expense-types', [ExpenseTypeController::class, 'index'])->name('exepnse-types')->middleware('auth:sanctum');
+Route::get('/expense-types', [ExpenseTypeController::class, 'index'])->name('api.expense-types')->middleware('auth:sanctum');
+
+Route::get('/fetch-expense-types', [ExpenseTypeController::class, 'fetch'])->name('fetch-expense-types')->middleware('auth:sanctum');
 
 Route::get('/viewExpenseData', [ExpenseController::class, 'show'])->middleware('auth')->name('viewExpenseData');
 
@@ -78,8 +80,12 @@ Route::get('/payments', [PaymentController::class, 'fetchPayments'])->name('paym
 
 Route::get('/expense-payments', [ExpenseController::class, 'expensePaymentsList'])->name('expense.expensePayments');
 
-Route::post('/reverse-payment/{id}', [ExpenseController::class, 'reverseExpensePayment'])
-    ->name('expense-payment.reverse-payment');
+Route::prefix('expense-types')->group(function () {
+    Route::post('/', [ExpenseTypeController::class, 'store']);      // Create new expense type
+    Route::put('/{id}', [ExpenseTypeController::class, 'update']); // Update existing expense type
+    Route::get('/', [ExpenseTypeController::class, 'index']);      // List expense types (for DataTables)
+    Route::delete('/{id}', [ExpenseTypeController::class, 'destroy']); // Optional delete route
+});
 
 Route::post('/studentExpensePayment/{student}/{expense}', [ExpenseController::class, 'makePayment'])
     ->name('studentExpensePayment')
@@ -88,6 +94,7 @@ Route::post('/studentExpensePayment/{student}/{expense}', [ExpenseController::cl
 Route::get('/getPaymentMethods', [PaymentMethodController::class, 'fetchPaymentMethods'])->name('paymentMethods')->middleware('auth:sanctum');
 
 Route::post('/save-vehicle-location', [VehicleTrackerController::class, 'store'])->name('vehicle-location')->middleware('auth:sanctum');
+
 Route::get('/get-all-vehicle-locations', [VehicleTrackerController::class, 'show'])->name('vehicle-location')->middleware('auth:sanctum');
 
 

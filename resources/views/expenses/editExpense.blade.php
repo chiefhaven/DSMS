@@ -1,510 +1,358 @@
 @extends('layouts.backend')
 
 @section('content')
-  <!-- Hero -->
-  <div class="bg-body-light">
-    <div class="content content-full">
-      <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
-        <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Edit expense</h1>
-        <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
+<!-- Hero -->
+<div class="bg-body-light">
+  <div class="content content-full">
+    <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
+      <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Edit Expense</h1>
+      <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
+        @if(Session::has('message'))
+          <div class="alert alert-info">{{ Session::get('message') }}</div>
+        @endif
+      </nav>
+    </div>
+  </div>
+</div>
+<!-- END Hero -->
 
-            @if(Session::has('message'))
-            <div class="alert alert-info">
-              {{Session::get('message')}}
-            </div>
-          @endif
-        </nav>
+<div class="content content-full" id="expense">
+  <div class="row">
+    <!-- Expense Form -->
+    <div class="col-md-5 block block-rounded block-bordered">
+      <div class="block-content">
+        <form @submit.prevent="updateExpense">
+          @csrf
+          <div class="form-floating mb-4">
+            <input type="text" class="form-control"
+              v-model="state.expenseGroupName"
+              placeholder="Booking Date"
+              id="expense_group_name">
+            <label for="expense_group_name">Booking Date</label>
+          </div>
+
+          <div class="form-floating mb-4">
+            <select class="form-control"
+              v-model="state.expenseGroupType"
+              :disabled="state.selectedStudents.length > 0">
+              <option v-for="option in expenseTypes" :value="option.id">
+                @{{ option.name }}
+              </option>
+            </select>
+            <label>List Expense Type</label>
+          </div>
+
+          <div class="form-floating mb-4">
+            <input type="text" class="form-control"
+              v-model="state.expenseDescription"
+              placeholder="Expense Notes">
+            <label>Expense Notes</label>
+          </div>
+
+          <div class="mb-4">
+            <strong>Total Amount:</strong> @{{ formatter.format(state.totalAmount) }}
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Student List -->
+    <div class="col-md-7 block block-rounded block-bordered">
+      <div class="block-content">
+        <h2 class="fs-4 fw-semibold mb-4">Add Student to the List</h2>
+
+        <div class="row mb-4">
+          <div class="col-6 form-floating mb-4">
+            <input class="form-control"
+              id="student"
+              v-model="state.studentName"
+              @input="studentSearch"
+              placeholder="Select Student">
+            <label for="student">Select Student</label>
+          </div>
+
+          <div class="col-6 form-floating mb-4">
+            <select class="form-control"
+              v-if="selectedExpenseType"
+              v-model="state.expenseTypesOption">
+              <option disabled value="">Select option</option>
+              <option v-for="opt in selectedExpenseType.expense_type_options" :value="opt.id">
+                @{{ opt.name }} - (@{{ formatter.format(opt.amount_per_student) }})
+              </option>
+            </select>
+            <label>Expense Option</label>
+          </div>
+        </div>
+
+        <div class="text-end mb-4">
+          <button type="button"
+            class="btn btn-primary rounded-pill px-4"
+            @click="addStudentToGroup">Add to List</button>
+        </div>
+
+        <h4 class="fw-semibold">Selected Students</h4>
+
+        <div v-if="state.loadingData" class="text-center my-5">
+          <span class="spinner-border text-primary"></span>
+          <p class="mt-3">Loading data...</p>
+        </div>
+
+        <div v-else>
+          <div v-if="!state.selectedStudents.length" class="alert alert-info">No students selected yet.</div>
+
+          <table v-else class="table table-striped">
+            <thead class="bg-primary text-white">
+              <tr>
+                <th>Student</th>
+                <th>Expense Option</th>
+                <th>Amount</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(student, index) in state.selectedStudents" :key="student.studentId">
+                <td>
+                  @{{ student.fname }} @{{ student.mname }} <strong>@{{ student.sname }}</strong>
+                  <div v-if="student.expenses?.[0]?.pivot?.repeat === 1" class="text-danger small">Repeating</div>
+                </td>
+                <td>@{{ student.expenseTypesOptionName }}</td>
+                <td>@{{ formatter.format(student.expenseTypesOptionAmount) }}</td>
+                <td class="text-end">
+                  <button class="btn btn-danger btn-sm" @click="removeStudentFromList(student.studentId, index)">
+                    Remove
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="text-end mt-4">
+          <button type="button"
+            class="btn btn-primary rounded-pill px-4"
+            :disabled="state.isSubmitButtonDisabled"
+            @click="updateExpense">
+            <span v-if="state.isLoading">
+              <i class="fas fa-spinner fa-spin"></i> Processing...
+            </span>
+            <span v-else>
+              @{{ state.buttonText }}
+            </span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
-
-<div class="content content-full" id="expense">
-    <div class="row">
-        <div class="col-md-5 block block-rounded block-bordered">
-            <div class="block-themed block-transparent mb-0">
-                <div class="block-content">
-                    <form class="mb-5" action="{{ url('/add-expense') }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
-                            @csrf
-                            <div class="col-12 form-floating mb-4">
-                                <input type="text" class="form-control" id="expense_group_name" name="expense_group_name" v-model="state.expenseGroupName" placeholder="Enter Expense Group" />
-                                <label for="invoice_discount">Booking Date</label>
-                            </div>
-                            <div class="col-12 form-floating mb-4">
-                                <select class="form-control" id="expenseType" @blur="groupExpenseTypeChange($event)" name="expenseType" v-model="state.expenseGroupType" placeholder="Select expense Type" :disabled="Object.keys(state.selectedStudents).length != 0">
-                                    <option v-for="option in groupExpenseTypeOptions" :value="option.value">
-                                        @{{ option.text }}
-                                    </option>
-                                </select>
-                                <label for="expenseType">List Expense Type</label>
-                            </div>
-                            <div class="col-12 form-floating mb-4">
-                                <input type="text" class="form-control" id="expense_description" name="expense_description" v-model="state.expenseDescription" placeholder="Enter Expense Description">
-                                <label for="invoice_discount">Expense notes</label>
-                            </div>
-                            <div class="col-12 form-floating mb-4">
-                                <input type="number" class="form-control" id="amount" @input="totalAmount()" name="amount" v-model="state.amount">
-                                <label for="amount">Amount per student</label>
-                            </div>
-                            <div class="col-12 form-floating mb-4">
-                                Total Amount: @{{ formatter.format(state.totalAmount) }}
-                            </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-7 block block-rounded block-bordered">
-            <div class="block-content">
-
-                <h2 class="flex-grow-1 fs-4 fw-semibold my-2 my-sm-3">Add student to the list</h2>
-                <div v-if="state">
-                    <div class="row haven-floating">
-                        <div class="col-6 form-floating mb-4 text-uppercase">
-                            <input class="form-control" id="student" name="student" :rules="isRequired" v-model="state.studentName" @input="studentSearch()" @blur="onStudentChange($event)" placeholder="Select student" required>
-                            <label for="student" class="text-capitalize">Select student</label>
-                        </div>
-                        <div class="col-6 form-floating mb-4">
-                            <select class="form-control" v-if="state.expenseGroupType === 'TRN'" id="expenseType" name="expenseType" v-model="state.expenseType" placeholder="Select expense Type" required>
-                                <option>TRN</option>
-                            </select>
-                            <select class="form-control" v-else-if="state.expenseGroupType === 'Road Test'" id="expenseType" name="expenseType" v-model="state.expenseType" placeholder="Select expense Type" required>
-                                <option selected>
-                                    Road Test
-                                </option>
-                            </select>
-                            <select class="form-control" v-else id="expenseType" name="expenseType" v-model="state.expenseType" placeholder="Select expense Type" required>
-                                <option>Highway Code I</option>
-                                <option>Highway Code II</option>
-                            </select>
-                            <label for="expenseType">Expense Type</label>
-                        </div>
-                    </div>
-                    <div class="block-content block-content-full text-end">
-                        <button type="submit" @click="addStudentToGroup()" class="btn btn-primary rounded-pill px-4">Add to list</button>
-                    </div>
-
-                    <h2 class="flex-grow-1 fs-5 fw-semibold my-2 my-sm-3 border-lg mb-5">Selected students</h2>
-
-                    <div v-if="state.loadingData" class="d-flex flex-column justify-content-center align-items-center" style="height: 300px;">
-                        <span class="spinner-border text-primary"></span>
-                        <p class="mt-3">Loading data...</p>
-                    </div>
-
-                    <div v-else>
-                        <div v-if="state.selectedStudents.length === 0" class="alert alert-info">
-                            No students selected yet.
-                        </div>
-
-                        <div v-else class="table responsive">
-                            <table class="table table-striped">
-                                <thead class="bg-primary text-white">
-                                    <tr>
-                                        <th class="col-sm-6 text-uppercase">Student</th>
-                                        <th class="col-sm-4">Expense Type</th>
-                                        <th class="col-sm-2 text-end">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="(student, index) in state.selectedStudents" :key="student.id">
-                                        <td>
-                                            <div class="text-uppercase">
-                                              @{{ student.fname }} @{{ student.mname }} <strong>@{{ student.sname }}</strong>
-                                            </div>
-                                            <div v-if="student.expenses && student.expenses.some(e => e.pivot?.repeat === 1)"
-                                                class="sm-text text-danger" style="font-size: 0.85rem;">
-                                                Repeating
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div v-if="student.expenses && student.expenses.length">
-                                                @{{ student.expenses.map(e => e.pivot?.expense_type).filter(Boolean).join(', ') }}
-                                            </div>
-                                            <div v-else class="text-muted">N/A</div>
-                                        </td>
-                                        <td class="text-end">
-                                            <button
-                                                class="btn btn-danger btn-sm"
-                                                @click="removeStudentFromList(student.id, index)"
-                                            >
-                                                Remove
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="block-content block-content-full text-end">
-            <button type="submit" :disabled="state.isSubmitButtonDisabled" @click="updateExpense()" class="btn btn-primary rounded-pill px-4">
-                <template v-if="state.isLoading">
-                    <i class="fas fa-spinner fa-spin me-1"></i> Processing...
-                </template>
-                <template v-else>
-                    @{{ state.buttonText }}
-                </template>
-            </button>
-        </div>
-    </div>
 </div>
-<!-- END Hero -->
+
+<!-- Vue 3 Script -->
 <script setup>
+const app = createApp({
+  setup() {
+    const state = ref({
+      totalAmount: 0,
+      expenseGroupType: '{{ $expense->group_type }}',
+      expenseDescription: '{{ $expense->description }}',
+      expenseGroupName: '{{ $expense->group }}',
+      studentName: '',
+      studentId: '',
+      expenseId: '{{ $expense->id }}',
+      expenseTypesOption: '',
+      selectedStudents: [],
+      isLoading: false,
+      isSubmitButtonDisabled: false,
+      buttonText: 'Submit',
+      loadingData: false,
+    });
 
-    const app = createApp({
-      setup() {
-        const state = ref({
-          amount: {{ $expense->amount }},
-          totalAmount: 0,
-          expenseGroupName: '{{ $expense->group }}',
-          expenseGroupType: '{{ $expense->group_type }}',
-          expenseDescription: '{{ $expense->description }}',
-          studentName: '',
-          studentId: '',
-          fname: '',
-          sname: '',
-          mname: '',
-          expenseId: '{{ $expense->id }}',
-          expenseType: '',
-          selectedStudents: [],
-          errors: [],
-          loadingData: false,
-          isLoading: false,
-          buttonText: 'Submit',
-          isSubmitButtonDisabled: false
-        })
 
-        const formatter = new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: 'MMK',
-        })
+    const expenseTypes = ref([]);
 
-        const groupExpenseTypeOptions = ref([
-          { text: 'TRN', value: 'TRN' },
-          { text: 'Theory', value: 'Theory' },
-          { text: 'Road Test', value: 'Road Test' }
-        ])
+    const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'MMK' });
 
-        const hasError = ref(false)
+    const selectedExpenseType = computed(() =>
+        expenseTypes.value.find(type => type.id == state.value.expenseGroupType)
+    );
 
-        function isRequired(value) {
-          return value && value.trim() ? true : 'This is required'
+    const getExpenseTypes = () => {
+      axios.get('/api/fetch-expense-types').then(res => {
+        expenseTypes.value = res.data;
+      });
+    };
+
+    const fetchExistingStudents = () => {
+      state.value.loadingData = true;
+      axios.get(`/reviewExpenseData/${state.value.expenseId}`)
+        .then(res => {
+          state.value.selectedStudents = res.data.students.map(s => {
+            const pivot = s.expenses.find(e => e.pivot.expense_id === state.value.expenseId)?.pivot || {};
+            const option = expenseTypes.value.flatMap(et => et.expense_type_options).find(opt => opt.id === pivot.expense_type) || {};
+            return {
+              studentId: s.id,
+              fname: s.fname,
+              mname: s.mname,
+              sname: s.sname,
+              expenseTypesOption: pivot.expense_type || '',
+              expenseTypesOptionName: option.name || '',
+              expenseTypesOptionAmount: pivot.amount || 0,
+              expenses: [{ pivot }]
+            };
+          });
+          totalAmount();
+        }).finally(() => {
+          state.value.loadingData = false;
+        });
+    };
+
+    const totalAmount = () => {
+      state.value.totalAmount = state.value.selectedStudents.reduce(
+        (sum, s) => sum + (s.expenseTypesOptionAmount || 0), 0
+      );
+    };
+
+    const studentSearch = () => {
+      $('#student').typeahead({
+        minLength: 2,
+        autoSelect: true,
+        source: (query, process) =>
+          $.get("{{ route('expense-student-search') }}", { query }, process),
+        updater: item => {
+          state.value.studentId = item.id;
+          state.value.studentName = item.name;
+          return item.name;
         }
+      });
+    };
 
-        function totalAmount() {
-          state.value.totalAmount = state.value.selectedStudents.length * state.value.amount
-        }
-
-        function initDatepicker() {
-            // Initialize datepicker
-            $("#expense_group_name").datepicker({
-              format: "dd/mm/yyyy",
-              autoclose: true,
-              todayHighlight: true
-            })
-
-            // Set initial date from Vue state if it exists, otherwise use today's date
-            const initialDate = state.value.expenseGroupName || new Date()
-            $("#expense_group_name").datepicker('setDate', initialDate)
-
-            // Update Vue state when date changes
-            $("#expense_group_name").on('changeDate', function(e) {
-              state.value.expenseGroupName = e.format('dd/mm/yyyy')
-            })
-
-            // Also watch for manual input changes
-            $("#expense_group_name").on('change', function() {
-              state.value.expenseGroupName = $(this).val()
-            })
-          }
-
-        function studentSearch() {
-          const path = "{{ route('expense-student-search') }}"
-
-          $('#student').typeahead({
-            minLength: 2,
-            autoSelect: true,
-            highlight: true,
-            source: function (query, process) {
-              return $.get(path, { query: query }, function (data) {
-                return process(data)
-              })
-            },
-            updater: function (item) {
-              state.value.studentId = item.id
-              return item
-            }
-          })
-        }
-
-        onMounted(async () => {
-          state.value.loadingData = true
-          const res = await axios.get("/reviewExpenseData/{{ $expense->id }}")
-          state.value.selectedStudents = res.data.students
-          totalAmount()
-          state.value.loadingData = false
-          studentSearch()
-          initDatepicker()
-        })
-
-        function groupExpenseTypeChange(event) {
-          const selected = event.target.selectedOptions[0].value
-          state.value.expenseType = selected === 'Theory' ? 'Choose Highway Code...' : selected
-        }
-
-        function onStudentChange(event) {
-          state.value.studentName = event.target.value
-        }
-
-        function expenseGroupNameChange(event) {
-          state.value.expenseGroupName = event.target.value
-        }
-
-        function notification(text, icon) {
-          Swal.fire({
-            toast: true,
-            position: "top-end",
-            html: text,
-            showConfirmButton: false,
-            timer: 5500,
-            timerProgressBar: true,
-            icon,
-            didOpen: (toast) => {
-              toast.onmouseenter = Swal.stopTimer
-              toast.onmouseleave = Swal.resumeTimer
-            }
-          })
-        }
-
-        function showAlert(message = '', detail = '', options = {}) {
-          const {
-            icon = 'info',
-            toast = true,
-            confirmText = 'OK',
-            showCancel = false,
-            cancelText = 'Cancel'
-          } = options
-
-          return Swal.fire({
-            icon,
-            title: message,
-            text: detail,
-            toast,
-            position: toast ? 'top-end' : 'center',
-            showConfirmButton: !toast,
-            confirmButtonText: confirmText,
-            showCancelButton: false,
-            cancelButtonText: cancelText,
-            timer: toast ? 3000 : undefined,
-            timerProgressBar: toast,
-            didOpen: (toastEl) => {
-              if (toast) {
-                toastEl.addEventListener('mouseenter', Swal.stopTimer)
-                toastEl.addEventListener('mouseleave', Swal.resumeTimer)
-              }
-            }
-          })
-        }
-
-        function addStudentToGroup() {
-            hasError.value = false;
-
-            if (!state.value.studentName) {
-                notification('Student name must be filled', 'error');
-                return hasError.value = true;
-            }
-
-            if (!state.value.expenseType) {
-                notification('Expense Type must be filled', 'error');
-                return hasError.value = true;
-            }
-
-            const student = state.value.studentName.trim().split(" ");
-            const fname = student[0] || '';
-            const mname = student[1] || '';
-            const sname = student[2] || '';
-
-            const alreadyInList = state.value.selectedStudents.some(
-                item => item.studentId === state.value.studentId
-            );
-
-            if (alreadyInList) {
-                notification('Student already in list', 'error');
-                return hasError.value = true;
-            }
-
-            axios.post('/checkStudent', {
-                student: state.value.studentId,
-                expenseType: state.value.expenseType
-            }).then(response => {
-                const { feedback, message } = response.data;
-
-                if (feedback === "success") {
-                    state.value.selectedStudents.push({
-                        studentId: state.value.studentId,
-                        fname,
-                        mname,
-                        sname,
-                        expenses: [
-                            {
-                                pivot: {
-                                    expense_type: state.value.expenseType,
-                                    repeat: 0
-                                }
-                            }
-                        ]
-                    });
-
-                    state.value.studentName = '';
-                    state.value.studentId = '';
-                    totalAmount();
-                    notification(message, 'success');
-
-                    console.log('Expense data loaded:', state.value.selectedStudents)
-
-
-                } else if (feedback === "alreadyExists") {
-                    Swal.fire({
-                        title: 'Student repeating?',
-                        text: message,
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonText: 'Continue',
-                        cancelButtonText: 'Cancel',
-                        reverseButtons: true
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            state.value.selectedStudents.push({
-                                studentId: state.value.studentId,
-                                fname,
-                                mname,
-                                sname,
-                                expenses: [
-                                    {
-                                        pivot: {
-                                            expense_type: state.value.expenseType,
-                                            repeat: 1
-                                        }
-                                    }
-                                ]
-                            });
-
-                            state.value.studentName = '';
-                            state.value.studentId = '';
-                            totalAmount();
-                            notification('Student added despite repeat', 'info');
-
-                    console.log('Expense data loaded:', state.value.selectedStudents)
-
-                        }
-                    });
-                } else {
-                    notification(message, 'error');
-                }
-            }).catch(error => {
-                console.error(error);
-                notification('Something went wrong. Please try again.', 'error');
-            });
-        }
-
-
-        function removeStudentFromGroup(index) {
-          if (state.value.selectedStudents.length <= 1) {
-            showAlert('List can not be empty', 'You must have at least one student in the group.', {
-              toast: false,
-              icon: 'error',
-              confirmText: 'Ok'
-            })
-            return
-          }
-
-          state.value.selectedStudents.splice(index, 1)
-          totalAmount()
-        }
-
-        function removeStudentFromList(studentId, index) {
-          if (state.value.selectedStudents.length <= 1) {
-            showAlert('List can not be empty', 'You must have at least one student in the group.', {
-              toast: false,
-              icon: 'error',
-              confirmText: 'Ok'
-            })
-            return
-          }
-
-          axios.post('/removeStudent', {
-            student: studentId,
-            expenseId: state.value.expenseId
-          }).then(response => {
-            if (response.status === 200) {
-              removeStudentFromGroup(index)
-              notification('Student removed successfully', 'success')
-            } else {
-              notification('Error removing student', 'error')
-            }
-          })
-        }
-
-        const updateExpense = () => {
-          if (state.value.selectedStudents.length === 0) {
-            notification('Student list must not be empty', 'error')
-            return
-          }
-
-          if (!state.value.expenseGroupName || state.value.amount <= 0) {
-            notification('Expense Group Name, Payment Method and Amount must be filled and Amount must be greater than 0', 'error')
-            return
-          }
-
-          state.value.isLoading = true
-
-          axios.post('/updateExpense', {
-            expenseId: state.value.expenseId,
-            students: state.value.selectedStudents,
-            expenseGroupName: state.value.expenseGroupName,
-            expenseDescription: state.value.expenseDescription,
-            expenseGroupType: state.value.expenseGroupType,
-            expenseAmount: state.value.amount
-          }).then(response => {
-            if (response.status === 200) {
-              notification('Expense updated successfully', 'success')
-
-              setTimeout(() => {
-                window.location.replace('/expenses')
-              }, 1500)
-
-            } else {
-              notification('Something went wrong...', 'error')
-            }
-          }).catch(() => {
-            notification('Something went wrong...', 'error')
-          }).finally(() => {
-            state.value.isLoading = false
-          })
-        }
-
-        return {
-          addStudentToGroup,
-          removeStudentFromGroup,
-          removeStudentFromList,
-          updateExpense,
-          studentSearch,
-          onStudentChange,
-          expenseGroupNameChange,
-          groupExpenseTypeChange,
-          isRequired,
-          formatter,
-          state,
-          hasError,
-          groupExpenseTypeOptions,
-          totalAmount
-        }
+    const addStudentToGroup = () => {
+      if (!state.value.studentName || !state.value.expenseTypesOption) {
+        Swal.fire('Error', 'Fill student and expense option', 'error');
+        return;
       }
-    })
 
-    app.mount('#expense')
-    </script>
+      const optionId = state.value.expenseTypesOption;
+      const option = selectedExpenseType.value?.expense_type_options?.find(opt => opt.id == optionId) || {};
+      const [fname, mname, sname] = state.value.studentName.trim().split(" ");
 
+      if (state.value.selectedStudents.some(s => s.studentId == state.value.studentId)) {
+        Swal.fire('Error', 'Student already in list', 'error');
+        return;
+      }
 
+      axios.post('/checkStudent', {
+        student: state.value.studentId,
+        expenseTypesOption: optionId
+      }).then(({ data }) => {
+        const add = (repeat) => {
+          state.value.selectedStudents.push({
+            studentId: state.value.studentId,
+            fname, mname, sname,
+            expenseTypesOption: optionId,
+            expenseTypesOptionName: option.name || '',
+            expenseTypesOptionAmount: option.amount_per_student || 0,
+            expenses: [{ pivot: { expense_type: option.id, amount: option.amount_per_student, repeat } }]
+          });
+          state.value.studentName = '';
+          state.value.studentId = '';
+          totalAmount();
+        };
+
+        if (data.feedback === "alreadyExists") {
+          Swal.fire({
+            title: 'Student repeating?',
+            text: data.message,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Continue',
+            cancelButtonText: 'Cancel'
+          }).then(res => { if (res.isConfirmed) add(1); });
+        } else if (data.feedback === "success") {
+          add(0);
+        } else {
+          Swal.fire('Error', data.message, 'error');
+        }
+      });
+    };
+
+    const removeStudentFromList = (studentId, index) => {
+      if (state.value.selectedStudents.length <= 1) {
+        Swal.fire('Error', 'List cannot be empty', 'error');
+        return;
+      }
+      axios.post('/removeStudent', { student: studentId, expenseId: state.value.expenseId })
+        .then(() => {
+          state.value.selectedStudents.splice(index, 1);
+          totalAmount();
+          Swal.fire('Removed', 'Student removed', 'success');
+        });
+    };
+
+    const updateExpense = () => {
+      if (!state.value.selectedStudents.length) {
+        Swal.fire('Error', 'List must not be empty', 'error');
+        return;
+      }
+      state.value.isLoading = true;
+      state.value.isSubmitButtonDisabled = true;
+
+      axios.post('/updateExpense', {
+        expenseId: state.value.expenseId,
+        students: state.value.selectedStudents,
+        expenseGroupName: formatDateForDatabase(state.value.expenseGroupName),
+        expenseDescription: state.value.expenseDescription,
+        expenseGroupType: state.value.expenseGroupType
+      }).then(() => {
+        Swal.fire('Success', 'Expense updated', 'success').then(() => {
+          window.location.href = '/expenses';
+        });
+      }).catch(() => {
+        Swal.fire('Error', 'Error updating expense', 'error');
+      }).finally(() => {
+        state.value.isLoading = false;
+        state.value.isSubmitButtonDisabled = false;
+      });
+    };
+
+    // Helper function to ensure consistent date format
+    function formatDateForDatabase(dateInput) {
+        const date = new Date(dateInput);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${day}/${month}/${year}`; // MySQL DATE format
+    }
+
+    onMounted(() => {
+        getExpenseTypes();
+        fetchExistingStudents();
+        studentSearch();
+
+        // Initialize once
+        $('#expense_group_name').datepicker({
+            format: 'dd/mm/yyyy',
+            autoclose: true,
+            todayHighlight: true
+        }).on('changeDate', function() {
+            state.value.expenseGroupName = $('#expense_group_name').val();
+        });
+
+        // Set initial date
+        const today = new Date();
+        $('#expense_group_name').datepicker('setDate', today);
+
+        // Also update your Vue state
+        const day = String(today.getDate()).padStart(2, '0');
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const year = today.getFullYear();
+        state.value.expenseGroupName = `${day}/${month}/${year}`;
+    });
+
+    return {
+      state, formatter, selectedExpenseType, expenseTypes,
+      totalAmount, studentSearch, addStudentToGroup, removeStudentFromList, updateExpense,
+    };
+  }
+});
+app.mount('#expense');
+</script>
 @endsection
-
