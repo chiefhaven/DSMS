@@ -203,8 +203,10 @@ const app = createApp({
         const getExpenseTypeNames = (expenseType) => {
             if (!expenseType) return '-';
             // If it’s an array:
-            if (Array.isArray(expenseType)) {
-              return expenseType.map(type => type.name).join(', ') || '-';
+            if (Array.isArray(expenseTypes.value)) {
+                const type = expenseTypes.value.find(type => type.id === expenseType);
+                if (!type) return '-';
+                return type.name || '-';
             }
             // If it’s just an ID or string:
             return expenseType.name || '-';
