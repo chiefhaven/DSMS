@@ -104,7 +104,7 @@
         let polyline = null;
         let path = [];
 
-        const vehicleId = 123; // your vehicle ID here
+        const vehicleId = "{{ $fleet->id }}";
         const totalDistanceKm = ref(0);
         const liveSpeedKmh = ref(0);
 
