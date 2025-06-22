@@ -98,106 +98,100 @@
 <script setup>
 
     const vehicleRouteApp = createApp({
-      setup() {
-        let map;
-        let marker = null;
-        let polyline = null;
-        let path = [];
+        setup() {
+          let map;
+          let marker = null;
+          let polyline = null;
+          let path = [];
 
-        const vehicleId = "{{ $fleet->id }}";
-        const totalDistanceKm = ref(0);
-        const liveSpeedKmh = ref(0);
+          const vehicleId = vehicleData.id;
+          const vehicleName = `${vehicleData.brandModel} (${vehicleData.regNumber})`;
 
-        // Utility to compute distance between two lat/lng (in km)
-        const haversine = (lat1, lon1, lat2, lon2) => {
-          const toRad = x => (x * Math.PI) / 180;
-          const R = 6371; // Radius of Earth in km
-          const dLat = toRad(lat2 - lat1);
-          const dLon = toRad(lon2 - lon1);
-          const a =
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(toRad(lat1)) *
-              Math.cos(toRad(lat2)) *
-              Math.sin(dLon / 2) *
-              Math.sin(dLon / 2);
-          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-          return R * c;
-        };
+          const totalDistanceKm = ref(0);
+          const liveSpeedKmh = ref(0);
 
-        const initMap = () => {
-          map = L.map('vehicleRouteMap').setView([-13.9626, 33.7741], 12);
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-        };
+          const haversine = (lat1, lon1, lat2, lon2) => {
+            const toRad = x => (x * Math.PI) / 180;
+            const R = 6371;
+            const dLat = toRad(lat2 - lat1);
+            const dLon = toRad(lon2 - lon1);
+            const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
+            return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+          };
 
-        const updateRoute = () => {
-          axios.get(`/api/show-vehicle-geo-data/${vehicleId}`).then(res => {
-            const points = res.data.map(p => ({
-              lat: p.latitude,
-              lng: p.longitude,
-              time: new Date(p.created_at)
-            }));
-            if (points.length === 0) return;
+          const initMap = () => {
+            map = L.map('vehicleRouteMap').setView([-13.9626, 33.7741], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+          };
 
-            // Update path
-            path = points.map(p => [p.lat, p.lng]);
+          const updateRoute = () => {
+            axios.get(`/api/show-vehicle-geo-data/${vehicleId}`)
+              .then(res => {
+                const points = res.data.map(p => ({
+                  lat: p.latitude,
+                  lng: p.longitude,
+                  time: new Date(p.created_at)
+                }));
+                if (points.length < 1) return;
 
-            // Compute total distance
-            let dist = 0;
-            for (let i = 1; i < points.length; i++) {
-              dist += haversine(points[i - 1].lat, points[i - 1].lng, points[i].lat, points[i].lng);
-            }
-            totalDistanceKm.value = dist.toFixed(2);
+                path = points.map(p => [p.lat, p.lng]);
 
-            // Compute live speed (if at least 2 points)
-            if (points.length >= 2) {
-              const last = points[points.length - 1];
-              const prev = points[points.length - 2];
-              const d = haversine(prev.lat, prev.lng, last.lat, last.lng); // km
-              const dt = (last.time - prev.time) / 1000; // seconds
-              const speed = dt > 0 ? (d / dt) * 3600 : 0; // km/h
-              liveSpeedKmh.value = speed.toFixed(2);
-            } else {
-              liveSpeedKmh.value = 0;
-            }
+                let dist = 0;
+                for (let i = 1; i < points.length; i++) {
+                  dist += haversine(points[i - 1].lat, points[i - 1].lng, points[i].lat, points[i].lng);
+                }
+                totalDistanceKm.value = dist.toFixed(2);
 
-            // Remove old polyline
-            if (polyline) polyline.remove();
-            polyline = L.polyline(path, {
-              color: 'blue',
-              weight: 6
-            }).addTo(map);
+                if (points.length >= 2) {
+                  const last = points.at(-1);
+                  const prev = points.at(-2);
+                  const d = haversine(prev.lat, prev.lng, last.lat, last.lng);
+                  const dt = (last.time - prev.time) / 1000;
+                  liveSpeedKmh.value = dt > 0 ? (d / dt * 3600).toFixed(2) : 0;
+                } else {
+                  liveSpeedKmh.value = 0;
+                }
 
-            map.fitBounds(polyline.getBounds());
+                if (polyline) polyline.remove();
+                polyline = L.polyline(path, { color: 'blue', weight: 6 }).addTo(map);
+                map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
 
-            // Update or create marker at last point
-            const lastLatLng = path[path.length - 1];
-            if (marker) {
-              marker.setLatLng(lastLatLng)
-                .bindPopup(`Vehicle ID: ${vehicleId}<br>Speed: ${liveSpeedKmh.value} km/h`)
-                .openPopup();
-            } else {
-              marker = L.marker(lastLatLng)
-                .addTo(map)
-                .bindPopup(`Vehicle ID: ${vehicleId}<br>Speed: ${liveSpeedKmh.value} km/h`)
-                .openPopup();
-            }
-          }).catch(err => {
-            console.error('Error fetching vehicle route:', err);
+                const lastLatLng = path.at(-1);
+                const popupHtml = `
+                  <strong>${vehicleName}</strong><br>
+                  Speed: ${liveSpeedKmh.value} km/h<br>
+                  Distance: ${totalDistanceKm.value} km
+                `;
+
+                if (marker) {
+                  marker.setLatLng(lastLatLng)
+                    .bindPopup(popupHtml)
+                    .openPopup();
+                } else {
+                  marker = L.marker(lastLatLng).addTo(map)
+                    .bindPopup(popupHtml)
+                    .openPopup();
+                }
+              })
+              .catch(err => console.error(err));
+          };
+
+          onMounted(() => {
+            initMap();
+            updateRoute();
+            setInterval(updateRoute, 5000);
           });
-        };
 
-        onMounted(() => {
-          initMap();
-          updateRoute();
-          setInterval(updateRoute, 5000); // Update every 5 sec
-        });
+          return {
+            vehicleName,
+            totalDistanceKm,
+            liveSpeedKmh
+          };
+        }
+      });
 
-        return {
-          totalDistanceKm,
-          liveSpeedKmh
-        };
-      }
-    });
+      vehicleRouteApp.mount('#vehicleTracker');
+
 
     vehicleRouteApp.mount('#vehicleRouteApp');
 </script>
