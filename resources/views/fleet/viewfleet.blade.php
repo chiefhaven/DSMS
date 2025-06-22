@@ -193,11 +193,6 @@
             liveSpeedKmh
           };
         }
-      });
-
-      vehicleRouteApp.mount('#vehicleTracker');
-
-
-    vehicleRouteApp.mount('#vehicleRouteApp');
+      }); vehicleRouteApp.mount('#vehicleRouteApp');
 </script>
 @endsection
