@@ -138,8 +138,6 @@
             }));
             if (points.length === 0) return;
 
-            console.log(points)
-
             // Update path
             path = points.map(p => [p.lat, p.lng]);
 
@@ -166,7 +164,7 @@
             if (polyline) polyline.remove();
             polyline = L.polyline(path, {
               color: 'blue',
-              weight: 4
+              weight: 6
             }).addTo(map);
 
             map.fitBounds(polyline.getBounds());
