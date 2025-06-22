@@ -278,15 +278,6 @@
                 });
             }
 
-            // Helper function to ensure consistent date format
-            function formatDateForDatabase(dateInput) {
-                const date = new Date(dateInput);
-                const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const day = String(date.getDate()).padStart(2, '0');
-                return `${day}/${month}/${year}`; // MySQL DATE format
-            }
-
             function removeStudentFromGroup(index) {
 
                 state.value.selectedStudents.splice(index, 1)
@@ -322,7 +313,7 @@
 
                     const response = await axios.post('/storeexpense', {
                         students: state.value.selectedStudents,
-                        expenseGroupName: formatDateForDatabase(state.value.expenseGroupName),
+                        expenseGroupName: state.value.expenseGroupName,
                         expenseDescription: state.value.expenseDescription,
                         expenseGroupType: state.value.expenseGroupType,
                     });
@@ -399,24 +390,21 @@
             onMounted(() => {
                 getExpenseTypes();
 
-                // Initialize once
                 $('#expense_group_name').datepicker({
                     format: 'dd/mm/yyyy',
                     autoclose: true,
                     todayHighlight: true
-                }).on('changeDate', function() {
-                    state.value.expenseGroupName = $('#expense_group_name').val();
-                });
+                  }).on('changeDate', function() {
+                    state.value.expenseGroupName = $(this).val();
+                  });
 
-                // Set initial date
-                const today = new Date();
-                $('#expense_group_name').datepicker('setDate', today);
+                  const today = new Date();
+                  $('#expense_group_name').datepicker('setDate', today);
 
-                // Also update your Vue state
-                const day = String(today.getDate()).padStart(2, '0');
-                const month = String(today.getMonth() + 1).padStart(2, '0');
-                const year = today.getFullYear();
-                state.value.expenseGroupName = `${day}/${month}/${year}`;
+                  const day = String(today.getDate()).padStart(2, '0');
+                  const month = String(today.getMonth() + 1).padStart(2, '0');
+                  const year = today.getFullYear();
+                  state.value.expenseGroupName = `${day}/${month}/${year}`;
             });
 
             const getExpenseTypes = () => {

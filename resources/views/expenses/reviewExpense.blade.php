@@ -31,7 +31,7 @@
           <ul class="list-group list-group-flush">
             <li class="list-group-item d-flex justify-content-between align-items-center">
               <span class="fw-bold">Booking Date:</span>
-              <span>@{{ state.expenseBookingDate }}</span>
+              <span>@{{ formatDate(state.expenseBookingDate) }}</span>
             </li>
             <li class="list-group-item d-flex justify-content-between align-items-center">
               <span class="fw-bold">Type:</span>
@@ -184,7 +184,8 @@ const app = createApp({
       expenseTypes.value.find(et => et.id === state.value.expenseGroupType)?.name || 'N/A'
     );
 
-    const formatDate = (dateString) => dayjs(dateString).format('DD MM, YYYY');
+    const formatDate = (dateString) =>
+        dayjs(dateString, 'DD/MM/YYYY').format('DD MMM, YYYY');
 
     const getExpenseTypes = async () => {
       const res = await axios.get('/api/fetch-expense-types');

@@ -246,10 +246,8 @@ class ExpenseController extends Controller
         $user = Auth::user();
         $admin = Administrator::findOrFail($user->administrator_id);
 
-        $expenseGroupName = Carbon::createFromFormat($request->input('expenseGroupName'))->format('m/d/Y');
-
         $expense = new Expense();
-        $expense->group = $expenseGroupName;
+        $expense->group = $post['expenseGroupName'];
         $expense->group_type = $post['expenseGroupType'] ?? null;
         $expense->description = $post['expenseDescription'] ?? null;
         $expense->amount = 0;
@@ -259,9 +257,9 @@ class ExpenseController extends Controller
         foreach ($students as $data) {
             $student = havenUtils::student($data['studentName']);
             $student->expenses()->attach($expense->id, [
-                'expense_type' => $data['expenses'][0]['pivot']['expense_type'],
+                'expense_type' => $data['expenseTypesOption'],
                 'repeat'       => $data['expenses'][0]['pivot']['repeat'] ?? 0,
-                'amount'       => $data['expenses'][0]['pivot']['amount'] ?? 0,
+                'amount'       => $data['expenseTypesOptionAmount'] ?? 0,
             ]);
         }
 
@@ -367,11 +365,6 @@ class ExpenseController extends Controller
                 'students'          => 'required|array|min:1'
             ], $messages);
 
-            // Check if the user has permission to update the expense
-            if (!auth()->user()->hasAnyRole(['superAdmin', 'admin'])) {
-                return response()->json(['message' => 'Unauthorized'], 403);
-            }
-
             DB::beginTransaction();
 
             $post = $request->all();
@@ -384,11 +377,8 @@ class ExpenseController extends Controller
                 throw new ModelNotFoundException('Expense not found');
             }
 
-            $expenseGroupName = Carbon::createFromFormat('d/m/Y', $request->input('expenseGroupName'))->format('d/m/Y');
-
-
             // Update expense
-            $expense->group = $expenseGroupName;
+            $expense->group = $post['expenseGroupName'];
             $expense->group_type = $post['expenseGroupType'] ?? null;
             $expense->description = $post['expenseDescription'] ?? null;
             $expense->amount = 0;
