@@ -122,6 +122,47 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    $(document).ready(function() {
+        // Initialize Select2 with floating label support
+        $('.select2-instructor').select2({
+            placeholder: "Select instructor...",
+            allowClear: true,
+            theme: 'bootstrap4',
+            templateResult: formatInstructor,
+            templateSelection: formatInstructorSelection,
+            dropdownParent: $('#modal-block-addfleet'),
+            width: '100%'
+        });
+
+        // Handle floating label with Select2
+        $('.select2-instructor').on('change', function() {
+            if ($(this).val()) {
+                $(this).addClass('has-value');
+            } else {
+                $(this).removeClass('has-value');
+            }
+        }).trigger('change');
+
+        function formatInstructor(instructor) {
+            if (!instructor.id) return instructor.text;
+
+            return $(`
+                <div class="d-flex align-items-center">
+                    <img src="${instructor.element.dataset.avatar}" class="rounded-circle me-3" width="30" height="30">
+                    <div>
+                        <div class="fw-semibold">${instructor.text}</div>
+                    </div>
+                </div>
+            `);
+        }
+
+        function formatInstructorSelection(instructor) {
+            if (!instructor.id) return instructor.text;
+            return $(`<span>${instructor.text}</span>`);
+        }
+    });
+</script>
+<script>
   document.querySelectorAll('.delete-confirm').forEach(button => {
     button.addEventListener('click', function () {
       const carName = this.getAttribute('data-car');

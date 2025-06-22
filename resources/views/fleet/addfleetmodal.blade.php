@@ -55,14 +55,21 @@
                             <!-- Instructor Selection -->
                             <div class="col-md-6">
                                 <div class="form-floating mb-4">
-                                    <select class="form-select" id="instructor" name="instructor" data-placeholder="Select instructor">
+                                    <select class="form-select select2-instructor" id="instructor" name="instructor" data-placeholder=" " style="width: 100%;">
                                         <option value=""></option>
                                         @foreach ($instructors as $instructor)
-                                            <option value="{{ $instructor->id }}">{{ $instructor->fname }} {{ $instructor->sname }}</option>
+                                            <option value="{{ $instructor->id }}"
+                                                @if(old('instructor') == $instructor->id) selected @endif
+                                                data-avatar="{{ $instructor->profile_photo_url ?? asset('path/to/default/avatar.jpg') }}">
+                                                {{ $instructor->fname }} {{ $instructor->sname }}
+                                            </option>
                                         @endforeach
                                     </select>
-                                    <label for="instructor">Assigned Instructor</label>
+                                    <label for="instructor" class="fw-semibold">
+                                        <i class="fa fa-user-tie me-1"></i> Assigned Instructor
+                                    </label>
                                 </div>
+                                <div class="form-text text-muted ps-3">Leave blank if no instructor assigned</div>
                             </div>
                         </div>
 
