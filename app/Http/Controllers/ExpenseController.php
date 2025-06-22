@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateexpenseRequest;
 use App\Models\Administrator;
 use App\Models\ExpensePayment;
 use App\Models\ExpenseType;
+use App\Models\ExpenseTypeOption;
 use App\Models\Setting;
 use App\Models\Student;
 use App\Models\User;
@@ -719,6 +720,12 @@ class ExpenseController extends Controller
         $expensePayments = ExpensePayment::with(['paymentUser.administrator', 'student', 'expense'])
         ->where('status', 1);
 
+        $expenseTypeOptions = ExpenseTypeOption::with('expenseType')->get();
+
+        $optionToTypeName = $expenseTypeOptions->mapWithKeys(fn ($option) => [
+            $option->id => $option?->name ?? '-',
+        ]);
+
         if ($search) {
             $expensePayments->where(function($q) use ($search) {
                 $q->whereHas('expense', function ($q2) use ($search) {
@@ -739,7 +746,7 @@ class ExpenseController extends Controller
                 : '-'
         )
         ->addColumn('group', fn ($payment) => $payment->expense ? $payment->expense->group : '-')
-        ->addColumn('expense_type', fn ($payment) => $payment->expense_type ?? '-')
+        ->addColumn('expense_type', fn ($payment) => $optionToTypeName[$payment->expense_type] ?? '-')
         ->addColumn('amount', fn ($payment) => '<div class="text-end"><strong>K' . number_format($payment->amount, 2) . '</strong></div>')
         ->addColumn('payment_method', fn ($payment) => $payment->payment_method ?? '-')
         ->addColumn('date_paid', fn ($payment) => $payment->paid_at ? \Carbon\Carbon::parse($payment->paid_at)->format('j F, Y') : '-')
