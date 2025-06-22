@@ -51,8 +51,8 @@
                             <tr>
                             <th class="text-center" style="min-width: 7em;">Actions</th>
                             <th style="min-width: 12rem;">Type</th>
-                            <th style="min-width: 15rem;">Description</th>
-                            <th style="min-width: 15rem;">Options</th>
+                            <th style="min-width: 10rem;">Description</th>
+                            <th style="min-width: 18rem;">Options</th>
                             <th class="text-center" style="min-width: 7rem;">Status</th>
                             </tr>
                         </thead>
