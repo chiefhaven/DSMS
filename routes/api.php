@@ -93,9 +93,12 @@ Route::post('/studentExpensePayment/{student}/{expense}', [ExpenseController::cl
 
 Route::get('/getPaymentMethods', [PaymentMethodController::class, 'fetchPaymentMethods'])->name('paymentMethods')->middleware('auth:sanctum');
 
-Route::post('/save-vehicle-location', [VehicleTrackerController::class, 'store'])->name('vehicle-location')->middleware('auth:sanctum');
+Route::post('/save-vehicle-location', [VehicleTrackerController::class, 'store'])->name('save-vehicle-location')->middleware('auth:sanctum');
 
-Route::get('/get-all-vehicle-locations', [VehicleTrackerController::class, 'show'])->name('vehicle-location')->middleware('auth:sanctum');
+Route::get('/get-all-vehicle-locations', [VehicleTrackerController::class, 'show'])->name('vehicle-locations')->middleware('auth:sanctum');
+
+Route::get('/show-vehicle-geo-data/{vehicleId}', [VehicleTrackerController::class, 'showVehicleGeoData'])->name('vehicle-location')->middleware('auth:sanctum');
+
 
 
 
