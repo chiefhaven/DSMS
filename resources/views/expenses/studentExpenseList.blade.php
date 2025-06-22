@@ -47,7 +47,7 @@
                                         @{{ expense.group }}
                                     </td>
                                     <td>
-                                        @{{ getExpenseTypeNames(expense.pivot.expense_type) }}<br>
+                                        @{{ getExpenseTypeName(expense.pivot?.expense_type) }}<br>
                                         <span
                                           v-if="expense.pivot?.repeat === 1"
                                           class="badge bg-danger"
@@ -193,24 +193,18 @@ const app = createApp({
 
         const getExpenseTypes = async () => {
             try {
-                const res = await axios.get('/api/fetch-expense-types');
-                expenseTypes.value = res.data;
+              const res = await axios.get('/api/fetch-expense-types');
+              expenseTypes.value = res.data;
             } catch (error) {
-                console.error('Failed to fetch expense types:', error);
+              console.error('Failed to fetch expense types:', error);
             }
         };
 
-        const getExpenseTypeNames = (expenseType) => {
-            if (!expenseType) return '-';
-            // If it’s an array:
-            if (Array.isArray(expenseTypes.value)) {
-                const type = expenseTypes.value.find(type => type.id === expenseType);
-                if (!type) return '-';
-                return type.name || '-';
-            }
-            // If it’s just an ID or string:
-            return expenseType.name || '-';
-        }
+        const getExpenseTypeName = (expenseTypeId) => {
+            if (!expenseTypeId) return '-';
+            const type = expenseTypes.value.find(type => type.id === expenseTypeId);
+            return type?.name || '-';
+        };
 
         const submitPayment = async () => {
             if (isSubmitting.value) return;
