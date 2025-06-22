@@ -123,7 +123,7 @@ class VehicleTrackerController extends Controller
 
     public function showVehicleGeoData($vehicleId)
     {
-        $dataPoints = VehicleTracker::where('fleet_id', $vehicleId)
+        $dataPoints = VehicleTracker::where('fleet_id', 23)
         ->whereDate('created_at', Carbon::today())
         ->orderBy('created_at', 'asc')
         ->get(['latitude', 'longitude', 'created_at']);
