@@ -304,7 +304,7 @@ const app = createApp({
             submitPayment,
             cancel,
             isSubmitting,
-            getExpenseTypes,
+            getExpenseTypes
         }
     }
 })
