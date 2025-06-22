@@ -221,7 +221,7 @@ class FleetController extends Controller
         $fleet->save();
 
         // Redirect back with a success message
-        return redirect()->route('fleet')->with('message', $message ?? 'Fleet updated successfully!');
+        return redirect()->route('fleet.index')->with('message', $message ?? 'Fleet updated successfully!');
     }
 
     /**
