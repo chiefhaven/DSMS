@@ -47,7 +47,7 @@
                                         @{{ expense.group }}
                                     </td>
                                     <td>
-                                        @{{ expense.pivot?.expense_type || 'N/A' }}<br>
+                                        @{{ expense.pivot?.getExpenseTypeNames(expense.pivot.expense_type) ? '-' }}<br>
                                         <span
                                           v-if="expense.pivot?.repeat === 1"
                                           class="badge bg-danger"
@@ -55,7 +55,7 @@
                                           <small>Repeating</small>
                                         </span>
                                     </td>
-                                    <td>K@{{ formatCurrency(expense.amount) }}</td>
+                                    <td>K@{{ formatCurrency(expense.pivot?.amount) }}</td>
                                     <td>
                                         <span v-if="expense.approved" class="badge bg-success">Approved</span>
                                         <span v-else class="badge bg-warning">Pending</span>
@@ -185,9 +185,20 @@ const app = createApp({
             payment_method: '',
         })
 
+        const expenseTypes = ref([]);
+
         const formatCurrency = (value) => {
             return Number(value).toLocaleString('en-MW', { minimumFractionDigits: 2 })
         }
+
+        const getExpenseTypes = async () => {
+            try {
+                const res = await axios.get('/api/fetch-expense-types');
+                expenseTypes.value = res.data;
+            } catch (error) {
+                console.error('Failed to fetch expense types:', error);
+            }
+        };
 
 
         const submitPayment = async () => {
@@ -241,6 +252,7 @@ const app = createApp({
         onMounted(() => {
             nextTick(() => {
             });
+            getExpenseTypes();
         });
 
         const showAlert = (
@@ -287,7 +299,7 @@ const app = createApp({
             submitPayment,
             cancel,
             isSubmitting,
-
+            getExpenseTypes
         }
     }
 })
