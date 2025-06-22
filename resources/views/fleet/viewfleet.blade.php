@@ -103,6 +103,12 @@
           let polyline = null;
           let path = [];
 
+          const vehicleData = {
+            id: "{{ $fleet->id }}",
+            brandModel: "{{ $fleet->car_brand_model }}",
+            regNumber: "{{ $fleet->car_registration_number }}"
+          };
+
           const vehicleId = vehicleData.id;
           const vehicleName = `${vehicleData.brandModel} (${vehicleData.regNumber})`;
 
