@@ -43,8 +43,11 @@
       @forelse ($fleet as $car)
         <div class="col-md-6 col-xl-4">
           <div class="block block-rounded block-link-shadow h-100">
-            <div class="block-content p-0 overflow-hidden">
-              <img class="img-fluid" src="{{ asset('public/media/fleet/' . $car->fleet_image) }}" alt="{{ $car->car_brand_model }}">
+            <div class="ratio ratio-16x9 bg-light">
+                <img src="{{ asset('public/media/fleet/' . $car->fleet_image) }}"
+                     class="img-fluid object-fit-cover"
+                     alt="{{ $car->car_brand_model }}"
+                     onerror="this.onerror=null; this.src='{{ asset('path/to/default/image.jpg') }}'">
             </div>
             <div class="block-content block-content-full bg-body-light">
               <div class="d-flex justify-content-between align-items-center mb-2">
