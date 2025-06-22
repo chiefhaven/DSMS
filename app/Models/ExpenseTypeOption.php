@@ -19,6 +19,6 @@ class ExpenseTypeOption extends Model
 
     public function expenseType()
     {
-        return $this->belongsTo(expenseType::class, 'expense_type_id');
+        return $this->belongsTo(ExpenseType::class, 'expense_type_id'); //case sensitivity
     }
 }
