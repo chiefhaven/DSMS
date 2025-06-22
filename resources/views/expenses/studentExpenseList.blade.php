@@ -47,7 +47,7 @@
                                         @{{ expense.group }}
                                     </td>
                                     <td>
-                                        @{{ getExpenseTypeNames(expense.pivot?.expense_type || '-') }}<br>
+                                        @{{ getExpenseTypeNames(expense.pivot?.expense_type) }}<br>
                                         <span
                                           v-if="expense.pivot?.repeat === 1"
                                           class="badge bg-danger"
@@ -200,6 +200,15 @@ const app = createApp({
             }
         };
 
+        const getExpenseTypeNames = (expenseType) => {
+            if (!expenseType) return '-';
+            // If it’s an array:
+            if (Array.isArray(expenseType)) {
+              return expenseType.map(type => type.name).join(', ') || '-';
+            }
+            // If it’s just an ID or string:
+            return expenseType.name || '-';
+        }
 
         const submitPayment = async () => {
             if (isSubmitting.value) return;
@@ -299,7 +308,8 @@ const app = createApp({
             submitPayment,
             cancel,
             isSubmitting,
-            getExpenseTypes
+            getExpenseTypes,
+            getExpenseTypeNames
         }
     }
 })
