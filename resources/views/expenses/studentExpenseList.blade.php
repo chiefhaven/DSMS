@@ -116,7 +116,9 @@
 
                     <div class="mb-3">
                         <label class="form-label">Expense Type</label>
-                        <input type="text" class="form-control" :value="selectedExpense.pivot?.expense_type || 'N/A'" disabled />
+                        <input type="text" class="form-control"
+                            :value="`${getExpenseOptionName(selectedExpense.pivot?.expense_type)}`"
+                            disabled />
                     </div>
 
                     <div class="mb-3">
@@ -177,135 +179,157 @@
 const app = createApp({
     setup() {
         const student = ref(@json($student))
+
         const showPaymentForm = ref(false)
         const selectedExpense = ref({})
         const isSubmitting = ref(false)
         const form = reactive({
-            amount: 0,
-            payment_method: '',
+        amount: 0,
+        payment_method: '',
         })
 
-        const expenseTypes = ref([]);
+        //Expense types and lookup maps
+        const expenseTypes = ref([])
+        const optionIdToOptionName = ref({})
+        const optionIdToTypeName = ref({})
 
+        //Format currency helper
         const formatCurrency = (value) => {
-            return Number(value).toLocaleString('en-MW', { minimumFractionDigits: 2 })
+        return Number(value).toLocaleString('en-MW', { minimumFractionDigits: 2 })
         }
 
+        //Fetch expense types and build maps
         const getExpenseTypes = async () => {
-            try {
-              const res = await axios.get('/api/fetch-expense-types');
-              expenseTypes.value = res.data;
-            } catch (error) {
-              console.error('Failed to fetch expense types:', error);
-            }
-        };
+        try {
+            const res = await axios.get('/api/fetch-expense-types')
+            expenseTypes.value = res.data
 
-        const getExpenseTypeName = (expenseTypeId) => {
-            if (!expenseTypeId) return '-';
-            const type = expenseTypes.value.flatMap(et => et.expense_type_options).find(opt => opt.id === expenseTypeId) || {};
-            return type?.name || '-';
-        };
+            const optionNameMap = {}
+            const typeNameMap = {}
 
+            res.data.forEach(type => {
+            type.expense_type_options.forEach(opt => {
+                optionNameMap[opt.id] = opt.name
+                typeNameMap[opt.id] = type.name
+            })
+            })
+
+            optionIdToOptionName.value = optionNameMap
+            optionIdToTypeName.value = typeNameMap
+
+        } catch (error) {
+            console.error('Failed to fetch expense types:', error)
+        }
+        }
+
+        //Lookup helpers
+        const getExpenseOptionName = (id) => optionIdToOptionName.value[id] || '-'
+        const getExpenseTypeName = (id) => optionIdToTypeName.value[id] || '-'
+
+        //Payment submit
         const submitPayment = async () => {
-            if (isSubmitting.value) return;
+        if (isSubmitting.value) return
 
-            isSubmitting.value = true;
-            NProgress.start();
+        isSubmitting.value = true
+        NProgress.start()
 
-            try {
-                const studentId = student.value.id
-                const expenseId = selectedExpense.value.id
+        try {
+            const studentId = student.value.id
+            const expenseId = selectedExpense.value.id
 
-                await axios.post(`/api/studentExpensePayment/${studentId}/${expenseId}`, form)
+            await axios.post(`/api/studentExpensePayment/${studentId}/${expenseId}`, form)
 
-                showAlert('Payment successful.','', {
-                    icon: 'success',
-                    toast: true,
-                })
-                window.location.reload()
-            } catch (error) {
-                console.error('Payment error:', error)
-                showAlert('Failed to make payment.', error.response.data.message, {
-                    icon: 'error',
-                    toast: false,
-                    confirmText: 'OK',
-                    showCancel: false
-                })
-            } finally {
-                isSubmitting.value = false;
-                NProgress.done();
-                cancel();
+            showAlert('Payment successful.', '', {
+            icon: 'success',
+            toast: true,
+            })
+            window.location.reload()
+        } catch (error) {
+            console.error('Payment error:', error)
+            showAlert('Failed to make payment.', error.response?.data?.message || '', {
+            icon: 'error',
+            toast: false,
+            confirmText: 'OK',
+            showCancel: false
+            })
+        } finally {
+            isSubmitting.value = false
+            NProgress.done()
+            cancel()
+        }
+        }
+
+        //Show payment form
+        const loadPaymentForm = (expense) => {
+        selectedExpense.value = expense
+        form.amount = parseFloat(expense.amount)
+        form.payment_method = ''
+
+        const modalEl = document.getElementById('paymentModal')
+        const modal = new bootstrap.Modal(modalEl)
+        modal.show()
+        }
+
+        //Close payment modal
+        const cancel = () => {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('paymentModal'))
+        if (modal) modal.hide()
+        }
+
+        //SweetAlert helper
+        const showAlert = (
+        message = '',
+        detail = '',
+        {
+            icon = 'info',
+            toast = true,
+            confirmText = 'OK',
+            showCancel = false,
+            cancelText = 'Cancel'
+        } = {}
+        ) => {
+        const baseOptions = {
+            icon,
+            title: message,
+            text: detail,
+            toast,
+            position: toast ? 'top-end' : 'center',
+            showConfirmButton: !toast,
+            confirmButtonText: confirmText,
+            showCancelButton: showCancel,
+            cancelButtonText: cancelText,
+            timer: toast ? 3000 : undefined,
+            timerProgressBar: toast,
+            didOpen: (toastEl) => {
+            if (toast) {
+                toastEl.addEventListener('mouseenter', Swal.stopTimer)
+                toastEl.addEventListener('mouseleave', Swal.resumeTimer)
+            }
             }
         }
 
-        const loadPaymentForm = (expense) => {
-            selectedExpense.value = expense
-            form.amount = parseFloat(expense.amount)
-            form.payment_method = ''
-
-            // Show modal
-            const modalEl = document.getElementById('paymentModal')
-            const modal = new bootstrap.Modal(modalEl)
-            modal.show()
+        return Swal.fire(baseOptions)
         }
 
-        const cancel = () => {
-            const modal = bootstrap.Modal.getInstance(document.getElementById('paymentModal'))
-            if (modal) modal.hide()
-        }
-
+        // ✅ On mount
         onMounted(() => {
-            nextTick(() => {
-            });
-            getExpenseTypes();
-        });
-
-        const showAlert = (
-                message = '', // title
-                detail = '',  // text
-                {
-                    icon = 'info',
-                    toast = true,
-                    confirmText = 'OK',
-                    showCancel = false,
-                    cancelText = 'Cancel'
-                } = {}
-            ) => {
-                const baseOptions = {
-                    icon,
-                    title: message,
-                    text: detail,
-                    toast,
-                    position: toast ? 'top-end' : 'center',
-                    showConfirmButton: !toast,
-                    confirmButtonText: confirmText,
-                    showCancelButton: showCancel,
-                    cancelButtonText: cancelText,
-                    timer: toast ? 3000 : undefined,
-                    timerProgressBar: toast,
-                    didOpen: (toastEl) => {
-                        if (toast) {
-                            toastEl.addEventListener('mouseenter', Swal.stopTimer);
-                            toastEl.addEventListener('mouseleave', Swal.resumeTimer);
-                        }
-                    }
-                };
-
-                return Swal.fire(baseOptions);
-            };
+            nextTick(() => {})
+            getExpenseTypes()
+        })
 
         return {
             student,
-            formatCurrency,
-            form,
             showPaymentForm,
             selectedExpense,
-            loadPaymentForm,
-            submitPayment,
-            cancel,
             isSubmitting,
+            form,
+            formatCurrency,
             getExpenseTypes,
             getExpenseTypeName,
+            getExpenseOptionName,
+            loadPaymentForm,
+            submitPayment,
+            cancel
         }
     }
 })
