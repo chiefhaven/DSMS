@@ -202,7 +202,7 @@ const app = createApp({
 
         const getExpenseTypeName = (expenseTypeId) => {
             if (!expenseTypeId) return '-';
-            const type = expenseTypes.value.expense_type_options.find(type => type.id === expenseTypeId);
+            const type = expenseTypes.value.flatMap(et => et.expense_type_options).find(opt => opt.id === expenseTypeId) || {};
             return type?.name || '-';
         };
 
