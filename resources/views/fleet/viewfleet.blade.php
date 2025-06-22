@@ -8,20 +8,26 @@
       <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">{{ $fleet->car_brand_model }}</h1>
       <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
         <ol class="breadcrumb">
-          <div class="dropdown d-inline-block">
-            <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span class="d-sm-inline-block">Action</span>
-            </button>
-            <div class="dropdown-menu dropdown-menu-end p-0">
-              <div class="p-2">
-                <!-- Edit Fleet Form -->
-                <form method="GET" action="/editfleet/{{ $fleet->id }}">
-                  @csrf
-                  <button class="dropdown-item" type="submit">Edit Fleet</button>
-                </form>
-              </div>
+            <div class="dropdown d-inline-block">
+                <button type="button" class="btn btn-primary rounded-pill px-3" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <i class="fa fa-cog me-1"></i>
+                  <span class="d-none d-sm-inline-block">Actions</span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end shadow-lg border-0" style="min-width: 200px;">
+                  <!-- Edit Fleet -->
+                  <form method="GET" action="/editfleet/{{ $fleet->id }}">
+                    @csrf
+                    <button class="dropdown-item d-flex align-items-center py-2" type="submit">
+                      <i class="fa fa-edit me-2 text-primary"></i>
+                      <span>Edit Fleet</span>
+                    </button>
+                  </form>
+                  <a class="dropdown-item d-flex align-items-center py-2" href="#">
+                    <i class="fa fa-user-plus me-2 text-success"></i>
+                    <span>Assign Instructor</span>
+                  </a>
+                </div>
             </div>
-          </div>
         </ol>
       </nav>
     </div>
@@ -123,14 +129,6 @@
         <a href="{{ route('fleet.index') }}" class="btn btn-outline-primary rounded-pill px-4">
             <i class="fa fa-arrow-left me-1"></i> Back to Fleet
         </a>
-        <div>
-            <a href="#" class="btn btn-warning rounded-pill px-4 me-2">
-                <i class="fa fa-edit me-1"></i> Edit Details
-            </a>
-            <a href="#" class="btn btn-danger rounded-pill px-4">
-                <i class="fa fa-trash me-1"></i> Remove Vehicle
-            </a>
-        </div>
     </div>
 </div>
 

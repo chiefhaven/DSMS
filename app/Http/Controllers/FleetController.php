@@ -95,7 +95,7 @@ class FleetController extends Controller
 
         if(isset($post['instructor'])){
 
-            $instructorID = havenUtils::instructorID($post['instructor']);
+            $instructorID = $post['instructor'];
 
             if(isset($instructorID)){
 

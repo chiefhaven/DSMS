@@ -8,8 +8,8 @@
       <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Fleet Management</h1>
       <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
         <ol class="breadcrumb">
-          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-block-addfleet">
-            <i class="fa fa-plus me-1"></i> Add New Vehicle
+          <button class="btn btn-primary  rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#modal-block-addfleet">
+            <i class="fa fa-plus me-1"></i> Add vehicle
           </button>
         </ol>
       </nav>
