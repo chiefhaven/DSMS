@@ -130,8 +130,6 @@ class VehicleTrackerController extends Controller
             ->get([
                 'latitude',
                 'longitude',
-                'speed',
-                'distance',
                 'created_at'
             ]);
 
