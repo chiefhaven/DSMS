@@ -47,14 +47,15 @@ class ExpenseTypeController extends Controller
              ->addColumn('description', function ($expenseType) {
                 return  e($expenseType->description);
             })
-             ->addColumn('options', function ($expenseType) {
+            ->addColumn('options', function ($expenseType) {
                 if ($expenseType->expenseTypeOptions->count()) {
-                    $options = '<ol class="mb-0 ps-3">'; // optional: style for spacing
+                    $options = '<ol class="mb-0 ps-3">';
                     foreach ($expenseType->expenseTypeOptions as $option) {
                         $options .= '<li>'
                             . e($option->name)
                             . ' - <b>K' . number_format($option->amount_per_student ?? 0, 2)
-                            . '</b></li>';
+                            . '</b><br><small class="text-muted">' . e($option->fees_percent_threshhold ?? 0) . '% fees threshhold</small>'
+                            . '</li>';
                     }
                     $options .= '</ol>';
                     return $options;
@@ -62,7 +63,7 @@ class ExpenseTypeController extends Controller
 
                 return e($expenseType->description ?: '-');
             })
-             ->addColumn('status', function ($expenseType) {
+            ->addColumn('status', function ($expenseType) {
                  if ($expenseType->is_active) {
                      return '<span class="badge bg-success">Active</span>';
                  } else {
@@ -134,6 +135,7 @@ class ExpenseTypeController extends Controller
             'options' => 'nullable|array',
             'options.*.name' => 'required|string',
             'options.*.amount_per_student' => 'nullable|numeric|min:0',
+            'options.*.fees_percent_threshhold' => 'nullable|numeric|min:0|max:100',
         ]);
 
         $expenseType = ExpenseType::create([
@@ -147,7 +149,8 @@ class ExpenseTypeController extends Controller
             foreach ($validated['options'] as $option) {
                 $expenseType->expenseTypeOptions()->create([
                     'name' => $option['name'],
-                    'amount_per_student' => $option['amount_per_student'] ?? null,
+                    'amount_per_student' => $option['amount_per_student'] ?? 0,
+                    'fees_percent_threshhold' => $option['fees_percent_threshhold'] ?? 0,
                 ]);
             }
         }
@@ -206,6 +209,7 @@ class ExpenseTypeController extends Controller
             'options' => 'nullable|array',
             'options.*.name' => 'required|string',
             'options.*.amount_per_student' => 'nullable|numeric|min:0',
+            'options.*.fees_percent_threshhold' => 'nullable|numeric|min:0|max:100',
         ]);
 
         $expenseType->update([
@@ -221,6 +225,7 @@ class ExpenseTypeController extends Controller
                 $expenseType->expenseTypeOptions()->create([
                     'name' => $option['name'],
                     'amount_per_student' => $option['amount_per_student'] ?? null,
+                    'fees_percent_threshhold' => $option['fees_percent_threshhold'] ?? null,
                 ]);
             }
         }
