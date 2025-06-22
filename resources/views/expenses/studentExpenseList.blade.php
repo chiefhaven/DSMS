@@ -47,7 +47,7 @@
                                         @{{ expense.group }}
                                     </td>
                                     <td>
-                                        @{{ getExpenseTypeName(expense.pivot?.expense_type) }}<br>
+                                        @{{ getExpenseTypeName(expense.pivot.expense_type) }}<br>
                                         <span
                                           v-if="expense.pivot?.repeat === 1"
                                           class="badge bg-danger"
@@ -202,7 +202,7 @@ const app = createApp({
 
         const getExpenseTypeName = (expenseTypeId) => {
             if (!expenseTypeId) return '-';
-            const type = expenseTypes.value.find(type => type.id === expenseTypeId);
+            const type = expenseTypes.value.expense_type_options.find(type => type.id === expenseTypeId);
             return type?.name || '-';
         };
 
