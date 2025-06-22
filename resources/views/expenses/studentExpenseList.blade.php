@@ -305,7 +305,6 @@ const app = createApp({
             cancel,
             isSubmitting,
             getExpenseTypes,
-            getExpenseTypeNames
         }
     }
 })
