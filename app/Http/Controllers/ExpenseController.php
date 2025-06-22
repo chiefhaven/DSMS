@@ -138,7 +138,7 @@ class ExpenseController extends Controller
                 if (auth()->user()->hasAnyRole(['superAdmin', 'admin', 'financeAdmin'])) {
 
                     // Download logic
-                    if ($expense->group_type !== 'TRN') {
+                    if ($expense->group_type !== '39d3f058-4f04-11f0-aa86-52540066f921') {
                         if ($expense->approved == true) {
                             $download = '<form method="GET" action="' . url('expensedownload', $expense->id) . '">
                                             ' . csrf_field() . '
