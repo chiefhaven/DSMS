@@ -64,11 +64,10 @@
                 <!-- Placeholder content -->
                 <p class="text-muted">
                     Current location and today distance travelled, estimated fuel consumption
-                    <div id="vehicleRouteMap" style="height: 600px;"></div>
-
+                    <div id="vehicleRouteMap" style="height: 500px;"></div>
                     <div class="mt-3">
-                        <strong>Live Speed:</strong> @{{ liveSpeedKmh }} km/h<br>
-                        <strong>Total Distance:</strong> @{{ totalDistanceKm }} km
+                        <strong>Live Speed:</strong> {{ liveSpeedKmh }} km/h <br>
+                        <strong>Total Distance Today:</strong> {{ totalDistanceKm }} km
                     </div>
                 </p>
             </div>
