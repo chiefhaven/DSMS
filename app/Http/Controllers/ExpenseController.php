@@ -741,7 +741,7 @@ class ExpenseController extends Controller
                 : '-'
         )
         ->addColumn('group', fn ($payment) => $payment->expense ? $payment->expense->group : '-')
-        ->addColumn('expense_type', fn ($payment) => $expenseTypes[$payment->expense_type] ?? '-')
+        ->addColumn('expense_type', fn ($payment) => '$expenseTypes[$payment->expense_type]' ?? '-')
         ->addColumn('amount', fn ($payment) => '<div class="text-end"><strong>K' . number_format($payment->amount, 2) . '</strong></div>')
         ->addColumn('payment_method', fn ($payment) => $payment->payment_method ?? '-')
         ->addColumn('date_paid', fn ($payment) => $payment->paid_at ? \Carbon\Carbon::parse($payment->paid_at)->format('j F, Y') : '-')
