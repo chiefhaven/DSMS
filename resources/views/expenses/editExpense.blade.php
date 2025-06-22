@@ -174,9 +174,9 @@
         );
 
         const getExpenseTypes = () => {
-        axios.get('/api/fetch-expense-types').then(res => {
-            expenseTypes.value = res.data;
-        });
+            axios.get('/api/fetch-expense-types').then(res => {
+                expenseTypes.value = res.data;
+            });
         };
 
         const fetchExistingStudents = () => {
