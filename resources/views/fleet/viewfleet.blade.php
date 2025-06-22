@@ -138,6 +138,8 @@
             }));
             if (points.length === 0) return;
 
+            console.log(points)
+
             // Update path
             path = points.map(p => [p.lat, p.lng]);
 
@@ -181,9 +183,6 @@
                 .bindPopup(`Vehicle ID: ${vehicleId}<br>Speed: ${liveSpeedKmh.value} km/h`)
                 .openPopup();
             }
-
-            console.log(points)
-
           }).catch(err => {
             console.error('Error fetching vehicle route:', err);
           });
