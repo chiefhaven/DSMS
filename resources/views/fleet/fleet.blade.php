@@ -43,7 +43,7 @@
       @forelse ($fleet as $car)
         <div class="col-md-6 col-xl-4">
           <div class="block block-rounded block-link-shadow h-100">
-            <div class="ratio ratio-16x9 bg-light">
+            <div class="ratio ratio-16x9 bg-light p-5">
                 <img src="{{ asset('public/media/fleet/' . $car->fleet_image) }}"
                      class="img-fluid object-fit-cover"
                      alt="{{ $car->car_brand_model }}"
