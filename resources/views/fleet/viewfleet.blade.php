@@ -182,6 +182,8 @@
                 .openPopup();
             }
 
+            console.log(points)
+
           }).catch(err => {
             console.error('Error fetching vehicle route:', err);
           });
