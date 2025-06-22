@@ -466,7 +466,7 @@ class ExpenseController extends Controller
         $optionName = $option->name;
         $fullName = trim($student->fname . ' ' . ($student->mname ?? '') . ' ' . $student->sname);
 
-        // ✅ Check if student already has that option
+        //Check if student already has that option
         $existingExpenses = DB::table('expense_student')
             ->where('student_id', $student->id)
             ->where('expense_type', $option->id)
