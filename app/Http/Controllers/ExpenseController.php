@@ -543,7 +543,7 @@ class ExpenseController extends Controller
             $query->orderBy('fname', 'asc');
         }])->findOrFail($expense->id);
 
-        if($expense->group_type == 'Road Test'){
+        if($expense->group_type == '39d41003-4f04-11f0-aa86-52540066f921'){
             $template = 'pdf_templates.roadTestExpense';
         }
 
