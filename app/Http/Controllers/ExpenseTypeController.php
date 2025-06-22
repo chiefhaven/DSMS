@@ -236,10 +236,21 @@ class ExpenseTypeController extends Controller
      */
     public function destroy($expenseType)
     {
+        if (in_array($expenseType, [
+            '39d3f058-4f04-11f0-aa86-52540066f921',
+            '39d40542-4f04-11f0-aa86-52540066f921',
+            '39d41003-4f04-11f0-aa86-52540066f921',
+        ])) {
+            return response()->json(['message' => 'Cannot delete these expense types'], 400);
+        }
+
+        // Find the expense type by ID
         $expenseType = ExpenseType::with('expenseTypeOptions')->findOrFail($expenseType);
+
         if (!$expenseType) {
             return response()->json(['message' => 'Expense Type not found.'], 404);
         }
+
         // Check if the user has permission to delete the expense type
         if (!auth()->user()->hasAnyRole(['superAdmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);

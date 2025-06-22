@@ -133,151 +133,156 @@
     </div>
   </div>
 </div>
+</div>
+<!-- END Main Content -->
 
 <!-- Vue Script -->
 <script setup>
-const expenseTypes = createApp({
-  setup() {
-    const loadingData = ref(false);
-    const form = ref({
-      name: '',
-      description: '',
-      options: [],
-      is_active: true,
-    });
-    const isEditMode = ref(false);
-
-    const showToast = (message, icon = 'success') => {
-      Swal.fire({
-        icon,
-        title: message,
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-      });
-    };
-
-    const addOption = () => {
-      form.value.options.push({ name: '', amount_per_student: 0 });
-    };
-
-    const removeOption = (index) => {
-      form.value.options.splice(index, 1);
-    };
-
-    const openCreateModal = () => {
-      isEditMode.value = false;
-      form.value = { name: '', description: '', options: [], is_active: true };
-      new bootstrap.Modal(document.getElementById('expenseTypeModal')).show();
-    };
-
-    const openEditModal = (expenseType) => {
-      isEditMode.value = true;
-      form.value = {
-        id: expenseType.id,
-        name: expenseType.name,
-        description: expenseType.description,
-        options: expenseType.expense_type_options.map(opt => ({
-          name: opt.name,
-          amount_per_student: opt.amount_per_student,
-        })),
-        is_active: expenseType.is_active == 1 ? true : false,
-      };
-      new bootstrap.Modal(document.getElementById('expenseTypeModal')).show();
-    };
-
-    const submitExpenseType = async () => {
-      try {
-        const url = isEditMode.value
-          ? `/api/expense-types/${form.value.id}`
-          : `/api/add-expense-types`;
-        const method = isEditMode.value ? 'put' : 'post';
-        await axios[method](url, {
-          name: form.value.name,
-          description: form.value.description,
-          options: form.value.options,
-          is_active: form.value.is_active ? 1 : 0,
+    const expenseTypes = createApp({
+    setup() {
+        const loadingData = ref(false);
+        const form = ref({
+        name: '',
+        description: '',
+        options: [],
+        is_active: true,
         });
-        showToast(`Expense Type ${isEditMode.value ? 'updated' : 'created'} successfully!`);
-        bootstrap.Modal.getInstance(document.getElementById('expenseTypeModal')).hide();
-        $('#expenseTypesTable').DataTable().ajax.reload();
-      } catch (error) {
-        console.error(error);
-        showToast('Something went wrong!', 'error');
-      }
-    };
+        const isEditMode = ref(false);
 
-    const deleteExpenseType = async (expenseType) => {
-      Swal.fire({
-        title: 'Delete expense type?',
-        text: 'Are you sure you want to delete this expense type?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Delete',
-      }).then(async (result) => {
-        if (result.isConfirmed) {
-          try {
-            await axios.delete(`/api/expense-types/${expenseType.id}`);
-            showToast('Expense type deleted.');
+        const showToast = (message, icon = 'success') => {
+        Swal.fire({
+            icon,
+            title: message,
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+        });
+        };
+
+        const addOption = () => {
+        form.value.options.push({ name: '', amount_per_student: 0 });
+        };
+
+        const removeOption = (index) => {
+        form.value.options.splice(index, 1);
+        };
+
+        const openCreateModal = () => {
+        isEditMode.value = false;
+        form.value = { name: '', description: '', options: [], is_active: true };
+        new bootstrap.Modal(document.getElementById('expenseTypeModal')).show();
+        };
+
+        const openEditModal = (expenseType) => {
+        isEditMode.value = true;
+        form.value = {
+            id: expenseType.id,
+            name: expenseType.name,
+            description: expenseType.description,
+            options: expenseType.expense_type_options.map(opt => ({
+            name: opt.name,
+            amount_per_student: opt.amount_per_student,
+            })),
+            is_active: expenseType.is_active == 1 ? true : false,
+        };
+        new bootstrap.Modal(document.getElementById('expenseTypeModal')).show();
+        };
+
+        const submitExpenseType = async () => {
+        try {
+            const url = isEditMode.value
+            ? `/api/expense-types/${form.value.id}`
+            : `/api/add-expense-types`;
+            const method = isEditMode.value ? 'put' : 'post';
+            await axios[method](url, {
+            name: form.value.name,
+            description: form.value.description,
+            options: form.value.options,
+            is_active: form.value.is_active ? 1 : 0,
+            });
+            showToast(`Expense Type ${isEditMode.value ? 'updated' : 'created'} successfully!`);
+            bootstrap.Modal.getInstance(document.getElementById('expenseTypeModal')).hide();
             $('#expenseTypesTable').DataTable().ajax.reload();
-          } catch (error) {
+        } catch (error) {
             console.error(error);
-            showToast('Failed to delete expense type.', 'error');
-          }
+            showToast('Something went wrong!', 'error');
         }
-      });
+        };
+
+        const deleteExpenseType = async (expenseType) => {
+        Swal.fire({
+            title: 'Delete expense type?',
+            text: 'Are you sure you want to delete this expense type?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Delete',
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    NProgress.start();
+                    await axios.delete(`/api/expense-types/${expenseType.id}`);
+                    showToast('Expense type deleted.');
+                    $('#expenseTypesTable').DataTable().ajax.reload();
+                } catch (error) {
+                    console.error(error);
+                    showToast(error.response?.data?.message || 'An error occurred.', 'error');
+                } finally {
+                    NProgress.done();
+                    loadingData.value = false;
+                }
+            }});
+        };
+
+        const getExpenseTypes = () => {
+        NProgress.start();
+        loadingData.value = true;
+        if ($.fn.DataTable.isDataTable('#expenseTypesTable')) {
+            $('#expenseTypesTable').DataTable().destroy();
+        }
+        $('#expenseTypesTable').DataTable({
+            serverSide: true,
+            processing: true,
+            processing: true,
+            scrollCollapse: true,
+            scrollX: true,
+            ajax: async function (data, callback) {
+            const response = await axios.get('/api/expense-types', { params: data });
+            callback(response.data);
+            loadingData.value = false;
+            NProgress.done();
+            },
+            columns: [
+            { data: 'actions', className: 'text-center', orderable: false },
+            { data: 'type' },
+            { data: 'description' },
+            { data: 'options', orderable: false, searchable: false },
+            { data: 'status', className: 'text-center' },
+            ],
+        });
+        };
+
+        onMounted(() => { getExpenseTypes(); });
+
+        return {
+        loadingData, form, isEditMode, addOption, removeOption,
+        openCreateModal, openEditModal, submitExpenseType, deleteExpenseType
+        };
+    },
+    });
+
+    window.expenseTypeApp = expenseTypes.mount('#expenseTypes');
+
+    window.openEditExpenseType = el => {
+    const expenseType = JSON.parse(el.dataset.expenseType);
+    window.expenseTypeApp.openEditModal(expenseType);
     };
 
-    const getExpenseTypes = () => {
-      NProgress.start();
-      loadingData.value = true;
-      if ($.fn.DataTable.isDataTable('#expenseTypesTable')) {
-        $('#expenseTypesTable').DataTable().destroy();
-      }
-      $('#expenseTypesTable').DataTable({
-        serverSide: true,
-        processing: true,
-        processing: true,
-        scrollCollapse: true,
-        scrollX: true,
-        ajax: async function (data, callback) {
-          const response = await axios.get('/api/expense-types', { params: data });
-          callback(response.data);
-          loadingData.value = false;
-          NProgress.done();
-        },
-        columns: [
-          { data: 'actions', className: 'text-center', orderable: false },
-          { data: 'type' },
-          { data: 'description' },
-          { data: 'options', orderable: false, searchable: false },
-          { data: 'status', className: 'text-center' },
-        ],
-      });
+    window.openDeleteExpenseType = expenseType => {
+    window.expenseTypeApp.deleteExpenseType(expenseType);
     };
-
-    onMounted(() => { getExpenseTypes(); });
-
-    return {
-      loadingData, form, isEditMode, addOption, removeOption,
-      openCreateModal, openEditModal, submitExpenseType, deleteExpenseType
-    };
-  },
-});
-
-window.expenseTypeApp = expenseTypes.mount('#expenseTypes');
-
-window.openEditExpenseType = el => {
-  const expenseType = JSON.parse(el.dataset.expenseType);
-  window.expenseTypeApp.openEditModal(expenseType);
-};
-
-window.openDeleteExpenseType = expenseType => {
-  window.expenseTypeApp.deleteExpenseType(expenseType);
-};
 </script>
 @endsection
