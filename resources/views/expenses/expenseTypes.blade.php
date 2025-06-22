@@ -90,25 +90,30 @@
 
             <!-- Options -->
             <div class="mb-3">
-              <label class="form-label me-3">Options</label>
-              <div v-for="(option, index) in form.options" :key="index" class="row g-2 mb-2 align-items-center">
-                <div class="col">
-                  <input v-model="option.name" type="text" class="form-control" placeholder="Option name" required>
+                <label class="form-label">Options</label>
+                <div v-for="(option, index) in form.options" :key="index" class="row g-2 mb-2 align-items-end">
+                    <div class="col">
+                        <label class="form-label small">Option name</label>
+                        <input v-model="option.name" type="text" class="form-control" placeholder="Option name" required>
+                    </div>
+                    <div class="col">
+                        <label class="form-label small">Amount</label>
+                        <input v-model="option.amount_per_student" type="number" min="0" class="form-control" placeholder="Amount per student">
+                    </div>
+                    <div class="col">
+                        <label class="form-label small">Allowable fees %</label>
+                        <div class="input-group">
+                            <input v-model="option.fees_percent_threshhold" type="number" min="0" max="100" step="0.01" class="form-control" placeholder="Fees %">
+                            <span class="input-group-text">%</span>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-danger" @click="removeOption(index)"><i class="fa fa-times"></i></button>
+                    </div>
                 </div>
-                <div class="col">
-                  <input v-model="option.amount_per_student" type="number" min="0" class="form-control" placeholder="Amount per student">
-                </div>
-                <div class="col-auto">
-                  <button type="button" class="btn btn-danger" @click="removeOption(index)">
-                    <i class="fa fa-times"></i>
-                  </button>
-                </div>
+                <button type="button" class="btn btn-sm btn-secondary mt-2" @click="addOption"><i class="fa fa-plus me-1"></i> Add Option</button>
               </div>
 
-              <button type="button" class="btn btn-sm btn-secondary mt-2" @click="addOption">
-                <i class="fa fa-plus me-1"></i> Add Option
-              </button>
-            </div>
 
             <!-- Status -->
             <div class="mb-3">
@@ -162,7 +167,7 @@
         };
 
         const addOption = () => {
-        form.value.options.push({ name: '', amount_per_student: 0 });
+        form.value.options.push({ name: '', amount_per_student: 0, fees_percent_threshhold: 0 });
         };
 
         const removeOption = (index) => {
@@ -184,6 +189,7 @@
             options: expenseType.expense_type_options.map(opt => ({
             name: opt.name,
             amount_per_student: opt.amount_per_student,
+            fees_percent_threshhold: opt.fees_percent_threshhold,
             })),
             is_active: expenseType.is_active == 1 ? true : false,
         };
@@ -194,7 +200,7 @@
         try {
             const url = isEditMode.value
             ? `/api/expense-types/${form.value.id}`
-            : `/api/add-expense-types`;
+            : `/api/expense-types`;
             const method = isEditMode.value ? 'put' : 'post';
             await axios[method](url, {
             name: form.value.name,
