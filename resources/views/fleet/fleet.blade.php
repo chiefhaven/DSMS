@@ -43,9 +43,9 @@
       @forelse ($fleet as $car)
         <div class="col-md-6 col-xl-4">
           <div class="block block-rounded block-link-shadow h-100">
-            <div class="ratio ratio-16x9 bg-light p-5">
+            <div class="ratio ratio-16x9 bg-light">
                 <img src="{{ asset('public/media/fleet/' . $car->fleet_image) }}"
-                     class="img-fluid object-fit-cover"
+                     class="img-fluid object-fit-cover p-4"
                      alt="{{ $car->car_brand_model }}"
                      onerror="this.onerror=null; this.src='{{ asset('path/to/default/image.jpg') }}'">
             </div>
