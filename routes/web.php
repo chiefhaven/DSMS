@@ -173,9 +173,9 @@ Route::get('/editadministrator/{id}', [AdministratorController::class, 'edit'])-
 Route::post('/updateadministrator', [AdministratorController::class, 'update'])->middleware('auth')->name('updateadministrator');
 Route::delete('/deleteadministrator/{id}', [AdministratorController::class, 'destroy'])->middleware('auth')->name('deleteadministrator');
 
-Route::get('/fleet', [FleetController::class, 'index'])->middleware('auth')->name('fleet');
+Route::get('/fleet', [FleetController::class, 'index'])->middleware('auth')->name('fleet.index');
 Route::get('/getFleet', [FleetController::class, 'getFleet'])->middleware('auth')->name('getFleet');
-Route::get('/viewfleet', [FleetController::class, 'show'])->middleware('auth')->name('viewfleet');
+Route::get('/view-fleet/{fleet}', [FleetController::class, 'show'])->middleware('auth')->name('view-fleet');
 Route::get('/addfleet', [FleetController::class, 'create'])->middleware('auth')->name('addfleet');
 Route::post('/storefleet', [FleetController::class, 'store'])->middleware('auth')->name('storefleet');
 Route::get('/editfleet/{id}', [FleetController::class, 'edit'])->middleware('auth')->name('editfleet');

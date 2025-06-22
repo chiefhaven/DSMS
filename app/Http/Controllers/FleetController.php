@@ -127,9 +127,11 @@ class FleetController extends Controller
      * @param  \App\Models\Fleet  $fleet
      * @return \Illuminate\Http\Response
      */
-    public function show(Fleet $fleet)
+    public function show($id)
     {
-        //
+        $fleet = Fleet::with('instructor')->findOrFail($id);
+
+        return view('fleet.viewfleet', compact('fleet'));
     }
 
     /**
