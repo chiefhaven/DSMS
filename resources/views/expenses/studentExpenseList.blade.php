@@ -261,7 +261,7 @@ const app = createApp({
 
         //Show payment form
         const loadPaymentForm = (expense) => {
-            selectedExpense.value = expense.pivot?.expense_type
+            selectedExpense.value = expense
             form.amount = parseFloat(expense.pivot?.amount)
             form.payment_method = ''
 
