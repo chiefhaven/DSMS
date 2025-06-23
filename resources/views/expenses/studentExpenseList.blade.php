@@ -47,7 +47,7 @@
                                         @{{ expense.group }}
                                     </td>
                                     <td>
-                                        @{{ getExpenseTypeName(expense.pivot.expense_type) }}<br>
+                                        @{{ getExpenseTypeName(expense.pivot?.expense_type) }}<br>
                                         <span
                                           v-if="expense.pivot?.repeat === 1"
                                           class="badge bg-danger"
@@ -200,26 +200,26 @@ const app = createApp({
 
         //Fetch expense types and build maps
         const getExpenseTypes = async () => {
-        try {
-            const res = await axios.get('/api/fetch-expense-types')
-            expenseTypes.value = res.data
+            try {
+                const res = await axios.get('/api/fetch-expense-types')
+                expenseTypes.value = res.data
 
-            const optionNameMap = {}
-            const typeNameMap = {}
+                const optionNameMap = {}
+                const typeNameMap = {}
 
-            res.data.forEach(type => {
-            type.expense_type_options.forEach(opt => {
-                optionNameMap[opt.id] = opt.name
-                typeNameMap[opt.id] = type.name
-            })
-            })
+                res.data.forEach(type => {
+                type.expense_type_options.forEach(opt => {
+                    optionNameMap[opt.id] = opt.name
+                    typeNameMap[opt.id] = type.name
+                })
+                })
 
-            optionIdToOptionName.value = optionNameMap
-            optionIdToTypeName.value = typeNameMap
+                optionIdToOptionName.value = optionNameMap
+                optionIdToTypeName.value = typeNameMap
 
-        } catch (error) {
-            console.error('Failed to fetch expense types:', error)
-        }
+            } catch (error) {
+                console.error('Failed to fetch expense types:', error)
+            }
         }
 
         //Lookup helpers
