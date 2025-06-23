@@ -653,7 +653,7 @@ class ExpenseController extends Controller
                 abort(422, 'Student is repeating and cannot pay.');
             }
 
-            if ($request->amount != $expense->amount) {
+            if ($request->amount != $expense->pivot->amount) {
                 abort(422, 'Payment amount must exactly match the expense amount.');
             }
 
