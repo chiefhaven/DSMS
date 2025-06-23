@@ -184,8 +184,8 @@ const app = createApp({
         const selectedExpense = ref({})
         const isSubmitting = ref(false)
         const form = reactive({
-        amount: 0,
-        payment_method: '',
+            amount: 0,
+            payment_method: '',
         })
 
         //Expense types and lookup maps
@@ -195,7 +195,7 @@ const app = createApp({
 
         //Format currency helper
         const formatCurrency = (value) => {
-        return Number(value).toLocaleString('en-MW', { minimumFractionDigits: 2 })
+            return Number(value).toLocaleString('en-MW', { minimumFractionDigits: 2 })
         }
 
         //Fetch expense types and build maps
@@ -261,9 +261,9 @@ const app = createApp({
 
         //Show payment form
         const loadPaymentForm = (expense) => {
-        selectedExpense.value = expense
-        form.amount = parseFloat(expense.amount)
-        form.payment_method = ''
+            selectedExpense.value = expense
+            form.amount = parseFloat(expense.pivot?.amount)
+            form.payment_method = ''
 
         const modalEl = document.getElementById('paymentModal')
         const modal = new bootstrap.Modal(modalEl)
