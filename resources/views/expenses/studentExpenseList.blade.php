@@ -117,7 +117,7 @@
                     <div class="mb-3">
                         <label class="form-label">Expense Type</label>
                         <input type="text" class="form-control"
-                            :value="`${selectedExpense.pivot?.expense_type}`"
+                            :value="`${getExpenseOptionName(selectedExpense.pivot?.expense_type)}`"
                             disabled />
                     </div>
 
