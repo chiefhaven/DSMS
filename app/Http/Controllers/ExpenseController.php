@@ -485,7 +485,11 @@ class ExpenseController extends Controller
         }
 
         // Calculate student's paid percentage once
-        $paidPercent = ($student->invoice->invoice_amount_paid / $student->invoice->invoice_total) * 100;
+        if ($student->invoice && $student->invoice->invoice_total > 0) {
+            $paidPercent = ($student->invoice->invoice_amount_paid / $student->invoice->invoice_total) * 100;
+        } else {
+            $paidPercent = 0;
+        }
 
         // Use the option's threshold directly
         if ($option->fees_percent_threshhold !== null && $paidPercent < $option->fees_percent_threshhold) {
