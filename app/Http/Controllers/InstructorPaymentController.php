@@ -106,7 +106,7 @@ class InstructorPaymentController extends Controller
      * @param  \App\Http\Requests\StoreInstructorPaymentRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreInstructorPaymentRequest $request)
+    public function store()
     {
         // Check permission
         if (!Auth::user()->hasRole('superAdmin')) {
