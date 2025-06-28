@@ -22,13 +22,18 @@ class expense extends Model
 
     public function Students()
     {
-        return $this->belongsToMany(Student::class)->withPivot('id', 'expense_type', 'repeat', 'status', 'paid_at', 'payment_entered_by','amount', 'payment_method')
+        return $this->belongsToMany(Student::class)->withPivot('id', 'expense_type', 'repeat', 'status', 'paid_at', 'payment_entered_by','amount', 'payment_method', 'balance', 'paid')
             ->withTimestamps();
     }
 
     public function Administrator()
     {
         return $this->belongsTo(Administrator::class, 'added_by');
+    }
+
+    public function expenseTypeOption()
+    {
+        return $this->belongsTo(ExpenseTypeOption::class, 'expense_type', 'id');
     }
 
     //delete relationships!

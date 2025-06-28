@@ -11,14 +11,13 @@ use App\Http\Controllers\Api\MbiraStudentVersion;
 use App\Http\Controllers\Api\studentController as ApiStudentController;
 use App\Http\Controllers\Api\StudentProfileController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\ExpensePaymentController;
 use App\Http\Controllers\ExpenseTypeController;
 use App\Http\Controllers\InstructorPaymentController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\VehicleTrackerController;
-use App\Models\PaymentMethod;
-use App\Models\VehicleTracker;
 
 /*
 |--------------------------------------------------------------------------
@@ -78,17 +77,20 @@ Route::get('/viewExpenseData', [ExpenseController::class, 'show'])->middleware('
 
 Route::get('/payments', [PaymentController::class, 'fetchPayments'])->name('payments')->middleware('auth:sanctum');
 
-Route::get('/expense-payments', [ExpenseController::class, 'expensePaymentsList'])->name('expense.expensePayments');
+Route::get('/expense-payments', [ExpensePaymentController::class, 'index'])->name('expense.expensePayments')->middleware('auth:sanctum');
+
+Route::middleware('auth:sanctum')->post('/reverse-payment/{id}', [ExpensePaymentController::class, 'reverseExpensePayment'])->name('reverseExpensePayments');
+Route::middleware('auth:sanctum')->post('/delete-payment/{id}', [ExpensePaymentController::class, 'destroy'])->name('deleteExpensePayments');
 
 Route::prefix('expense-types')->group(function () {
-    Route::post('/', [ExpenseTypeController::class, 'store']);      // Create new expense type
-    Route::put('/{id}', [ExpenseTypeController::class, 'update']); // Update existing expense type
-    Route::get('/', [ExpenseTypeController::class, 'index']);      // List expense types (for DataTables)
-    Route::delete('/{id}', [ExpenseTypeController::class, 'destroy']); // Optional delete route
+    Route::post('/', [ExpenseTypeController::class, 'store']);
+    Route::put('/{id}', [ExpenseTypeController::class, 'update']);
+    Route::get('/', [ExpenseTypeController::class, 'index']);
+    Route::delete('/{id}', [ExpenseTypeController::class, 'destroy']);
 });
 
-Route::post('/studentExpensePayment/{student}/{expense}', [ExpenseController::class, 'makePayment'])
-    ->name('studentExpensePayment')
+Route::post('/studentExpensePayment/{student}/{expense}', [ExpensePaymentController::class, 'store'])
+    ->name('makeExpensePayment')
     ->middleware('auth:sanctum');
 
 Route::get('/getPaymentMethods', [PaymentMethodController::class, 'fetchPaymentMethods'])->name('paymentMethods')->middleware('auth:sanctum');

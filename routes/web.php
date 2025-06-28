@@ -18,6 +18,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationTemplateController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\ExpensePaymentController;
 use App\Http\Controllers\havenUtils;
 use App\Http\Controllers\InstructorPaymentController;
 use App\Http\Controllers\knowledgeController;
@@ -213,7 +214,7 @@ Route::get('/reviewExpenseData/{expense}', [ExpenseController::class, 'reviewExp
 Route::post('/removeStudent', [ExpenseController::class, 'removeStudent'])->middleware('auth')->name('removeStudent');
 Route::post('/checkStudent', [ExpenseController::class, 'checkStudent'])->middleware('auth')->name('checkStudent');
 Route::post('/approveList', [ExpenseController::class, 'approveList'])->middleware('auth')->name('approveList');
-Route::get('/expenses/pay/{student}/{expense}', [ExpenseController::class, 'makePayment'])->middleware('auth')->name('expense.pay');
+Route::get('/expenses/pay/{student}/{expense}', [ExpensePaymentController::class, 'store'])->middleware('auth')->name('expense.pay');
 
 Route::get("/expense-payments", function(){
     return view("expenses.expensePaymentsList");

@@ -35,6 +35,8 @@
                                     <th>Group</th>
                                     <th>Type</th>
                                     <th>Amount</th>
+                                    <th>Paid</th>
+                                    <th>Balance</th>
                                     <th>List status</th>
                                     <th>Payment status</th>
                                     <th>Action</th>
@@ -56,6 +58,8 @@
                                         </span>
                                     </td>
                                     <td>K@{{ formatCurrency(expense.pivot?.amount) }}</td>
+                                    <td>K@{{ formatCurrency(expense.pivot?.paid) }}</td>
+                                    <td>K@{{ formatCurrency(expense.pivot?.balance) }}</td>
                                     <td>
                                         <span v-if="expense.approved" class="badge bg-success">Approved</span>
                                         <span v-else class="badge bg-warning">Pending</span>
@@ -262,7 +266,7 @@ const app = createApp({
         //Show payment form
         const loadPaymentForm = (expense) => {
             selectedExpense.value = expense
-            form.amount = parseFloat(expense.pivot?.amount)
+            form.amount = parseFloat(expense.pivot?.balance)
             form.payment_method = ''
 
         const modalEl = document.getElementById('paymentModal')

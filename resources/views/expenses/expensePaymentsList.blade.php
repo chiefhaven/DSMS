@@ -134,7 +134,15 @@
                         buttonsStyling: false
                       }).then((result) => {
                         if (result.isConfirmed) {
-                          //form.submit();
+                            axios.post('/api/delete-payment/' + paymentId)
+                            .then(() => {
+                              showSuccess('Payment reversed successfully.');
+                              $('#expensePaymentsTable').DataTable().ajax.reload();
+                            })
+                            .catch((error) => {
+                              showError('Failed to delete payment.');
+                              console.error(error);
+                            });
                             $('#expensePaymentsTable').DataTable().ajax.reload();
                         }
                       });
@@ -171,10 +179,10 @@
               return showAlert(message, '', { icon: 'success' });
             };
 
-            const reversePayment = (paymentId) => {
+            const deletePayment = (paymentId) => {
               Swal.fire({
-                title: 'Reverse Payment',
-                text: 'Are you sure you want to reverse this payment?',
+                title: 'Delete Payment',
+                text: 'Are you sure you want to delete this payment?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Yes',
@@ -184,13 +192,13 @@
                   },
               }).then((result) => {
                 if (result.isConfirmed) {
-                  axios.post('/api/reverse-payment/' + paymentId)
+                    axios.post('/api/delete-payment/' + paymentId)
                     .then(() => {
-                      showSuccess('Payment reversed successfully.');
+                      showSuccess('Payment deleted successfully.');
                       $('#expensePaymentsTable').DataTable().ajax.reload();
                     })
                     .catch((error) => {
-                      showError('Failed to reverse payment.');
+                      showError('Failed to delete payment.');
                       console.error(error);
                     });
                 }
@@ -200,14 +208,14 @@
             onMounted(() => {
               nextTick(() => {
                 getExpensePayments();
-                window.reversePayment = reversePayment;
+                window.deletePayment = deletePayment;
               });
             });
 
             return {
               reloadTable,
               loadingData,
-              reversePayment,
+              deletePayment,
             };
           },
         });

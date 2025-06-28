@@ -297,7 +297,7 @@ class ExpenseController extends Controller
 
     public function reviewExpenseData(expense $expense)
     {
-        // 1️⃣ Fetch students linked to the given expense ID
+        // Fetch students linked to the given expense ID
         $expenseId = $expense->id;
 
         $students = Student::with(['Invoice', 'Attendance', 'Course', 'Fleet'])
@@ -309,7 +309,7 @@ class ExpenseController extends Controller
             }])
             ->get();
 
-        // 2️⃣ Extract all unique `payment_entered_by` IDs from the pivots
+        // Extract all unique `payment_entered_by` IDs from the pivots
         $enteredByIds = $students
             ->flatMap(function ($student) {
                 return $student->expenses->pluck('pivot.payment_entered_by');
@@ -317,13 +317,13 @@ class ExpenseController extends Controller
             ->filter()
             ->unique();
 
-        // 3️⃣ Load the User + Administrator data for those IDs
+        // Load the User + Administrator data for those IDs
         $enteredByAdmins = \App\Models\User::with('administrator')
             ->whereIn('id', $enteredByIds)
             ->get()
             ->keyBy('id');
 
-        // 4️⃣ Return response
+        //Return response
         return response()->json([
             'students' => $students,
             'enteredByAdmins' => $enteredByAdmins
@@ -717,7 +717,8 @@ class ExpenseController extends Controller
         ]);
     }
 
-    public function expensePaymentsList(Request $request) {
+    public function expensePaymentsList(Request $request)
+    {
         // Capture the search keyword from the request if provided
         $search = $request->input('search.value');
 
@@ -805,43 +806,6 @@ class ExpenseController extends Controller
 
     }
 
-    public function reverseExpensePayment($id)
-    {
-        if (!auth()->user()->hasAnyRole(['superAdmin', 'admin', 'instructor', 'student'])) {
-            abort(403, 'Unauthorized.');
-        }
-
-        try {
-            DB::beginTransaction();
-
-            // 1️⃣ Find the payment
-            $payment = ExpensePayment::findOrFail($id);
-
-            // 2️⃣ Check if it’s already reversed or approved if needed
-            if (!$payment->status) {
-                return response()->json(['error' => 'Payment is already reversed.'], 409);
-            }
-
-            // 3️⃣ Update payment status
-            $payment->status = false;
-            $payment->save();
-
-            // 4️⃣ Optionally: adjust balances or related models
-            if ($payment->amount) {
-                $payment->amount -= $payment->amount;
-                $payment->save();
-            }
-
-            DB::commit();
-
-            return response()->json(['message' => 'Payment reversed successfully.'], 200);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            report($e);
-            return response()->json(['error' => 'Something went wrong.'], 500);
-        }
-    }
 
     public function downloadExpensePaymentReceipt($id)
     {
