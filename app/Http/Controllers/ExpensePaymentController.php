@@ -207,7 +207,7 @@ class ExpensePaymentController extends Controller
             $updatedExpense = $student->expenses()->where('expenses.id', $expenseId)->first();
 
             if ($student->user) {
-                $student->user->notify(new ExpensePaymentMade($student, $updatedExpense));
+                $student->user->notify(new ExpensePaymentMade($student, $updatedExpense, $expensePayment));
                 Log::info("Notification sent to student user ID: {$student->user->id}");
             }
         });
