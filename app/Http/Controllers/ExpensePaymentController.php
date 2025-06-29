@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\expensePayment;
+use App\Models\ExpensePayment;
 use App\Http\Requests\StoreexpensePaymentRequest;
 use App\Http\Requests\UpdateexpensePaymentRequest;
 use App\Models\ExpenseTypeOption;
@@ -183,7 +183,7 @@ class ExpensePaymentController extends Controller
                 abort(422, 'Payment amount must be equal or less to the remaining expense balance.');
             }
 
-            $expensePayment = new expensePayment();
+            $expensePayment = new ExpensePayment();
             $expensePayment->student_id = $student->id;
             $expensePayment->expense_id = $expenseId;
             $expensePayment->amount = $request->amount;
