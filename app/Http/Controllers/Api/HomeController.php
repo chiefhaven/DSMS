@@ -169,15 +169,15 @@ class HomeController extends Controller
             $attendanceCount = Attendance::whereBetween('created_at', [$start, $end])->count();
             $earningsTotal = Invoice::whereBetween('created_at', [$start, $end])->sum('invoice_total');
             $invoiceBalances = Invoice::whereBetween('created_at', [$start, $end])->sum('invoice_balance');
-            $expensesTotal = Expense::whereBetween('updated_at', [$start, $end])->sum('approved_amount');
-            $expensesPayments = ExpensePayment::whereBetween('paid_at', [$start, $end])->sum('amount');
+            $expensesTotal = Expense::whereBetween('date_approved', [$start, $end])->sum('approved_amount');
+            $expensePayments = ExpensePayment::whereBetween('created_at', [$start, $end])->sum('amount');
         } else {
             $studentCount = Student::count();
             $attendanceCount = Attendance::count();
             $earningsTotal = Invoice::sum('invoice_total');
             $invoiceBalances = Invoice::sum('invoice_balance');
             $expensesTotal = Expense::sum('approved_amount');
-            $expensesPayments = ExpensePayment::sum('amount');
+            $expensePayments = ExpensePayment::sum('amount');
         }
 
         // 5️⃣ === If instructor, override attendanceCount ===
@@ -202,7 +202,7 @@ class HomeController extends Controller
             'earningsTotal' => $earningsTotal,
             'invoiceBalances' => $invoiceBalances,
             'expensesTotal' => $expensesTotal,
-            'expensesPayments' => $expensesPayments,
+            'expensesPayments' => $expensePayments,
             'attendances' => $attendanceMonthlyInfo,
             'schedules' => $schedulesMonthlyInfo,
             'recentInvoices' => $invoice,
