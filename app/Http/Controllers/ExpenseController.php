@@ -229,49 +229,86 @@ class ExpenseController extends Controller
      */
     public function store(StoreexpenseRequest $request)
     {
-        $messages = [
-            'expenseGroupName.required' => 'Expense Group Name is required',
-            'students.required' => 'Please select at least one student',
-            'students.array' => 'Invalid student data format',
-            'students.min' => 'Please select at least one student',
-        ];
+        try {
+            $messages = [
+                'expenseGroupName.required' => 'Expense Group Name is required',
+                'students.required' => 'Please select at least one student',
+                'students.array' => 'Invalid student data format',
+                'students.min' => 'Please select at least one student',
+            ];
 
-        $this->validate($request, [
-            'expenseGroupName'  => 'required',
-            'students'          => 'required|array|min:1'
-        ], $messages);
-
-        $post = $request->all();
-        $students = $post['students'];
-
-        $user = Auth::user();
-        $admin = Administrator::findOrFail($user->administrator_id);
-
-        $expense = new Expense();
-        $expense->group = $post['expenseGroupName'];
-        $expense->group_type = $post['expenseGroupType'] ?? null;
-        $expense->description = $post['expenseDescription'] ?? null;
-        $expense->amount = 0;
-        $expense->added_by = $user->administrator_id;
-        $expense->save();
-
-        foreach ($students as $data) {
-            $student = havenUtils::student($data['studentName']);
-            $student->expenses()->attach($expense->id, [
-                'expense_type' => $data['expenseTypesOption'],
-                'repeat'       => $data['expenses'][0]['pivot']['repeat'] ?? 0,
-                'amount'       => $data['expenseTypesOptionAmount'] ?? 0,
-            ]);
+            $this->validate($request, [
+                'expenseGroupName'  => 'required',
+                'students'          => 'required|array|min:1'
+            ], $messages);
+        } catch (\Exception $e) {
+            \Log::error('Validation failed: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Validation error.',
+                'error' => $e->getMessage()
+            ], 422);
         }
 
-        // Notify super admins
-        $superAdmins = User::role('superAdmin')->get();
-        foreach ($superAdmins as $superAdmin) {
-            $superAdmin->notify(new ExpenseCreated($expense, $admin->fname));
+        try {
+            $post = $request->all();
+            $students = $post['students'];
+
+            $user = Auth::user();
+            $admin = Administrator::findOrFail($user->administrator_id);
+        } catch (\Exception $e) {
+            \Log::error('User or admin lookup failed: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'User authentication or administrator record failed.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+
+        try {
+            $expense = new Expense();
+            $expense->group = $post['expenseGroupName'];
+            $expense->group_type = $post['expenseGroupType'] ?? null;
+            $expense->description = $post['expenseDescription'] ?? null;
+            $expense->amount = 0;
+            $expense->added_by = $user->administrator_id;
+            $expense->save();
+        } catch (\Exception $e) {
+            \Log::error('Expense creation failed: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to create expense record.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+
+        try {
+            foreach ($students as $data) {
+                $student = havenUtils::student($data['studentName']);
+                $student->expenses()->attach($expense->id, [
+                    'expense_type' => $data['expenseTypesOption'],
+                    'repeat'       => $data['expenses'][0]['pivot']['repeat'] ?? 0,
+                    'amount'       => $data['expenseTypesOptionAmount'] ?? 0,
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Attaching students to expense failed: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to link students to expense.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+
+        try {
+            $superAdmins = User::role('superAdmin')->get();
+            foreach ($superAdmins as $superAdmin) {
+                $superAdmin->notify(new ExpenseCreated($expense, $admin->fname));
+            }
+        } catch (\Exception $e) {
+            \Log::error('Notification to super admins failed: ' . $e->getMessage());
+            // Continue even if notification fails
         }
 
         return response()->json(['message' => 'Expense added successfully'], 200);
     }
+
 
     /**
      * Display the specified resource.
