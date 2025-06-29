@@ -31,6 +31,7 @@ class ExpensePaymentController extends Controller
             'paymentUser.administrator',
             'student',
             'expense.students',
+            // 'expense' => fn ($q) => $q->with('ExpenseTypeOption')
         ]);
 
         // Load mapping of expense type option names
