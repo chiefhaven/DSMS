@@ -269,9 +269,9 @@ const app = createApp({
             form.amount = parseFloat(expense.pivot?.balance)
             form.payment_method = ''
 
-        const modalEl = document.getElementById('paymentModal')
-        const modal = new bootstrap.Modal(modalEl)
-        modal.show()
+            const modalEl = document.getElementById('paymentModal')
+            const modal = new bootstrap.Modal(modalEl)
+            modal.show()
         }
 
         //Close payment modal
