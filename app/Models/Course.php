@@ -40,6 +40,11 @@ class Course extends Model
        return $this->hasMany(Attendance::class);
     }
 
+    public function licenceClass()
+    {
+        return $this->belongsTo(LicenceClass::class, 'licence_class_id');
+    }
+
     public function Lessons()
     {
         return $this->belongsToMany(Lesson::class, 'course_lesson')

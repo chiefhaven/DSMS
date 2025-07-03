@@ -294,3 +294,7 @@ Route::get('/roles', [RoleController::class, 'index'])->middleware('auth')->name
 Route::get("/scan-to-pay", function(){
     return view("expenses.scanToPay");
  })->middleware('auth');
+
+Route::get("/driving-license-classes", function(){
+    return view("licenceClasses.licenceClasses");
+})->middleware('auth');
