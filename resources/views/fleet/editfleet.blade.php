@@ -42,6 +42,17 @@
                       <label class="px-4" for="car_registration_number">Car number plate</label>
                   </div>
               </div>
+              <div class="form-floating mb-4">
+                <select class="form-select" id="licenceClass" name="licenceClass">
+                    @foreach ($licenceClasses as $licenceClass)
+                        <option value="{{ $licenceClass->id }}"
+                            {{ $fleet->licence_class_id == $licenceClass->id ? 'selected' : '' }}>
+                            {{ $licenceClass->class }}
+                        </option>
+                    @endforeach
+                </select>
+                <label for="lesson">Licence type</label>
+              </div>
               <div class="col-12 form-floating mb-4">
                   <textarea class="form-control" id="car_description" name="car_description" style="height: 100px">{{$fleet->car_description}}</textarea>
                   <label>Car description</label>

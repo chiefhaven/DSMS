@@ -33,6 +33,24 @@
                                 </div>
                             </div>
 
+                            <div class="col-md-12">
+                                <div class="form-floating mb-4">
+                                    <select class="form-select" id="licenceClass" name="licenceClass" data-placeholder=" " style="width: 100%;" required>
+                                        <option value=""></option>
+                                        @foreach ($licenceClasses as $licenceClass)
+                                            <option value="{{ $licenceClass->id }}"
+                                                @if(old('licenceClass') == $licenceClass->id) selected @endif>
+                                                {{ $licenceClass->class }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <label for="licenceClass" class="fw-semibold">
+                                        License type
+                                    </label>
+                                </div>
+                            </div>
+
+
                             <div class="col-12">
                                 <div class="form-floating mb-4">
                                     <textarea class="form-control" id="car_description" name="car_description" style="height: 100px" placeholder="Vehicle description"></textarea>

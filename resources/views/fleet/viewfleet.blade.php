@@ -44,8 +44,9 @@
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h2 class="h3 mb-0 text-primary">{{ $fleet->car_brand_model }}</h2>
                         <span class="badge bg-success">{{ $fleet->car_registration_number }}</span>
-                    </div>
 
+                    </div>
+                    <p class="text-muted mb-3">Designated license class: {{ $fleet->licenceClass->class ?? 'Class not defined' }}</p>
                     <div class="mb-4">
                         <p class="text-muted mb-3">{{ $fleet->car_description }}</p>
 

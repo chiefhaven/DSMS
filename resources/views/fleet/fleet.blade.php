@@ -54,6 +54,7 @@
                 <h3 class="fs-lg fw-bold mb-0">{{ $car->car_brand_model }}</h3>
                 <span class="badge bg-primary">{{ $car->car_registration_number }}</span>
               </div>
+              <p class="text-muted mb-3">Designated license class: {{ $car->licenceClass->class ?? 'Class not defined' }}</p>
               <p class="text-muted mb-3">{{ Str::limit($car->car_description, 100) }}</p>
 
               <div class="d-flex justify-content-between small">

@@ -7,6 +7,7 @@ use App\Models\Instructor;
 use App\Models\Student;
 use App\Http\Requests\StoreFleetRequest;
 use App\Http\Requests\UpdateFleetRequest;
+use App\Models\licenceClass;
 use Session;
 use Illuminate\Support\Str;
 use PDF;
@@ -31,19 +32,21 @@ class FleetController extends Controller
      */
     public function index()
     {
-        $fleet = Fleet::with('Instructor')->get();
+        $fleet = Fleet::with('Instructor', 'licenceClass')->get();
 
         $instructors = Instructor::whereHas('department', function($query) {
             $query->where('name', 'Practical');
         })->get();
 
+        $licenceClasses = LicenceClass::get();
+
         $student = Student::get();
-        return view('fleet.fleet', compact('fleet', 'instructors', 'student'));
+        return view('fleet.fleet', compact('fleet', 'instructors', 'student', 'licenceClasses'));
     }
 
     public function getFleet()
     {
-        $fleet = Fleet::with('Instructor')->get();
+        $fleet = Fleet::with('Instructor', 'licenceClass')->get();
         return response()->json($fleet, 200);
     }
 
@@ -68,11 +71,13 @@ class FleetController extends Controller
         $messages = [
             'car_brand_model.required' => 'The "car name/brand" field is required!',
             'reg_number.required'   => 'The "car number plate" field is should be unique!',
+            'licenceClass.required' => 'Licence class is required',
         ];
 
         // Validate the request
         $this->validate($request, [
             'car_brand_model'  =>'required',
+            'licenceClass' =>'required',
             'reg_number' =>'required'
 
         ], $messages);
@@ -113,6 +118,7 @@ class FleetController extends Controller
 
 
         $fleet->car_brand_model = $post['car_brand_model'];
+        $fleet->licence_class_id = $post['licenceClass'];
         $fleet->car_registration_number = $post['reg_number'];
         $fleet->car_description = $post['car_description'];
 
@@ -148,7 +154,9 @@ class FleetController extends Controller
             $query->where('name', 'Practical');
         })->get();
 
-        return view('fleet.editfleet', [ 'fleet' => $fleet ], compact('fleet', 'instructors'));
+        $licenceClasses = LicenceClass::get();
+
+        return view('fleet.editfleet', [ 'fleet' => $fleet ], compact('fleet', 'instructors', 'licenceClasses'));
     }
 
     /**
@@ -165,6 +173,7 @@ class FleetController extends Controller
             'car_brand_model.required' => 'The "car name/brand" field is required!',
             'reg_number.required' => 'The "car number plate" field should be unique!',
             'instructor.required' => 'The "instructor" field should be unique!',
+            'licenceClass.required' => 'Licence class is required',
         ];
 
         // Validate the request data
@@ -172,6 +181,7 @@ class FleetController extends Controller
             'car_brand_model' => 'required',
             'reg_number' => 'required',
             'instructor' => 'required',
+            'licenceClass' =>'required',
         ], $messages);
 
         // Get the validated data
@@ -215,6 +225,7 @@ class FleetController extends Controller
         // Update the fleet details
         $fleet->car_brand_model = $post['car_brand_model'];
         $fleet->car_registration_number = $post['reg_number'];
+        $fleet->licence_class_id = $post['licenceClass'];
         $fleet->car_description = $post['car_description'];
 
         // Save the updated fleet
