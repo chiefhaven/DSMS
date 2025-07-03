@@ -119,7 +119,7 @@
                   <td>
                     <button
                       :disabled="state.expenseStatus !== 0"
-                      class="btn btn-sm btn-outline-danger"
+                      class="btn btn-sm btn-outline-danger rounded-pill px-2"
                       @click="removeStudentFromList(student.studentId, index)"
                       :title="state.expenseStatus !== 0 ? 'Editing disabled for approved expenses' : 'Remove student'"
                     >
@@ -147,7 +147,7 @@
           </template>
           <template v-else>
             <span class="text-success me-3"><i class="fas fa-check-circle"></i> List approved</span>
-            <button type="button" @click="approveList" :disabled="state.processing" class="btn btn-danger">
+            <button type="button" @click="approveList" :disabled="state.processing" class="btn btn-danger rounded-pill px-4">
               <span v-if="state.processing"><i class="fas fa-spinner fa-spin me-1"></i> Processing...</span>
               <span v-else><i class="fas fa-times-circle me-1"></i> Unapprove</span>
             </button>

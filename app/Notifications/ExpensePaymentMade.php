@@ -7,6 +7,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Bus\Queueable;
 use Carbon\Carbon;
 use App\Notifications\Channels\SmsChannel;
+use App\Http\Controllers\havenUtils as ControllersHavenUtils;
 
 class ExpensePaymentMade extends Notification
 {
@@ -15,6 +16,7 @@ class ExpensePaymentMade extends Notification
     protected $student;
     protected $expense;
     protected $expensePayment;
+    protected $expenseTypeName;
 
     /**
      * Create a new notification instance.
@@ -24,6 +26,9 @@ class ExpensePaymentMade extends Notification
         $this->student = $student;
         $this->expense = $expense;
         $this->expensePayment = $expensePayment;
+
+        // Efficient: resolve once
+        $this->expenseTypeName = ControllersHavenUtils::getExpenceTypeOption($expense->pivot->expense_type) ?? 'Unknown Expense Type';
     }
 
     /**
@@ -44,7 +49,7 @@ class ExpensePaymentMade extends Notification
             $this->student->fname,
             $this->student->sname,
             number_format($this->expensePayment->amount, 2),
-            $this->expense->pivot->expense_type,
+            $this->expenseTypeName,
             url("/expense-payment-receipt/{$this->expense->pivot->id}")
         );
     }
@@ -57,7 +62,7 @@ class ExpensePaymentMade extends Notification
         return (new MailMessage)
             ->subject('Receipt for RTD Payment')
             ->greeting("Hello {$this->student->fname} {$this->student->sname},")
-            ->line("A payment of K" . number_format($this->expensePayment->amount, 2) . " has been recorded for the expense: {$this->expense->pivot->expense_type}.")
+            ->line("A payment of K" . number_format($this->expensePayment->amount, 2) . " has been recorded for the expense: {$this->expenseTypeName}.")
             ->action('View Receipt', url("/expense-payment-receipt/{$this->expense->pivot->id}"))
             ->line('Thank you for enrolling with Daron!');
     }
@@ -69,7 +74,7 @@ class ExpensePaymentMade extends Notification
     {
         return [
             'title' => 'RTD Payment Made',
-            'body' => "Payment of K" . number_format($this->expensePayment->amount, 2) . " recorded for: {$this->expense->pivot->expense_type}.",
+            'body' => "Payment of K" . number_format($this->expensePayment->amount, 2) . " recorded for: {$this->expenseTypeName}.",
             'student_id' => $this->student->id,
             'url' => url("/expense-payment-receipt/{$this->expense->pivot->id}"),
             'created_at' => now(),
@@ -83,7 +88,7 @@ class ExpensePaymentMade extends Notification
     {
         return [
             'title' => 'RTD Payment Receipt',
-            'body' => "Payment of K" . number_format($this->expensePayment->amount, 2) . " has been made for {$this->expense->pivot->expense_type}.",
+            'body' => "Payment of K" . number_format($this->expensePayment->amount, 2) . " has been made for {$this->expenseTypeName}.",
             'student_id' => $this->student->id,
             'url' => url("/expense-payment-receipt/{$this->expense->pivot->id}"),
             'created_at' => now(),

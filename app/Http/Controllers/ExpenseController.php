@@ -613,20 +613,29 @@ class ExpenseController extends Controller
         // Get unique payment_entered_by values
         $enteredByIds = $expense->students->pluck('pivot.payment_entered_by')->filter()->unique();
 
+        $expenseTypeNames = ExpenseTypeOption::pluck('name', 'id')->toArray();
+        $expensegroupTypeNames = ExpenseType::pluck('name', 'id')->toArray();
+
         // Get User -> Administrator once
         $enteredByAdmins = \App\Models\User::with('administrator')
             ->whereIn('id', $enteredByIds)
             ->get()
             ->keyBy('id');
 
-        $pdf = PDF::loadView($template, compact(
-            'expense',
-            'qrCode',
-            'setting',
-            'date',
-            'enteredByAdmins'
-        ));
-        return $pdf->download('Daron Driving School-'.$expense->group.'-'.$expense->group_type.' Expense Payment Report.pdf');
+            $pdf = PDF::loadView($template, compact(
+                'expense',
+                'qrCode',
+                'setting',
+                'date',
+                'enteredByAdmins',
+                'expenseTypeNames'
+            ));
+
+            $typeName = $expensegroupTypeNames[$expense->group_type] ?? 'Daron';
+
+            return $pdf->download(
+                $expense->group . ' - ' . $typeName . ' Expense Payment Report - Daron Driving School.pdf'
+            );
     }
 
     public function autocompletestudentSearch(Request $request)

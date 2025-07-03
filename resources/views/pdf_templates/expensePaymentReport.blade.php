@@ -44,7 +44,7 @@
                                 {{ $student->fname }} {{ $student->mname }} <strong>{{ $student->sname }}</strong>
                             </td>
                             <td class="invoice-td text-center">
-                                {{ $student->pivot->expense_type ?? '-' }}
+                                {{ $expenseTypeNames[$student->pivot->expense_type] ?? 'Unknown' }}
                             </td>
                             <td class="invoice-td text-center">
                                 K{{ number_format($expense->amount ?? 0, 2) }}

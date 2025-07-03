@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\StudentProfileController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ExpensePaymentController;
 use App\Http\Controllers\ExpenseTypeController;
+use App\Http\Controllers\havenUtils;
 use App\Http\Controllers\InstructorPaymentController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PaymentMethodController;
@@ -100,6 +101,8 @@ Route::post('/save-vehicle-location', [VehicleTrackerController::class, 'store']
 Route::get('/get-all-vehicle-locations', [VehicleTrackerController::class, 'show'])->name('vehicle-locations')->middleware('auth:sanctum');
 
 Route::get('/show-vehicle-geo-data/{vehicleId}', [VehicleTrackerController::class, 'showVehicleGeoData'])->name('vehicle-location')->middleware('auth:sanctum');
+
+Route::get('/getExpenceTypeOption/{id}', [havenUtils::class, 'getExpenceTypeOption'])->name('getExpenceTypeOption')->middleware('auth:sanctum');
 
 
 

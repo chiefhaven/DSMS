@@ -9,10 +9,11 @@
     use App\Models\District;
     use App\Models\Lesson;
     use App\Models\Attendance;
+    use App\Models\ExpenseTypeOption;
     use App\Models\PaymentMethod;
     use App\Models\Invoice_Setting;
-use App\Models\TrainingLevel;
-use Carbon\Carbon;
+    use App\Models\TrainingLevel;
+    use Carbon\Carbon;
     use SimpleSoftwareIO\QrCode\Facades\QrCode;
     use Auth;
     use Illuminate\Http\Request;
@@ -277,6 +278,17 @@ use Carbon\Carbon;
             // Retrieve the student and validate their fleet
             $student = Student::find($studentId);
             return $student && $instructorFleet->id == $student->fleet_id;
+        }
+
+        static function getExpenceTypeOption($optionId)
+        {
+            $expenseTypeOption = ExpenseTypeOption::find($optionId);
+
+            if (!$expenseTypeOption) {
+                return false;
+            }
+
+            return $expenseTypeOption->name;
         }
 
 

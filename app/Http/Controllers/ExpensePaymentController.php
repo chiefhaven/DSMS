@@ -32,7 +32,7 @@ class ExpensePaymentController extends Controller
             'student',
             'expense.students',
             // 'expense' => fn ($q) => $q->with('ExpenseTypeOption')
-        ]);
+        ])->orderBy('payment_date', 'DESC');
 
         // Load mapping of expense type option names
         $expenseTypeOptions = ExpenseTypeOption::with('expenseType')->get();
