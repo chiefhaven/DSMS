@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Validator;
 use RealRashid\SweetAlert\Facades\Alert;
 use App\Models\Permission;
 use App\Models\Role;
+use Illuminate\Http\Request;
 
 class FleetController extends Controller
 {
@@ -44,10 +45,19 @@ class FleetController extends Controller
         return view('fleet.fleet', compact('fleet', 'instructors', 'student', 'licenceClasses'));
     }
 
-    public function getFleet()
+    public function getFleet(Request $request)
     {
-        $fleet = Fleet::with('Instructor', 'licenceClass')->get();
-        return response()->json($fleet, 200);
+        $class = $request->query('studentCourseClass');
+
+        if (!$class) {
+            return response()->json([], 200);
+        }
+
+        $fleets = Fleet::with('Instructor', 'licenceClass')
+            ->where('licence_class_id', $class)
+            ->get();
+
+        return response()->json($fleets, 200);
     }
 
     /**

@@ -18,7 +18,7 @@
 
   <div class="content content-full">
     <div class="block-content">
-
+        Coming soon...
     </div>
 </div>
 
@@ -150,101 +150,6 @@
           selectedSchedule.value = null;
         };
 
-        const clearStudentSelection = () => {
-            studentId.value = '';
-            student.value = '';
-            location.value = '';
-            lessons.value = [];
-            selectedLesson.value = '',
-            hasError.value = false;
-          };
-
-        const searchStudent = () => {
-          $('#student_id').typeahead({
-            source: (query, process) => {
-              return $.get('/attendance-student-search', { search: query }, (data) => {
-
-                if(data.length > 0){
-                    studentsData.value = data;
-                }else{
-                    notification('Student not found, please rephrase', 'error')
-                }
-
-                return process(data.map(student => student.text));
-              });
-            },
-            updater: (selectedName) => {
-              const selectedStudent = studentsData.value.find(s => s.text === selectedName);
-              if (selectedStudent) {
-                studentId.value = selectedStudent.id;
-                student.value = selectedStudent.text;
-                fetchLessons(selectedStudent.id);
-              }
-              return selectedName;
-            }
-          });
-        };
-
-        const handleDateClick = (info) => {
-            const clickedMoment = moment(info.date);
-            const today = moment().startOf('day');
-            clickedDate.value = clickedMoment;
-
-            // Format for comparison
-            const clickedDateStr = clickedMoment.format("YYYY-MM-DD");
-
-            // Check for events on this date
-            const hasEvents = events.value.some(event =>
-              moment(event.start).format('YYYY-MM-DD') === clickedDateStr
-            );
-
-            // Only proceed if no events exist
-            if (!hasEvents) {
-                // Validate date is today or in future
-                if (clickedMoment.isBefore(today)) {
-                    showError("Can't select date", "Please select today's date or a future date");
-                    return;
-                }
-              // Set smart default time (next hour if today, 9am if future)
-              const defaultTime = clickedMoment.isSame(today, 'day')
-                ? moment().add(1, 'hour').startOf('hour') // Next full hour
-                : clickedMoment.set({ hour: 9, minute: 0 }); // 9:00 AM
-
-              startTime.value = defaultTime.format("YYYY-MM-DDTHH:mm");
-              showModal('createScheduleModal');
-            } else {
-              // Optional: Show existing events if needed
-              eventItems.value = events.value
-                .filter(event => moment(event.start).format('YYYY-MM-DD') === clickedDateStr)
-                .map(event => ({
-                    id: event.id,
-                    date: event.start,
-                    time: `${moment(event.start).format('HH:mm')} - ${moment(event.end).format('HH:mm')}`,
-                    students: event.extendedProps?.students,
-                    instructor: `${event.extendedProps?.instructor?.fname ?? ''} ${event.extendedProps?.instructor?.sname ?? ''}`.trim(),
-                    lesson: event.extendedProps?.lesson?.name ?? '',
-                    location: event.extendedProps?.location ?? '',
-                    comments: event.extendedProps?.comments ?? '',
-                }));
-                console.log(eventItems.value);
-              showModal('scheduleModal');
-            }
-        };
-
-        const handleAddSchedule = () => {
-
-            const today = moment().startOf('day');
-
-            // Validate date is today or in future
-            if (clickedDate.value.isBefore(today)) {
-                showError("Can't select date", "Please select today's date or a future date");
-                return;
-              }
-
-            closeModal('scheduleModal');
-            startTime.value = moment(clickedDate.value).format("YYYY-MM-DDTHH:mm");
-            showModal('createScheduleModal');
-        };
 
         const showModal = (modalId) => {
             const modal = new bootstrap.Modal(document.getElementById(modalId));
@@ -295,44 +200,6 @@
           }
         };
 
-        const calendarInitialization = () => {
-            const calendarEl = document.getElementById('calendar');
-
-            if (!calendarEl) return;
-
-            // Destroy previous instance if re-initializing
-            if (calendarInstance.value) {
-              calendarInstance.value.destroy();
-            }
-
-            calendarInstance.value = new FullCalendar.Calendar(calendarEl, {
-              initialView: 'dayGridMonth',
-              slotMinTime: '06:00:00',
-              slotMaxTime: '18:30:00',
-              slotDuration: '00:30:00',
-              slotLabelInterval: '00:30:00',
-              allDaySlot: false,
-              nowIndicator: true,
-              dateClick: handleDateClick,
-              events: events.value,
-              eventClick: handleDateClick,
-              headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay'
-              },
-              height: 'auto',
-            });
-
-            calendarInstance.value.render();
-        };
-
-        const refreshCalendar = () => {
-          if (calendarInstance.value) {
-            calendarInstance.value.removeAllEvents();
-            calendarInstance.value.addEventSource(events.value);
-          }
-        };
 
         const notification = (text, icon) => {
           Swal.fire({
@@ -536,11 +403,6 @@
         onMounted(() => {
           fetchLicenseClases();
         });
-
-        // Watchers
-        watch(events, () => {
-          refreshCalendar();
-        }, { deep: true });
 
         return {
           student,
