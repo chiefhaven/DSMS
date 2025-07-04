@@ -42,7 +42,7 @@ class Course extends Model
 
     public function licenceClass()
     {
-        return $this->belongsTo(LicenceClass::class, 'licence_class_id');
+        return $this->belongsTo(licenceClass::class, 'licence_class_id');
     }
 
     public function Lessons()
