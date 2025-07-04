@@ -153,7 +153,7 @@ class ExpenseController extends Controller
                         $download = '<p class="dropdown-item text-success">Go to student profile for TRN reference</p>';
                     }
 
-                    if ($expense->approved == true && auth()->user()->hasAnyRole(['superAdmin', 'financeAdmin'])) {
+                    if ($expense->approved == true && auth()->user()->hasAnyRole(['superAdmin', 'financeAdmin', 'admin'])) {
                         $paymentReport = '<form method="GET" action="' . url('expense-payment-report', $expense->id) . '">
                                         ' . csrf_field() . '
                                         <button class="dropdown-item nav-main-link btn download-confirm" type="submit">
@@ -286,6 +286,7 @@ class ExpenseController extends Controller
                     'expense_type' => $data['expenseTypesOption'],
                     'repeat'       => $data['expenses'][0]['pivot']['repeat'] ?? 0,
                     'amount'       => $data['expenseTypesOptionAmount'] ?? 0,
+                    'balance'       => $data['expenseTypesOptionAmount'] ?? 0,
                 ]);
             }
         } catch (\Exception $e) {
@@ -434,6 +435,7 @@ class ExpenseController extends Controller
                 $student->expenses()->attach($expense->id, [
                     'expense_type' => $data['expenses'][0]['pivot']['expense_type'],
                     'repeat'       => $data['expenses'][0]['pivot']['repeat'] ?? 0,
+                    'amount'       => $data['expenses'][0]['pivot']['amount'] ?? 0,
                     'amount'       => $data['expenses'][0]['pivot']['amount'] ?? 0,
                 ]);
             }

@@ -977,7 +977,6 @@ class StudentController extends Controller
 
         $finishedStudents = $activeStudents;
 
-
         return view('students.students', compact('activeStudents', 'fleet', 'finishedStudents'));
     }
 
@@ -997,7 +996,6 @@ class StudentController extends Controller
         $student->trainingLevel_id = havenUtils::trainingLevelID('practical');
         $student->save();
 
-
         try {
             $sms = new NotificationController;
             $sms->generalSMS($student, 'Carassignment');
@@ -1009,7 +1007,7 @@ class StudentController extends Controller
             \Log::error('Car assignment notification failed: ' . $e->getMessage(), [
                 'student_id' => $student->id ?? null,
                 'fleet_id' => $fleet->id ?? null,
-            ]);
+        ]);
 
             // Optionally return a response or silently continue
             // return response()->json(['error' => 'Notification failed'], 500);
