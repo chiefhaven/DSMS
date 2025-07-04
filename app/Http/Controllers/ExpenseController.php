@@ -493,7 +493,7 @@ class ExpenseController extends Controller
             ], 200);
         }
 
-        $option = \App\Models\ExpenseTypeOption::find($request->expenseTypesOption);
+        $option = ExpenseTypeOption::find($request->expenseTypesOption);
 
         if (!$option) {
             return response()->json([

@@ -43,9 +43,13 @@
                                             {{$invoice->student->fleet->car_registration_number}}<br>
                                             <div style="font-size: 8px;">{{$invoice->student->fleet->car_brand_model}}</div>
                                             <b>Instructor</b><br>
-                                            {{$invoice->student->fleet->instructor->fname}}
-                                            {{$invoice->student->fleet->instructor->sname}}<br>
-                                            {{$invoice->student->fleet->instructor->phone}}
+                                            @if($invoice->student->fleet->instructor)
+                                                {{$invoice->student->fleet->instructor->fname}}
+                                                {{$invoice->student->fleet->instructor->sname}}<br>
+                                                {{$invoice->student->fleet->instructor->phone}}
+                                            @else
+                                                Vehicle not assigned an instructor
+                                            @endif
                                         </div>
                                     </p>
                                 @else
