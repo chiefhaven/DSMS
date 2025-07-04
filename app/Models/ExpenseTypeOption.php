@@ -15,6 +15,7 @@ class ExpenseTypeOption extends Model
         'amount_per_student',
         'expense_type_id',
         'fees_percent_threshhold',
+        'period_threshold',
         'is_active',
     ];
 

@@ -65,7 +65,7 @@
 
   <!-- ONE Modal for Create & Edit -->
   <div class="modal fade" id="expenseTypeModal" tabindex="-1" aria-labelledby="expenseTypeModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <form @submit.prevent="submitExpenseType">
           <div class="modal-header">
@@ -105,6 +105,13 @@
                         <div class="input-group">
                             <input v-model="option.fees_percent_threshhold" type="number" min="0" max="100" step="0.01" class="form-control" placeholder="Fees %">
                             <span class="input-group-text">%</span>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <label class="form-label small">Selection period</label>
+                        <div class="input-group">
+                            <input v-model="option.period_threshold" type="number" min="0" max="100" step="0.01" class="form-control" placeholder="Selection period">
+                            <span class="input-group-text">Days</span>
                         </div>
                     </div>
                     <div class="col-auto">
@@ -147,10 +154,10 @@
     setup() {
         const loadingData = ref(false);
         const form = ref({
-        name: '',
-        description: '',
-        options: [],
-        is_active: true,
+            name: '',
+            description: '',
+            options: [],
+            is_active: true,
         });
         const isEditMode = ref(false);
 
@@ -167,7 +174,7 @@
         };
 
         const addOption = () => {
-        form.value.options.push({ name: '', amount_per_student: 0, fees_percent_threshhold: 0 });
+            form.value.options.push({ name: '', amount_per_student: 0, fees_percent_threshhold: 0, period_threshold: 0 });
         };
 
         const removeOption = (index) => {
@@ -183,16 +190,19 @@
         const openEditModal = (expenseType) => {
         isEditMode.value = true;
         form.value = {
-            id: expenseType.id,
-            name: expenseType.name,
-            description: expenseType.description,
-            options: expenseType.expense_type_options.map(opt => ({
-            name: opt.name,
-            amount_per_student: opt.amount_per_student,
-            fees_percent_threshhold: opt.fees_percent_threshhold,
-            })),
+                id: expenseType.id,
+                name: expenseType.name,
+                description: expenseType.description,
+                options: expenseType.expense_type_options.map(opt => ({
+                    name: opt.name,
+                    amount_per_student: opt.amount_per_student,
+                    fees_percent_threshhold: opt.fees_percent_threshhold,
+                    period_threshold: opt.period_threshold,
+                })),
             is_active: expenseType.is_active == 1 ? true : false,
         };
+
+        console.log(form.value);
         new bootstrap.Modal(document.getElementById('expenseTypeModal')).show();
         };
 
@@ -203,10 +213,10 @@
             : `/api/expense-types`;
             const method = isEditMode.value ? 'put' : 'post';
             await axios[method](url, {
-            name: form.value.name,
-            description: form.value.description,
-            options: form.value.options,
-            is_active: form.value.is_active ? 1 : 0,
+                name: form.value.name,
+                description: form.value.description,
+                options: form.value.options,
+                is_active: form.value.is_active ? 1 : 0,
             });
             showToast(`Expense Type ${isEditMode.value ? 'updated' : 'created'} successfully!`);
             bootstrap.Modal.getInstance(document.getElementById('expenseTypeModal')).hide();

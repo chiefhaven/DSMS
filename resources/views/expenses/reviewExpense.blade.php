@@ -140,7 +140,7 @@
         <div class="card-footer bg-white text-end py-3">
           <template v-if="state.expenseStatus === 0">
             <span class="text-warning me-3"><i class="fas fa-exclamation-circle"></i> List not approved</span>
-            <button type="button" @click="approveList" :disabled="state.processing" class="btn btn-success">
+            <button type="button" @click="approveList" :disabled="state.processing" class="btn btn-success rounded-pill px-4">
               <span v-if="state.processing"><i class="fas fa-spinner fa-spin me-1"></i> Processing...</span>
               <span v-else><i class="fas fa-check-circle me-1"></i> Approve</span>
             </button>

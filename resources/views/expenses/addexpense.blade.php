@@ -79,7 +79,7 @@
                     </div>
                 </div>
                 <div class="block-content block-content-full text-end">
-                    <button type="submit" @click="addStudentToGroup()" class="btn btn-primary">Add to list</button>
+                    <button type="submit" @click="addStudentToGroup()" class="btn btn-primary rounded-pill px-4">Add to list</button>
                 </div>
                 <h2 class="flex-grow-1 fs-5 fw-semibold my-2 my-sm-3 border-lg mb-5">Select students</h2>
                     <hr>
@@ -253,17 +253,15 @@
                                     ]
                                 });
 
-                                console.log('Expense data loaded:', state.value.selectedStudents)
-
                                 state.value.studentName = '';
                                 notification('Student added despite repeat', 'info');
                             }
                         });
 
                     } else {
-                        showAlert('Error', message, {
+                        showAlert('Student can not be selected', message, {
                             toast: false,
-                            icon: 'error',
+                            icon: 'warning',
                             confirmText: 'Ok'
                         });
                     }
@@ -354,19 +352,31 @@
                 var path = "{{ route('expense-student-search') }}";
 
                 $('#student').typeahead({
-                    minLength: 2, // start searching after 2 characters
+                    minLength: 2,
                     autoSelect: true,
                     highlight: true,
                     source: function (query, process) {
-                        return $.get(path, { query: query }, function (data) {
-                            return process(data);
-                        });
+                        $.get(path, { student: query })
+                            .done(function (data) {
+                                if (data.length === 0) {
+                                    notification('Student not found or not enrolled, search another name', 'error');
+                                    return process([]);
+                                }
+                                return process(data);
+                            })
+                            .fail(function () {
+                                notification('Error fetching student data', 'error');
+                                return process([]);
+                            });
                     },
                     updater: function (item) {
+                        if (item && item.id) {
+                            state.value.studentId = item.id;
+                        } else {
+                            notification('Invalid student selected', 'error');
+                        }
 
-                        state.value.studentId = item.id;
-
-                        return item;
+                        return item.name || '';
                     }
                 });
             }
@@ -411,13 +421,11 @@
                 axios.get('/api/fetch-expense-types')
                     .then(response => {
                         expenseTypes.value = response.data;
-                        console.log('Expense types loaded:', expenseTypes.value);
                     })
                     .catch(error => {
                         console.error('Error fetching expense types:', error);
                 });
             };
-
 
             const showAlert = (
                 message = '', // title

@@ -486,10 +486,10 @@ class ExpenseController extends Controller
 
         $student = Student::find($request->student);
 
-        if (!$student) {
+        if (!$student?->invoice) {
             return response()->json([
                 'feedback' => 'error',
-                'message' => 'Student not found.'
+                'message' => 'Student not found or not enrolled yet.'
             ], 200);
         }
 
@@ -530,12 +530,27 @@ class ExpenseController extends Controller
             $paidPercent = 0;
         }
 
-        // Use the option's threshold directly
+        // Use the option's threshold
         if ($option->fees_percent_threshhold !== null && $paidPercent < $option->fees_percent_threshhold) {
             return response()->json([
                 'feedback' => 'error',
                 'message' => "{$fullName} cannot be selected for {$optionName}. There is K{$student->invoice->invoice_balance} balance that must be paid."
             ], 200);
+        }
+
+        // Use the option's period threshold
+        if ($option->period_threshold !== null && $option->period_threshold !== 0) {
+            $dateDifferenceDays = Carbon::parse($student->invoice->created_at)->diffInDays(Carbon::now());
+
+            if ($dateDifferenceDays <= $option->period_threshold) {
+
+                $daysDifference = $option->period_threshold - $dateDifferenceDays;
+
+                return response()->json([
+                    'feedback' => 'error',
+                    'message' => "{$fullName} cannot be selected for {$optionName}. {$daysDifference} day(s) remaining before they can be selected."
+                ], 200);
+            }
         }
 
         return response()->json([
@@ -655,6 +670,11 @@ class ExpenseController extends Controller
             ->select('id', 'fname', 'mname', 'sname')
             ->get();
 
+        if ($students->isEmpty()) {
+            $dataModified = [];
+        }
+
+        // Format response
         $dataModified = $students->map(function ($student) {
             return [
                 'id' => $student->id,

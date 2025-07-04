@@ -54,7 +54,7 @@ class ExpenseTypeController extends Controller
                         $options .= '<li>'
                             . e($option->name)
                             . ' - <b>K' . number_format($option->amount_per_student ?? 0, 2)
-                            . '</b><br><small class="text-muted">' . e($option->fees_percent_threshhold ?? 0) . '% fees threshhold</small>'
+                            . '</b><br><small class="text-muted">' . e($option->fees_percent_threshhold ?? 0) . '% fees threshhold, '.e($option->period_threshold ?? 0).' days for selection</small>'
                             . '</li>';
                     }
                     $options .= '</ol>';
@@ -136,6 +136,7 @@ class ExpenseTypeController extends Controller
             'options.*.name' => 'required|string',
             'options.*.amount_per_student' => 'nullable|numeric|min:0',
             'options.*.fees_percent_threshhold' => 'nullable|numeric|min:0|max:100',
+            'options.*.period_threshold' => 'nullable|numeric|min:0|max:100',
         ]);
 
         $expenseType = ExpenseType::create([
@@ -151,6 +152,7 @@ class ExpenseTypeController extends Controller
                     'name' => $option['name'],
                     'amount_per_student' => $option['amount_per_student'] ?? 0,
                     'fees_percent_threshhold' => $option['fees_percent_threshhold'] ?? 0,
+                    'period_threshold' => $option['period_threshold'] ?? 0,
                 ]);
             }
         }
@@ -210,6 +212,7 @@ class ExpenseTypeController extends Controller
             'options.*.name' => 'required|string',
             'options.*.amount_per_student' => 'nullable|numeric|min:0',
             'options.*.fees_percent_threshhold' => 'nullable|numeric|min:0|max:100',
+            'options.*.period_threshold' => 'nullable|numeric|min:0|max:100',
         ]);
 
         $expenseType->update([
@@ -226,6 +229,7 @@ class ExpenseTypeController extends Controller
                     'name' => $option['name'],
                     'amount_per_student' => $option['amount_per_student'] ?? null,
                     'fees_percent_threshhold' => $option['fees_percent_threshhold'] ?? null,
+                    'period_threshold' => $option['period_threshold'] ?? 0,
                 ]);
             }
         }
