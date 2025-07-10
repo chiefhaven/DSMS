@@ -146,7 +146,7 @@
             var hasError = ref(false)
             const studentLessons = ref(false)
 
-            function addStudentToGroup() {
+            const addStudentToGroup = async () => {
                 hasError.value = false;
 
                 if (!state.value.studentName || !state.value.studentId) {
@@ -161,25 +161,49 @@
                     return hasError;
                 }
 
-                const alreadyInList = state.value.selectedStudents.some(
-                    item => item.studentId === state.value.studentId
-                );
-
-                if (alreadyInList) {
-                    notification('Student already in list', 'error');
-                    hasError.value = true;
-                    return hasError;
-                }
-
                 // Get lesson object
                 const selectedLesson = studentLessons.value.find(
                     lesson => lesson.id === state.value.bulkAttendance
                 );
 
+                // Get attendance count from DB
+                let dbAttendanceCount = 0;
+                try {
+                    const response = await axios.get('/api/student-lesson-attendances-count', {
+                        params: {
+                            lessonID: selectedLesson?.id,
+                            studentId: state.value.studentId,
+                        }
+                    });
+
+                    dbAttendanceCount = response.data.count ?? 0;
+
+                    console.log(dbAttendanceCount)
+                } catch (error) {
+                    console.error('Error fetching attendance count:', error);
+                    notification('Unable to fetch attendance count.', 'error');
+                    return;
+                }
+
+                // Count pending same lesson additions in the current session
+                const localLessonCount = state.value.selectedStudents.filter(
+                    s => s.lessonId === selectedLesson?.id && s.studentId === state.value.studentId
+                ).length;
+
+                const totalSoFar = dbAttendanceCount + localLessonCount;
+                console.log(totalSoFar)
+
+                if (totalSoFar >= (selectedLesson?.pivot.lesson_quantity || 0)) {
+                    notification('Reached the maximum number of this lesson for this student.', 'warning');
+                    return;
+                }
+
+                // Add to list
                 state.value.selectedStudents.push({
                     studentId: state.value.studentId,
                     studentName: state.value.studentName,
                     lessonId: selectedLesson?.id,
+                    lessonQuantity: selectedLesson?.lesson_quantity,
                     lessonName: selectedLesson?.name || 'Lesson',
                 });
 
@@ -189,7 +213,7 @@
                 state.value.bulkAttendance = '';
 
                 notification('Student added to group', 'success');
-            }
+            };
 
             function removeStudentFromGroup(index) {
 
@@ -271,7 +295,7 @@
                     studentLessons.value = response.data;
 
                     if (!studentLessons.value || studentLessons.value.length === 0) {
-                        notification('Student has no lessons in course enrolled or is not enrolled yet', 'warning');
+                        notification('Student has no lessons remaining in course enrolled or is not enrolled yet', 'warning');
                         studentLessons.value = [];
 
                         setTimeout(() => {
@@ -281,7 +305,6 @@
                     }
 
                 } catch (error) {
-                    console.error('Error fetching student lessons:', error);
                     notification('Error fetching student lessons', 'error');
                 }
             }

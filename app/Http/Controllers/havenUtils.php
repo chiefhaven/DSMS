@@ -17,8 +17,7 @@
     use SimpleSoftwareIO\QrCode\Facades\QrCode;
     use Auth;
     use Illuminate\Http\Request;
-
-    use RealRashid\SweetAlert\Facades\Alert;
+    use Illuminate\Support\Facades\Log;
 
     class havenUtils extends Controller
     {
@@ -354,14 +353,65 @@
             // Retrieve the lessons for the student
             $student = Student::find($studentId);
 
-            // Check if the student exists and has a course
-            if (!$student || !$student->course) {
+            if ($student && $student->course) {
+                // Group attendance records by lesson_id and count occurrences
+                $lessonsCount = $student->attendance
+                ->groupBy('lesson_id')
+                ->map(fn($group) => $group->count());
+
+                // Filter and map lessons
+                $lessons = $student->course->lessons
+                ->filter(function ($lesson) use ($lessonsCount) {
+
+                    // Get attendance count or default to 0
+                    $attendanceCount = $lessonsCount->get($lesson->id, 0);
+
+                    // Include lessons with lesson_quantity > attendanceCount
+                    return $lesson->pivot->lesson_quantity > $attendanceCount;
+                })
+                ->map(function ($lesson) use ($lessonsCount) {
+                    // Add an 'attended' flag
+                    $lesson->attended = $lessonsCount->has($lesson->id);
+                    return $lesson;
+                })
+                ->sortBy('pivot.order') // Sort lessons by the order field in the pivot table
+                ->values(); // Reset collection keys
+
+            } else {
                 return response()->json(['error' => 'Student or course not found'], 404);
             }
-
-            $lessons = $student->course->lessons;
 
             return response()->json($lessons);
         }
 
+        public function StudentLessonAttendancesCount(Request $request)
+        {
+            $studentId = $request->query('studentId');
+            $lessonId = $request->query('lessonID');
+
+            Log::info('StudentLessonAttendancesCount called', [
+                'studentId' => $studentId,
+                'lessonId' => $lessonId,
+            ]);
+
+            if (!$studentId || !$lessonId) {
+                Log::warning('Missing parameters in StudentLessonAttendancesCount', [
+                    'studentId' => $studentId,
+                    'lessonId' => $lessonId,
+                ]);
+                return response()->json(['message' => 'Missing parameters.'], 400);
+            }
+
+            $count = Attendance::where('student_id', $studentId)
+                        ->where('lesson_id', $lessonId)
+                        ->count();
+
+            Log::info('Attendance count result', [
+                'studentId' => $studentId,
+                'lessonId' => $lessonId,
+                'count' => $count,
+            ]);
+
+            return response()->json(['count' => $count]);
+        }
     }
