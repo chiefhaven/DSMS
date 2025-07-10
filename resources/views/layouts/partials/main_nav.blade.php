@@ -50,6 +50,11 @@
                     @role(['superAdmin', 'admin'])
 
                     <li class="nav-main-item">
+                        <a class="nav-main-link" href="{{ url('/bulk-attendances') }}">
+                            <span class="nav-main-link-name">Bulk attendances</span>
+                        </a>
+                    </li>
+                    <li class="nav-main-item">
                         <a class="nav-main-link" href="{{ url('/add-bulk-attendance') }}">
                             <span class="nav-main-link-name">Add bulk attendance</span>
                         </a>
