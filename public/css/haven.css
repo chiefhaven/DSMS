@@ -258,6 +258,32 @@
 }
 
 .select2-container--bootstrap4 .select2-results__option--highlighted {
-    background-color: #0d6efd;
+    background-color: #000000;
     color: white;
+}
+
+.loading-dots {
+    font-weight: bold;
+    font-size: 16px;
+    color: #000000;
+}
+
+.loading-dots .dot {
+    animation: blink 1.4s infinite;
+}
+
+.loading-dots .dot.one {
+    animation-delay: 0s;
+}
+.loading-dots .dot.two {
+    animation-delay: 0.2s;
+}
+.loading-dots .dot.three {
+    animation-delay: 0.4s;
+}
+
+@keyframes blink {
+    0% { opacity: 0.2; }
+    20% { opacity: 1; }
+    100% { opacity: 0.2; }
 }

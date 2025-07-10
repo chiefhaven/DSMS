@@ -50,7 +50,10 @@
                         <label for="student" class="text-capitalize">Select student</label>
                     </div>
                     <div class="col-6 form-floating mb-4">
-                        <select
+                        <div v-if="state.isLoadingLessons" class="text-center my-3">
+                            <span class="loading-dots">Loading lessons<span class="dot one">.</span><span class="dot two">.</span><span class="dot three">.</span></span>
+                        </div>
+                        <select v-if="!state.isLoadingLessons"
                             class="form-control"
                             id="bulkAttendance"
                             name="bulkAttendance"
@@ -68,8 +71,8 @@
                                 @{{ opt.name }}
                             </option>
                         </select>
-                        <label for="bulkAttendance">Lesson</label>
-                        <small v-if="!studentLessons.length && state.studentId" class="text-danger">
+                        <label for="bulkAttendance" v-if="!state.isLoadingLessons">Lesson</label>
+                        <small v-if="!studentLessons.length && state.studentId && !state.isLoadingLessons" class="text-danger">
                             No lessons found for the selected student.
                         </small>
                     </div>
@@ -140,6 +143,7 @@
                 errors: [],
                 isSubmitButtonDisabled: false,
                 isLoading: false,
+                isLoadingLessons: false,
                 buttonText: 'Submit',
             })
 
@@ -281,6 +285,8 @@
             }
 
             const getStudentLessons = async () => {
+                NProgress.start();
+                state.value.isLoadingLessons = true;
                 const path = "{{ route('api.student-lessons') }}";
 
                 if (!state.value.studentId) {
@@ -306,11 +312,15 @@
 
                 } catch (error) {
                     notification('Error fetching student lessons', 'error');
+                } finally {
+                    NProgress.done();
+                    state.value.isLoadingLessons = false;
                 }
             }
 
             function studentSearch() {
                 var path = "{{ route('expense-student-search') }}";
+                NProgress.start();
 
                 $('#student').typeahead({
                     minLength: 2,
@@ -319,6 +329,7 @@
                     source: function (query, process) {
                         $.get(path, { student: query })
                             .done(function (data) {
+                                NProgress.done();
                                 if (data.length === 0) {
                                     notification('Student not found or not enrolled, search another name', 'error');
                                     return process([]);
@@ -326,6 +337,7 @@
                                 return process(data);
                             })
                             .fail(function () {
+                                NProgress.done();
                                 notification('Error fetching student data', 'error');
                                 return process([]);
                             });
@@ -335,7 +347,10 @@
                             state.value.studentId = item.id;
                             state.value.studentName = item.name;
 
-                            //Fetch lessons for selected student
+                            // Clear existing lessons
+                            studentLessons.value = [];
+
+                            // Fetch lessons for selected student
                             getStudentLessons();
                         } else {
                             notification('Invalid student selected', 'error');
@@ -345,6 +360,7 @@
                     }
                 });
             }
+
 
             const notification = ($text, $icon) =>{
                 Swal.fire({
