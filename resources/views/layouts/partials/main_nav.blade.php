@@ -48,6 +48,12 @@
                         </a>
                     </li>
                     @role(['superAdmin', 'admin'])
+
+                    <li class="nav-main-item">
+                        <a class="nav-main-link" href="{{ url('/add-bulk-attendance') }}">
+                            <span class="nav-main-link-name">Add bulk attendance</span>
+                        </a>
+                    </li>
                     <li class="nav-main-item">
                         <a class="nav-main-link" href="{{ url('/schedules') }}">
                             <span class="nav-main-link-name">Schedules</span>
@@ -186,7 +192,7 @@
         @endrole
 
         {{-- Instructor Quick Tools --}}
-        @role('instructor')
+        @role(['instructor'])
             <li>
                 <a class="nav-main-link" href="{{ url('/scanqrcode') }}">
                     <i class="nav-main-link-icon fa fa-qrcode"></i>

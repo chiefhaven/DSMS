@@ -79,6 +79,15 @@ Route::post('/assign-class-room', [StudentController::class, 'assignClassRoom'])
 
 Route::get('/attendances', [AttendanceController::class, 'index'])->middleware('auth')->name('attendances');
 Route::post('/addattendance/{token}', [AttendanceController::class, 'create'])->middleware('auth')->name('addattendance');
+
+Route::get("/add-bulk-attendance", function(){
+    return view("attendances.addBulkAttendance");
+ })->middleware('auth');
+
+Route::get("/bulk-attendances", function(){
+    return view("attendances.bulkAttendances");
+})->middleware('auth');
+
 Route::post('/storeattendance', [AttendanceController::class, 'store'])->middleware('auth')->name('storeattendance');
 Route::post('/editattendance/{id}', [AttendanceController::class, 'edit'])->middleware('auth')->name('editattendance');
 Route::post('/updateattendance', [AttendanceController::class, 'update'])->middleware('auth')->name('updateattendance');

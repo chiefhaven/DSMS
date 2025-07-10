@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\MbiraStudentVersion;
 use App\Http\Controllers\Api\studentController as ApiStudentController;
 use App\Http\Controllers\Api\StudentProfileController;
+use App\Http\Controllers\BulkAttendanceController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ExpensePaymentController;
 use App\Http\Controllers\ExpenseTypeController;
@@ -63,6 +64,13 @@ Route::get('/student-mbira-version', [MbiraStudentVersion::class, 'index'])->nam
 Route::get('/notifications', [StudentProfileController::class, 'notifications'])->middleware('auth:sanctum')->name('notifications');
 Route::get('/attendances', [StudentProfileController::class, 'attendances'])->middleware('auth:sanctum')->name('attendances');
 Route::get('/courseDetails', [StudentProfileController::class, 'courseDetails'])->middleware('auth:sanctum')->name('courseDetails');
+
+Route::get('/student-lessons', [havenUtils::class, 'getStudentLessons'])
+    ->middleware('auth:sanctum')
+    ->name('api.student-lessons');
+
+    Route::get("/bulk-attendances", [BulkAttendanceController::class, 'index'])->middleware('auth')->name('api.bulk-attendances');
+    Route::post("/store-bulk-attendance", [BulkAttendanceController::class, 'store'])->middleware('auth')->name('api.store-bulk-attendance');
 
 Route::post('/bonuses/pay-early', [InstructorPaymentController::class, 'store'])->middleware('auth:sanctum')->name('pay-insturctor-bonuses');
 
