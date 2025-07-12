@@ -47,7 +47,7 @@
                                 {{ $expenseTypeNames[$student->pivot->expense_type] ?? 'Unknown' }}
                             </td>
                             <td class="invoice-td text-center">
-                                K{{ number_format($expense->pivot->amount ?? 0, 2) }}
+                                K{{ number_format($student->pivot->amount ?? 0, 2) }}
                             </td>
                             <td class="invoice-td text-center">
                                 {{ number_format($student->pivot->balance ?? 0, 2) == 0 ? 'K'.number_format($student->pivot->paid, 2) : 'Not Paid' }}
