@@ -50,7 +50,7 @@
                                 K{{ number_format($expense->pivot->amount ?? 0, 2) }}
                             </td>
                             <td class="invoice-td text-center">
-                                {{ ($student->pivot->paid ?? 0) > 0 ? 'K'.number_format($student->pivot->paid) : 'Not Paid' }}
+                                {{ number_format($student->pivot->balance ?? 0, 2) == 0 ? 'K'.number_format($student->pivot->paid, 2) : 'Not Paid' }}
                             </td>
                             <td class="invoice-td text-center">
                                 {{
