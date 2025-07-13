@@ -623,7 +623,7 @@ class ExpenseController extends Controller
 
         $template = 'pdf_templates.expensePaymentReport';
 
-        $expense = Expense::with(['students' => function ($query) {
+        $expense = Expense::with(['Students' => function ($query) {
             $query->orderBy('fname', 'asc');
         }])->findOrFail($expense->id);
 
