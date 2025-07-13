@@ -627,6 +627,8 @@ class ExpenseController extends Controller
             $query->orderBy('fname', 'asc');
         }])->findOrFail($expense->id);
 
+        dd($expense);
+
         // Get unique payment_entered_by values
         $enteredByIds = $expense->students->pluck('pivot.payment_entered_by')->filter()->unique();
 
