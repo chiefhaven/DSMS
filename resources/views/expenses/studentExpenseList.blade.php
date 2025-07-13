@@ -49,7 +49,7 @@
                                         @{{ expense.group }}
                                     </td>
                                     <td>
-                                        @{{ getExpenseTypeName(expense.pivot?.expense_type) }}<br>
+                                        @{{ getExpenseOptionName(expense.pivot?.expense_type) }}<br>
                                         <span
                                           v-if="expense.pivot?.repeat === 1"
                                           class="badge bg-danger"
