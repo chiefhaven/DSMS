@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\Expense; //capitals
-use App\Models\ExpensePayment;
+use App\Models\expensePayment;
 use App\Models\Instructor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -170,14 +170,14 @@ class HomeController extends Controller
             $earningsTotal = Invoice::whereBetween('created_at', [$start, $end])->sum('invoice_total');
             $invoiceBalances = Invoice::whereBetween('created_at', [$start, $end])->sum('invoice_balance');
             $expensesTotal = Expense::whereBetween('date_approved', [$start, $end])->sum('approved_amount');
-            $expensePayments = ExpensePayment::whereBetween('created_at', [$start, $end])->sum('amount');
+            $expensePayments = expensePayment::whereBetween('created_at', [$start, $end])->sum('amount');
         } else {
             $studentCount = Student::count();
             $attendanceCount = Attendance::count();
             $earningsTotal = Invoice::sum('invoice_total');
             $invoiceBalances = Invoice::sum('invoice_balance');
             $expensesTotal = Expense::sum('approved_amount');
-            $expensePayments = ExpensePayment::sum('amount');
+            $expensePayments = expensePayment::sum('amount');
         }
 
         // 5️⃣ === If instructor, override attendanceCount ===
