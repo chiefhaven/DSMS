@@ -83,7 +83,8 @@ class Student extends Model
 
     public function expenses()
     {
-        return $this->belongsToMany(Expense::class)->withPivot('id','expense_type', 'amount', 'payment_method', 'status', 'payment_entered_by', 'paid_at', 'repeat', 'paid', 'balance')
+        return $this->belongsToMany(Expense::class)
+        ->withPivot('id', 'expense_type', 'amount', 'repeat', 'status', 'paid_at', 'payment_entered_by','amount', 'payment_method', 'balance', 'paid')
                     ->withTimestamps();
     }
 
