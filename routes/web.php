@@ -27,6 +27,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\RoleDispatcherController;
 use App\Http\Controllers\ScheduleLessonController;
 use App\Http\Controllers\VehicleTrackerController;
+use App\Http\Controllers\BulkAttendanceController;
 use App\Models\Announcement;
 use App\Models\expense;
 use App\Models\knowledge;
@@ -87,6 +88,10 @@ Route::get("/add-bulk-attendance", function(){
 Route::get("/bulk-attendances", function(){
     return view("attendances.bulkAttendances");
 })->middleware('auth');
+
+Route::get('/edit-bulk-attendance/{id}', [BulkAttendanceController::class, 'edit'])
+    ->middleware('auth')
+    ->name('bulk-attendances.edit');
 
 Route::post('/storeattendance', [AttendanceController::class, 'store'])->middleware('auth')->name('storeattendance');
 Route::post('/editattendance/{id}', [AttendanceController::class, 'edit'])->middleware('auth')->name('editattendance');

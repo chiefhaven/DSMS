@@ -57,13 +57,22 @@ class ExpenseController extends Controller
         ->orderBy('created_at', 'DESC');
 
         if ($search) {
-            $expenses->where(function($query) use ($search) {
-                $query->where('group', 'like', "%$search%")
-                    ->orWhere('expense_type', 'like', "%$search%");
-                    // ->orWhereHas('students', function($q) use ($search) {
-                    //     $q->where('fname', 'like', "%$search%");
-                    // });
-            });
+            $expenses = Expense::with('students')
+            ->when(Auth::user()->hasRole('admin'), function ($query) {
+                return $query->where('added_by', Auth::user()->administrator_id);
+            })
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('group', 'like', "%$search%")
+                    ->orWhereHas('students', function ($s) use ($search) {
+                        $s->where('fname', 'like', "%$search%")
+                            ->orWhere('mname', 'like', "%$search%")
+                            ->orWhere('sname', 'like', "%$search%");
+                    });
+                });
+            })
+            ->orderByDesc('created_at');
+
         }
 
         return DataTables::of($expenses)

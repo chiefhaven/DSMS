@@ -64,6 +64,11 @@
 
         }
 
+        public function getLessons(){
+            $lessons = Lesson::get();
+            return response()->json($lessons);
+        }
+
         public function autocompleteLessonSearch(Request $request){
             // Retrieve the search term from the request
             $searchTerm = $request->input('search');

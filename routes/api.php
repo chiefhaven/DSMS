@@ -69,8 +69,16 @@ Route::get('/student-lessons', [havenUtils::class, 'getStudentLessons'])
     ->middleware('auth:sanctum')
     ->name('api.student-lessons');
 
-    Route::get("/bulk-attendances", [BulkAttendanceController::class, 'index'])->middleware('auth')->name('api.bulk-attendances');
-    Route::post("/store-bulk-attendance", [BulkAttendanceController::class, 'store'])->middleware('auth')->name('api.store-bulk-attendance');
+Route::get('/lessons', [havenUtils::class, 'getLessons'])
+    ->middleware('auth:sanctum')
+    ->name('api.lessons');
+
+Route::get("/bulk-attendances", [BulkAttendanceController::class, 'index'])->middleware('auth')->name('api.bulk-attendances');
+Route::post("/store-bulk-attendance", [BulkAttendanceController::class, 'store'])->middleware('auth')->name('api.store-bulk-attendance');
+Route::post("/update-bulk-attendance", [BulkAttendanceController::class, 'update'])->middleware('auth')->name('api.update-bulk-attendance');
+Route::delete('/bulk-attendance/{bulkAttendance}', [BulkAttendanceController::class, 'destroy'])
+    ->middleware('auth')
+    ->name('api.bulk-attendance.destroy');
 
 Route::post('/bonuses/pay-early', [InstructorPaymentController::class, 'store'])->middleware('auth:sanctum')->name('pay-insturctor-bonuses');
 

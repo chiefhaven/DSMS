@@ -22,7 +22,7 @@ class bulkAttendance extends Model
 
     public function students()
     {
-        return $this->belongsToMany(Student::class, 'attendances', 'bulk_attendance_id', 'student_id');
+        return $this->belongsToMany(Student::class, 'attendances', 'bulk_attendance_id', 'student_id')->withPivot('lesson_id');
     }
 
     public function Administrator()
