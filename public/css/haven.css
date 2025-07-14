@@ -287,3 +287,40 @@
     20% { opacity: 1; }
     100% { opacity: 0.2; }
 }
+
+#webcam-preview {
+    position: relative;
+    width: 100%;
+    height: auto;
+    border: 4px solid #28a745;
+    border-radius: 10px;
+    object-fit: cover;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.6);
+}
+
+/* Scanning Line */
+.scan-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.scan-line {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 0, 0, 0.8);
+    animation: scan-animation 2s infinite;
+}
+
+@keyframes scan-animation {
+    0% {
+        transform: translateY(0%);
+    }
+    100% {
+        transform: translateY(18000%);
+    }
+}
