@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ExpensePayment;
+use App\Models\expensePayment;
 use App\Http\Requests\StoreexpensePaymentRequest;
 use App\Http\Requests\UpdateexpensePaymentRequest;
 use App\Models\ExpenseTypeOption;

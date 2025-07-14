@@ -6,7 +6,7 @@ use App\Models\Expense;
 use App\Http\Requests\StoreexpenseRequest;
 use App\Http\Requests\UpdateexpenseRequest;
 use App\Models\Administrator;
-use App\Models\ExpensePayment;
+use App\Models\expensePayment;
 use App\Models\ExpenseType;
 use App\Models\ExpenseTypeOption;
 use App\Models\Setting;
