@@ -85,7 +85,7 @@
                                             <button
                                               @click="loadPaymentForm(expense)"
                                               class="btn btn-primary rounded-pill px-4 mb-1"
-                                              :disabled="!expense.approved || expense.pivot?.status === 1 || expense.pivot?.repeat === 1 || expense.pivot?.amount === 00.00"
+                                              :disabled="!expense.approved || expense.pivot?.status === 1 || expense.pivot?.repeat === 1 || expense.pivot?.amount === '00'"
                                             >
                                               Pay
                                             </button>
