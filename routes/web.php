@@ -22,17 +22,11 @@ use App\Http\Controllers\ExpensePaymentController;
 use App\Http\Controllers\havenUtils;
 use App\Http\Controllers\InstructorPaymentController;
 use App\Http\Controllers\knowledgeController;
-use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\RoleDispatcherController;
 use App\Http\Controllers\ScheduleLessonController;
-use App\Http\Controllers\VehicleTrackerController;
 use App\Http\Controllers\BulkAttendanceController;
-use App\Models\Announcement;
 use App\Models\expense;
-use App\Models\knowledge;
-use App\Models\ScheduleLesson;
-use App\Models\VehicleTracker;
 use Illuminate\Support\Facades\Artisan;
 
 /*
