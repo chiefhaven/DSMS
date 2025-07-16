@@ -76,7 +76,7 @@
                                             :title="
                                               !expense.approved ? 'Expense is not approved yet'
                                               : expense.pivot?.status === 1 ? 'Already paid'
-                                              : expense.pivot?.amount === 00.00 ? 'Zero payment not possible, student repeating'
+                                              : expense.pivot?.amount === '00.00' ? 'Zero payment not possible, student repeating'
                                               : expense.pivot?.repeat === 1 ? 'Student repeating'
                                               : ''
                                             "
