@@ -180,7 +180,7 @@ class ExpensePaymentController extends Controller
 
             if ($request->amount > $expense->pivot->balance) {
                 Log::info("Overpayment attempt: Requested amount {$request->amount} exceeds balance {$expense->pivot->balance}");
-                abort(422, 'Amount must not exxceed the remaining balance.');
+                abort(422, 'Amount must not exceed the remaining balance.');
             }
 
             $expensePayment = new ExpensePayment();
