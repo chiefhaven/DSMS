@@ -295,7 +295,7 @@ class ExpenseController extends Controller
                     'expense_type' => $data['expenseTypesOption'],
                     'repeat'       => $data['expenses'][0]['pivot']['repeat'] ?? 0,
                     'amount'       => $data['expenseTypesOptionAmount'] ?? 0,
-                    'balance'       => $data['expenseTypesOptionAmount'] ?? 0,
+                    'balance'      => $data['expenseTypesOptionAmount'] ?? 0,
                 ]);
             }
         } catch (\Exception $e) {
