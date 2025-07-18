@@ -291,11 +291,13 @@ class ExpenseController extends Controller
         try {
             foreach ($students as $data) {
                 $student = havenUtils::student($data['studentName']);
-                $student->expenses()->attach($expense->id, [
-                    'expense_type' => $data['expenseTypesOption'],
-                    'repeat'       => $data['expenses'][0]['pivot']['repeat'] ?? 0,
-                    'amount'       => $data['expenseTypesOptionAmount'] ?? 0,
-                    'balance'      => $data['expenseTypesOptionAmount'] ?? 0,
+                $student->expenses()->syncWithoutDetaching([
+                    $expense->id => [
+                        'expense_type' => $data['expenseTypesOption'],
+                        'repeat'       => $data['expenses'][0]['pivot']['repeat'] ?? 0,
+                        'amount'       => $data['expenseTypesOptionAmount'] ?? 0,
+                        'balance'      => $data['expenseTypesOptionAmount'] ?? 0,
+                    ]
                 ]);
             }
         } catch (\Exception $e) {
