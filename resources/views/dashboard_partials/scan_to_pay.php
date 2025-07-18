@@ -9,7 +9,6 @@
                             <div class="text-end ms-3">
                                 <h5 class="fw-bold text-dark mb-1">Scan to Pay</h5>
                                 <p class="mb-0">Pay for student expense</p>
-                                <small class="text-muted">Coming soon</small>
                             </div>
                         </div>
                     </div>

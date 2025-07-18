@@ -251,7 +251,7 @@ const app = createApp({
             window.location.reload()
         } catch (error) {
             console.error('Payment error:', error)
-            showAlert('Failed to make payment.', error.response?.data?.message || '', {
+            showAlert('Can not make payment.', error.response?.data?.message || '', {
             icon: 'error',
             toast: false,
             confirmText: 'OK',
