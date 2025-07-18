@@ -4,7 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\HomeController as ApiHomeController;
-use App\Http\Controllers\Api\InvoiceController as ApiInvoiceController;
+use App\Http\Controllers\Api\invoiceController as ApiInvoiceController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\MbiraStudentVersion;
