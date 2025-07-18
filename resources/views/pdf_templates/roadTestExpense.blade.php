@@ -32,7 +32,7 @@
                             {{$student->course->class}}
                         </td>
                         <td class="invoice-td text-center">
-                            {{$student->fleet->car_registration_number}}
+                            {{ optional($student->fleet)->car_registration_number }}
                         </td>
                     </tr>
                     @endforeach
