@@ -36,12 +36,12 @@
                             @endif
                     </td>
                     <td class="invoice-td text-center">
-                        @if ($student->pivot->expense_type == '9f373388-873d-4769-a1b1-8e29534dba0d')
+                        @if ($student->pivot->expense_type == '9f713944-99c2-4317-b0d6-6b25980f6a02')
                             <div style="font-family: DejaVu Sans, sans-serif;">✔</div>
                         @endif
                     </td>
                     <td class="invoice-td text-center">
-                        @if ($student->pivot->expense_type == '9f373388-8c4b-45c4-aedf-5da82103c5f9')
+                        @if ($student->pivot->expense_type == '9f713944-9b19-4aa1-a864-f98bb6d8d7b4')
                             <div style="font-family: DejaVu Sans, sans-serif;">✔</div>
                         @endif
                     </td>
