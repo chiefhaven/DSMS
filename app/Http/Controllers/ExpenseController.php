@@ -447,7 +447,8 @@ class ExpenseController extends Controller
                     'expense_type' => $data['expenses'][0]['pivot']['expense_type'],
                     'repeat'       => $data['expenses'][0]['pivot']['repeat'] ?? 0,
                     'amount'       => $data['expenses'][0]['pivot']['amount'] ?? 0,
-                    'amount'       => $data['expenses'][0]['pivot']['amount'] ?? 0,
+                    'paid'       => $data['expenses'][0]['pivot']['paid'] ?? 0,
+                    'balance'       => $data['expenses'][0]['pivot']['balance'] ?? 0,
                 ]);
             }
 

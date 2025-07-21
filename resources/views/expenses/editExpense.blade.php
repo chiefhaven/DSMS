@@ -192,14 +192,14 @@
                 mname: s.mname,
                 sname: s.sname,
                 expenseTypesOption: pivot.expense_type || '',
-                expenseTypesOptionName: option.name || '',
+                expenseTypesOptionName: option.name || '-',
                 expenseTypesOptionAmount: pivot.amount || 0,
                 expenses: [{ pivot }]
                 };
             });
             totalAmount();
             }).finally(() => {
-            state.value.loadingData = false;
+                state.value.loadingData = false;
             });
         };
 
