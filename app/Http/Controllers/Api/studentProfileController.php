@@ -158,7 +158,8 @@ class studentProfileController extends Controller
 
     public function notifications()
     {
-        $notifications = Auth::user()->notifications;
+        //$notifications = Auth::user()->notifications;
+        $notifications = Auth::user()->notifications->values();
         return response()->json($notifications);
     }
 }
