@@ -159,6 +159,15 @@ class studentProfileController extends Controller
 
     public function notifications()
     {
+        $notifications = Auth::user()->notifications;
 
+        // Log the entire collection
+        Log::info('User Notifications:', [
+            'user_id' => Auth::id(),
+            'count' => $notifications->count(),
+            'notifications' => $notifications->toArray()
+        ]);
+
+        return response()->json($notifications);
     }
 }
