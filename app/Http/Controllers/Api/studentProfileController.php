@@ -8,6 +8,7 @@ use App\Models\Student;
 use App\Models\Attendance;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Course;
+use Illuminate\Support\Facades\Log;
 
 use function PHPUnit\Framework\isEmpty;
 
@@ -158,8 +159,15 @@ class studentProfileController extends Controller
 
     public function notifications()
     {
-        //$notifications = Auth::user()->notifications;
-        $notifications = Auth::user()->notifications->values();
+        $notifications = Auth::user()->notifications;
+
+        // Log the entire collection
+        Log::info('User Notifications:', [
+            'user_id' => Auth::id(),
+            'count' => $notifications->count(),
+            'notifications' => $notifications->toArray()
+        ]);
+
         return response()->json($notifications);
     }
 }
