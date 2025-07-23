@@ -422,12 +422,11 @@ class ExpenseController extends Controller
 
             $expense = Expense::find($post['expenseId']);
 
-            // Check if expense exists
             if (!$expense) {
                 throw new ModelNotFoundException('Expense not found');
             }
 
-            // Update expense
+            // Update expense info
             $expense->group = $post['expenseGroupName'];
             $expense->group_type = $post['expenseGroupType'] ?? null;
             $expense->description = $post['expenseDescription'] ?? null;
@@ -435,22 +434,30 @@ class ExpenseController extends Controller
             $expense->edited_by = Auth::user()->administrator_id;
             $expense->save();
 
-            // Clear previous student associations
-            $expense->students()->detach();
+            // Prepare pivot data for sync
+            $syncData = [];
 
-            // Reattach students with expense_type
             foreach ($students as $data) {
                 $fullName = trim($data['fname'] . ' ' . $data['mname'] . ' ' . $data['sname']);
                 $student = havenUtils::student($fullName);
 
-                $student->expenses()->attach($expense->id, [
-                    'expense_type' => $data['expenses'][0]['pivot']['expense_type'],
-                    'repeat'       => $data['expenses'][0]['pivot']['repeat'] ?? 0,
-                    'amount'       => $data['expenses'][0]['pivot']['amount'] ?? 0,
-                    'paid'       => $data['expenses'][0]['pivot']['paid'] ?? 0,
-                    'balance'       => $data['expenses'][0]['pivot']['balance'] ?? 0,
-                ]);
+                if (!$student || !isset($data['expenses'][0]['pivot'])) {
+                    continue;
+                }
+
+                $pivot = $data['expenses'][0]['pivot'];
+
+                $syncData[$student->id] = [
+                    'expense_type' => $pivot['expense_type'] ?? null,
+                    'repeat'       => $pivot['repeat'] ?? 0,
+                    'amount'       => $pivot['amount'] ?? 0,
+                    'paid'         => $pivot['paid'] ?? 0,
+                    'balance'      => $pivot['balance'] ?? 0,
+                ];
             }
+
+            // Sync students with pivot data
+            $expense->students()->sync($syncData);
 
             DB::commit();
 
@@ -466,6 +473,7 @@ class ExpenseController extends Controller
             ], 500);
         }
     }
+
 
     /**
      * Remove the specified resource from storage.
