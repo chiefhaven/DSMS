@@ -10,8 +10,6 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Course;
 use Illuminate\Support\Facades\Log;
 
-use function PHPUnit\Framework\isEmpty;
-
 class studentProfileController extends Controller
 {
     /**
