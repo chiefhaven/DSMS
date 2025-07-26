@@ -54,6 +54,7 @@ class studentProfileController extends Controller
             'District',
             'Fleet',
             'Classroom',
+            'exepenses',
         ])->find($id);
 
         if (!$student) {
