@@ -47,7 +47,6 @@ class studentProfileController extends Controller
 
         // Retrieve the student along with related data
         $student = Student::with([
-            'Expenses',
             'User',
             'Invoice',
             'Course.lessons', // Assuming Course has a lessons relationship
@@ -55,6 +54,7 @@ class studentProfileController extends Controller
             'District',
             'Fleet',
             'Classroom',
+            'expenses',
         ])->find($id);
 
         if (!$student) {
