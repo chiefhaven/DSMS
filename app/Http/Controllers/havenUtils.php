@@ -290,6 +290,20 @@
             return $expenseTypeOption->name;
         }
 
+        static function getExpenceTypeOptions(){
+            $expenseTypeOptions = ExpenseTypeOption::get();
+
+            if (!$expenseTypeOptions) {
+                return false;
+            }
+
+            return $expenseTypeOptions->map(function ($option) {
+                return [
+                    'id' => $option->id,
+                    'name' => $option->name,
+                ];
+            });
+        }
 
         static function checkClassRoom($studentId){
             // Ensure there is an authenticated user and retrieve their classroom IDs
