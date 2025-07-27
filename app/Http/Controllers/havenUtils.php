@@ -290,7 +290,7 @@
             return $expenseTypeOption->name;
         }
 
-        static function getExpenceTypeOptions(){
+        static function getExpenseTypeOptions(){
             $expenseTypeOptions = ExpenseTypeOption::get();
 
             if (!$expenseTypeOptions) {
