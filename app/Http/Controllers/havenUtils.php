@@ -297,7 +297,7 @@
                 return false;
             }
 
-            return $expenseTypeOptions->json(function ($option) {
+            return $expenseTypeOptions->map(function ($option) {
                 return [
                     'id' => $option->id,
                     'name' => $option->name,
