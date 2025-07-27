@@ -297,7 +297,12 @@
                 return false;
             }
 
-            return response()->json($expenseTypeOptions);
+            return $expenseTypeOptions->json(function ($option) {
+                return [
+                    'id' => $option->id,
+                    'name' => $option->name,
+                ];
+            });
         }
 
         static function checkClassRoom($studentId){
