@@ -119,6 +119,7 @@ Route::get('/get-all-vehicle-locations', [VehicleTrackerController::class, 'show
 Route::get('/show-vehicle-geo-data/{vehicleId}', [VehicleTrackerController::class, 'showVehicleGeoData'])->name('vehicle-location')->middleware('auth:sanctum');
 
 Route::get('/getExpenceTypeOption/{id}', [havenUtils::class, 'getExpenceTypeOption'])->name('getExpenceTypeOption')->middleware('auth:sanctum');
+Route::get('/getExpenceTypeOptions', [havenUtils::class, 'getExpenceTypeOptions'])->name('getExpenceTypeOption')->middleware('auth:sanctum');
 
 Route::get('/student-lesson-attendances-count', [havenUtils::class, 'StudentLessonAttendancesCount'])->middleware('auth:sanctum')->name('StudentLessonAttendancesCount');
 
