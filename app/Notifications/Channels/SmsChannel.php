@@ -23,13 +23,13 @@ class SmsChannel
 
         try {
             $response = Http::withHeaders([
-                'Authorization' => config('services.clickmobile.token'),
+                'Authorization' => config('services.smsApi.token'),
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
-            ])->post(config('services.clickmobile.url'), [
+            ])->post(config('services.smsApi.url'), [
                 'to' => $phoneNumber,
                 'message' => $message,
-                'from' => config('services.clickmobile.from'),
+                'from' => config('services.smsApi.from'),
             ]);
 
             Log::info("SMS Sent: " . $response->body());
