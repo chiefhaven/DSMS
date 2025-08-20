@@ -23,7 +23,7 @@ class SmsChannel
 
         try {
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . config('services.clickmobile.token'),
+                'Authorization' => config('services.clickmobile.token'),
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
             ])->post(config('services.clickmobile.url'), [

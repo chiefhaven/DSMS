@@ -88,19 +88,15 @@ class NotificationController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $source = env('SMS_SENDER_ID');
-
-        $client = new Client();
-
         try {
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . config('services.clickmobile.token'),
+                'Authorization' => config('services.smsApi.token'),
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
-            ])->post(config('services.clickmobile.url'), [
+            ])->post(config('services.smsApi.url'), [
                 'to' => $destination,
                 'message' => $sms_body,
-                'from' => config('services.clickmobile.from'),
+                'from' => config('services.smsApi.from'),
             ]);
 
             // $response = $client->post(env('SMS_URL'), [
