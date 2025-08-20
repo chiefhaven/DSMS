@@ -89,7 +89,7 @@ class NotificationController extends Controller
         }
 
         try {
-            $response = Http::withHeaders([
+            $apiResponse = Http::withHeaders([
                 'Authorization' => config('services.smsApi.token'),
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
@@ -99,40 +99,31 @@ class NotificationController extends Controller
                 'from' => config('services.smsApi.from'),
             ]);
 
-            // $response = $client->post(env('SMS_URL'), [
-            //     'headers' => [
-            //     'Content-Type' => 'application/json',
-            //     'Accept' => 'application/json',
-            //     'Authorization' => env('SMS_AUTH_KEY')
-            // ],
-            // 'body' => json_encode([
-            //                 'from' => $source,
-            //                 'to' => $destination,
-            //                 'message' => $sms_body
-            //             ])
-            //         ]);
+            if ($apiResponse->failed()) {
+                Log::error("SMS Failed: " . $apiResponse->body());
+                return [
+                    'statusCode' => $apiResponse->status(),
+                    'message'    => 'SMS sending failed',
+                    'error'      => $apiResponse->body(),
+                ];
+            }
 
-            $statusCode = $response->getStatusCode();
-            Log::info("SMS Sent: " . $response->body());
+            Log::info("SMS Sent: " . $apiResponse->body());
 
-            $response = [
-                'statusCode' => $statusCode,
-                'message' => 'SMS sent successfully'
+            return [
+                'statusCode' => $apiResponse->status(),
+                'message'    => 'SMS sent successfully',
+                'data'       => $apiResponse->json(),
             ];
-
-            // Process the response as needed
         } catch (\Exception $e) {
-            // Handle the exception
-            $response = [
-                'statusCode' => 204,
-                'message' => $e->getMessage()
+            Log::error("SMS Exception: " . $e->getMessage());
+
+            return [
+                'statusCode' => 500,
+                'message'    => 'Exception while sending SMS',
+                'error'      => $e->getMessage(),
             ];
-
-            return $response;
         }
-
-        return $response;
-
     }
 
     // Send SMS for enrollment, payments, and balance reminders
