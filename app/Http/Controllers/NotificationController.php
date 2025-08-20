@@ -8,6 +8,8 @@ use App\Models\Student;
 use App\Models\notification_template;
 use Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class NotificationController extends Controller
 {
@@ -91,20 +93,31 @@ class NotificationController extends Controller
         $client = new Client();
 
         try {
-            $response = $client->post(env('SMS_URL'), [
-                'headers' => [
-                'Content-Type' => 'application/json',
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . config('services.clickmobile.token'),
                 'Accept' => 'application/json',
-                'Authorization' => 'Bearer ' . env('SMS_AUTH_KEY')
-            ],
-            'body' => json_encode([
-                            'from' => $source,
-                            'to' => $destination,
-                            'message' => $sms_body
-                        ])
-                    ]);
+                'Content-Type' => 'application/json',
+            ])->post(config('services.clickmobile.url'), [
+                'to' => $destination,
+                'message' => $sms_body,
+                'from' => config('services.clickmobile.from'),
+            ]);
+
+            // $response = $client->post(env('SMS_URL'), [
+            //     'headers' => [
+            //     'Content-Type' => 'application/json',
+            //     'Accept' => 'application/json',
+            //     'Authorization' => env('SMS_AUTH_KEY')
+            // ],
+            // 'body' => json_encode([
+            //                 'from' => $source,
+            //                 'to' => $destination,
+            //                 'message' => $sms_body
+            //             ])
+            //         ]);
 
             $statusCode = $response->getStatusCode();
+            Log::info("SMS Sent: " . $response->body());
 
             $response = [
                 'statusCode' => $statusCode,
