@@ -89,8 +89,12 @@ class NotificationController extends Controller
         }
 
         try {
+            Log::info([
+                'Authorization' => config('services.smsApi.token'),
+            ]);
+
             $apiResponse = Http::withHeaders([
-                'Authorization' => 'Bearer'.config('services.smsApi.token'),
+                'Authorization' => config('services.smsApi.token'),
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
             ])->post(config('services.smsApi.url'), [
