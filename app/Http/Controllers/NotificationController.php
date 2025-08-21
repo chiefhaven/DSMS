@@ -94,7 +94,7 @@ class NotificationController extends Controller
                 'Authorization' => config('services.smsApi.token'),
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
-            ])->post(config('services.smsApi.url'), [
+            ])->post(config('services.smsApi.url'.'/send-sms'), [
                 'to' => $destination,
                 'message' => $sms_body,
                 'from' => config('services.smsApi.from'),
