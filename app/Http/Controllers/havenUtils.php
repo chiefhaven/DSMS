@@ -322,7 +322,7 @@ use Illuminate\Support\Facades\Log;
                 $data = $response->json();
 
                 // Assume your API returns something like ['balance' => 120]
-                return response()->json(['balance' => $data['balance'] ?? 0]);
+                return response()->json(['balance' => $data['account_balance'] ?? 0]);
             } catch (\Exception $e) {
                 Log::error('SMS Balance Exception: ' . $e->getMessage());
                 return response()->json(['balance' => null, 'error' => $e->getMessage()], 500);

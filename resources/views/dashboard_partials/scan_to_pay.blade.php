@@ -23,7 +23,7 @@
                         <p class="mb-0">
                             <span v-if="loading">Checking...</span>
                             <span v-else-if="error" class="text-danger">@{{ error }}</span>
-                            <span v-else>Balance: @{{ balance }} SMS</span>
+                            <span v-else>Balance:K @{{ balance }}</span>
                         </p>
                         </div>
                     </div>
