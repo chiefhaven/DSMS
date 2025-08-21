@@ -24,7 +24,6 @@
                                 <span v-if="loading">Checking...</span>
                                 <span v-else-if="error" class="text-danger">@{{ error }}</span>
                                 <span v-else>
-                                    Balance:
                                     <span
                                         class="badge rounded-pill"
                                         :class="balance < 5000 ? 'bg-danger' : 'bg-success'"

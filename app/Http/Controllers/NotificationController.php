@@ -92,12 +92,12 @@ class NotificationController extends Controller
         try {
             $apiResponse = Http::withHeaders([
                 'Authorization' => config('services.smsApi.token'),
-                'Accept' => 'application/json',
-                'Content-Type' => 'application/json',
-            ])->post(config('services.smsApi.url'.'/send-sms'), [
-                'to' => $destination,
+                'Accept'        => 'application/json',
+                'Content-Type'  => 'application/json',
+            ])->post(config('services.smsApi.url') . '/send-sms', [
+                'to'      => $destination,
                 'message' => $sms_body,
-                'from' => config('services.smsApi.from'),
+                'from'    => config('services.smsApi.from'),
             ]);
 
             if ($apiResponse->failed()) {
