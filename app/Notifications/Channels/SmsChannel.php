@@ -26,7 +26,7 @@ class SmsChannel
                 'Authorization' => config('services.smsApi.token'),
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
-            ])->post(config('services.smsApi.url'), [
+            ])->post(config('services.smsApi.url') . '/send-sms', [
                 'to' => $phoneNumber,
                 'message' => $message,
                 'from' => config('services.smsApi.from'),
