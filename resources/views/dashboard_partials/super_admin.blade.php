@@ -487,36 +487,37 @@
 
         const smsBalance = createApp({
             setup() {
-            const balance = ref(null);
-            const loading = ref(true);
-            const error = ref(null);
+                const balance = ref(null);
+                const loading = ref(true);
+                const error = ref(null);
 
-            const fetchBalance = async () => {
-              loading.value = true;
-              try {
-                const response = await axios.get("/api/sms-balance");
-                balance.value = response.data.balance;
-              } catch (err) {
-                error.value = err.response?.data?.error || err.message;
-              } finally {
-                loading.value = false;
-              }
-            };
+                const fetchBalance = async () => {
+                    loading.value = true;
+                    try {
+                        const response = await axios.get("/api/sms-balance");
+                        balance.value = response.data.balance;
+                    } catch (err) {
+                        error.value = err.response?.data?.error || err.message;
+                    } finally {
+                        loading.value = false;
+                    }
+                };
 
-            onMounted(() => {
-              fetchBalance();
+                onMounted(() => {
+                    fetchBalance();
 
-              // Optional: auto-refresh every 30 seconds
-              setInterval(fetchBalance, 30000);
-            });
+                    // Optional: auto-refresh every 30 seconds
+                    setInterval(fetchBalance, 30000);
+                });
 
-            return {
-                balance,
-                loading,
-                error,
-                fetchBalance
-            };
-        }}).mount('#smsBalance');
+                return {
+                    balance,
+                    loading,
+                    error,
+                    fetchBalance
+                };
+            }
+        }).mount('#smsBalance');
 
         const dashboardSummary = createApp({
             setup() {
@@ -678,7 +679,6 @@
                     onCustomDateChange,
                     isLoading,
                     summaryCards,
-                    fetchBalance,
 
                 };
             }
