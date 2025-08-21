@@ -110,15 +110,6 @@ class NotificationController extends Controller
             }
 
             Log::info("SMS Sent: " . $apiResponse->body());
-            // Log the successful response
-            $smsBalance = $apiResponse->json()['balance'] ?? '00.00';
-
-            // Update the SMS balance in the settings
-            Setting::updateOrCreate(
-                ['key' => 'sms_balance'],
-                ['value' => $smsBalance]
-            );
-
 
             return [
                 'statusCode' => $apiResponse->status(),
