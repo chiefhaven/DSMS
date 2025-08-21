@@ -15,18 +15,13 @@
                 </a>
             </div>
             <div class="col-md-6 col-xl-6 mb-4" id="smsBalance" v-cloak>
-                <div class="block block-rounded block-link-shadow border p-4 hover-effect h-100">
-                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                        <i class="fa fa-envelope fa-4x text-success"></i>
-                        <div class="text-end ms-3">
-                        <h5 class="fw-bold text-dark mb-1">SMS Balance</h5>
-                        <p class="mb-0">
-                            <span v-if="loading">Checking...</span>
-                            <span v-else-if="error" class="text-danger">@{{ error }}</span>
-                            <span v-else>Balance:K @{{ balance }}</span>
-                        </p>
-                        </div>
-                    </div>
+                <div
+                    class="sms-card d-flex flex-column align-items-center justify-content-center text-center p-4"
+                    :class="balance < 5000 ? 'bg-danger text-white' : 'bg-success text-white'"
+                >
+                    <i class="fa fa-envelope fa-3x mb-2"></i>
+                    <h5 class="fw-bold mb-1">SMS Balance</h5>
+                    <p class="mb-0">@{{ balance }}</p>
                 </div>
             </div>
         </div>

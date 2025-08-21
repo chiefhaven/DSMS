@@ -567,7 +567,6 @@
                         });
 
                         summaryInfo.value = response.data;
-                        console.log(response.data);
                     } catch (error) {
                         const errorData = error.response.data;
 
