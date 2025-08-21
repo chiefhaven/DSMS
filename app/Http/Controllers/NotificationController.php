@@ -6,6 +6,7 @@ use GuzzleHttp\Client;
 use RealRashid\SweetAlert\Facades\Alert;
 use App\Models\Student;
 use App\Models\notification_template;
+use App\Models\Setting;
 use Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -89,10 +90,6 @@ class NotificationController extends Controller
         }
 
         try {
-            Log::info([
-                'Authorization' => config('services.smsApi.token'),
-            ]);
-
             $apiResponse = Http::withHeaders([
                 'Authorization' => config('services.smsApi.token'),
                 'Accept' => 'application/json',
@@ -113,6 +110,15 @@ class NotificationController extends Controller
             }
 
             Log::info("SMS Sent: " . $apiResponse->body());
+            // Log the successful response
+            $smsBalance = $apiResponse->json()['balance'] ?? '00.00';
+
+            // Update the SMS balance in the settings
+            Setting::updateOrCreate(
+                ['key' => 'sms_balance'],
+                ['value' => $smsBalance]
+            );
+
 
             return [
                 'statusCode' => $apiResponse->status(),

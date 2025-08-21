@@ -123,3 +123,5 @@ Route::get('/getExpenceTypeOption/{id}', [havenUtils::class, 'getExpenceTypeOpti
 Route::get('/getExpenseTypeOptions', [havenUtils::class, 'getExpenseTypeOptions'])->name('getExpenseTypeOptions')->middleware('auth:sanctum');
 
 Route::get('/student-lesson-attendances-count', [havenUtils::class, 'StudentLessonAttendancesCount'])->middleware('auth:sanctum')->name('StudentLessonAttendancesCount');
+
+Route::get('/sms-balance', [havenUtils::class, 'getSmsBalance'])->name('sms.balance')->middleware('auth:sanctum');

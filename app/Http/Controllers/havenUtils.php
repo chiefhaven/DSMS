@@ -17,7 +17,8 @@
     use SimpleSoftwareIO\QrCode\Facades\QrCode;
     use Auth;
     use Illuminate\Http\Request;
-    use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
     class havenUtils extends Controller
     {
@@ -303,6 +304,29 @@
                     'name' => $option->name,
                 ];
             });
+        }
+
+        public function getSmsBalance()
+        {
+            try {
+                $response = Http::withHeaders([
+                    'Authorization' => config('services.smsApi.token'),
+                    'Accept'        => 'application/json',
+                ])->get(config('services.smsApi.url') . '/client-balance');
+
+                if ($response->failed()) {
+                    Log::error('SMS Balance Fetch Failed: ' . $response->body());
+                    return response()->json(['balance' => null, 'error' => 'Failed to fetch balance'], 500);
+                }
+
+                $data = $response->json();
+
+                // Assume your API returns something like ['balance' => 120]
+                return response()->json(['balance' => $data['balance'] ?? 0]);
+            } catch (\Exception $e) {
+                Log::error('SMS Balance Exception: ' . $e->getMessage());
+                return response()->json(['balance' => null, 'error' => $e->getMessage()], 500);
+            }
         }
 
         static function checkClassRoom($studentId){
