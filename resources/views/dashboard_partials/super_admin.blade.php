@@ -497,7 +497,8 @@
                         const response = await axios.get("/api/sms-balance");
                         balance.value = response.data.balance;
                     } catch (err) {
-                        error.value = err.response?.data?.error || err.message;
+                        error.value = "Something went wrong";
+                        //console.log(err.response?.data?.error || err.message)
                     } finally {
                         loading.value = false;
                     }
