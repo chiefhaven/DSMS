@@ -389,6 +389,12 @@ class ExpenseController extends Controller
     public function edit(expense $expense)
     {
         $expense = Expense::with('Students')->find($expense->id);
+
+        if($expense->approved == true){
+            Alert::toast('You cannot edit an approved expense', 'error');
+            return redirect('/expenses');
+        };
+
         return view('expenses.editExpense', compact('expense'));
     }
 
@@ -424,6 +430,10 @@ class ExpenseController extends Controller
 
             if (!$expense) {
                 throw new ModelNotFoundException('Expense not found');
+            }
+
+            if($expense->approved == true){
+                return redirect()->back()->withErrors(['error' => 'You cannot edit an approved expense']);
             }
 
             // Update expense info
