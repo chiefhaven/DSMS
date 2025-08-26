@@ -498,7 +498,7 @@
                         balance.value = response.data.balance;
                     } catch (err) {
                         error.value = "Something went wrong";
-                        //console.log(err.response?.data?.error || err.message)
+                        console.log(err.response?.data?.error || err.message)
                     } finally {
                         loading.value = false;
                     }
