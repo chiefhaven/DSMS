@@ -16,6 +16,8 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // $schedule->command('inspire')->hourly();
+        $schedule->command('pay:early-bonuses')->monthlyOn(26, '02:05')->timezone('Africa/Harare')
+            ->description('Trigger early bonus payments for instructors on the 26th of every month at 02:03 AM Harare time');
     }
 
     /**

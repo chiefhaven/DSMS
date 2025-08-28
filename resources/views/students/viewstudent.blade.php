@@ -122,54 +122,65 @@
                                 @role(['superAdmin','admin'])
                                 <div class="mt-auto">
                                     <h5 class="border-bottom pb-2 mb-3">Vehicle Assignment</h5>
-                                    @if(isset($student->fleet->car_brand_model))
-                                        <div class="alert alert-warning py-2">
-                                            <div class="row align-items-center">
-                                                <div class="col-md-6">
-                                                    <div class="d-flex align-items-center">
-                                                        <i class="fas fa-car me-3"></i>
-                                                        <div>
-                                                            <strong>{{ $student->fleet->car_registration_number }}</strong>
-                                                            <div class="small">{{ $student->fleet->car_brand_model }}</div>
+
+                                    @if(isset($student->invoice))
+                                        @if(isset($student->fleet->car_brand_model))
+                                            <div class="alert alert-warning py-2">
+                                                <div class="row align-items-center">
+                                                    <div class="col-md-6">
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="fas fa-car me-3 fs-4 text-dark"></i>
+                                                            <div>
+                                                                <strong>{{ $student->fleet->car_registration_number }}</strong>
+                                                                <div class="small text-muted">{{ $student->fleet->car_brand_model }}</div>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <div class="col-md-6 text-end">
-                                                    <button type="button"
+                                                    <div class="col-md-6 text-end">
+                                                        <button
+                                                            type="button"
                                                             @click="getFleet()"
-                                                            class="btn btn-sm btn-outline-warning me-2 rounded-pill px-4"
+                                                            class="btn btn-sm btn-outline-warning rounded-pill px-4 me-2"
                                                             data-bs-toggle="modal"
                                                             data-bs-target=".assignCar">
-                                                        <i class="fas fa-sync-alt me-1"></i> Reassign
-                                                    </button>
-                                                    <button type="button"
+                                                            <i class="fas fa-sync-alt me-1"></i> Reassign
+                                                        </button>
+                                                        <button
+                                                            type="button"
                                                             @click="unAssignCar()"
                                                             class="btn btn-sm btn-outline-danger rounded-pill px-4">
-                                                        <i class="fas fa-times me-1"></i> Unassign
-                                                    </button>
+                                                            <i class="fas fa-times me-1"></i> Unassign
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    @else
-                                        <div class="alert alert-danger py-2">
-                                            <div class="row align-items-center">
-                                                <div class="col-md-6">
-                                                    <i class="fas fa-exclamation-circle me-2"></i>
-                                                    <strong>No vehicle assigned</strong>
-                                                </div>
-                                                <div class="col-md-6 text-end">
-                                                    <button type="button"
+                                        @else
+                                            <div class="alert alert-danger py-2">
+                                                <div class="row align-items-center">
+                                                    <div class="col-md-6">
+                                                        <i class="fas fa-exclamation-circle me-2 text-danger"></i>
+                                                        <strong>No vehicle assigned</strong>
+                                                    </div>
+                                                    <div class="col-md-6 text-end">
+                                                        <button
+                                                            type="button"
                                                             @click="getFleet()"
                                                             class="btn btn-sm btn-primary rounded-pill px-4"
                                                             data-bs-toggle="modal"
                                                             data-bs-target=".assignCar">
-                                                        <i class="fas fa-plus me-1"></i> Assign Vehicle
-                                                    </button>
+                                                            <i class="fas fa-plus me-1"></i> Assign Vehicle
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
+                                        @endif
+                                    @else
+                                        <div class="text-muted fst-italic small">
+                                            Only enrolled students can be assigned to a vehicle.
                                         </div>
                                     @endif
                                 </div>
+
                                 @endrole
                             </div>
                         </div>
@@ -202,7 +213,7 @@
                                                     @if(isset($student->invoice) && isset($student->course))
                                                         <div class="d-flex align-items-center">
                                                             <div>
-                                                                <strong>{{ $student->course->name }}</strong>
+                                                                <strong>{{ $student->course->name }}</strong> - Licence type: {{ $student->course->licenceClass->class }}
                                                                 <div class="small text-muted">{{ $student->course->duration }} days program</div>
                                                             </div>
                                                         </div>
@@ -509,6 +520,7 @@
         const fleetRegNumber = ref(null)
         const fleet = ref('')
         const classRoom = ref('{{ $student->classroom->id ?? null }}');
+        const studentCourseClass = ref('{{ $student->course->licence_class_id ?? null }}');
         const classRooms = ref([]);
         const paymentMethods = ref([]);
         const cashPaymentId = ref(null)
@@ -525,12 +537,16 @@
             getPaymentMethods()
         })
 
-        // Fetch fleet vehicles with proper error handling
+        // Fetch fleet vehicles
         const getFleet = async () => {
             try {
                 NProgress.start();
 
-                const response = await axios.get('/getFleet');
+                const response = await axios.get('/getFleet', {
+                    params: {
+                      studentCourseClass: studentCourseClass.value
+                    }
+                });
 
                 if (response.status === 200) {
                     cars.value = response.data;

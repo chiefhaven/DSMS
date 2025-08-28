@@ -71,9 +71,20 @@ class Student extends Model
        return $this->hasMany(Payment::class);
     }
 
+    public function bulkAttendances()
+    {
+        return $this->belongsToMany(
+            BulkAttendance::class,
+            'attendances',
+            'student_id',
+            'bulk_attendance_id'
+        )->withPivot([]);
+    }
+
     public function expenses()
     {
-        return $this->belongsToMany(Expense::class)->withPivot('id','expense_type', 'amount', 'payment_method', 'status', 'payment_entered_by', 'paid_at', 'repeat')
+        return $this->belongsToMany(Expense::class)
+        ->withPivot('id', 'expense_type', 'amount', 'repeat', 'status', 'paid_at', 'payment_entered_by','amount', 'payment_method', 'balance', 'paid')
                     ->withTimestamps();
     }
 

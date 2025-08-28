@@ -25,6 +25,11 @@ class Administrator extends Model
        return $this->hasMany(Expense::class);
     }
 
+    public function BulkAttendances()
+    {
+       return $this->hasMany(bulkAttendance::class);
+    }
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()

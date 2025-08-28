@@ -48,6 +48,17 @@
                         </a>
                     </li>
                     @role(['superAdmin', 'admin'])
+
+                    <li class="nav-main-item">
+                        <a class="nav-main-link" href="{{ url('/bulk-attendances') }}">
+                            <span class="nav-main-link-name">Bulk attendances</span>
+                        </a>
+                    </li>
+                    <li class="nav-main-item">
+                        <a class="nav-main-link" href="{{ url('/add-bulk-attendance') }}">
+                            <span class="nav-main-link-name">Add bulk attendance</span>
+                        </a>
+                    </li>
                     <li class="nav-main-item">
                         <a class="nav-main-link" href="{{ url('/schedules') }}">
                             <span class="nav-main-link-name">Schedules</span>
@@ -75,6 +86,7 @@
                         <li><a class="nav-main-link" href="{{ url('/lessons') }}"><span class="nav-main-link-name">Lessons</span></a></li>
                         <li><a class="nav-main-link" href="{{ url('/fleet') }}"><span class="nav-main-link-name">Fleet</span></a></li>
                         <li><a class="nav-main-link" href="{{ url('/#') }}"><span class="nav-main-link-name">Satelites</span></a></li>
+                        <li><a class="nav-main-link" href="{{ url('/driving-license-classes') }}"><span class="nav-main-link-name">Driving license classes</span></a></li>
                     </ul>
                 </li>
 
@@ -100,12 +112,6 @@
                         <li><a class="nav-main-link" href="{{ url('/payments') }}"><span class="nav-main-link-name">Student payments</span></a></li>
                     </ul>
                 </li>
-                {{--  <li>
-                    <a class="nav-main-link" href="{{ url('/invoices') }}">
-                        <i class="nav-main-link-icon fa fa-file-invoice-dollar"></i>
-                        <span class="nav-main-link-name">Invoices</span>
-                    </a>
-                </li>  --}}
             @endrole
 
             {{-- Expenses --}}
@@ -122,6 +128,9 @@
                     @role(['superAdmin', 'financeAdmin'])
                         <li><a class="nav-main-link" href="{{ url('/scan-to-pay') }}"><span class="nav-main-link-name">Scan to pay</span></a></li>
                         <li><a class="nav-main-link" href="{{ url('/expense-payments') }}"><span class="nav-main-link-name">Expense payments</span></a></li>
+                    @endrole
+                    @role(['superAdmin', 'admin'])
+                        <li><a class="nav-main-link" href="{{ url('/expense-types') }}"><span class="nav-main-link-name">Expense types</span></a></li>
                     @endrole
 
                 </ul>
@@ -188,7 +197,7 @@
         @endrole
 
         {{-- Instructor Quick Tools --}}
-        @role('instructor')
+        @role(['instructor'])
             <li>
                 <a class="nav-main-link" href="{{ url('/scanqrcode') }}">
                     <i class="nav-main-link-icon fa fa-qrcode"></i>

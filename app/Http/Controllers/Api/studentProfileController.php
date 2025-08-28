@@ -8,8 +8,7 @@ use App\Models\Student;
 use App\Models\Attendance;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Course;
-
-use function PHPUnit\Framework\isEmpty;
+use Illuminate\Support\Facades\Log;
 
 class studentProfileController extends Controller
 {
@@ -53,6 +52,7 @@ class studentProfileController extends Controller
             'District',
             'Fleet',
             'Classroom',
+            'expenses',
         ])->find($id);
 
         if (!$student) {
@@ -145,7 +145,7 @@ class studentProfileController extends Controller
 
     public function showAttendance()
     {
-        $id = Auth::user()->student_id;
+        $id = Auth::user()->student_id; //hahdgs
         $student = Attendance::With('Lesson', 'Instructor')->where('student_id', $id)->get();
         return response()->json($student);
     }
@@ -158,7 +158,15 @@ class studentProfileController extends Controller
 
     public function notifications()
     {
-        $notifications = Auth::user()->notifications->get(10);
+        $notifications = Auth::user()->notifications;
+
+        // Log the entire collection
+        Log::info('User Notifications:', [
+            'user_id' => Auth::id(),
+            'count' => $notifications->count(),
+            'notifications' => $notifications->toArray()
+        ]);
+
         return response()->json($notifications);
     }
 }

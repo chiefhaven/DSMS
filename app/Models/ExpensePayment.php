@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class ExpensePayment extends Model
 {
-    protected $table = 'expense_student';
+    use HasFactory, HasUuids;
+    protected $table = 'expense_payments';
 
     public function student() {
         return $this->belongsTo(Student::class, 'student_id');

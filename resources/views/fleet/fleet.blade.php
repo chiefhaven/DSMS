@@ -1,119 +1,208 @@
 @extends('layouts.backend')
 
 @section('content')
-  <!-- Hero -->
-  <div class="bg-body-light">
-    <div class="content content-full">
-      <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
-        <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Fleet</h1>
-        <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
-          <ol class="breadcrumb">
-            <a class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-block-addfleet" href="javascript:void(0)">
-              <span class="nav-main-link-name">Add Fleet</span>
-            </a>
-          </ol>
-        </nav>
-      </div>
+<!-- Hero -->
+<div class="bg-body-light">
+  <div class="content content-full">
+    <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
+      <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Fleet Management</h1>
+      <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <button class="btn btn-primary  rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#modal-block-addfleet">
+            <i class="fa fa-plus me-1"></i> Add vehicle
+          </button>
+        </ol>
+      </nav>
     </div>
   </div>
+</div>
+<!-- END Hero -->
 
-  <div class="content content-full">
-    <div class="block-content">
-          @if(Session::has('message'))
-            <div class="alert alert-success">
-              {{Session::get('message')}}
-            </div>
-          @endif
+<!-- Main content -->
+<div class="content content-full">
+  <div class="block-content">
+    @if(Session::has('message'))
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ Session::get('message') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    @endif
 
-          @if ($errors->any())
-              <div class="alert alert-danger">
-                  <ul>
-                      @foreach ($errors->all() as $error)
-                          <li>{{ $error }}</li>
-                      @endforeach
-                  </ul>
-              </div>
-          @endif
+    @if ($errors->any())
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <ul class="mb-0">
+          @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+          @endforeach
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    @endif
 
-      <div class="row">
-        @forelse ($fleet as $fleet)
+    <div class="row g-4">
+      @forelse ($fleet as $car)
         <div class="col-md-6 col-xl-4">
-            <div class="block block-rounded block-link-shadow text-center" href="javascript:void(0)">
-                <div class="block-content block-content-full">
-                    <img class="fleet-avatar" src="public/media/fleet/{{$fleet->fleet_image}}" width="100%" height="auto" alt="Fleet Image">
+          <div class="block block-rounded block-link-shadow h-100">
+            <div class="ratio ratio-16x9 bg-light">
+                <img src="{{ asset('public/media/fleet/' . $car->fleet_image) }}"
+                     class="img-fluid object-fit-cover p-4"
+                     alt="{{ $car->car_brand_model }}"
+                     onerror="this.onerror=null; this.src='{{ asset('path/to/default/image.jpg') }}'">
+            </div>
+            <div class="block-content block-content-full bg-body-light">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h3 class="fs-lg fw-bold mb-0">{{ $car->car_brand_model }}</h3>
+                <span class="badge bg-primary">{{ $car->car_registration_number }}</span>
+              </div>
+              <p class="text-muted mb-3">Designated license class: {{ $car->licenceClass->class ?? 'Class not defined' }}</p>
+              <p class="text-muted mb-3">{{ Str::limit($car->car_description, 100) }}</p>
+
+              <div class="d-flex justify-content-between small">
+                <div>
+                  <i class="fa fa-user-tie text-muted me-1"></i>
+                  <span class="text-muted">Instructor: </span>
+                  @if($car->instructor)
+                    <span class="fw-semibold">{{ $car->instructor->fname }} {{ $car->instructor->sname }}</span>
+                  @else
+                    <span class="text-warning">Not assigned</span>
+                  @endif
                 </div>
-                <div class="block-content block-content-full block-content-sm bg-body-light">
-                    <h3 class="font-w600 mb-0">{{$fleet->car_brand_model}}</h3>
-                    <p><strong>Reg #:</strong> {{$fleet->car_registration_number}}<br>
-                    <strong>Description:</strong> {{$fleet->car_description}}</p>
+                <div>
+                  <i class="fa fa-users text-muted me-1"></i>
+                  <span class="text-muted">Students: </span>
+                  <span class="fw-semibold">{{ $car->student()->where('status', '!=', 'Finished')->count() }}</span>
                 </div>
-                <div class="block-content block-content-full" style="overflow-x: initial;">
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="font-size-sm text-muted mb-0">
-                                <p>
-                                    <strong>Instructor:</strong>
-                                    @if($fleet->instructor)
-                                        {{$fleet->instructor->fname}} {{$fleet->instructor->sname}}
-                                    @else
-                                        Not assigned instructor
-                                    @endif
-                                    <br>
-                                    <strong>Active students:</strong> {{$fleet->student()->where('status', '!=', 'Finished')->count()}}
-                                </p>
-                            </div>
-                        </div>
-                        <div class="col-12 text-right">
-                            <div class="dropdown d-inline-block">
-                                  <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <span class="d-sm-inline-block">Action</span>
-                                  </button>
-                                  <div class="dropdown-menu dropdown-menu-end p-0">
-                                    <div class="p-2">
-                                      <form method="get" action="{{ url('/editfleet', $fleet->id) }}">
-                                        {{ csrf_field() }}
-                                        <button class="dropdown-item" type="submit">Edit</button>
-                                      </form>
-                                      <form method="POST" action="{{ url('/deletefleet', $fleet->id) }}">
-                                        {{ csrf_field() }}
-                                        {{ method_field('DELETE') }}
-                                        <button class="dropdown-item delete-confirm" type="submit">Delete</button>
-                                      </form>
-                                    </div>
-                                  </div>
-                            </div>
-                        </div>
+              </div>
+            </div>
+            <div class="block-content block-content-full bg-body-light border-top">
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="dropdown">
+                  <button type="button" class="btn btn-sm btn-alt-secondary dropdown-toggle" id="dropdown-fleet-{{ $car->id }}" data-bs-toggle="dropdown">
+                    <i class="fa fa-cog"></i>
+                  </button>
+                  <div class="dropdown-menu dropdown-menu-end">
+                    <form method="GET" action="{{ url('/editfleet', $car->id) }}">
+                      @csrf
+                      <button class="dropdown-item d-flex align-items-center" type="submit">
+                        <i class="fa fa-edit me-2"></i> Edit
+                      </button>
+                    </form>
+                    <button class="dropdown-item d-flex align-items-center text-danger delete-confirm" type="button"
+                      data-car="{{ $car->car_brand_model }} - {{ $car->car_registration_number }}"
+                      data-url="{{ url('/deletefleet', $car->id) }}">
+                      <i class="fa fa-trash me-2"></i> Delete
+                    </button>
+                  </div>
+                </div>
+                <a href="/view-fleet/{{ $car->id }}" class="btn btn-sm btn-primary">View Details</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      @empty
+        <div class="col-12">
+          <div class="block block-rounded text-center py-6">
+            <div class="block-content">
+              <i class="fa fa-car fa-3x text-muted mb-3"></i>
+              <h4 class="mb-3">No Vehicles in Fleet</h4>
+              <p class="text-muted mb-4">Get started by adding your first vehicle to the fleet</p>
+              <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-block-addfleet">
+                <i class="fa fa-plus me-1"></i> Add Vehicle
+              </button>
+            </div>
+          </div>
+        </div>
+      @endforelse
+    </div>
+  </div>
+</div>
+
+@include('fleet.addfleetmodal')
+
+<!-- SweetAlert2 Delete Confirm -->
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    $(document).ready(function() {
+        // Initialize Select2 with floating label support
+        $('.select2-instructor').select2({
+            placeholder: "Select instructor...",
+            allowClear: true,
+            theme: 'bootstrap4',
+            templateResult: formatInstructor,
+            templateSelection: formatInstructorSelection,
+            dropdownParent: $('#modal-block-addfleet'),
+            width: '100%'
+        });
+
+        // Handle floating label with Select2
+        $('.select2-instructor').on('change', function() {
+            if ($(this).val()) {
+                $(this).addClass('has-value');
+            } else {
+                $(this).removeClass('has-value');
+            }
+        }).trigger('change');
+
+        function formatInstructor(instructor) {
+            if (!instructor.id) return instructor.text;
+
+            return $(`
+                <div class="d-flex align-items-center">
+                    <img src="${instructor.element.dataset.avatar}" class="rounded-circle me-3" width="30" height="30">
+                    <div>
+                        <div class="fw-semibold">${instructor.text}</div>
                     </div>
                 </div>
-            </div>
-        </div>
+            `);
+        }
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
-        <script type="text/javascript">
-            $('.delete-confirm').on('click', function (e) {
-                e.preventDefault();
-                var form = $(this).parents('form');
-                swal({
-                    title: 'Are you sure you want to delete {{$fleet->car_brand_model}}?',
-                    text: 'Will not delete as there are students still assigned to it!',
-                    icon: 'warning',
-                    buttons: ["Cancel", "Yes!"],
-                }).then(function(isConfirm){
-                        if(isConfirm){
-                                form.submit();
-                        }
-                });
-            });
+        function formatInstructorSelection(instructor) {
+            if (!instructor.id) return instructor.text;
+            return $(`<span>${instructor.text}</span>`);
+        }
+    });
+</script>
+<script>
+  document.querySelectorAll('.delete-confirm').forEach(button => {
+    button.addEventListener('click', function () {
+      const carName = this.getAttribute('data-car');
+      const url = this.getAttribute('data-url');
 
-        </script>
-        @empty
-           <h1>No fleet added yet!</h1>
-        @endforelse
-      </div>
+      Swal.fire({
+        title: `Delete ${carName}?`,
+        text: "This vehicle will be permanently removed. Any assigned students will need reassignment.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete it!",
+        cancelButtonText: "Cancel",
+        confirmButtonColor: "#dc3545",
+        cancelButtonColor: "#6c757d",
+      }).then(result => {
+        if (result.isConfirmed) {
+          // Create a temporary form to send DELETE request
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = url;
 
-      </div>
-    </div>
+          const csrf = document.createElement('input');
+          csrf.type = 'hidden';
+          csrf.name = '_token';
+          csrf.value = '{{ csrf_token() }}';
+          form.appendChild(csrf);
 
-    @include('fleet.addfleetmodal')
-  <!-- END Hero -->
+          const method = document.createElement('input');
+          method.type = 'hidden';
+          method.name = '_method';
+          method.value = 'DELETE';
+          form.appendChild(method);
+
+          document.body.appendChild(form);
+          form.submit();
+        }
+      });
+    });
+  });
+</script>
+@endpush
 @endsection

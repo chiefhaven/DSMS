@@ -31,7 +31,7 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
-    'clickmobile' => [
+    'smsApi' => [
             'url' => env('SMS_URL'),
             'token' => env('SMS_AUTH_KEY'),
             'from' => env('SMS_SENDER_ID'),

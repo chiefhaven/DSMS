@@ -1,0 +1,437 @@
+@extends('layouts.backend')
+
+@section('content')
+  <!-- Hero -->
+  <div class="bg-body-light">
+    <div class="content content-full">
+      <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
+        <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Driving licence classes</h1>
+        <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item">App</li>
+            <li class="breadcrumb-item active" aria-current="page">Driving licence classes</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <div class="content content-full">
+    <div class="block-content">
+        Coming soon...
+    </div>
+</div>
+
+<script>
+
+    const schedule = createApp({
+      setup() {
+        // Reactive state
+        const student = ref('');
+        const selectedStudents = ref([]);
+        const studentId = ref("");
+        const lessonId = ref("");
+        const selectedLesson = ref("");
+        const startTime = ref("");
+        const location = ref("");
+        const comments = ref("");
+        const lessons = ref([]);
+        const studentsData = ref([]);
+        const events = ref([]);
+        const eventItems = ref([]);
+        const selectedSchedule = ref(null);
+        const clickedDate = ref("");
+        const calendarInstance = ref(null);
+        const isSubmitting = ref(false);
+        const scheduleId = ref('');
+        const hasError = ref(false);
+
+        // Computed properties
+        const finishTime = computed(() => {
+          if (!startTime.value) return "";
+          return moment(startTime.value, "YYYY-MM-DDTHH:mm")
+                 .add(30, "minutes")
+                 .format("YYYY-MM-DDTHH:mm");
+        });
+
+        // Methods
+        const fetchLessons = async (studentId) => {
+          try {
+            const response = await axios.get(`/student-lessons/${studentId}`);
+            lessons.value = response.data;
+            if (lessons.value.length === 0) {
+              notification('No lessons available for this student', 'error');
+            }
+          } catch (error) {
+            console.error("Error fetching lessons:", error);
+            notification('Failed to fetch lessons', 'error');
+          }
+        };
+
+        const formatDate = (dateString) => {
+          const date = new Date(dateString);
+          return date.toLocaleString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+          });
+        };
+
+        const validateForm = () => {
+          if (!selectedStudents.value || !startTime.value) {
+            notification("Please fill in all required fields!", "error");
+            return false;
+          }
+
+          if (new Date(finishTime.value) <= new Date(startTime.value)) {
+            notification("Finish time must be after start time!", "error");
+            return false;
+          }
+
+          return true;
+        };
+
+        const submitForm = async () => {
+          if (!validateForm()) return;
+
+          isSubmitting.value = true;
+          NProgress.start();
+
+          const payload = {
+            selectedStudents: selectedStudents.value,
+            start_time: startTime.value,
+            finish_time: finishTime.value,
+            scheduleId: selectedSchedule.value?.id ?? null,
+          };
+
+          try {
+            const endpoint = selectedSchedule.value?.id
+              ? `/update-lesson-schedule/${selectedSchedule.value.id}`
+              : "/store-lesson-schedule";
+
+            const method = selectedSchedule.value?.id ? "put" : "post";
+            const response = await axios[method](endpoint, payload);
+
+            notification(response.data.message || "Lesson schedule saved successfully!", "success");
+            await fetchSchedules();
+            closeModal('createScheduleModal');
+            clearForm();
+          } catch (error) {
+            handleApiError(error);
+          } finally {
+            isSubmitting.value = false;
+            NProgress.done();
+          }
+        };
+
+        const handleApiError = (error) => {
+          const errorMessage = error.response?.data?.message ||
+                             error.message ||
+                             "Failed to save lesson schedule. Please try again.";
+          notification(errorMessage, "error");
+          console.error("API Error:", {
+            status: error.response?.status,
+            data: error.response?.data,
+            stack: error.stack,
+          });
+        };
+
+        const clearForm = () => {
+          student.value = '';
+          studentId.value = '';
+          selectedLesson.value = '',
+          selectedStudents.value = [],
+          startTime.value = '';
+          location.value = '';
+          comments.value = '';
+          selectedSchedule.value = null;
+        };
+
+
+        const showModal = (modalId) => {
+            const modal = new bootstrap.Modal(document.getElementById(modalId));
+            modal.show();
+        };
+
+        const closeModal = (modalId) => {
+            const modalEl = document.getElementById(modalId);
+            let modal = bootstrap.Modal.getInstance(modalEl);
+
+            if (!modal) {
+                modal = new bootstrap.Modal(modalEl);
+            }
+
+            modal.hide();
+
+            // Optional delay to allow modal to finish hiding
+            setTimeout(() => {
+                // Reset input, textarea, select fields inside the modal
+                const inputs = modalEl.querySelectorAll('input, textarea, select');
+                inputs.forEach(input => {
+                    if (input.type === 'checkbox' || input.type === 'radio') {
+                        input.checked = false;
+                    } else {
+                        input.value = '';
+                    }
+                });
+
+                // Reset validation messages (if any)
+                const errorElements = modalEl.querySelectorAll('.is-invalid, .is-valid');
+                errorElements.forEach(el => el.classList.remove('is-invalid', 'is-valid'));
+            }, 300);
+
+            selectedStudents.value = [];
+        };
+
+        const fetchSchedules = async () => {
+          NProgress.start();
+          try {
+            const response = await axios.get('schedule-lessons');
+            events.value = Array.isArray(response.data) ? response.data : [];
+            refreshCalendar();
+          } catch (error) {
+            console.error('Error fetching schedules:', error);
+            showError('Failed to fetch schedules', 'error');
+          } finally {
+            NProgress.done();
+          }
+        };
+
+
+        const notification = (text, icon) => {
+          Swal.fire({
+            toast: true,
+            position: "top-end",
+            html: text,
+            showConfirmButton: false,
+            timer: 5500,
+            timerProgressBar: true,
+            icon: icon,
+            didOpen: (toast) => {
+              toast.onmouseenter = Swal.stopTimer;
+              toast.onmouseleave = Swal.resumeTimer;
+            }
+          });
+        };
+
+        const showSuccess = (message) => {
+            Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'success',
+              title: message,
+              showConfirmButton: false,
+              timer: 3000
+            });
+          };
+
+          const showError = (
+            message,
+            detail,
+            {
+                confirmText = 'OK',
+                icon = 'error',
+            } = {}
+            ) => {
+            const baseOptions = {
+                icon,
+                title: message,
+                text: detail,
+                confirmButtonText: confirmText,
+                didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+                }
+            };
+
+            const cleanOptions = Object.fromEntries(
+                Object.entries(baseOptions).filter(([_, v]) => v !== undefined)
+            );
+
+            return Swal.fire(cleanOptions);
+        };
+
+        const editSchedule = (event) => {
+            try {
+              NProgress.start();
+
+              console.log(event);
+
+              const props = event[0] || {};
+              const studentsList = props.students || [];
+
+              selectedSchedule.value = {
+                id: props.id,
+                ...props
+              };
+
+              // Clear and repopulate selected students
+              selectedStudents.value = studentsList.map((student) => ({
+                id: student.id,
+                student: [student.fname, student.mname, student.sname].filter(Boolean).join(' '),
+                selectedLesson: student.pivot?.lesson ?? null,
+                location: student.pivot?.location ?? props.location ?? '',
+                comments: props.comments ?? ''
+              }));
+
+              startTime.value = selectedSchedule.value.date
+                ? new Date(selectedSchedule.value.date).toISOString().slice(0, 16)
+                : '';
+
+              closeModal('scheduleModal');
+              showModal('createScheduleModal');
+            } catch (error) {
+              console.error("Error editing event:", error);
+              notification("Failed to edit the lesson. Please try again.", "error");
+            } finally {
+              NProgress.done();
+            }
+        };
+
+        const deleteEvent = async (event) => {
+            if (!event?.length || !event[0]?.['id']) {
+              Swal.fire("Invalid", "Invalid event selected.", "error");
+              return;
+            }
+
+            const eventId = event[0]['id'];
+
+            const result = await Swal.fire({
+              title: "Are you sure?",
+              text: "You won't be able to revert this!",
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonColor: "#d33",
+              cancelButtonColor: "#3085d6",
+              confirmButtonText: "Delete",
+            });
+
+            if (result.isConfirmed) {
+              try {
+                NProgress.start();
+
+                await axios.delete(`/schedule-lesson/${eventId}`);
+
+                await fetchSchedules();
+                closeModal('scheduleModal');
+
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Deleted!',
+                  text: 'The lesson has been successfully deleted.',
+                  toast: true,
+                  position: 'top-end',
+                  showConfirmButton: false,
+                  timer: 3000,
+                  timerProgressBar: true,
+                });
+
+              } catch (error) {
+                const errorMsg = error.response?.data?.message || "Failed to delete the lesson. Please try again.";
+                Swal.fire("Error", errorMsg, "error");
+                console.error("Delete failed:", error);
+              } finally {
+                NProgress.done();
+              }
+            }
+        };
+
+        const addStudentToList = async () => {
+            if (!studentId.value) {
+                showError('Student name must be filled', 'error');
+                hasError.value = true;
+                return;
+            }
+
+            if (!selectedLesson.value) {
+                showError('Lesson must be filled', 'error');
+                hasError.value = true;
+                return;
+            }
+
+            const alreadyExists = selectedStudents.value.some(
+                (item) => item.studentId === studentId.value
+            );
+
+            if (alreadyExists) {
+                showError('Student already in list', 'error');
+                hasError.value = true;
+                return;
+            }
+
+            try {
+                const response = await axios.post('/checkStudentSchedule', {
+                    studentId: studentId.value,
+                    scheduleId: scheduleId.value
+                });
+
+                if (response.data.feedback === "success") {
+                    // Add the student to the selected students list
+                    selectedStudents.value.push({
+                        studentId: studentId.value,
+                        location: location.value,
+                        student: student.value,
+                        selectedLesson: selectedLesson.value,
+                    });
+
+                    clearStudentSelection();
+
+                    showSuccess("Student added successifully, remember to click create schedule to save changes");
+
+                } else {
+                    // Handle the error if the response is not success
+                    showError(response.data.message, 'error');
+                    hasError.value = true; // Set error state to true if failed
+                }
+
+            } catch (error) {
+                console.log(error)
+                showError("Error", 'An error occurred while checking the student schedule.');
+            }
+        };
+
+        const removeStudentFromList = (index) => {
+
+            selectedStudents.value.splice(index, 1);
+
+        };
+
+        // Lifecycle hooks
+        onMounted(() => {
+          fetchLicenseClases();
+        });
+
+        return {
+          student,
+          studentId,
+          lessonId,
+          lessons,
+          startTime,
+          finishTime,
+          location,
+          comments,
+          eventItems,
+          selectedSchedule,
+          isSubmitting,
+          searchStudent,
+          submitForm,
+          formatDate,
+          handleDateClick,
+          handleAddSchedule,
+          editSchedule,
+          deleteEvent,
+          selectedStudents,
+          addStudentToList,
+          selectedLesson,
+          removeStudentFromList
+        };
+      }
+    });
+
+    schedule.mount('#schedule');
+</script>
+
+@endsection

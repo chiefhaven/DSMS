@@ -217,4 +217,110 @@
 
 .bg-pink{background-color: pink;}
 
+/* Select2 with floating label compatibility */
+.select2-container--bootstrap4 .select2-selection--single {
+    height: calc(3.5rem + 2px);
+    padding: 1.5rem 1rem 0.5rem;
+    border-radius: 0.375rem;
+}
 
+.select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered {
+    padding-left: 0;
+    padding-top: 0.25rem;
+}
+
+.select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow {
+    height: 3.5rem;
+    right: 0.75rem;
+}
+
+/* Adjust floating label position */
+.form-floating>.form-select~label {
+    opacity: 0.65;
+    transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
+}
+
+.form-floating>.form-select:focus~label,
+.form-floating>.form-select.has-value~label,
+.form-floating>.form-select:not(:placeholder-shown)~label {
+    opacity: 1;
+    transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
+}
+
+/* Dropdown styling */
+.select2-container--bootstrap4 .select2-dropdown {
+    border-color: #dee2e6;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.select2-container--bootstrap4 .select2-results__option[aria-selected=true] {
+    background-color: #f8f9fa;
+}
+
+.select2-container--bootstrap4 .select2-results__option--highlighted {
+    background-color: #000000;
+    color: white;
+}
+
+.loading-dots {
+    font-weight: bold;
+    font-size: 16px;
+    color: #000000;
+}
+
+.loading-dots .dot {
+    animation: blink 1.4s infinite;
+}
+
+.loading-dots .dot.one {
+    animation-delay: 0s;
+}
+.loading-dots .dot.two {
+    animation-delay: 0.2s;
+}
+.loading-dots .dot.three {
+    animation-delay: 0.4s;
+}
+
+@keyframes blink {
+    0% { opacity: 0.2; }
+    20% { opacity: 1; }
+    100% { opacity: 0.2; }
+}
+
+#webcam-preview {
+    position: relative;
+    width: 100%;
+    height: auto;
+    border: 4px solid #28a745;
+    border-radius: 10px;
+    object-fit: cover;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.6);
+}
+
+/* Scanning Line */
+.scan-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.scan-line {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 0, 0, 0.8);
+    animation: scan-animation 2s infinite;
+}
+
+@keyframes scan-animation {
+    0% {
+        transform: translateY(0%);
+    }
+    100% {
+        transform: translateY(18000%);
+    }
+}

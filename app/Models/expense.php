@@ -5,11 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
-class expense extends Model
+class Expense extends Model
 {
     use HasFactory, HasUuids, LogsActivity;
 
@@ -22,13 +21,19 @@ class expense extends Model
 
     public function Students()
     {
-        return $this->belongsToMany(Student::class)->withPivot('id', 'expense_type', 'repeat', 'status', 'paid_at', 'payment_entered_by','amount', 'payment_method')
+        return $this->belongsToMany(Student::class)
+        ->withPivot('id', 'expense_type', 'amount', 'repeat', 'status', 'paid_at', 'payment_entered_by','amount', 'payment_method', 'balance', 'paid')
             ->withTimestamps();
     }
 
     public function Administrator()
     {
         return $this->belongsTo(Administrator::class, 'added_by');
+    }
+
+    public function expenseTypeOption()
+    {
+        return $this->belongsTo(ExpenseTypeOption::class, 'expense_type', 'id');
     }
 
     //delete relationships!

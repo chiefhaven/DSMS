@@ -9,15 +9,16 @@
     use App\Models\District;
     use App\Models\Lesson;
     use App\Models\Attendance;
+    use App\Models\ExpenseTypeOption;
     use App\Models\PaymentMethod;
     use App\Models\Invoice_Setting;
-use App\Models\TrainingLevel;
-use Carbon\Carbon;
+    use App\Models\TrainingLevel;
+    use Carbon\Carbon;
     use SimpleSoftwareIO\QrCode\Facades\QrCode;
     use Auth;
     use Illuminate\Http\Request;
-
-    use RealRashid\SweetAlert\Facades\Alert;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
     class havenUtils extends Controller
     {
@@ -64,8 +65,12 @@ use Carbon\Carbon;
 
         }
 
-        public function autocompleteLessonSearch(Request $request)
-        {
+        public function getLessons(){
+            $lessons = Lesson::get();
+            return response()->json($lessons);
+        }
+
+        public function autocompleteLessonSearch(Request $request){
             // Retrieve the search term from the request
             $searchTerm = $request->input('search');
 
@@ -160,8 +165,7 @@ use Carbon\Carbon;
             return $lesson->id;
         }
 
-        static function attendancePercent($studentID)
-        {
+        static function attendancePercent($studentID){
             $course_id = Student::where('id', $studentID)->value('course_id');
 
             $attendanceCount = 0;
@@ -193,8 +197,7 @@ use Carbon\Carbon;
         }
 
         //Generate invoice number
-        public static function generateInvoiceNumber()
-        {
+        public static function generateInvoiceNumber(){
             // Fetch invoice settings once to avoid multiple queries
             $invoiceSettings = Invoice_Setting::find(1);
             $prefix = $invoiceSettings->prefix ?? 'Invoice';
@@ -259,8 +262,7 @@ use Carbon\Carbon;
             return $qrCode;
         }
 
-        static function checkStudentInstructor($studentId)
-        {
+        static function checkStudentInstructor($studentId){
             // Ensure there is an authenticated user
             $user = Auth::user();
 
@@ -279,9 +281,55 @@ use Carbon\Carbon;
             return $student && $instructorFleet->id == $student->fleet_id;
         }
 
+        static function getExpenceTypeOption($optionId){
+            $expenseTypeOption = ExpenseTypeOption::find($optionId);
 
-        static function checkClassRoom($studentId)
+            if (!$expenseTypeOption) {
+                return false;
+            }
+
+            return $expenseTypeOption->name;
+        }
+
+        static function getExpenseTypeOptions(){
+            $expenseTypeOptions = ExpenseTypeOption::get();
+
+            if (!$expenseTypeOptions) {
+                return false;
+            }
+
+            return $expenseTypeOptions->map(function ($option) {
+                return [
+                    'id' => $option->id,
+                    'name' => $option->name,
+                ];
+            });
+        }
+
+        public function getSmsBalance()
         {
+            try {
+                $response = Http::withHeaders([
+                    'Authorization' => config('services.smsApi.token'),
+                    'Accept'        => 'application/json',
+                ])->get(config('services.smsApi.url') . '/client-balance');
+
+                if ($response->failed()) {
+                    Log::error('SMS Balance Fetch Failed: ' . $response->body());
+                    return response()->json(['balance' => null, 'error' => 'Failed to fetch balance'], 500);
+                }
+
+                $data = $response->json();
+
+                // Assume your API returns something like ['balance' => 120]
+                return response()->json(['balance' => $data['account_balance'] ?? 0]);
+            } catch (\Exception $e) {
+                Log::error('SMS Balance Exception: ' . $e->getMessage());
+                return response()->json(['balance' => null, 'error' => $e->getMessage()], 500);
+            }
+        }
+
+        static function checkClassRoom($studentId){
             // Ensure there is an authenticated user and retrieve their classroom IDs
             $user = Auth::user();
 
@@ -301,8 +349,7 @@ use Carbon\Carbon;
 
             // Check if the student's classroom ID exists in the instructor's classrooms
             return $classroomIds->contains($student->classroom_id);
-}
-
+        }
 
         static function invoiceQrCode($id){
             $invoice = Invoice::with('student')->find($id);
@@ -335,6 +382,79 @@ use Carbon\Carbon;
             $fleetAssigned = Fleet::where('instructor_id', $data['instructor'])->exists();
 
             return response()->json($fleetAssigned);
-       }
+        }
 
+        public function getStudentLessons(Request $request)
+        {
+            $studentId = $request->input('studentId');
+
+            // Validate the student ID
+            if (!$studentId) {
+                return response()->json(['error' => 'Something went wrong'], 400);
+            }
+
+            // Retrieve the lessons for the student
+            $student = Student::find($studentId);
+
+            if ($student && $student->course) {
+                // Group attendance records by lesson_id and count occurrences
+                $lessonsCount = $student->attendance
+                ->groupBy('lesson_id')
+                ->map(fn($group) => $group->count());
+
+                // Filter and map lessons
+                $lessons = $student->course->lessons
+                ->filter(function ($lesson) use ($lessonsCount) {
+
+                    // Get attendance count or default to 0
+                    $attendanceCount = $lessonsCount->get($lesson->id, 0);
+
+                    // Include lessons with lesson_quantity > attendanceCount
+                    return $lesson->pivot->lesson_quantity > $attendanceCount;
+                })
+                ->map(function ($lesson) use ($lessonsCount) {
+                    // Add an 'attended' flag
+                    $lesson->attended = $lessonsCount->has($lesson->id);
+                    return $lesson;
+                })
+                ->sortBy('pivot.order') // Sort lessons by the order field in the pivot table
+                ->values(); // Reset collection keys
+
+            } else {
+                return response()->json(['error' => 'Student or course not found'], 404);
+            }
+
+            return response()->json($lessons);
+        }
+
+        public function StudentLessonAttendancesCount(Request $request)
+        {
+            $studentId = $request->query('studentId');
+            $lessonId = $request->query('lessonID');
+
+            Log::info('StudentLessonAttendancesCount called', [
+                'studentId' => $studentId,
+                'lessonId' => $lessonId,
+            ]);
+
+            if (!$studentId || !$lessonId) {
+                Log::warning('Missing parameters in StudentLessonAttendancesCount', [
+                    'studentId' => $studentId,
+                    'lessonId' => $lessonId,
+                ]);
+                return response()->json(['message' => 'Missing parameters.'], 400);
+            }
+
+            $count = Attendance::where('student_id', $studentId)
+                        ->where('lesson_id', $lessonId)
+                        ->count();
+
+            Log::info('Attendance count result', [
+                'studentId' => $studentId,
+                'lessonId' => $lessonId,
+                'count' => $count,
+            ]);
+
+            return response()->json(['count' => $count]);
+        }
     }

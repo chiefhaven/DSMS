@@ -28,54 +28,54 @@
               </div>
           @endif
     <div class="block block-rounded">
-    <div class="block-content">
-        <div class="row">
-            <div class="col-lg-12 col-xl-12">
-                <form class="mb-5" action="{{ url('/store-invoice') }}" method="post" onsubmit="return true;">
-                        @csrf
-                        <input type="text" class="form-control" id="student" name="student" placeholder="Student" value="{{$student->id}}" hidden>
+        <div class="block-content">
+            <div class="row">
+                <div class="col-lg-12 col-xl-12">
+                    <form class="mb-5" action="{{ url('/store-invoice') }}" method="post" onsubmit="disableSubmit(this)">
+                            @csrf
+                            <input type="text" class="form-control" id="student" name="student" placeholder="Student" value="{{$student->id}}" hidden>
 
-                    <div class="row">
-                        <div class="col-6 form-floating mb-4">
-                            <input type="text" class="form-control" id="date_created" name="date_created" placeholder="Enter invoice date" value="12/07/2022">
-                            <label class="px-4" for="invoice_discount">Date</label>
+                        <div class="row">
+                            <div class="col-6 form-floating mb-4">
+                                <input type="text" class="form-control" id="date_created" name="date_created" placeholder="Enter invoice date" value="12/07/2022">
+                                <label class="px-4" for="invoice_discount">Date</label>
+                            </div>
+                            <div class="col-6 form-floating mb-4">
+                                <input type="text" class="form-control" id="invoice_due_date" name="invoice_due_date" placeholder="Enter invoice due date" value="12/07/2022">
+                                <label class="px-4" for="invoice_discount">Invoice Due Date</label>
+                            </div>
                         </div>
-                        <div class="col-6 form-floating mb-4">
-                            <input type="text" class="form-control" id="invoice_due_date" name="invoice_due_date" placeholder="Enter invoice due date" value="12/07/2022">
-                            <label class="px-4" for="invoice_discount">Invoice Due Date</label>
-                        </div>
-                    </div>
-                    <div class="col-12 form-floating mb-4">
-                        <select class="form-select" id="course" name="course">
-                          @foreach($course as $course_option)
-                            <option value="{{$course_option->name}}" selected>{{$course_option->name}} (K{{$course_option->price}})</option>
-                          @endforeach
-                        </select>
-                        <label for="district">Course To Enroll</label>
-                    </div>
-                    <div class="row">
-                        <div class="col-4 form-floating mb-4">
-                            <input type="number" class="form-control" id="discount" name="discount" placeholder="Enter discount (Fixed)" value="0">
-                            <label class="px-4" for="invoice_discount">Discout</label>
-                        </div>
-                        <div class="col-4 form-floating mb-4">
-                            <input type="number" class="form-control" id="paid_amount" name="paid_amount" placeholder="Enter discount (Fixed)" value="0">
-                            <label class="px-4" for="invoice_discount">Amount Paid</label>
-                        </div>
-                        <div class="col-4 form-floating mb-4">
-                            <select class="form-select" id="payment_method" name="payment_method">
-                                <option value="cash" selected>Cash</option>
+                        <div class="col-12 form-floating mb-4">
+                            <select class="form-select" id="course" name="course">
+                            @foreach($course as $course_option)
+                                <option value="{{$course_option->name}}" selected>{{$course_option->name}} (K{{$course_option->price}})</option>
+                            @endforeach
                             </select>
-                            <label class="px-4" for="district">Payment Method</label>
+                            <label for="district">Course To Enroll</label>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-primary rounded-pill px-4">Save</button>
-                    </div>
-                </form>
+                        <div class="row">
+                            <div class="col-4 form-floating mb-4">
+                                <input type="number" class="form-control" id="discount" name="discount" placeholder="Enter discount (Fixed)" value="0">
+                                <label class="px-4" for="invoice_discount">Discout</label>
+                            </div>
+                            <div class="col-4 form-floating mb-4">
+                                <input type="number" class="form-control" id="paid_amount" name="paid_amount" placeholder="Enter discount (Fixed)" value="0">
+                                <label class="px-4" for="invoice_discount">Amount Paid</label>
+                            </div>
+                            <div class="col-4 form-floating mb-4">
+                                <select class="form-select" id="payment_method" name="payment_method">
+                                    <option value="cash" selected>Cash</option>
+                                </select>
+                                <label class="px-4" for="district">Payment Method</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary rounded-pill px-4">Save</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
     </div>
   </div>
   <!-- END Hero -->
@@ -101,5 +101,16 @@
         }).datepicker('setDate', day + '-' + month + '-' + year);
     });
   </script>
+
+    <script>
+        function disableSubmit(form) {
+            const button = form.querySelector('button[type="submit"]');
+            if (button) {
+                button.disabled = true;
+                button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+            }
+            return true; // continue submitting
+        }
+    </script>
 
 @endsection

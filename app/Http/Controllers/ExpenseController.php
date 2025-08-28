@@ -6,7 +6,9 @@ use App\Models\Expense;
 use App\Http\Requests\StoreexpenseRequest;
 use App\Http\Requests\UpdateexpenseRequest;
 use App\Models\Administrator;
-use App\Models\ExpensePayment;
+use App\Models\expensePayment;
+use App\Models\ExpenseType;
+use App\Models\ExpenseTypeOption;
 use App\Models\Setting;
 use App\Models\Student;
 use App\Models\User;
@@ -16,13 +18,14 @@ use App\Notifications\ExpensePaymentMade;
 use Auth;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Yajra\DataTables\Facades\DataTables;
 use PDF;
 use DB;
 use Illuminate\Support\Facades\Log;
 use RealRashid\SweetAlert\Facades\Alert;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Http\JsonResponse;
-use Yajra\DataTables\Facades\DataTables;
+
 
 class ExpenseController extends Controller
 {
@@ -54,13 +57,22 @@ class ExpenseController extends Controller
         ->orderBy('created_at', 'DESC');
 
         if ($search) {
-            $expenses->where(function($query) use ($search) {
-                $query->where('group', 'like', "%$search%")
-                    ->orWhere('expense_type', 'like', "%$search%");
-                    // ->orWhereHas('students', function($q) use ($search) {
-                    //     $q->where('fname', 'like', "%$search%");
-                    // });
-            });
+            $expenses = Expense::with('students')
+            ->when(Auth::user()->hasRole('admin'), function ($query) {
+                return $query->where('added_by', Auth::user()->administrator_id);
+            })
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('group', 'like', "%$search%")
+                    ->orWhereHas('students', function ($s) use ($search) {
+                        $s->where('fname', 'like', "%$search%")
+                            ->orWhere('mname', 'like', "%$search%")
+                            ->orWhere('sname', 'like', "%$search%");
+                    });
+                });
+            })
+            ->orderByDesc('created_at');
+
         }
 
         return DataTables::of($expenses)
@@ -84,7 +96,7 @@ class ExpenseController extends Controller
                 }
             })
             ->addColumn('type', function ($expense) {
-                return $expense->group_type;
+                return $expense->group_type ? ExpenseType::find($expense->group_type)?->name : '-';
             })
             ->addColumn('description', function ($expense) {
                 return $expense->description;
@@ -135,7 +147,7 @@ class ExpenseController extends Controller
                 if (auth()->user()->hasAnyRole(['superAdmin', 'admin', 'financeAdmin'])) {
 
                     // Download logic
-                    if ($expense->group_type !== 'TRN') {
+                    if ($expense->group_type !== '39d3f058-4f04-11f0-aa86-52540066f921') {
                         if ($expense->approved == true) {
                             $download = '<form method="GET" action="' . url('expensedownload', $expense->id) . '">
                                             ' . csrf_field() . '
@@ -150,7 +162,7 @@ class ExpenseController extends Controller
                         $download = '<p class="dropdown-item text-success">Go to student profile for TRN reference</p>';
                     }
 
-                    if ($expense->approved == true && auth()->user()->hasAnyRole(['superAdmin', 'financeAdmin'])) {
+                    if ($expense->approved == true && auth()->user()->hasAnyRole(['superAdmin', 'financeAdmin', 'admin'])) {
                         $paymentReport = '<form method="GET" action="' . url('expense-payment-report', $expense->id) . '">
                                         ' . csrf_field() . '
                                         <button class="dropdown-item nav-main-link btn download-confirm" type="submit">
@@ -226,50 +238,89 @@ class ExpenseController extends Controller
      */
     public function store(StoreexpenseRequest $request)
     {
-        $messages = [
-            'expenseGroupName.required' => 'Expense Group Name is required',
-            'expenseAmount.required'   => 'Expense amount is required',
-            'students.required' => 'Please select at least one student',
-            'students.array' => 'Invalid student data format',
-            'students.min' => 'Please select at least one student',
-        ];
+        try {
+            $messages = [
+                'expenseGroupName.required' => 'Expense Group Name is required',
+                'students.required' => 'Please select at least one student',
+                'students.array' => 'Invalid student data format',
+                'students.min' => 'Please select at least one student',
+            ];
 
-        $this->validate($request, [
-            'expenseGroupName'  => 'required',
-            'expenseAmount'     => 'required',
-            'students'          => 'required|array|min:1'
-        ], $messages);
-
-        $post = $request->all();
-        $students = $post['students'];
-
-        $user = Auth::user();
-        $admin = Administrator::findOrFail($user->administrator_id);
-
-        $expense = new Expense();
-        $expense->group = $post['expenseGroupName'];
-        $expense->group_type = $post['expenseGroupType'] ?? null;
-        $expense->description = $post['expenseDescription'] ?? null;
-        $expense->amount = $post['expenseAmount'];
-        $expense->added_by = $user->administrator_id;
-        $expense->save();
-
-        foreach ($students as $data) {
-            $student = havenUtils::student($data['studentName']);
-            $student->expenses()->attach($expense->id, [
-                'expense_type' => $data['expenseType'],
-                'repeat' => $data['expenses'][0]['pivot']['repeat'] ?? 0
-            ]);
+            $this->validate($request, [
+                'expenseGroupName'  => 'required',
+                'students'          => 'required|array|min:1'
+            ], $messages);
+        } catch (\Exception $e) {
+            \Log::error('Validation failed: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Validation error.',
+                'error' => $e->getMessage()
+            ], 422);
         }
 
-        // Notify super admins
-        $superAdmins = User::role('superAdmin')->get();
-        foreach ($superAdmins as $superAdmin) {
-            $superAdmin->notify(new ExpenseCreated($expense, $admin->fname));
+        try {
+            $post = $request->all();
+            $students = $post['students'];
+
+            $user = Auth::user();
+            $admin = Administrator::findOrFail($user->administrator_id);
+        } catch (\Exception $e) {
+            \Log::error('User or admin lookup failed: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'User authentication or administrator record failed.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+
+        try {
+            $expense = new Expense();
+            $expense->group = $post['expenseGroupName'];
+            $expense->group_type = $post['expenseGroupType'] ?? null;
+            $expense->description = $post['expenseDescription'] ?? null;
+            $expense->amount = 0;
+            $expense->added_by = $user->administrator_id;
+            $expense->save();
+        } catch (\Exception $e) {
+            \Log::error('Expense creation failed: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to create expense record.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+
+        try {
+            foreach ($students as $data) {
+                $student = havenUtils::student($data['studentName']);
+                $student->expenses()->syncWithoutDetaching([
+                    $expense->id => [
+                        'expense_type' => $data['expenseTypesOption'],
+                        'repeat'       => $data['expenses'][0]['pivot']['repeat'] ?? 0,
+                        'amount'       => $data['expenseTypesOptionAmount'] ?? 0,
+                        'balance'      => $data['expenseTypesOptionAmount'] ?? 0,
+                    ]
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Attaching students to expense failed: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to link students to expense.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+
+        try {
+            $superAdmins = User::role('superAdmin')->get();
+            foreach ($superAdmins as $superAdmin) {
+                $superAdmin->notify(new ExpenseCreated($expense, $admin->fname));
+            }
+        } catch (\Exception $e) {
+            \Log::error('Notification to super admins failed: ' . $e->getMessage());
+            // Continue even if notification fails
         }
 
         return response()->json(['message' => 'Expense added successfully'], 200);
     }
+
 
     /**
      * Display the specified resource.
@@ -295,7 +346,7 @@ class ExpenseController extends Controller
 
     public function reviewExpenseData(expense $expense)
     {
-        // 1️⃣ Fetch students linked to the given expense ID
+        // Fetch students linked to the given expense ID
         $expenseId = $expense->id;
 
         $students = Student::with(['Invoice', 'Attendance', 'Course', 'Fleet'])
@@ -307,7 +358,7 @@ class ExpenseController extends Controller
             }])
             ->get();
 
-        // 2️⃣ Extract all unique `payment_entered_by` IDs from the pivots
+        // Extract all unique `payment_entered_by` IDs from the pivots
         $enteredByIds = $students
             ->flatMap(function ($student) {
                 return $student->expenses->pluck('pivot.payment_entered_by');
@@ -315,13 +366,13 @@ class ExpenseController extends Controller
             ->filter()
             ->unique();
 
-        // 3️⃣ Load the User + Administrator data for those IDs
+        // Load the User + Administrator data for those IDs
         $enteredByAdmins = \App\Models\User::with('administrator')
             ->whereIn('id', $enteredByIds)
             ->get()
             ->keyBy('id');
 
-        // 4️⃣ Return response
+        //Return response
         return response()->json([
             'students' => $students,
             'enteredByAdmins' => $enteredByAdmins
@@ -338,6 +389,12 @@ class ExpenseController extends Controller
     public function edit(expense $expense)
     {
         $expense = Expense::with('Students')->find($expense->id);
+
+        if($expense->approved == true){
+            Alert::toast('You cannot edit an approved expense', 'error');
+            return redirect('/expenses');
+        };
+
         return view('expenses.editExpense', compact('expense'));
     }
 
@@ -361,7 +418,6 @@ class ExpenseController extends Controller
         try {
             $this->validate($request, [
                 'expenseGroupName'  => 'required',
-                'expenseAmount'     => 'required',
                 'students'          => 'required|array|min:1'
             ], $messages);
 
@@ -372,31 +428,46 @@ class ExpenseController extends Controller
 
             $expense = Expense::find($post['expenseId']);
 
-            // Check if expense exists
             if (!$expense) {
                 throw new ModelNotFoundException('Expense not found');
             }
-            // Update expense
+
+            if($expense->approved == true){
+                return redirect()->back()->withErrors(['error' => 'You cannot edit an approved expense']);
+            }
+
+            // Update expense info
             $expense->group = $post['expenseGroupName'];
             $expense->group_type = $post['expenseGroupType'] ?? null;
             $expense->description = $post['expenseDescription'] ?? null;
-            $expense->amount = $post['expenseAmount'];
+            $expense->amount = 0;
             $expense->edited_by = Auth::user()->administrator_id;
             $expense->save();
 
-            // Clear previous student associations
-            $expense->students()->detach();
+            // Prepare pivot data for sync
+            $syncData = [];
 
-            // Reattach students with expense_type
             foreach ($students as $data) {
                 $fullName = trim($data['fname'] . ' ' . $data['mname'] . ' ' . $data['sname']);
                 $student = havenUtils::student($fullName);
 
-                $student->expenses()->attach($expense->id, [
-                    'expense_type' => $data['expenses'][0]['pivot']['expense_type'],
-                    'repeat' => $data['expenses'][0]['pivot']['repeat'] ?? 0,
-                ]);
+                if (!$student || !isset($data['expenses'][0]['pivot'])) {
+                    continue;
+                }
+
+                $pivot = $data['expenses'][0]['pivot'];
+
+                $syncData[$student->id] = [
+                    'expense_type' => $pivot['expense_type'] ?? null,
+                    'repeat'       => $pivot['repeat'] ?? 0,
+                    'amount'       => $pivot['amount'] ?? 0,
+                    'paid'         => $pivot['paid'] ?? 0,
+                    'balance'      => $pivot['balance'] ?? 0,
+                ];
             }
+
+            // Sync students with pivot data
+            $expense->students()->sync($syncData);
 
             DB::commit();
 
@@ -412,6 +483,7 @@ class ExpenseController extends Controller
             ], 500);
         }
     }
+
 
     /**
      * Remove the specified resource from storage.
@@ -439,94 +511,82 @@ class ExpenseController extends Controller
     {
         $request->validate([
             'student' => 'required',
+            'expenseTypesOption' => 'required',
         ]);
 
-        $post = $request->all();
+        $student = Student::find($request->student);
 
-        $student = Student::find($post['student']);
+        if (!$student?->invoice) {
+            return response()->json([
+                'feedback' => 'error',
+                'message' => 'Student not found or not enrolled yet.'
+            ], 200);
+        }
 
-        // $student = havenUtils::student($post['student']);
+        $option = ExpenseTypeOption::find($request->expenseTypesOption);
 
-        $expenseType = $post['expenseType'];
+        if (!$option) {
+            return response()->json([
+                'feedback' => 'error',
+                'message' => 'Invalid expense type option selected.'
+            ], 200);
+        }
 
-        $expenseTypeSet = DB::table('expense_student')->where('student_id', $student->id)->where('expense_type', $request['expenseType'])->get();
-        $expenseTypeCount = $expenseTypeSet->count();
-
+        $optionName = $option->name;
         $fullName = trim($student->fname . ' ' . ($student->mname ?? '') . ' ' . $student->sname);
 
+        //Check if student already has that option
+        $existingExpenses = DB::table('expense_student')
+            ->where('student_id', $student->id)
+            ->where('expense_type', $option->id)
+            ->get();
 
-        if ($expenseTypeCount > 0) {
-            // Collect ALL related expenses by IDs
-            $expenseIds = $expenseTypeSet->pluck('expense_id')->toArray();
+        if ($existingExpenses->count() > 0) {
+            $expenseIds = $existingExpenses->pluck('expense_id')->toArray();
             $expenses = Expense::whereIn('id', $expenseIds)->get();
-
-            // Extract all 'group' values as strings
             $groupDates = $expenses->pluck('group')->filter()->unique()->toArray();
+            $groupDateString = !empty($groupDates) ? implode(', ', $groupDates) : 'Unknown date';
 
-            // Join dates into a string, or fallback
-            $groupDateString = !empty($groupDates)
-                ? implode(', ', $groupDates)
-                : 'Unknown date';
-
-            $data = [
+            return response()->json([
                 'feedback' => 'alreadyExists',
-                'message' => "{$fullName} was already selected for {$post['expenseType']} expenses dated {$groupDateString}. Do you want to continue adding to another list?"
-            ];
-
-            return response()->json($data, 200);
+                'message' => "{$fullName} was already selected for {$optionName} expenses dated {$groupDateString}. Do you want to continue adding to another list?"
+            ], 200);
         }
 
-        switch ($expenseType) {
-            case "Road Test":
-                if(($student->invoice->invoice_amount_paid / $student->invoice->invoice_total) * 100 < $this->setting->fees_road_threshold){
-                    $data = [
-                        'feedback'=>'error',
-                        'message' => "{$fullName} can not be selected for road test, There is K{$student->invoice->invoice_balance} balance that must be paid"
-                    ];
-                    return response()->json($data, 200);
-                }
-                break;
-            case "TRN":
-                if(($student->invoice->invoice_amount_paid / $student->invoice->invoice_total) * 100 < $this->setting->fees_trn_threshold){
-                    $data = [
-                        'feedback'=>'error',
-                        'message' => "{$fullName} can not be selected for TRN, There are balances that must be paid"
-                    ];
-                    return response()->json($data, 200);
-                }
-                break;
-            case "Highway Code I":
-                if(($student->Invoice->invoice_amount_paid / $student->Invoice->invoice_total) * 100 < $this->setting->fees_code_i_threshold){
-                    $data = [
-                        'feedback'=>'error',
-                        'message' => "{$fullName} can not be selected for Highway code I, There are balances that must be paid"
-                    ];
-                    return response()->json($data, 200);
-                }
-                break;
-            case "Highway Code II":
-                if(($student->Invoice->invoice_amount_paid / $student->Invoice->invoice_total) * 100 < $this->setting->fees_code_ii_threshold){
-                    $data = [
-                        'feedback'=>'error',
-                        'message' => "{$fullName} can not be selected for Highway code II, There are balances that must be paid"
-                    ];
-                    return response()->json($data, 200);
-                }
-                break;
-            default:
-                $data = [
-                    'feedback'=>'error',
-                    'message' => 'Something wrong happened!'
-                ];
-                return response()->json($data, 200);
+        // Calculate student's paid percentage once
+        if ($student->invoice && $student->invoice->invoice_total > 0) {
+            $paidPercent = ($student->invoice->invoice_amount_paid / $student->invoice->invoice_total) * 100;
+        } else {
+            $paidPercent = 0;
         }
 
-        $data = [
-            'feedback'=>'success',
-            'message' => 'Student added to list remember to click submit after selecting all students'
-        ];
-        return response()->json($data, 200);
+        // Use the option's threshold
+        if ($option->fees_percent_threshhold !== null && $paidPercent < $option->fees_percent_threshhold) {
+            return response()->json([
+                'feedback' => 'error',
+                'message' => "{$fullName} cannot be selected for {$optionName}. There is K{$student->invoice->invoice_balance} balance that must be paid."
+            ], 200);
+        }
 
+        // Use the option's period threshold
+        if ($option->period_threshold !== null && $option->period_threshold !== 0) {
+            $dateDifferenceDays = Carbon::parse($student->invoice->created_at)->diffInDays(Carbon::now());
+
+            if ($dateDifferenceDays <= $option->period_threshold) {
+
+                $daysDifference = $option->period_threshold - $dateDifferenceDays;
+
+                return response()->json([
+                    'feedback' => 'error',
+                    'message' => "{$fullName} cannot be selected for {$optionName}. {$daysDifference} day(s) remaining before they can be selected."
+                ], 200);
+            }
+        }
+
+        return response()->json([
+            'feedback' => 'success',
+            'message' => 'Student added to list. Remember to click submit after selecting all students.'
+        ], 200);
     }
 
     public function approveList(StoreexpenseRequest $request)
@@ -571,7 +631,7 @@ class ExpenseController extends Controller
             $query->orderBy('fname', 'asc');
         }])->findOrFail($expense->id);
 
-        if($expense->group_type == 'Road Test'){
+        if($expense->group_type == '39d41003-4f04-11f0-aa86-52540066f921'){
             $template = 'pdf_templates.roadTestExpense';
         }
 
@@ -593,12 +653,15 @@ class ExpenseController extends Controller
 
         $template = 'pdf_templates.expensePaymentReport';
 
-        $expense = Expense::with(['students' => function ($query) {
+        $expense = Expense::with(['Students' => function ($query) {
             $query->orderBy('fname', 'asc');
         }])->findOrFail($expense->id);
 
         // Get unique payment_entered_by values
         $enteredByIds = $expense->students->pluck('pivot.payment_entered_by')->filter()->unique();
+
+        $expenseTypeNames = ExpenseTypeOption::pluck('name', 'id')->toArray();
+        $expensegroupTypeNames = ExpenseType::pluck('name', 'id')->toArray();
 
         // Get User -> Administrator once
         $enteredByAdmins = \App\Models\User::with('administrator')
@@ -606,14 +669,20 @@ class ExpenseController extends Controller
             ->get()
             ->keyBy('id');
 
-        $pdf = PDF::loadView($template, compact(
-            'expense',
-            'qrCode',
-            'setting',
-            'date',
-            'enteredByAdmins'
-        ));
-        return $pdf->download('Daron Driving School-'.$expense->group.'-'.$expense->group_type.' Expense Payment Report.pdf');
+            $pdf = PDF::loadView($template, compact(
+                'expense',
+                'qrCode',
+                'setting',
+                'date',
+                'enteredByAdmins',
+                'expenseTypeNames'
+            ));
+
+            $typeName = $expensegroupTypeNames[$expense->group_type] ?? 'Daron';
+
+            return $pdf->download(
+                $expense->group . ' - ' . $typeName . ' Expense Payment Report - Daron Driving School.pdf'
+            );
     }
 
     public function autocompletestudentSearch(Request $request)
@@ -631,6 +700,11 @@ class ExpenseController extends Controller
             ->select('id', 'fname', 'mname', 'sname')
             ->get();
 
+        if ($students->isEmpty()) {
+            $dataModified = [];
+        }
+
+        // Format response
         $dataModified = $students->map(function ($student) {
             return [
                 'id' => $student->id,
@@ -681,7 +755,7 @@ class ExpenseController extends Controller
                 abort(422, 'Student is repeating and cannot pay.');
             }
 
-            if ($request->amount != $expense->amount) {
+            if ($request->amount != $expense->pivot->amount) {
                 abort(422, 'Payment amount must exactly match the expense amount.');
             }
 
@@ -741,12 +815,19 @@ class ExpenseController extends Controller
         ]);
     }
 
-    public function expensePaymentsList(Request $request) {
+    public function expensePaymentsList(Request $request)
+    {
         // Capture the search keyword from the request if provided
         $search = $request->input('search.value');
 
         $expensePayments = ExpensePayment::with(['paymentUser.administrator', 'student', 'expense'])
         ->where('status', 1);
+
+        $expenseTypeOptions = ExpenseTypeOption::with('expenseType')->get();
+
+        $optionToTypeName = $expenseTypeOptions->mapWithKeys(fn ($option) => [
+            $option->id => $option?->name ?? '-',
+        ]);
 
         if ($search) {
             $expensePayments->where(function($q) use ($search) {
@@ -768,7 +849,7 @@ class ExpenseController extends Controller
                 : '-'
         )
         ->addColumn('group', fn ($payment) => $payment->expense ? $payment->expense->group : '-')
-        ->addColumn('expense_type', fn ($payment) => $payment->expense_type ?? '-')
+        ->addColumn('expense_type', fn ($payment) => $optionToTypeName[$payment->expense_type] ?? '-')
         ->addColumn('amount', fn ($payment) => '<div class="text-end"><strong>K' . number_format($payment->amount, 2) . '</strong></div>')
         ->addColumn('payment_method', fn ($payment) => $payment->payment_method ?? '-')
         ->addColumn('date_paid', fn ($payment) => $payment->paid_at ? \Carbon\Carbon::parse($payment->paid_at)->format('j F, Y') : '-')
@@ -823,43 +904,6 @@ class ExpenseController extends Controller
 
     }
 
-    public function reverseExpensePayment($id)
-    {
-        if (!auth()->user()->hasAnyRole(['superAdmin', 'admin', 'instructor', 'student'])) {
-            abort(403, 'Unauthorized.');
-        }
-
-        try {
-            DB::beginTransaction();
-
-            // 1️⃣ Find the payment
-            $payment = ExpensePayment::findOrFail($id);
-
-            // 2️⃣ Check if it’s already reversed or approved if needed
-            if (!$payment->status) {
-                return response()->json(['error' => 'Payment is already reversed.'], 409);
-            }
-
-            // 3️⃣ Update payment status
-            $payment->status = false;
-            $payment->save();
-
-            // 4️⃣ Optionally: adjust balances or related models
-            if ($payment->amount) {
-                $payment->amount -= $payment->amount;
-                $payment->save();
-            }
-
-            DB::commit();
-
-            return response()->json(['message' => 'Payment reversed successfully.'], 200);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            report($e);
-            return response()->json(['error' => 'Something went wrong.'], 500);
-        }
-    }
 
     public function downloadExpensePaymentReceipt($id)
     {

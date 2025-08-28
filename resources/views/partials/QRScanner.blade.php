@@ -1,7 +1,10 @@
 <div class="content content-full">
-    <div class="block-content">
-        <video class="form-control" id="webcam-preview"></video>
-        <p id="result"></p>
+    <div class="block-content position-relative" style="height: auto;">
+        <video class="form-control" id="webcam-preview" autoplay></video>
+        <div class="scan-overlay">
+            <div class="scan-line"></div>
+        </div>
+        <p id="result" class="mt-2 text-center text-muted">Align QR code within the box</p>
     </div>
 </div>
 

@@ -92,6 +92,11 @@
   <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
   <script src="https://cdn.datatables.net/plug-ins/1.13.6/sorting/datetime-moment.js"></script>
 
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@1.5.2/dist/select2-bootstrap4.min.css" rel="stylesheet" />
+
+
   <script>
     dayjs.extend(dayjs_plugin_relativeTime);
     dayjs.extend(window.dayjs_plugin_customParseFormat);

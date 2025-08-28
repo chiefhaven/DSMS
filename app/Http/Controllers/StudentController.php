@@ -977,7 +977,6 @@ class StudentController extends Controller
 
         $finishedStudents = $activeStudents;
 
-
         return view('students.students', compact('activeStudents', 'fleet', 'finishedStudents'));
     }
 
@@ -986,18 +985,33 @@ class StudentController extends Controller
         $fleet = Fleet::with('instructor')->where('car_registration_number', $request['fleet'])->firstOrFail();
 
         $student = Student::find($request['student']);
+
+        // Check if the student and fleet belong to the same licence class
+        if (!$student->course || $student->course->licence_class_id !== $fleet->licence_class_id) {
+            return response()->json('Student cannot be assigned to a different car class type', 403);
+        }
+
         $student->fleet_id = $fleet->id;
         $student->classroom_id = Null;
         $student->trainingLevel_id = havenUtils::trainingLevelID('practical');
         $student->save();
 
+        try {
+            $sms = new NotificationController;
+            $sms->generalSMS($student, 'Carassignment');
 
+            if ($student->user) {
+                $student->user->notify(new StudentCarAssigned($fleet, 'assign'));
+            }
+        } catch (\Throwable $e) {
+            \Log::error('Car assignment notification failed: ' . $e->getMessage(), [
+                'student_id' => $student->id ?? null,
+                'fleet_id' => $fleet->id ?? null,
+        ]);
 
-
-        $sms = new NotificationController;
-        $sms->generalSMS($student, 'Carassignment');
-
-        $student->user->notify(new StudentCarAssigned($fleet, 'assign'));
+            // Optionally return a response or silently continue
+            // return response()->json(['error' => 'Notification failed'], 500);
+        }
 
 
         if(!$student->save()){

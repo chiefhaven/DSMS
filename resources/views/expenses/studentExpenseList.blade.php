@@ -35,6 +35,8 @@
                                     <th>Group</th>
                                     <th>Type</th>
                                     <th>Amount</th>
+                                    <th>Paid</th>
+                                    <th>Balance</th>
                                     <th>List status</th>
                                     <th>Payment status</th>
                                     <th>Action</th>
@@ -47,7 +49,7 @@
                                         @{{ expense.group }}
                                     </td>
                                     <td>
-                                        @{{ expense.pivot?.expense_type || 'N/A' }}<br>
+                                        @{{ getExpenseOptionName(expense.pivot?.expense_type) }}<br>
                                         <span
                                           v-if="expense.pivot?.repeat === 1"
                                           class="badge bg-danger"
@@ -55,7 +57,9 @@
                                           <small>Repeating</small>
                                         </span>
                                     </td>
-                                    <td>K@{{ formatCurrency(expense.amount) }}</td>
+                                    <td>K@{{ formatCurrency(expense.pivot?.amount) }}</td>
+                                    <td>K@{{ formatCurrency(expense.pivot?.paid) }}</td>
+                                    <td>K@{{ formatCurrency(expense.pivot?.balance) }}</td>
                                     <td>
                                         <span v-if="expense.approved" class="badge bg-success">Approved</span>
                                         <span v-else class="badge bg-warning">Pending</span>
@@ -72,6 +76,7 @@
                                             :title="
                                               !expense.approved ? 'Expense is not approved yet'
                                               : expense.pivot?.status === 1 ? 'Already paid'
+                                              : expense.pivot?.amount === '00.00' ? 'Zero payment not possible, student repeating'
                                               : expense.pivot?.repeat === 1 ? 'Student repeating'
                                               : ''
                                             "
@@ -80,7 +85,7 @@
                                             <button
                                               @click="loadPaymentForm(expense)"
                                               class="btn btn-primary rounded-pill px-4 mb-1"
-                                              :disabled="!expense.approved || expense.pivot?.status === 1 || expense.pivot?.repeat === 1"
+                                              :disabled="!expense.approved || expense.pivot?.status === 1 || expense.pivot?.repeat === 1 || expense.pivot?.amount === '00'"
                                             >
                                               Pay
                                             </button>
@@ -116,7 +121,9 @@
 
                     <div class="mb-3">
                         <label class="form-label">Expense Type</label>
-                        <input type="text" class="form-control" :value="selectedExpense.pivot?.expense_type || 'N/A'" disabled />
+                        <input type="text" class="form-control"
+                            :value="`${getExpenseOptionName(selectedExpense.pivot?.expense_type)}`"
+                            disabled />
                     </div>
 
                     <div class="mb-3">
@@ -177,6 +184,7 @@
 const app = createApp({
     setup() {
         const student = ref(@json($student))
+
         const showPaymentForm = ref(false)
         const selectedExpense = ref({})
         const isSubmitting = ref(false)
@@ -185,109 +193,148 @@ const app = createApp({
             payment_method: '',
         })
 
+        //Expense types and lookup maps
+        const expenseTypes = ref([])
+        const optionIdToOptionName = ref({})
+        const optionIdToTypeName = ref({})
+
+        //Format currency helper
         const formatCurrency = (value) => {
             return Number(value).toLocaleString('en-MW', { minimumFractionDigits: 2 })
         }
 
-
-        const submitPayment = async () => {
-            if (isSubmitting.value) return;
-
-            isSubmitting.value = true;
-            NProgress.start();
-
+        //Fetch expense types and build maps
+        const getExpenseTypes = async () => {
             try {
-                const studentId = student.value.id
-                const expenseId = selectedExpense.value.id
+                const res = await axios.get('/api/fetch-expense-types')
+                expenseTypes.value = res.data
 
-                await axios.post(`/api/studentExpensePayment/${studentId}/${expenseId}`, form)
+                const optionNameMap = {}
+                const typeNameMap = {}
 
-                showAlert('Payment successful.','', {
-                    icon: 'success',
-                    toast: true,
+                res.data.forEach(type => {
+                type.expense_type_options.forEach(opt => {
+                    optionNameMap[opt.id] = opt.name
+                    typeNameMap[opt.id] = type.name
                 })
-                window.location.reload()
+                })
+
+                optionIdToOptionName.value = optionNameMap
+                optionIdToTypeName.value = typeNameMap
+
             } catch (error) {
-                console.error('Payment error:', error)
-                showAlert('Failed to make payment.', error.response.data.message, {
-                    icon: 'error',
-                    toast: false,
-                    confirmText: 'OK',
-                    showCancel: false
-                })
-            } finally {
-                isSubmitting.value = false;
-                NProgress.done();
-                cancel();
+                console.error('Failed to fetch expense types:', error)
             }
         }
 
+        //Lookup helpers
+        const getExpenseOptionName = (id) => optionIdToOptionName.value[id] || '-'
+        const getExpenseTypeName = (id) => optionIdToTypeName.value[id] || '-'
+
+        //Payment submit
+        const submitPayment = async () => {
+        if (isSubmitting.value) return
+
+        isSubmitting.value = true
+        NProgress.start()
+
+        try {
+            const studentId = student.value.id
+            const expenseId = selectedExpense.value.id
+
+            await axios.post(`/api/studentExpensePayment/${studentId}/${expenseId}`, form)
+
+            showAlert('Payment successful.', '', {
+            icon: 'success',
+            toast: true,
+            })
+            window.location.reload()
+        } catch (error) {
+            console.error('Payment error:', error)
+            showAlert('Can not make payment.', error.response?.data?.message || '', {
+            icon: 'error',
+            toast: false,
+            confirmText: 'OK',
+            showCancel: false
+            })
+        } finally {
+            isSubmitting.value = false
+            NProgress.done()
+            cancel()
+        }
+        }
+
+        //Show payment form
         const loadPaymentForm = (expense) => {
             selectedExpense.value = expense
-            form.amount = parseFloat(expense.amount)
+            form.amount = parseFloat(expense.pivot?.balance)
             form.payment_method = ''
 
-            // Show modal
             const modalEl = document.getElementById('paymentModal')
             const modal = new bootstrap.Modal(modalEl)
             modal.show()
         }
 
+        //Close payment modal
         const cancel = () => {
-            const modal = bootstrap.Modal.getInstance(document.getElementById('paymentModal'))
-            if (modal) modal.hide()
+        const modal = bootstrap.Modal.getInstance(document.getElementById('paymentModal'))
+        if (modal) modal.hide()
         }
 
-        onMounted(() => {
-            nextTick(() => {
-            });
-        });
-
+        //SweetAlert helper
         const showAlert = (
-                message = '', // title
-                detail = '',  // text
-                {
-                    icon = 'info',
-                    toast = true,
-                    confirmText = 'OK',
-                    showCancel = false,
-                    cancelText = 'Cancel'
-                } = {}
-            ) => {
-                const baseOptions = {
-                    icon,
-                    title: message,
-                    text: detail,
-                    toast,
-                    position: toast ? 'top-end' : 'center',
-                    showConfirmButton: !toast,
-                    confirmButtonText: confirmText,
-                    showCancelButton: showCancel,
-                    cancelButtonText: cancelText,
-                    timer: toast ? 3000 : undefined,
-                    timerProgressBar: toast,
-                    didOpen: (toastEl) => {
-                        if (toast) {
-                            toastEl.addEventListener('mouseenter', Swal.stopTimer);
-                            toastEl.addEventListener('mouseleave', Swal.resumeTimer);
-                        }
-                    }
-                };
+        message = '',
+        detail = '',
+        {
+            icon = 'info',
+            toast = true,
+            confirmText = 'OK',
+            showCancel = false,
+            cancelText = 'Cancel'
+        } = {}
+        ) => {
+        const baseOptions = {
+            icon,
+            title: message,
+            text: detail,
+            toast,
+            position: toast ? 'top-end' : 'center',
+            showConfirmButton: !toast,
+            confirmButtonText: confirmText,
+            showCancelButton: showCancel,
+            cancelButtonText: cancelText,
+            timer: toast ? 3000 : undefined,
+            timerProgressBar: toast,
+            didOpen: (toastEl) => {
+            if (toast) {
+                toastEl.addEventListener('mouseenter', Swal.stopTimer)
+                toastEl.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+            }
+        }
 
-                return Swal.fire(baseOptions);
-            };
+        return Swal.fire(baseOptions)
+        }
+
+        // ✅ On mount
+        onMounted(() => {
+            nextTick(() => {})
+            getExpenseTypes()
+        })
 
         return {
             student,
-            formatCurrency,
-            form,
             showPaymentForm,
             selectedExpense,
+            isSubmitting,
+            form,
+            formatCurrency,
+            getExpenseTypes,
+            getExpenseTypeName,
+            getExpenseOptionName,
             loadPaymentForm,
             submitPayment,
-            cancel,
-            isSubmitting,
-
+            cancel
         }
     }
 })

@@ -480,10 +480,45 @@
                     formatPrice,
                     getStatusColor,
                     getProgressBarClass,
-                    getPaymentProgress
+                    getPaymentProgress,
                 };
             }
         }).mount('#invoices');
+
+        const smsBalance = createApp({
+            setup() {
+                const balance = ref(null);
+                const loading = ref(true);
+                const error = ref(null);
+
+                const fetchBalance = async () => {
+                    loading.value = true;
+                    try {
+                        const response = await axios.get("/api/sms-balance");
+                        balance.value = response.data.balance;
+                    } catch (err) {
+                        error.value = "Something went wrong";
+                        console.log(err.response?.data?.error || err.message)
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                onMounted(() => {
+                    fetchBalance();
+
+                    // Optional: auto-refresh every 30 seconds
+                    setInterval(fetchBalance, 30000);
+                });
+
+                return {
+                    balance,
+                    loading,
+                    error,
+                    fetchBalance
+                };
+            }
+        }).mount('#smsBalance');
 
         const dashboardSummary = createApp({
             setup() {
@@ -501,12 +536,13 @@
                     attendanceCount: 0,
                 });
 
+
                 const summaryCards = computed(() => [
                     { icon: 'fa-arrow-up', value: summaryInfo.value.earningsTotal, label: 'Sales', currency: true },
                     { icon: 'fa-wallet', value: summaryInfo.value.invoiceBalances, label: 'Balances', currency: true },
                     { icon: 'fa-user', value: summaryInfo.value.studentCount, label: 'Students', currency: false },
                     { icon: 'fa-chart-line', value: summaryInfo.value.expensesPayments, label: 'Expenses paid', currency: true },
-                    { icon: 'fa-chart-bar', value: summaryInfo.value.expensesTotal, label: 'Expenses posted', currency: true },
+                    { icon: 'fa-chart-bar', value: summaryInfo.value.expensesTotal, label: 'Expenses approved', currency: true },
                     { icon: 'fa-clock', value: summaryInfo.value.attendanceCount, label: 'Attendances', currency: false },
                 ]);
 
@@ -532,7 +568,6 @@
                         });
 
                         summaryInfo.value = response.data;
-                        console.log(response.data);
                     } catch (error) {
                         const errorData = error.response.data;
 

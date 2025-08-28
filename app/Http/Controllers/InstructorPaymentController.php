@@ -106,7 +106,7 @@ class InstructorPaymentController extends Controller
      * @param  \App\Http\Requests\StoreInstructorPaymentRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreInstructorPaymentRequest $request)
+    public function store()
     {
         // Check permission
         if (!Auth::user()->hasRole('superAdmin')) {
@@ -126,12 +126,12 @@ class InstructorPaymentController extends Controller
         // Check if payments have already been made this month
         $paymentsThisMonth = InstructorPayment::whereYear('created_at', Carbon::now()->year)
             ->whereMonth('created_at', $todaysDate->month)
-            ->exists(); // More efficient than get() + count()
+            ->exists();
 
         if ($paymentsThisMonth) {
             return response()->json([
                 'message' => 'Payments already done for this month, can only be made once a month.'
-            ], 409); // 409 Conflict is more semantically appropriate
+            ], 409);
         }
 
         $instructors = Instructor::where('status', 'active')->get();

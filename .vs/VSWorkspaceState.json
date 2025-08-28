@@ -1,0 +1,10 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\database",
+    "\\database\\factories",
+    "\\database\\seeders"
+  ],
+  "SelectedNode": "\\database\\factories\\BulkAttendanceFactory.php",
+  "PreviewInSolutionExplorer": false
+}

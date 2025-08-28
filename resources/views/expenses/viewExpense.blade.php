@@ -117,7 +117,7 @@
                                     </td>
                                     <td>
                                         <span class="badge bg-info">
-                                            @{{ student.expenses[0]?.pivot?.expense_type ?? 'N/A' }}
+                                            @{{ expenseOptionTypeName(student.expenses[0]?.pivot?.expense_type) }}
                                         </span>
                                     </td>
                                     <td>
@@ -169,6 +169,7 @@
 
         const app = createApp({
         setup() {
+            const expenseTypes = ref([]);
             const state = ref({
                 amount: {{ $expense->amount }},                 // Represents the amount an expense
                 expenseGroupName: '{{ $expense->group }}',       // Name of the expense group or category
@@ -195,6 +196,7 @@
                     state.value.selectedStudents = res.data.students;
                     state.value.admins = res.data.enteredByAdmins;
                     totalAmount();
+
                 } catch (error) {
                     console.error('Failed to load review expense data:', error);
                     notification('Failed to load expense data', 'error');
@@ -202,7 +204,22 @@
                     NProgress.done();
                     state.value.loadingData = false;
                 }
+
+                await getExpenseTypes();
+
             });
+
+            const getExpenseTypes = async () => {
+                const res = await axios.get('/api/fetch-expense-types');
+                expenseTypes.value = res.data;
+            };
+
+            const expenseOptionTypeName = (id) => {
+                if (!id) return '-';
+                const allOptions = expenseTypes.value.flatMap(et => et.expense_type_options);
+                const found = allOptions.find(opt => opt.id === id);
+                return found?.name || '-';
+            };
 
             const formatDate = (dateString) => {
                 return dayjs(dateString, ['D/M/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD']).format('DD MMM, YYYY');
@@ -401,7 +418,8 @@
                 removeStudentFromList,
                 approveList,
                 formatter,
-                formatDate
+                formatDate,
+                expenseOptionTypeName,
             }
         }
         })

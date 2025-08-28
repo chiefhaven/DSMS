@@ -18,19 +18,15 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationTemplateController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\ExpensePaymentController;
 use App\Http\Controllers\havenUtils;
 use App\Http\Controllers\InstructorPaymentController;
 use App\Http\Controllers\knowledgeController;
-use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\RoleDispatcherController;
 use App\Http\Controllers\ScheduleLessonController;
-use App\Http\Controllers\VehicleTrackerController;
-use App\Models\Announcement;
+use App\Http\Controllers\BulkAttendanceController;
 use App\Models\expense;
-use App\Models\knowledge;
-use App\Models\ScheduleLesson;
-use App\Models\VehicleTracker;
 use Illuminate\Support\Facades\Artisan;
 
 /*
@@ -78,6 +74,19 @@ Route::post('/assign-class-room', [StudentController::class, 'assignClassRoom'])
 
 Route::get('/attendances', [AttendanceController::class, 'index'])->middleware('auth')->name('attendances');
 Route::post('/addattendance/{token}', [AttendanceController::class, 'create'])->middleware('auth')->name('addattendance');
+
+Route::get("/add-bulk-attendance", function(){
+    return view("attendances.addBulkAttendance");
+ })->middleware('auth');
+
+Route::get("/bulk-attendances", function(){
+    return view("attendances.bulkAttendances");
+})->middleware('auth');
+
+Route::get('/edit-bulk-attendance/{id}', [BulkAttendanceController::class, 'edit'])
+    ->middleware('auth')
+    ->name('bulk-attendances.edit');
+
 Route::post('/storeattendance', [AttendanceController::class, 'store'])->middleware('auth')->name('storeattendance');
 Route::post('/editattendance/{id}', [AttendanceController::class, 'edit'])->middleware('auth')->name('editattendance');
 Route::post('/updateattendance', [AttendanceController::class, 'update'])->middleware('auth')->name('updateattendance');
@@ -173,9 +182,9 @@ Route::get('/editadministrator/{id}', [AdministratorController::class, 'edit'])-
 Route::post('/updateadministrator', [AdministratorController::class, 'update'])->middleware('auth')->name('updateadministrator');
 Route::delete('/deleteadministrator/{id}', [AdministratorController::class, 'destroy'])->middleware('auth')->name('deleteadministrator');
 
-Route::get('/fleet', [FleetController::class, 'index'])->middleware('auth')->name('fleet');
+Route::get('/fleet', [FleetController::class, 'index'])->middleware('auth')->name('fleet.index');
 Route::get('/getFleet', [FleetController::class, 'getFleet'])->middleware('auth')->name('getFleet');
-Route::get('/viewfleet', [FleetController::class, 'show'])->middleware('auth')->name('viewfleet');
+Route::get('/view-fleet/{fleet}', [FleetController::class, 'show'])->middleware('auth')->name('view-fleet');
 Route::get('/addfleet', [FleetController::class, 'create'])->middleware('auth')->name('addfleet');
 Route::post('/storefleet', [FleetController::class, 'store'])->middleware('auth')->name('storefleet');
 Route::get('/editfleet/{id}', [FleetController::class, 'edit'])->middleware('auth')->name('editfleet');
@@ -200,8 +209,8 @@ Route::get('/view-expense/{expense}', function (Expense $expense) {
     return view('expenses.viewExpense', compact('expense'));
 })->middleware('auth');
 
-Route::get('/addexpense', [ExpenseController::class, 'create'])->middleware('auth')->name('addexpense');
-Route::post('/storeexpense', [ExpenseController::class, 'store'])->middleware('auth')->name('storeexpense');
+Route::get('/addexpense', [ExpenseController::class, 'create'])->middleware('auth')->name('expenses.index');
+Route::post('/storeexpense', [ExpenseController::class, 'store'])->middleware('auth')->name('expenses.store');
 Route::post('/updateExpense', [ExpenseController::class, 'update'])->middleware('auth')->name('updateExpense');
 Route::get('/editexpense/{expense}', [ExpenseController::class, 'edit'])->middleware('auth')->name('editexpense');
 Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->middleware('auth')->name('delete-expense');
@@ -213,11 +222,15 @@ Route::get('/reviewExpenseData/{expense}', [ExpenseController::class, 'reviewExp
 Route::post('/removeStudent', [ExpenseController::class, 'removeStudent'])->middleware('auth')->name('removeStudent');
 Route::post('/checkStudent', [ExpenseController::class, 'checkStudent'])->middleware('auth')->name('checkStudent');
 Route::post('/approveList', [ExpenseController::class, 'approveList'])->middleware('auth')->name('approveList');
-Route::get('/expenses/pay/{student}/{expense}', [ExpenseController::class, 'makePayment'])->middleware('auth')->name('expense.pay');
+Route::get('/expenses/pay/{student}/{expense}', [ExpensePaymentController::class, 'store'])->middleware('auth')->name('expense.pay');
 
 Route::get("/expense-payments", function(){
     return view("expenses.expensePaymentsList");
  })->middleware('auth');
+
+Route::get("/expense-types", function(){
+    return view("expenses.expenseTypes");
+})->middleware('auth');
 
 
 Route::get('/expense-payment-receipt/{id}', [ExpenseController::class, 'downloadExpensePaymentReceipt'])->middleware('auth')
@@ -289,3 +302,7 @@ Route::get('/roles', [RoleController::class, 'index'])->middleware('auth')->name
 Route::get("/scan-to-pay", function(){
     return view("expenses.scanToPay");
  })->middleware('auth');
+
+Route::get("/driving-license-classes", function(){
+    return view("licenceClasses.licenceClasses");
+})->middleware('auth');

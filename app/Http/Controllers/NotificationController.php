@@ -6,8 +6,11 @@ use GuzzleHttp\Client;
 use RealRashid\SweetAlert\Facades\Alert;
 use App\Models\Student;
 use App\Models\notification_template;
+use App\Models\Setting;
 use Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class NotificationController extends Controller
 {
@@ -86,44 +89,42 @@ class NotificationController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $source = env('SMS_SENDER_ID');
-
-        $client = new Client();
-
         try {
-            $response = $client->post(env('SMS_URL'), [
-                'headers' => [
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json',
-                'Authorization' => 'Bearer ' . env('SMS_AUTH_KEY')
-            ],
-            'body' => json_encode([
-                            'from' => $source,
-                            'to' => $destination,
-                            'message' => $sms_body
-                        ])
-                    ]);
+            $apiResponse = Http::withHeaders([
+                'Authorization' => config('services.smsApi.token'),
+                'Accept'        => 'application/json',
+                'Content-Type'  => 'application/json',
+            ])->post(config('services.smsApi.url') . '/send-sms', [
+                'to'      => $destination,
+                'message' => $sms_body,
+                'from'    => config('services.smsApi.from'),
+            ]);
 
-            $statusCode = $response->getStatusCode();
+            if ($apiResponse->failed()) {
+                Log::error("SMS Failed: " . $apiResponse->body());
+                return [
+                    'statusCode' => $apiResponse->status(),
+                    'message'    => 'SMS sending failed',
+                    'error'      => $apiResponse->body(),
+                ];
+            }
 
-            $response = [
-                'statusCode' => $statusCode,
-                'message' => 'SMS sent successfully'
+            Log::info("SMS Sent: " . $apiResponse->body());
+
+            return [
+                'statusCode' => $apiResponse->status(),
+                'message'    => 'SMS sent successfully',
+                'data'       => $apiResponse->json(),
             ];
-
-            // Process the response as needed
         } catch (\Exception $e) {
-            // Handle the exception
-            $response = [
-                'statusCode' => 204,
-                'message' => $e->getMessage()
+            Log::error("SMS Exception: " . $e->getMessage());
+
+            return [
+                'statusCode' => 500,
+                'message'    => 'Exception while sending SMS',
+                'error'      => $e->getMessage(),
             ];
-
-            return $response;
         }
-
-        return $response;
-
     }
 
     // Send SMS for enrollment, payments, and balance reminders

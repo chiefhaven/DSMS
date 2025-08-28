@@ -20,18 +20,18 @@
         </h3>
 
         <p class="text-muted" style="font-size: 14px; text-align: center;">
-            Expected payout: K{{ number_format($expense->amount * $expense->students->count(), 2) }}
-            | Actual: K{{ number_format($expense->students->sum('pivot.amount'), 2) }}
+            Expected payout: K{{ number_format($expense->students->sum('pivot.amount'), 2) }}
+            | Paid: K{{ number_format($expense->students->sum('pivot.paid'), 2) }}
         </p>
 
         <div class="bg-body" style="z-index: 999;">
             <table class="table table-striped table-responsive" style="font-size: 10px; width: 100%; border-collapse: collapse;">
                 <thead style="color: #ffffff; background-color: #0665d0; text-align: left;">
                     <tr>
-                        <th class="invoice-td">Student</th>
+                        <th>Student</th>
                         <th class="invoice-td">Expense Type</th>
-                        <th class="invoice-td">Amount</th>
-                        <th class="invoice-td">Status</th>
+                        <th class="invoice-td">Expected</th>
+                        <th class="invoice-td">Paid</th>
                         <th class="invoice-td">Paid By</th>
                         <th class="invoice-td">Date Paid</th>
                         <th class="invoice-td">Payment Method</th>
@@ -44,13 +44,13 @@
                                 {{ $student->fname }} {{ $student->mname }} <strong>{{ $student->sname }}</strong>
                             </td>
                             <td class="invoice-td text-center">
-                                {{ $student->pivot->expense_type ?? '-' }}
+                                {{ $expenseTypeNames[$student->pivot->expense_type] ?? 'Unknown' }}
                             </td>
                             <td class="invoice-td text-center">
                                 K{{ number_format($student->pivot->amount ?? 0, 2) }}
                             </td>
                             <td class="invoice-td text-center">
-                                {{ ($student->pivot->amount ?? 0) > 0 ? 'Paid' : 'Not Paid' }}
+                                {{ number_format($student->pivot->balance ?? 0, 2) == 0 ? 'K'.number_format($student->pivot->paid, 2) : 'Not Paid' }}
                             </td>
                             <td class="invoice-td text-center">
                                 {{

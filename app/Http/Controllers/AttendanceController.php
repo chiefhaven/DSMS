@@ -79,27 +79,27 @@ class AttendanceController extends Controller
 
             if ($student && $student->course) {
                 // Group attendance records by lesson_id and count occurrences
-                $lessonCounts = $student->attendance
+                $lessonsCount = $student->attendance
                 ->groupBy('lesson_id')
                 ->map(fn($group) => $group->count());
 
                 // Filter and map lessons
                 $lessons = $student->course->lessons
-                ->filter(function ($lesson) use ($instructor, $lessonCounts) {
+                ->filter(function ($lesson) use ($instructor, $lessonsCount) {
                     // Ensure the lesson belongs to the instructor's department
                     if ($lesson->department_id !== $instructor->instructor->department_id) {
                         return false;
                     }
 
                     // Get attendance count or default to 0
-                    $attendanceCount = $lessonCounts->get($lesson->id, 0);
+                    $attendanceCount = $lessonsCount->get($lesson->id, 0);
 
                     // Include lessons with lesson_quantity > attendanceCount
                     return $lesson->pivot->lesson_quantity > $attendanceCount;
                 })
-                ->map(function ($lesson) use ($lessonCounts) {
+                ->map(function ($lesson) use ($lessonsCount) {
                     // Add an 'attended' flag
-                    $lesson->attended = $lessonCounts->has($lesson->id);
+                    $lesson->attended = $lessonsCount->has($lesson->id);
                     return $lesson;
                 })
                 ->sortBy('pivot.order') // Sort lessons by the order field in the pivot table
