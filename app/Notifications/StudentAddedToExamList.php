@@ -8,6 +8,8 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Log;
+
 
 class StudentAddedToExamList extends Notification
 {
@@ -16,17 +18,29 @@ class StudentAddedToExamList extends Notification
     protected $student;
     protected $expense;
     protected $formattedDate;
+    protected $expenseType = 'Exam';
 
     /**
      * Create a new notification instance.
      *
      * @return void
      */
-    public function __construct($student, $expense)
-    {
-        $this->student = $student;
-        $this->expense = $expense;
-        $this->formattedDate = Carbon::parse($this->expense->group)->format('d F, Y');}
+
+     public function __construct($student, $expense)
+     {
+         $this->student = $student;
+         $this->expense = $expense;
+
+         try {
+             $this->formattedDate = Carbon::parse($this->expense->group)->format('d F, Y');
+         } catch (\Exception $e) {
+             $this->formattedDate = null;
+             Log::warning("Invalid date format in expense group: {$this->expense->group}");
+         }
+
+         // Use pivot expense_type if available, fallback to "Exam"
+         $this->expenseType = $student->pivot->expense_type ?? 'Exam';
+     }
 
     /**
      * Get the notification's delivery channels.
@@ -53,16 +67,16 @@ class StudentAddedToExamList extends Notification
                     ->line('Thank you for using our application!');
     }
 
+
     public function toSms($notifiable)
     {
         return sprintf(
-            "You have been added to an expense/exam list slated on %s \nName: %s %s\nAmount: K%s\nExpense: %s\nPlease go to office and get your cash\nLink: %s",
-            $this->formattedDate,
+            "You have been added to an expense/exam list%s\nName: %s %s\nAmount: K%s\nExpense: %s\nPlease go to office and collect your cash",
+            $this->formattedDate ? " slated on {$this->formattedDate}" : '',
             $this->student->fname,
             $this->student->sname,
             number_format($this->student->pivot->amount, 2),
-            $this->student->pivot->expense_type,
-            url("#")
+            $this->expenseType
         );
     }
 
@@ -70,12 +84,17 @@ class StudentAddedToExamList extends Notification
     {
         return [
             'title' => 'Added to exam list',
-            'body' => "You have been added to exam list slated for {$this->formattedDate}.",
+            'body' => $this->formattedDate
+                ? "You have been added to exam list slated for {$this->formattedDate}."
+                : "You have been added to an exam list.",
             'expense_id' => $this->expense->id,
+            'student_id' => $this->student->id,
+            'amount' => $this->student->pivot->amount,
             'url' => url("#"),
             'created_at' => now(),
         ];
     }
+
 
     /**
      * Get the array representation of the notification.
