@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Notifications\ExpenseApproved;
 use App\Notifications\ExpenseCreated;
 use App\Notifications\ExpensePaymentMade;
+use App\Notifications\StudentAddedToExamList;
 use Auth;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -613,7 +614,20 @@ class ExpenseController extends Controller
             }
         } catch (\Exception $e) {
             // Optionally log the error or handle it gracefully
-            Log::error('Failed to send expense approval notification: ' . $e->getMessage());
+            Log::error('Failed to send expense approval notification to admin: ' . $e->getMessage());
+        }
+
+        try {
+            if ($expense->students && $expense->students->isNotEmpty()) {
+                foreach ($expense->students as $student) {
+                    Log::info('Notifying student ID: ' . $student);
+                    if ($student->user) {
+                        $student->user->notify(new StudentAddedToExamList($student, $expense));
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to send expense approval notification to student: ' . $e->getMessage());
         }
 
         return response()->json($expense, 200);

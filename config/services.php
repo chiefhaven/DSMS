@@ -35,6 +35,6 @@ return [
             'url' => env('SMS_URL'),
             'token' => env('SMS_AUTH_KEY'),
             'from' => env('SMS_SENDER_ID'),
-        ],
+    ],
 
 ];

@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Notifications\Channels\SmsChannel;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -25,7 +26,7 @@ class StudentAddedToExamList extends Notification
     {
         $this->student = $student;
         $this->expense = $expense;
-        $this->formattedDate = Carbon::parse($this->expense->date)->format('d F, Y');}
+        $this->formattedDate = Carbon::parse($this->expense->group)->format('d F, Y');}
 
     /**
      * Get the notification's delivery channels.
@@ -35,7 +36,7 @@ class StudentAddedToExamList extends Notification
      */
     public function via($notifiable)
     {
-        return ['database', 'mail'];
+        return ['database', 'mail', SmsChannel::class];
     }
 
     /**
@@ -50,6 +51,19 @@ class StudentAddedToExamList extends Notification
                     ->line('The introduction to the notification.')
                     ->action('Notification Action', url('/'))
                     ->line('Thank you for using our application!');
+    }
+
+    public function toSms($notifiable)
+    {
+        return sprintf(
+            "You have been added to an expense/exam list slated on %s \nName: %s %s\nAmount: K%s\nExpense: %s\nPlease go to office and get your cash\nLink: %s",
+            $this->formattedDate,
+            $this->student->fname,
+            $this->student->sname,
+            number_format($this->student->pivot->amount, 2),
+            $this->student->pivot->expense_type,
+            url("#")
+        );
     }
 
     public function toDatabase($notifiable)
