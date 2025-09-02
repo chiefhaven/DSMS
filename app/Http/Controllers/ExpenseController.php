@@ -618,7 +618,7 @@ class ExpenseController extends Controller
         }
 
         try {
-            if ($expense->students && $expense->students->isNotEmpty()) {
+            if ($expense->students && $expense->students->isNotEmpty() && $expense->approved) {
                 foreach ($expense->students as $student) {
                     Log::info('Notifying student ID: ' . $student);
                     if ($student->user) {
