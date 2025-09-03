@@ -68,7 +68,7 @@
                         <label class="form-label" for="example-email-input-floating">Phone</label>
                     </div>
                     <div class="mb-4 form-floating">
-                      <input type="text" class="form-control" id="email_address" name="email" placeholder="Administrator's email address">
+                      <input type="text" class="form-control" id="email_address" name="email" placeholder="Administrator's email address" required>
                         <label class="form-label" for="example-email-input-floating">Email address</label>
                     </div>
                     <div class="mb-4 form-floating">

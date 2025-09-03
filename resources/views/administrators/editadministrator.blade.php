@@ -71,7 +71,7 @@
                         <label class="form-label" for="example-email-input-floating">Phone</label>
                     </div>
                     <div class="mb-4 form-floating">
-                      <input type="text" class="form-control" id="email_address" name="email" placeholder="administrator's email address" value="{{$administrator->user->email}}">
+                      <input type="text" class="form-control" id="email_address" name="email" placeholder="administrator's email address" value="{{$administrator->user?->email}}" required>
                         <label class="form-label" for="example-email-input-floating">Email address</label>
                     </div>
                     <div class="mb-4 form-floating">
@@ -89,8 +89,10 @@
                     <div class="form-floating mb-4">
                         <select class="form-select" id="role" name="role">
                             @foreach ($role as $role)
-                                <option value="{{ $role->name }}"
-                                        {{ $administrator->user->roles->contains('name', $role->name) ? 'selected' : '' }}>
+                                    <option value="{{ $role->name }}"
+                                        {{ $administrator->user?->roles?->contains('name', $role->name) ? 'selected' : '' }}>
+                                        {{ ucfirst($role->name) }}
+                                    </option>
                                     @switch($role->name)
                                         @case('admin')
                                             Admin

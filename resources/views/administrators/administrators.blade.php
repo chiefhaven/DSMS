@@ -65,23 +65,28 @@
                                     </li>
                                     <li>
                                         <i class="fas fa-user-tag me-1"></i>
-                                        @if($administrator->user->roles->count() > 0)
-                                            @php
-                                                $primaryRole = $administrator->user->roles->first();
-                                                $roleName = match($primaryRole->name) {
-                                                    'admin' => 'Admin',
-                                                    'superAdmin' => 'Super Admin',
-                                                    'financeAdmin' => 'Finance Admin',
-                                                    default => $primaryRole->name,
-                                                };
-                                            @endphp
-                                            <span class="badge bg-primary">{{ $roleName }}</span>
-                                            @if($administrator->user->roles->count() > 1)
-                                                <span class="badge bg-secondary ms-1">+{{ $administrator->user->roles->count()-1 }}</span>
-                                            @endif
-                                        @else
-                                            <span class="badge bg-secondary">Staff</span>
+                                        @if($administrator->user && $administrator->user->roles->isNotEmpty())
+                                        @php
+                                            $primaryRole = $administrator->user->roles->first();
+                                            $roleName = match($primaryRole->name) {
+                                                'admin'       => 'Admin',
+                                                'superAdmin'  => 'Super Admin',
+                                                'financeAdmin'=> 'Finance Admin',
+                                                default       => ucfirst($primaryRole->name),
+                                            };
+                                        @endphp
+
+                                        <span class="badge bg-primary">{{ $roleName }}</span>
+
+                                        @if($administrator->user->roles->count() > 1)
+                                            <span class="badge bg-secondary ms-1">
+                                                +{{ $administrator->user->roles->count() - 1 }}
+                                            </span>
                                         @endif
+                                    @else
+                                        <span class="badge bg-secondary">Staff</span>
+                                    @endif
+
                                     </li>
                                 </ul>
                             </div>
