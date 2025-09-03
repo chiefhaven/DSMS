@@ -97,7 +97,7 @@
                                 </div>
                             </div>
 
-                            <!-- Today's Attendance -->
+                            <!-- Total lessons this month -->
                             <div class="col-md-4">
                                 <div class="block block-rounded block-link-shadow border">
                                     <div class="block-content block-content-full d-flex align-items-center justify-content-between">
@@ -108,7 +108,7 @@
                                             <p class="font-size-h3 font-w900 mb-0 text-uppercase">
                                                 {{ $attendanceCount }}
                                             </p>
-                                            <p class="mb-0">Today's Attendances</p>
+                                            <p class="mb-0">Lessons this month</p>
                                         </div>
                                     </div>
                                 </div>
@@ -123,9 +123,9 @@
                                         </div>
                                         <div class="ms-3 text-right">
                                             <p class="font-size-h3 font-w900 mb-0 text-uppercase">
-                                                K{{ number_format($attendanceCount * $settings->bonus, 2) }}
+                                                K{{ $instructorEstimatedPay != 0 ? number_format($instructorEstimatedPay, 2) : number_format($attendanceCount * $settings->bonus, 2) }}
                                             </p>
-                                            <p class="mb-0">This month's expected pay</p>
+                                            <p class="mb-0">This month estimated pay</p>
                                         </div>
                                     </div>
                                 </div>

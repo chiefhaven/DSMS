@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Models\Attendance;
 use App\Models\Expense;
 use App\Models\Instructor;
+use App\Models\InstructorPayment;
 use Illuminate\Http\Request;
 use App\Models\Invoice;
 use App\Models\Setting;
@@ -13,6 +14,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Models\Activity;
 use Auth;
+use Mpdf\Tag\Ins;
 
 class HomeController extends Controller
 {
@@ -32,12 +34,20 @@ class HomeController extends Controller
 
         $attendanceCount = 0;
 
+        $instructorEstimatedPay = collect();
+
 
         if (Auth::user()->hasRole('instructor')) {
             $attendanceCount = Attendance::whereMonth('created_at', Carbon::now()->month)
                 ->whereYear('created_at', Carbon::now()->year)
                 ->where('instructor_id', Auth::user()->instructor_id)
                 ->count();
+
+            $instructorEstimatedPay = InstructorPayment::where('instructor_id', Auth::user()->instructor_id)
+                ->whereMonth('created_at', Carbon::now()->month)
+                ->whereYear('created_at', Carbon::now()->year)
+                ->sum('total_payment');
+
         }
 
         $student = Student::with('Invoice', 'User')
@@ -61,7 +71,7 @@ class HomeController extends Controller
 
         $settings = Setting::find(1);
 
-        return view('dashboard', compact(['settings', 'attendanceCount', 'instructors', 'activities', 'student', 'time', 'invoices', 'filter']))
+        return view('dashboard', compact(['settings', 'attendanceCount', 'instructors', 'activities', 'student', 'time', 'invoices', 'filter', 'instructorEstimatedPay']))
             ->with('title', 'Dashboard');
     }
 

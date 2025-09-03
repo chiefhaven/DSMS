@@ -111,6 +111,7 @@ class StudentController extends Controller
                 $query->where('fname', 'like', "%$search%")
                     ->orWhere('mname', 'like', "%$search%")
                     ->orWhere('sname', 'like', "%$search%")
+                    ->orWhere('phone', 'like', "%$search%")
                     ->orWhereHas('course', function($q) use ($search) {
                         $q->where('name', 'like', "%$search%");
                     });
