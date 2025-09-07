@@ -526,10 +526,23 @@ class ExpenseController extends Controller
 
         $option = ExpenseTypeOption::find($request->expenseTypesOption);
 
-        if (!$option) {
+        $expenseType = ExpenseType::find($option->expense_type_id);
+
+        if (!$option || !$expenseType) {
             return response()->json([
                 'feedback' => 'error',
                 'message' => 'Invalid expense type option selected.'
+            ], 200);
+        }
+
+
+        $allowedClasses = $expenseType->licenceClasses->pluck('class')->implode(', ');
+        $studentClass = $student->course->licenceClass->class ?? 'N/A';
+
+        if (!$expenseType->licenceClasses->pluck('id')->contains($student->course->licence_class_id)) {
+            return response()->json([
+                'feedback' => 'error',
+                'message' => "Student cannot be added to this expense type. Allowed licence classes: $allowedClasses, student is registerer for $studentClass"
             ], 200);
         }
 
