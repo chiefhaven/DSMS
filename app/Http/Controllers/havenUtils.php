@@ -12,7 +12,7 @@
     use App\Models\ExpenseTypeOption;
     use App\Models\PaymentMethod;
     use App\Models\Invoice_Setting;
-use App\Models\LicenceClass;
+use App\Models\licenceClass;
 use App\Models\TrainingLevel;
     use Carbon\Carbon;
     use SimpleSoftwareIO\QrCode\Facades\QrCode;

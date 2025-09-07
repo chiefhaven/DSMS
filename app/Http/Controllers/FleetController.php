@@ -39,7 +39,7 @@ class FleetController extends Controller
             $query->where('name', 'Practical');
         })->get();
 
-        $licenceClasses = LicenceClass::get();
+        $licenceClasses = licenceClass::get();
 
         $student = Student::get();
         return view('fleet.fleet', compact('fleet', 'instructors', 'student', 'licenceClasses'));
@@ -164,7 +164,7 @@ class FleetController extends Controller
             $query->where('name', 'Practical');
         })->get();
 
-        $licenceClasses = LicenceClass::get();
+        $licenceClasses = licenceClass::get();
 
         return view('fleet.editfleet', [ 'fleet' => $fleet ], compact('fleet', 'instructors', 'licenceClasses'));
     }

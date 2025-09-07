@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
-class LicenceClass extends Model
+class licenceClass extends Model
 {
     use HasFactory, HasUuids, LogsActivity;
 
