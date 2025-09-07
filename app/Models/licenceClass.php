@@ -24,6 +24,16 @@ class LicenceClass extends Model
         return $this->hasMany(Course::class, 'licence_class_id');
     }
 
+    public function expenseType()
+    {
+        return $this->hasMany(
+            expenseType::class,
+            'expense_type_licence_class',
+            'licence_class_id',
+            'expense_type_id'
+        );
+    }
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()

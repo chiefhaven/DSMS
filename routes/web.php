@@ -228,10 +228,9 @@ Route::get("/expense-payments", function(){
     return view("expenses.expensePaymentsList");
  })->middleware('auth');
 
-Route::get("/expense-types", function(){
-    return view("expenses.expenseTypes");
-})->middleware('auth');
-
+Route::get('/expense-types', function () {
+    return view('expenses.expenseTypes');
+})->middleware(['auth', 'role:superAdmin']);
 
 Route::get('/expense-payment-receipt/{id}', [ExpenseController::class, 'downloadExpensePaymentReceipt'])->middleware('auth')
 ->name('expense-payments.download-receipt');

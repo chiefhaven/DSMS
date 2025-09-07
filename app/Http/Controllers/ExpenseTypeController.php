@@ -20,6 +20,12 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 class ExpenseTypeController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->middleware(['role:superAdmin']);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -27,35 +33,48 @@ class ExpenseTypeController extends Controller
      */
 
      public function index(Request $request): JsonResponse
-     {
-         $search = $request->input('search.value');
+    {
 
-         $expenseTypes = ExpenseType::with('expenseTypeOptions')
-             ->orderBy('name', 'DESC');
+        $search = $request->input('search.value');
 
-         if ($search) {
-             $expenseTypes->where(function($query) use ($search) {
-                 $query->where('name', 'like', "%$search%")
-                       ->orWhere('description', 'like', "%$search%");
-             });
-         }
+        $expenseTypes = ExpenseType::with(['expenseTypeOptions', 'licenceClasses'])
+            ->orderBy('name', 'DESC');
 
-            return DataTables::of($expenseTypes)
-             ->addColumn('type', function ($expenseType) {
-                 return '<strong>' . e($expenseType->name) .'</strong>';
-             })
-             ->addColumn('description', function ($expenseType) {
-                return  e($expenseType->description);
+        // 🔎 Search logic
+        if ($search) {
+            $expenseTypes->where(function ($query) use ($search) {
+                $query->where('name', 'like', "%$search%")
+                    ->orWhere('description', 'like', "%$search%")
+                    ->orWhereHas('licenceClasses', function ($q) use ($search) {
+                        $q->where('name', 'like', "%$search%");
+                    });
+            });
+        }
+
+        return DataTables::of($expenseTypes)
+            ->addColumn('type', function ($expenseType) {
+                return '<strong>' . e($expenseType->name) . '</strong>';
             })
+
+            ->addColumn('licence_classes', function ($expenseType) {
+                return e($expenseType->licenceClasses->pluck('class')->implode(', '));
+            })
+
+            ->addColumn('description', function ($expenseType) {
+                return e($expenseType->description ?: '-');
+            })
+
             ->addColumn('options', function ($expenseType) {
                 if ($expenseType->expenseTypeOptions->count()) {
                     $options = '<ol class="mb-0 ps-3">';
                     foreach ($expenseType->expenseTypeOptions as $option) {
                         $options .= '<li>'
                             . e($option->name)
-                            . ' - <b>K' . number_format($option->amount_per_student ?? 0, 2)
-                            . '</b><br><small class="text-muted">' . e($option->fees_percent_threshhold ?? 0) . '% fees threshhold, '.e($option->period_threshold ?? 0).' days for selection</small>'
-                            . '</li>';
+                            . ' - <b>K' . number_format($option->amount_per_student ?? 0, 2) . '</b>'
+                            . '<br><small class="text-muted">'
+                            . e($option->fees_percent_threshhold ?? 0) . '% fees threshold, '
+                            . e($option->period_threshold ?? 0) . ' days for selection'
+                            . '</small></li>';
                     }
                     $options .= '</ol>';
                     return $options;
@@ -63,52 +82,49 @@ class ExpenseTypeController extends Controller
 
                 return e($expenseType->description ?: '-');
             })
-            ->addColumn('status', function ($expenseType) {
-                 if ($expenseType->is_active) {
-                     return '<span class="badge bg-success">Active</span>';
-                 } else {
-                     return '<span class="badge bg-danger">Inactive</span>';
-                 }
-             })
 
-             // ✅ 'actions' column
-             ->addColumn('actions', function ($expenseType) {
+            ->addColumn('status', function ($expenseType) {
+                return $expenseType->is_active
+                    ? '<span class="badge bg-success">Active</span>'
+                    : '<span class="badge bg-danger">Inactive</span>';
+            })
+
+            ->addColumn('actions', function ($expenseType) {
                 $delete = $view = $edit = '';
 
-                 if (auth()->user()->hasAnyRole(['superAdmin', 'admin', 'financeAdmin'])) {
-                     $view = '<a class="dropdown-item nav-main-link btn" href="' . url('/view-expense', $expenseType->id) . '">
-                                 <i class="fa fa-eye me-3"></i> View
-                             </a>';
+                if (auth()->user()->hasAnyRole(['superAdmin', 'admin', 'financeAdmin'])) {
+                    $view = '<a class="dropdown-item nav-main-link btn" href="' . url('/view-expense', $expenseType->id) . '">
+                                <i class="fa fa-eye me-3"></i> View
+                            </a>';
 
-                     if (auth()->user()->hasAnyRole(['superAdmin', 'admin'])) {
-                        $edit = '<a class="dropdown-item nav-main-link btn" data-expense-type=\''.htmlspecialchars(json_encode($expenseType), ENT_QUOTES, 'UTF-8').'\' onclick="openEditExpenseType(this)">
-                            <i class="fa fa-pencil me-3"></i> Edit
-                        </a>';
+                    if (auth()->user()->hasAnyRole(['superAdmin', 'admin'])) {
+                        $edit = '<a class="dropdown-item nav-main-link btn"
+                                    data-expense-type=\'' . htmlspecialchars(json_encode($expenseType), ENT_QUOTES, 'UTF-8') . '\'
+                                    onclick="openEditExpenseType(this)">
+                                    <i class="fa fa-pencil me-3"></i> Edit
+                                </a>';
 
                         $delete = '<a href="#" class="dropdown-item nav-main-link btn"
-                            onclick="openDeleteExpenseType(' . htmlspecialchars(json_encode(['id' => $expenseType->id]), ENT_QUOTES, 'UTF-8') . ')">
-                            <i class="fa fa-trash me-3"></i> Delete
-                        </a>';
-                     }
+                                    onclick="openDeleteExpenseType(' . htmlspecialchars(json_encode(['id' => $expenseType->id]), ENT_QUOTES, 'UTF-8') . ')">
+                                    <i class="fa fa-trash me-3"></i> Delete
+                                </a>';
+                    }
+                }
 
+                return '
+                    <div class="dropdown d-inline-block">
+                        <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown">Actions</button>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            ' . $view . $edit . $delete . '
+                        </div>
+                    </div>
+                ';
+            })
 
-                 }
-
-                 return '
-                     <div class="dropdown d-inline-block">
-                         <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown">Actions</button>
-                         <div class="dropdown-menu dropdown-menu-end">
-                             ' . $view . $edit . $delete .'
-                         </div>
-                     </div>
-                 ';
-             })
-
-             // ✅ Allow HTML for these columns
-             ->rawColumns(['actions', 'type', 'options', 'status'])
+            // ✅ Allow HTML in these columns
+            ->rawColumns(['type', 'options', 'status', 'actions'])
             ->make(true);
-     }
-
+    }
 
     /**
      * Show the form for creating a new resource.
@@ -126,8 +142,13 @@ class ExpenseTypeController extends Controller
      * @param  \App\Http\Requests\StoreExpenseTypeRequest  $request
      * @return \Illuminate\Http\Response
      */
+
     public function store(Request $request)
     {
+        if (!auth()->user()->hasAnyRole(['superAdmin', 'admin'])) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|unique:expense_types,name',
             'description' => 'nullable|string',
@@ -137,6 +158,8 @@ class ExpenseTypeController extends Controller
             'options.*.amount_per_student' => 'nullable|numeric|min:0',
             'options.*.fees_percent_threshhold' => 'nullable|numeric|min:0|max:100',
             'options.*.period_threshold' => 'nullable|numeric|min:0|max:100',
+            'licence_classes' => 'nullable|array',
+            'licence_classes.*' => 'uuid|exists:licence_classes,id',
         ]);
 
         $expenseType = ExpenseType::create([
@@ -146,6 +169,12 @@ class ExpenseTypeController extends Controller
             'is_active' => $validated['is_active'],
         ]);
 
+        // Attach selected licence classes
+        if (!empty($validated['licence_classes'])) {
+            $expenseType->licenceClasses()->sync($validated['licence_classes']);
+        }
+
+        // Create options
         if (!empty($validated['options'])) {
             foreach ($validated['options'] as $option) {
                 $expenseType->expenseTypeOptions()->create([
@@ -157,7 +186,12 @@ class ExpenseTypeController extends Controller
             }
         }
 
+        return response()->json([
+            'message' => 'Expense type created successfully.',
+            'expense_type' => $expenseType->load('licenceClasses', 'expenseTypeOptions')
+        ]);
     }
+
 
     /**
      * Display the specified resource.
@@ -188,18 +222,17 @@ class ExpenseTypeController extends Controller
      * @param  \App\Models\ExpenseType  $expenseType
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateExpenseTypeRequest $request, $expenseType)
+
+    public function update(UpdateExpenseTypeRequest $request, $expenseTypeId)
     {
-        $expenseType = ExpenseType::findOrFail($expenseType);
-        if (!$expenseType) {
-            return response()->json(['message' => 'Expense Type not found.'], 404);
-        }
-        // Check if the user has permission to update the expense type
+        $expenseType = ExpenseType::findOrFail($expenseTypeId);
+
+        // Permission check
         if (!auth()->user()->hasAnyRole(['superAdmin', 'admin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // Validate the request data
+        // Validate input
         $validated = $request->validate([
             'name' => [
                 'required',
@@ -213,29 +246,42 @@ class ExpenseTypeController extends Controller
             'options.*.amount_per_student' => 'nullable|numeric|min:0',
             'options.*.fees_percent_threshhold' => 'nullable|numeric|min:0|max:100',
             'options.*.period_threshold' => 'nullable|numeric|min:0|max:100',
+            'licence_classes' => 'nullable|array',
+            'licence_classes.*' => 'uuid|exists:licence_classes,id',
         ]);
 
+        // Update main expense type
         $expenseType->update([
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
             'is_active' => $validated['is_active'],
         ]);
 
+        // Sync licence classes
+        if (isset($validated['licence_classes'])) {
+            $expenseType->licenceClasses()->sync($validated['licence_classes']);
+        }
+
+        // Replace options (delete old and create new)
         $expenseType->expenseTypeOptions()->delete();
 
         if (!empty($validated['options'])) {
             foreach ($validated['options'] as $option) {
                 $expenseType->expenseTypeOptions()->create([
                     'name' => $option['name'],
-                    'amount_per_student' => $option['amount_per_student'] ?? null,
-                    'fees_percent_threshhold' => $option['fees_percent_threshhold'] ?? null,
+                    'amount_per_student' => $option['amount_per_student'] ?? 0,
+                    'fees_percent_threshhold' => $option['fees_percent_threshhold'] ?? 0,
                     'period_threshold' => $option['period_threshold'] ?? 0,
                 ]);
             }
         }
 
-        return response()->json(['message' => 'Expense Type updated successfully.']);
+        return response()->json([
+            'message' => 'Expense Type updated successfully.',
+            'expense_type' => $expenseType->load('licenceClasses', 'expenseTypeOptions')
+        ]);
     }
+
 
     /**
      * Remove the specified resource from storage.

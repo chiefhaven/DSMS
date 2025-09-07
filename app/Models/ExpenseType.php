@@ -20,4 +20,14 @@ class ExpenseType extends Model
     {
         return $this->hasMany(ExpenseTypeOption::class, 'expense_type_id');
     }
+
+    public function licenceClasses()
+    {
+        return $this->belongsToMany(
+            licenceClass::class,
+            'expense_type_licence_class',
+            'expense_type_id',
+            'licence_class_id'
+        );
+    }
 }

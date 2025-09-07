@@ -12,11 +12,13 @@
     use App\Models\ExpenseTypeOption;
     use App\Models\PaymentMethod;
     use App\Models\Invoice_Setting;
-    use App\Models\TrainingLevel;
+use App\Models\LicenceClass;
+use App\Models\TrainingLevel;
     use Carbon\Carbon;
     use SimpleSoftwareIO\QrCode\Facades\QrCode;
     use Auth;
-    use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -304,6 +306,13 @@ use Illuminate\Support\Facades\Log;
                     'name' => $option->name,
                 ];
             });
+        }
+
+        public function getLicenceClasses(): JsonResponse
+        {
+            return response()->json(
+                licenceClass::select('id', 'class')->orderBy('class')->get()
+            );
         }
 
         public function getSmsBalance()
