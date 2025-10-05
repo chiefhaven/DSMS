@@ -26,7 +26,7 @@
             <div class="mb-4 col-md-6 form-floating">
                 <input type="number" class="form-control @error('fees_threshold') is-invalid @enderror" id="fees_threshold" name="fees_threshold" value="{{$setting->fees_balance_threshold}}" placeholder="Lessons threshold (%)">
                 <label class="form-label" for="fees_threshold">Fees attendance threshold (%)</label>
-                <p class="muted small"><em>Fees percent at which student is allowed to continue with attending lessons</em></p>
+                <p class="muted small"><em>Fees percent at which student is allowed to continue with attending practical lessons</em></p>
             </div>
             <div class="mb-4 col-md-6 form-floating">
                 <input type="number" class="form-control @error('lesson_threshold') is-invalid @enderror" id="lesson_threshold" name="lesson_threshold" value="{{$setting->attendance_threshold}}" placeholder="Lessons threshold (%)">
