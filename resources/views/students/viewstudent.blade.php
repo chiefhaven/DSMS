@@ -58,9 +58,14 @@
                 </button>
                 </li>
                 <li class="nav-item">
-                <button class="nav-link" id="payments-tab" data-bs-toggle="tab" data-bs-target="#payments" role="tab" aria-controls="payments" aria-selected="false">
-                    Payments
-                </button>
+                    <button class="nav-link" id="payments-tab" data-bs-toggle="tab" data-bs-target="#payments" role="tab" aria-controls="payments" aria-selected="false">
+                        Fees Payments
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="expensesList-tab" data-bs-toggle="tab" data-bs-target="#expensesList" role="tab" aria-controls="payments" aria-selected="false">
+                        Expenses list
+                    </button>
                 </li>
             @endcan
         </ul>

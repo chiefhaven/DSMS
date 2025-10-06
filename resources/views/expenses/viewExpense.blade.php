@@ -93,7 +93,9 @@
                                     </td>
                                     <td>
                                         <div class="d-flex flex-column">
-                                            <strong>@{{ student.sname }} @{{ student.fname }} @{{ student.mname }}</strong>
+                                            <a :href="`/viewstudent/${student.id}`" class="fw-bold text-decoration-none" target="_blank" rel="noopener noreferrer">
+                                                <strong>@{{ student.sname }} @{{ student.fname }} @{{ student.mname }}</strong>
+                                            </a>
                                             <small class="text-muted">
                                                 <div
                                                     v-if="student.expenses && student.expenses.some(e => e.pivot?.repeat === 1)"
