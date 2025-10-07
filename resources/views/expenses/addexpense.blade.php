@@ -213,9 +213,9 @@
                                 expenseTypesOptionName: optionName,
                                 expenseTypesOptionAmount: optionAmount,
                                 expenses: [
-                                {
-                                    pivot: { repeat: 0 }
-                                }
+                                    {
+                                        pivot: { repeat: 0 }
+                                    }
                                 ]
                             });
 

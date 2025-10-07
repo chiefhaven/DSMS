@@ -151,19 +151,19 @@
     const app = createApp({
     setup() {
         const state = ref({
-        totalAmount: 0,
-        expenseGroupType: '{{ $expense->group_type }}',
-        expenseDescription: '{{ $expense->description }}',
-        expenseGroupName: '{{ $expense->group }}',
-        studentName: '',
-        studentId: '',
-        expenseId: '{{ $expense->id }}',
-        expenseTypesOption: '',
-        selectedStudents: [],
-        isLoading: false,
-        isSubmitButtonDisabled: false,
-        buttonText: 'Submit',
-        loadingData: false,
+            totalAmount: 0,
+            expenseGroupType: '{{ $expense->group_type }}',
+            expenseDescription: '{{ $expense->description }}',
+            expenseGroupName: '{{ $expense->group }}',
+            studentName: '',
+            studentId: '',
+            expenseId: '{{ $expense->id }}',
+            expenseTypesOption: '',
+            selectedStudents: [],
+            isLoading: false,
+            isSubmitButtonDisabled: false,
+            buttonText: 'Submit',
+            loadingData: false,
         });
 
         const expenseTypes = ref([]);
@@ -180,8 +180,8 @@
         };
 
         const fetchExistingStudents = () => {
-        state.value.loadingData = true;
-        axios.get(`/reviewExpenseData/${state.value.expenseId}`)
+            state.value.loadingData = true;
+            axios.get(`/reviewExpenseData/${state.value.expenseId}`)
             .then(res => {
             state.value.selectedStudents = res.data.students.map(s => {
                 const pivot = s.expenses.find(e => e.pivot.expense_id === state.value.expenseId)?.pivot || {};
@@ -204,9 +204,9 @@
         };
 
         const totalAmount = () => {
-        state.value.totalAmount = state.value.selectedStudents.reduce(
-            (sum, s) => sum + (s.expenseTypesOptionAmount || 0), 0
-        );
+            state.value.totalAmount = state.value.selectedStudents.reduce(
+                (sum, s) => sum + (s.expenseTypesOptionAmount || 0), 0
+            );
         };
 
         const studentSearch = () => {
@@ -224,54 +224,57 @@
         };
 
         const addStudentToGroup = () => {
-        if (!state.value.studentName || !state.value.expenseTypesOption) {
-            Swal.fire('Error', 'Fill student and expense option', 'error');
-            return;
-        }
-
-        const optionId = state.value.expenseTypesOption;
-        const option = selectedExpenseType.value?.expense_type_options?.find(opt => opt.id == optionId) || {};
-        const [fname, mname, sname] = state.value.studentName.trim().split(" ");
-
-        if (state.value.selectedStudents.some(s => s.studentId == state.value.studentId)) {
-            Swal.fire('Error', 'Student already in list', 'error');
-            return;
-        }
-
-        axios.post('/checkStudent', {
-            student: state.value.studentId,
-            expenseTypesOption: optionId
-        }).then(({ data }) => {
-            const add = (repeat) => {
-            state.value.selectedStudents.push({
-                studentId: state.value.studentId,
-                fname, mname, sname,
-                expenseTypesOption: optionId,
-                expenseTypesOptionName: option.name || '',
-                expenseTypesOptionAmount: option.amount_per_student || 0,
-                expenses: [{ pivot: { expense_type: option.id, amount: option.amount_per_student, repeat } }]
-            });
-            state.value.studentName = '';
-            state.value.studentId = '';
-            state.value.expenseTypesOption = ''; // Clear after add
-            totalAmount();
-            };
-
-            if (data.feedback === "alreadyExists") {
-            Swal.fire({
-                title: 'Student repeating?',
-                text: data.message,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Continue',
-                cancelButtonText: 'Cancel'
-            }).then(res => { if (res.isConfirmed) add(1); });
-            } else if (data.feedback === "success") {
-            add(0);
-            } else {
-            Swal.fire('Error', data.message, 'error');
+            if (!state.value.studentName || !state.value.expenseTypesOption) {
+                Swal.fire('Error', 'Fill student and expense option', 'error');
+                return;
             }
-        });
+
+            const optionId = state.value.expenseTypesOption;
+            const option = selectedExpenseType.value?.expense_type_options?.find(opt => opt.id == optionId) || {};
+            const [fname, mname, sname] = state.value.studentName.trim().split(" ");
+
+            if (state.value.selectedStudents.some(s => s.studentId == state.value.studentId)) {
+                Swal.fire('Error', 'Student already in list', 'error');
+                return;
+            }
+
+            axios.post('/checkStudent', {
+                student: state.value.studentId,
+                expenseTypesOption: optionId
+            }).then(({ data }) => {
+                const add = (repeat) => {
+                state.value.selectedStudents.push({
+                    studentId: state.value.studentId,
+                    fname, mname, sname,
+                    expenseTypesOption: optionId,
+                    expenseTypesOptionName: option.name || '',
+                    expenseTypesOptionAmount: 0,
+                    expenses: [{ pivot: { expense_type: option.id, amount: option.amount_per_student, repeat } }]
+                });
+                state.value.studentName = '';
+                state.value.studentId = '';
+                state.value.expenseTypesOption = ''; // Clear after add
+                totalAmount();
+                };
+
+                if (data.feedback === "alreadyExists") {
+                Swal.fire({
+                    title: 'Student repeating?',
+                    text: data.message,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Continue',
+                    cancelButtonText: 'Cancel'
+                }).then(res => {
+                    if (res.isConfirmed)
+                        add(1);
+                });
+                } else if (data.feedback === "success") {
+                    add(0);
+                } else {
+                Swal.fire('Error', data.message, 'error');
+                }
+            });
         };
 
         const removeStudentFromList = (studentId, index) => {
