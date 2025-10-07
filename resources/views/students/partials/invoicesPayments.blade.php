@@ -166,7 +166,17 @@
                                     {{ $expense->group }}
                                 </a>
                             </td>
-                            <td>{{ $expense->approved }}</td>
+                            <td>
+                                @if ($expense->approved == '1')
+                                    <div class="text-center p-1 text-success">
+                                        <i class="fa fa-check" aria-hidden="true"></i> Approved
+                                    </div>
+                                @else
+                                    <div class="text-center p-1 text-danger">
+                                        <i class="fa fa-times" aria-hidden="true"></i> Unapproved
+                                    </div>
+                                @endif
+                            </td>
                             <td class="font-w600">{{ $expense->description }}</td>
                             <td>
                                 {{ \App\Http\Controllers\HavenUtils::getExpenceTypeOption($expense->pivot->expense_type) ?? 'Unknown Expense Type' }}
