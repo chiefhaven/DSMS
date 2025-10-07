@@ -168,7 +168,9 @@
                             </td>
                             <td>{{ $expense->approved }}</td>
                             <td class="font-w600">{{ $expense->description }}</td>
-                            <td>{{ $expense->pivot->expense_type }}</td>
+                            <td>
+                                {{ \App\Http\Controllers\HavenUtils::getExpenceTypeOption($expense->pivot->expense_type) ?? 'Unknown Expense Type' }}
+                            </td>
                             <td>K{{ number_format($expense->pivot->amount) }}</td>
                             <td>K{{ number_format($expense->pivot->paid) }}</td>
                             <td>K{{ number_format($expense->pivot->balance) }}</td>
