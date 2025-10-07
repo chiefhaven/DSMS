@@ -190,7 +190,7 @@ class NotificationController extends Controller
             return back();
         }
 
-        $attendanceRequired = $student->course?->lessons?->pivot->sum('lesson_quantity') ?? 0;
+        $attendanceRequired = $student->course?->lessons?->sum(fn($lesson) => $lesson->pivot->lesson_quantity) ?? 0;
         Log::info($attendanceRequired);
         $attendanceCount = $student->attendance->count();
         $attendance_balance = $attendanceRequired - $attendanceCount;
