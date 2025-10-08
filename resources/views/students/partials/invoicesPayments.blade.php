@@ -188,6 +188,9 @@
                     @endforeach
                 </tbody>
             </table>
+            <div class="fw-bold h-100 py-5">
+                Expense Balance: K{{ number_format($student->expenses->sum(fn($expense) => $expense->pivot->balance ?? 0), 2) }}
+            </div>
         </div>
     </div>
 @endrole
