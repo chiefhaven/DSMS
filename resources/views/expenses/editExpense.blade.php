@@ -10,6 +10,27 @@
         @if(Session::has('message'))
           <div class="alert alert-info">{{ Session::get('message') }}</div>
         @endif
+        <ol class="breadcrumb">
+            <div class="dropdown d-inline-block">
+                <button type="button" class="btn btn-primary rounded-pill px-4" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span class="d-sm-inline-block">Action</span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end p-0">
+                    <div class="p-2">
+                        @role(['superAdmin', 'admin']),
+                            <a href="/expenses" class="dropdown-item nav-main-link">
+                                <i class="nav-main-link-icon  fas fa-file-invoice"></i>All Expenses
+                            </a>
+                        @endrole
+                        @role(['superAdmin'])
+                            <a href="/review-expense/{{ $expense->id }}" class="dropdown-item nav-main-link">
+                                <i class="nav-main-link-icon  fas fa-magnifying-glass"></i>Review Expense
+                            </a>
+                        @endrole
+                    </div>
+                </div>
+            </div>
+        </ol>
       </nav>
     </div>
   </div>

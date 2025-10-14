@@ -9,29 +9,28 @@
             <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">{{$student->fname}} {{$student->mname}} {{$student->sname}}</h1>
             <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
                 <ol class="breadcrumb">
-
                     <div class="dropdown d-inline-block">
-                    <button type="button" class="btn btn-primary rounded-pill px-4" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <span class="d-sm-inline-block">Action</span>
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-end p-0">
-                        <div class="p-2">
-                        @role(['superAdmin'])
-                            <form method="GET" action="/edit-student/{{$student->id}}">
-                                {{ csrf_field() }}
-                                <button class="dropdown-item nav-main-link" type="submit">
-                                    <i class="nav-main-link-icon  fas fa-pencil"></i>Edit profile
-                                </button>
-                            </form>
-                            <button class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                                <i class="nav-main-link-icon  fas fa-file-invoice"></i>Add payment
-                            </button>
-                        @endrole
-                        <button class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#change-status">
-                            <i class="nav-main-link-icon  fas fa-toggle-on"></i>Change status
+                        <button type="button" class="btn btn-primary rounded-pill px-4" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <span class="d-sm-inline-block">Action</span>
                         </button>
+                        <div class="dropdown-menu dropdown-menu-end p-0">
+                            <div class="p-2">
+                            @role(['superAdmin'])
+                                <form method="GET" action="/edit-student/{{$student->id}}">
+                                    {{ csrf_field() }}
+                                    <button class="dropdown-item nav-main-link" type="submit">
+                                        <i class="nav-main-link-icon  fas fa-pencil"></i>Edit profile
+                                    </button>
+                                </form>
+                                <button class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                                    <i class="nav-main-link-icon  fas fa-file-invoice"></i>Add payment
+                                </button>
+                            @endrole
+                            <button class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#change-status">
+                                <i class="nav-main-link-icon  fas fa-toggle-on"></i>Change status
+                            </button>
+                            </div>
                         </div>
-                    </div>
                     </div>
                 </ol>
             </nav>

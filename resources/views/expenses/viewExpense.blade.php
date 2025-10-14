@@ -7,7 +7,30 @@
       <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
         <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">View expense</h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
-            <a href="/expenses" class="btn btn-primary rounded-pill px-4">All expenses</a>
+            <ol class="breadcrumb">
+                <div class="dropdown d-inline-block">
+                    <button type="button" class="btn btn-primary rounded-pill px-4" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span class="d-sm-inline-block">Action</span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end p-0">
+                        <div class="p-2">
+                            @role(['superAdmin', 'admin'])
+                                <a href="/expenses" class="dropdown-item nav-main-link">
+                                    <i class="nav-main-link-icon  fas fa-file-invoice"></i>All Expenses
+                                </a>
+                                <a href="/editexpense/{{ $expense->id }}" class="dropdown-item nav-main-link">
+                                    <i class="nav-main-link-icon  fas fa-edit"></i>Edit Expense
+                                </a>
+                            @endrole
+                            @role(['superAdmin'])
+                                <a href="/review-expense/{{ $expense->id }}" class="dropdown-item nav-main-link">
+                                    <i class="nav-main-link-icon  fas fa-magnifying-glass"></i>Review Expense
+                                </a>
+                            @endrole
+                        </div>
+                    </div>
+                </div>
+            </ol>
         </nav>
       </div>
     </div>
