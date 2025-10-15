@@ -40,6 +40,7 @@
                             <th style="min-width: 10rem;">Total Payment</th>
                             <th style="min-width: 10rem;">Payment Date</th>
                             <th style="min-width: 10rem;">Status</th>
+                            <th style="min-width: 10rem;">Process by</th>
                         </tr>
                     </thead>
                 </table>
@@ -121,7 +122,8 @@
                         { data: 'per_attendance', className: 'text-right' },
                         { data: 'total', className: 'text-right' },
                         { data: 'payment_date', className: 'text-right' },
-                        { data: 'status', className: 'text-wrap' }
+                        { data: 'status', className: 'text-wrap' },
+                        { data: 'processed_by', className: 'text-wrap' }
                       ],
                       drawCallback: function () {
                         // Bind change status buttons (dropdown)

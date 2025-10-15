@@ -80,6 +80,11 @@ class User extends Authenticatable
         return $this->belongsTo(Instructor::class);
     }
 
+    public function payments()
+    {
+        return $this->hasMany(InstructorPayment::class, 'created_by');
+    }
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()

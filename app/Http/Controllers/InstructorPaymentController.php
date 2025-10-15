@@ -85,6 +85,9 @@ class InstructorPaymentController extends Controller
             ->addColumn('status', function ($payment) {
                 return ucfirst($payment->status);
             })
+            ->addColumn('processed_by', function ($payment) {
+                return $payment->user->Administrator->fname ?? 'System';
+            })
             ->rawColumns(['actions', 'instructor', 'payment_month', 'total', 'payment_date', 'status'])
             ->make(true);
 
@@ -112,7 +115,7 @@ class InstructorPaymentController extends Controller
         if (!Auth::user()->hasRole('superAdmin')) {
             return response()->json([
                 'message' => 'You are not allowed to make payments to instructors.'
-            ], 403); // 403 is more appropriate for "Forbidden"
+            ], 403);
         }
 
         $todaysDate = Carbon::now();
@@ -137,14 +140,24 @@ class InstructorPaymentController extends Controller
         $instructors = Instructor::where('status', 'active')->get();
 
         foreach ($instructors as $instructor) {
-            $bonusThisMonth = $instructor->attendances()->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
+            // Get the instructor's most recent payment date
+            $lastPayment = $instructor->payments()->latest('payment_date')->first();
+
+            $startDate = $lastPayment ? $lastPayment->payment_date : $instructor->created_at; // fallback if no payments yet
+            $endDate = now();
+
+            // Count attendances created after the last payment date
+            $bonusThisPeriod = $instructor->attendances()
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->count();
 
             $instructorPayment = new InstructorPayment;
             $instructorPayment->instructor_id = $instructor->id;
-            $instructorPayment->attendances_count = $bonusThisMonth;
+            $instructorPayment->attendances_count = $bonusThisPeriod;
             $instructorPayment->pay_per_attendance = $this->bonus;
             $instructorPayment->status = 'Paid';
-            $instructorPayment->total_payment = $bonusThisMonth * $this->bonus;
+            $instructorPayment->total_payment = $bonusThisPeriod * $this->bonus;
+            $instructorPayment->created_by = Auth::id() ?? 'system';
             try {
                 $paymentDate = Carbon::now()->format('d-m-Y');
                 $instructorPayment->payment_date = $paymentDate;

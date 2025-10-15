@@ -43,9 +43,21 @@ class HomeController extends Controller
                 ->where('instructor_id', Auth::user()->instructor_id)
                 ->count();
 
-            $instructorEstimatedPay = InstructorPayment::where('instructor_id', Auth::user()->instructor_id)
-                ->whereMonth('created_at', Carbon::now()->month)
-                ->whereYear('created_at', Carbon::now()->year)
+            // Get instructor ID
+            $instructorId = Auth::user()->instructor_id;
+
+            // Get last payment record
+            $lastPayment = InstructorPayment::where('instructor_id', $instructorId)
+                ->latest('payment_date') // or ->latest('created_at') depending on your schema
+                ->first();
+
+            // Define date range
+            $startDate = $lastPayment ? Carbon::parse($lastPayment->payment_date) : Carbon::now()->startOfMonth();
+            $endDate = Carbon::now();
+
+            // Sum all payments after the last payment date
+            $instructorEstimatedPay = InstructorPayment::where('instructor_id', $instructorId)
+                ->whereBetween('created_at', [$startDate, $endDate])
                 ->sum('total_payment');
 
         }

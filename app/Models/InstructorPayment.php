@@ -21,6 +21,7 @@ class InstructorPayment extends Model
         'payment_date',
         'payment_month',
         'status',
+        'created_by',
     ];
 
     protected $casts = [
@@ -33,6 +34,11 @@ class InstructorPayment extends Model
     public function instructor()
     {
         return $this->belongsTo(Instructor::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function getActivitylogOptions(): LogOptions
