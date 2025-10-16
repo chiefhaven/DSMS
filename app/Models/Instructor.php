@@ -70,6 +70,15 @@ class Instructor extends Model
         return $this->hasMany(InstructorPayment::class);
     }
 
+    public function currentAttendances()
+    {
+        $lastPayment = $this->payments()->latest('payment_date')->first();
+        $startDate = $lastPayment ? $lastPayment->payment_date : $this->created_at;
+
+        return $this->attendances()
+            ->whereBetween('created_at', [$startDate, now()]);
+    }
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()

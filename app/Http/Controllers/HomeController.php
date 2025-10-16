@@ -48,7 +48,7 @@ class HomeController extends Controller
 
             // Get last payment record
             $lastPayment = InstructorPayment::where('instructor_id', $instructorId)
-                ->latest('payment_date') // or ->latest('created_at') depending on your schema
+                ->latest('payment_date')
                 ->first();
 
             // Define date range
@@ -75,11 +75,19 @@ class HomeController extends Controller
         $activities = Activity::orderBy('created_at', 'DESC')->paginate(500);
 
         $instructors = Instructor::where('status', 'active')
-        ->with(['attendances' => function ($query) {
-            $query->whereMonth('created_at', Carbon::now()->month)
-                ->whereYear('created_at', Carbon::now()->year);
-        }])->get();
+        ->with(['attendances', 'payments' => function ($q) {
+            $q->latest('payment_date');
+        }])
+        ->get();
 
+        $instructors->each(function ($instructor) {
+            $lastPayment = $instructor->payments->first(); // latest payment
+            $startDate = $lastPayment ? Carbon::parse($lastPayment->payment_date) : $instructor->created_at;
+
+            $instructor->attendances = $instructor->attendances()
+                ->whereBetween('created_at', [$startDate, Carbon::now()])
+                ->get();
+        });
 
         $settings = Setting::find(1);
 
