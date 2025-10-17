@@ -22,7 +22,7 @@
             await Swal.fire({
                 icon: 'error',
                 title: 'Scanner Error',
-                text: 'QR scanner library failed to load. Please refresh the page.'
+                text: 'QR scanner to load. Please refresh the page.'
             });
             return;
         }

@@ -206,8 +206,15 @@ class ExpensePaymentController extends Controller
             $updatedExpense = $student->expenses()->where('expenses.id', $expenseId)->first();
 
             if ($student->user) {
-                $student->user->notify(new ExpensePaymentMade($student, $updatedExpense, $expensePayment));
-                Log::info("Notification sent to student user ID: {$student->user->id}");
+                try {
+                    $student->user->notify(new ExpensePaymentMade($student, $updatedExpense, $expensePayment));
+                    Log::info("Notification sent to student user ID: {$student->user->id}");
+                } catch (\Exception $e) {
+                    Log::error("Failed to send ExpensePaymentMade notification: " . $e->getMessage(), [
+                        'student_id' => $student->id,
+                        'expense_id' => $expenseId,
+                    ]);
+                }
             }
         });
 
