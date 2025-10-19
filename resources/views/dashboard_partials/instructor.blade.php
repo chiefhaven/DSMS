@@ -123,7 +123,7 @@
                                         </div>
                                         <div class="ms-3 text-right">
                                             <p class="font-size-h3 font-w900 mb-0 text-uppercase">
-                                                K{{ $instructorEstimatedPay != 0 ? number_format($instructorEstimatedPay, 2) : number_format($attendanceCount * $settings->bonus, 2) }}
+                                                K{{ $instructorEstimatedPay != 0 ? number_format($instructorEstimatedPay, 2) : 0 }}
                                             </p>
                                             <p class="mb-0">This month estimated pay</p>
                                         </div>

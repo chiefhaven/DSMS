@@ -18,9 +18,12 @@ use Mpdf\Tag\Ins;
 
 class HomeController extends Controller
 {
+    protected $settings;
+
     public function __construct()
     {
         $this->middleware('auth');
+        $this->settings = Setting::find(1);
     }
 
     public function index(Request $request)
@@ -34,7 +37,7 @@ class HomeController extends Controller
 
         $attendanceCount = 0;
 
-        $instructorEstimatedPay = collect();
+        $instructorEstimatedPay = 0;
 
 
         if (Auth::user()->hasRole('instructor')) {
@@ -55,10 +58,10 @@ class HomeController extends Controller
             $startDate = $lastPayment ? Carbon::parse($lastPayment->payment_date) : Carbon::now()->startOfMonth();
             $endDate = Carbon::now();
 
-            // Sum all payments after the last payment date
-            $instructorEstimatedPay = InstructorPayment::where('instructor_id', $instructorId)
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->sum('total_payment');
+            $attendanceCount = Attendance::where('instructor_id', $instructorId)
+                ->whereBetween('created_at', [$startDate, $endDate])->count();
+
+            $instructorEstimatedPay = $attendanceCount * $this->settings->bonus;
 
         }
 
