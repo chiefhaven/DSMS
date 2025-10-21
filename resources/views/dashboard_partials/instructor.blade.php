@@ -3,6 +3,10 @@
             <div class="row">
                 @include('/dashboard_partials/quotes')
 
+                @php
+    $instructor = Auth::user()->instructor ?? null;
+@endphp
+
                 <div class="col-md-12 col-xl-12 mb-4">
                     <h5>Actions</h5>
                     <hr>
@@ -75,7 +79,7 @@
                                 <div class="block block-rounded block-link-shadow border">
                                     <div class="block-content block-content-full d-flex align-items-center justify-content-between">
                                         <div>
-                                            @if (Auth::user()->instructor->fleet)
+                                            @if ($instructor->fleet)
                                                 <i class="fa fa-2x fa-car"></i>
                                             @else
                                                 <i class="fa fa-2x fa-chalkboard-teacher"></i>
@@ -83,10 +87,10 @@
                                         </div>
                                         <div class="ms-3 text-right">
                                             <p class="font-size-h3 font-w900 mb-0 text-uppercase">
-                                                @if (Auth::user()->instructor->fleet)
-                                                    {{ Auth::user()->instructor->fleet->car_registration_number }}
-                                                @elseif (Auth::user()->instructor->classrooms && Auth::user()->instructor->classrooms->isNotEmpty())
-                                                    {{ Auth::user()->instructor->classrooms->pluck('name')->join(', ') }}
+                                                @if ($instructor->fleet)
+                                                    {{ $instructor->fleet->car_registration_number }}
+                                                @elseif ($instructor->classrooms && $instructor->classrooms->isNotEmpty())
+                                                    {{ $instructor->classrooms->pluck('name')->join(', ') }}
                                                 @else
                                                     Not yet assigned car or classroom
                                                 @endif
@@ -96,6 +100,7 @@
                                     </div>
                                 </div>
                             </div>
+
 
                             <!-- Total lessons this month -->
                             <div class="col-md-4">

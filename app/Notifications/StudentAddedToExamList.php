@@ -47,7 +47,7 @@ class StudentAddedToExamList extends Notification
      */
     public function via($notifiable)
     {
-        return ['database', 'mail', SmsChannel::class];
+        return ['database',  SmsChannel::class, 'mail'];
     }
 
     /**

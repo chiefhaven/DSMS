@@ -31,7 +31,7 @@ class LessonScheduled extends Notification implements ShouldQueue
 
     public function via($notifiable)
     {
-        return ['mail', 'database', SmsChannel::class];
+        return ['database', SmsChannel::class, 'mail'];
     }
 
     public function toMail($notifiable)

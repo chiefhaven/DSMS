@@ -1,0 +1,17 @@
+[2025-10-22 00:01:53] debug.ERROR: SMS Balance Fetch Failed: {"message":"Unauthenticated."}  
+[2025-10-22 00:02:33] debug.ERROR: Notification to super admins failed: Failed to authenticate on SMTP server with username "mbiradsms@darondrivingschool.com" using the following authenticators: "LOGIN", "PLAIN". Authenticator "LOGIN" returned "Expected response code "235" but got code "535", with message "535 Incorrect authentication data".". Authenticator "PLAIN" returned "Expected response code "235" but got code "535", with message "535 Incorrect authentication data".".  
+[2025-10-22 00:02:35] debug.ERROR: SMS Balance Fetch Failed: {"message":"Unauthenticated."}  
+[2025-10-22 00:02:58] debug.ERROR: SMS Balance Fetch Failed: {"message":"Unauthenticated."}  
+[2025-10-22 00:03:01] debug.ERROR: SMS Balance Fetch Failed: {"message":"Unauthenticated."}  
+[2025-10-22 00:03:30] debug.ERROR: SMS Balance Fetch Failed: {"message":"Unauthenticated."}  
+[2025-10-22 00:04:00] debug.ERROR: SMS Balance Fetch Failed: {"message":"Unauthenticated."}  
+[2025-10-22 00:04:30] debug.ERROR: SMS Balance Fetch Failed: {"message":"Unauthenticated."}  
+[2025-10-22 00:05:00] debug.ERROR: SMS Balance Fetch Failed: {"message":"Unauthenticated."}  
+[2025-10-22 00:05:30] debug.ERROR: SMS Balance Fetch Failed: {"message":"Unauthenticated."}  
+[2025-10-22 00:06:00] debug.ERROR: SMS Balance Fetch Failed: {"message":"Unauthenticated."}  
+[2025-10-22 00:07:01] debug.ERROR: SMS Balance Fetch Failed: {"message":"Unauthenticated."}  
+[2025-10-22 00:07:31] debug.ERROR: SMS Balance Fetch Failed: {"message":"Unauthenticated."}  
+[2025-10-22 00:08:01] debug.ERROR: SMS Balance Fetch Failed: {"message":"Unauthenticated."}  
+[2025-10-22 00:08:31] debug.ERROR: SMS Balance Fetch Failed: {"message":"Unauthenticated."}  
+[2025-10-22 00:09:00] debug.ERROR: SMS Balance Fetch Failed: {"message":"Unauthenticated."}  
+[2025-10-22 00:09:28] debug.ERROR: SMS Balance Fetch Failed: {"message":"Unauthenticated."}  
