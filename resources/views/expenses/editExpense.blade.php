@@ -269,8 +269,14 @@
                     fname, mname, sname,
                     expenseTypesOption: optionId,
                     expenseTypesOptionName: option.name || '',
-                    expenseTypesOptionAmount: 0,
-                    expenses: [{ pivot: { expense_type: option.id, amount: option.amount_per_student, repeat } }]
+                    expenseTypesOptionAmount: repeat ? 0 : option.amount_per_student,
+                    expenses: [{
+                        pivot: {
+                            expense_type: option.id,
+                            amount: option.amount_per_student,
+                            repeat
+                        }
+                    }]
                 });
                 state.value.studentName = '';
                 state.value.studentId = '';
