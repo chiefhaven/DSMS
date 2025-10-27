@@ -273,7 +273,7 @@
                     expenses: [{
                         pivot: {
                             expense_type: option.id,
-                            amount: option.amount_per_student,
+                            amount: repeat ? 0 : option.amount_per_student,
                             repeat
                         }
                     }]
