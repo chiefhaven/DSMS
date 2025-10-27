@@ -73,13 +73,16 @@
                             <!-- Instructor Selection -->
                             <div class="col-md-6">
                                 <div class="form-floating mb-4">
-                                    <select class="form-select select2-instructor" id="instructor" name="instructor" data-placeholder=" " style="width: 100%;">
+                                    <select class="form-select select2 -instructor" id="instructor" name="instructor" data-placeholder=" " style="width: 100%;">
                                         <option value=""></option>
                                         @foreach ($instructors as $instructor)
                                             <option value="{{ $instructor->id }}"
-                                                @if(old('instructor') == $instructor->id) selected @endif
-                                                data-avatar="{{ $instructor->profile_photo_url ?? asset('path/to/default/avatar.jpg') }}">
+                                                {{ $instructor->status == 'Suspended' || $instructor->status == 0 ? 'disabled' : '' }}
+                                                class="{{ $instructor->status == 'Suspended' || $instructor->status == 0 ? 'text-danger' : '' }}">
                                                 {{ $instructor->fname }} {{ $instructor->sname }}
+                                                @if ($instructor->status == 'Suspended' || $instructor->status == 0)
+                                                    (Unavailable)
+                                                @endif
                                             </option>
                                         @endforeach
                                     </select>

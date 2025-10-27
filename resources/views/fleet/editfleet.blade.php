@@ -65,8 +65,13 @@
                 <select class="form-select" id="instructor" name="instructor">
                     @foreach ($instructors as $instructor)
                         <option value="{{ $instructor->id }}"
-                            {{ $fleet->instructor && $fleet->instructor->id && $instructor->id == $fleet->instructor->id ? 'selected' : '' }}>
+                            {{ optional($fleet->instructor)->id == $instructor->id ? 'selected' : '' }}
+                            {{ $instructor->status == 'Suspended' || $instructor->status == 0 ? 'disabled' : '' }}
+                            class="{{ $instructor->status == 'Suspended' || $instructor->status == 0 ? 'text-danger' : '' }}">
                             {{ $instructor->fname }} {{ $instructor->sname }}
+                            @if ($instructor->status == 'Suspended' || $instructor->status == 0)
+                                (Unavailable)
+                            @endif
                         </option>
                     @endforeach
                 </select>
