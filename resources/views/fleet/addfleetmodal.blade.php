@@ -73,7 +73,7 @@
                             <!-- Instructor Selection -->
                             <div class="col-md-6">
                                 <div class="form-floating mb-4">
-                                    <select class="form-select select2 -instructor" id="instructor" name="instructor" data-placeholder=" " style="width: 100%;">
+                                    <select class="form-select select2" id="instructor" name="instructor" data-placeholder=" " style="width: 100%;">
                                         <option value=""></option>
                                         @foreach ($instructors as $instructor)
                                             <option value="{{ $instructor->id }}"

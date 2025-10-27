@@ -108,22 +108,20 @@ class FleetController extends Controller
             $fleet->fleet_image = 'driving-school-car-default.png';
         }
 
-        if(isset($post['instructor'])){
+        if (!empty($post['instructor'])) {
+            $instructor = Instructor::find($post['instructor']);
 
-            $instructorID = $post['instructor'];
-
-            if(isset($instructorID)){
-
-                $fleet->instructor_id = $instructorID;
-
+            if (!$instructor) {
+                return redirect()->back()->withErrors(['instructor' => 'Selected instructor not found.']);
             }
-            else{
-                $fleet->instructor_id = 1000000;
-            }
-        }
 
-        else{
-                $fleet->instructor_id = 1000000;
+            if ($instructor->status === 'Suspended' || $instructor->status == 0) {
+                return redirect()->back()->withErrors(['instructor' => 'The selected instructor is suspended or unavailable.']);
+            }
+
+            $fleet->instructor_id = $instructor->id;
+        } else {
+            return redirect()->back()->withErrors(['instructor' => 'Please select an instructor.']);
         }
 
 
@@ -209,9 +207,8 @@ class FleetController extends Controller
             $fleet->fleet_image = $carImageName;
         }
 
-        // Check if the instructor is already assigned to another fleet
         if ($fleetCount < 1 ) {
-            $fleet->instructor_id = $post['instructor'] ?? 1000000;  // Assign instructor, default to 1000000 if not provided
+            $fleet->instructor_id = $post['instructor'] ?? 1000000;
         }
         elseif ($fleetCount > 0) {
             // Unassign the instructor from all other fleets
@@ -221,13 +218,11 @@ class FleetController extends Controller
                 $fleet_1->save(); // Save the unassigned fleet
             }
 
-            // Assign the instructor to the current fleet
             $fleet->instructor_id = $post['instructor'];
 
             $message = 'Instructor was assigned to different car, has been unassigned and reassigned to '.$fleet->car_brand_model;
         }
         else {
-            // If no instructor is provided, assign a default value
             $fleet->instructor_id = null;
             $message = 'Instructor has been unassigned';
         }
