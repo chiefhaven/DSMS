@@ -207,9 +207,21 @@ class AdministratorController extends Controller
         $Administrator->date_of_birth = $post['date_of_birth'];
         $Administrator->district_id = $district;
 
-        $user = User::where('administrator_id', $post['administrator_id'])->firstOrFail();
+        $user = User::where('administrator_id', $post['administrator_id'])->first();
 
-        $user->email = $post['email'];
+        if ($user) {
+            // Update existing user
+            $user->email = $post['email'];
+            $user->save();
+        } else {
+            // Create a new user if not found
+            $user = new User();
+            $user->administrator_id = $post['administrator_id'];
+            $user->name = $post['sir_name'].'123';
+            $user->email = $post['email'];
+            $user->password = bcrypt('HavenPass123'); // Default password
+            $user->save();
+        }
 
         if(isset($post['password'])){
             $user->password = Hash::make($post['password']);
