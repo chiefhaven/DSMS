@@ -460,19 +460,21 @@ class ExpenseController extends Controller
 
                 $repeat = $pivot['repeat'] ?? 0;
 
+                $repeat = $pivot['repeat'] ?? 0;
+                $amount = $pivot['amount'] ?? 0;
+                $balance = $amount;
+
                 if ($repeat == 1) {
                     $amount = 0;
                     $balance = 0;
-                } else {
-                    $amount = $pivot['amount'] ?? 0;
                 }
 
                 $syncData[$student->id] = [
                     'expense_type' => $pivot['expense_type'] ?? null,
-                    'repeat'       => $pivot['repeat'] ?? 0,
+                    'repeat'       => $repeat,
                     'amount'       => $amount,
                     'paid'         => $pivot['paid'] ?? 0,
-                    'balance'      => $balance ?? $amount,
+                    'balance'      => $balance,
                 ];
             }
 

@@ -18,3 +18,4 @@ yarn-error.log
 /.idea
 /.vscode
 Modules/Pagination/Resources/views/bootstrap-5.blade.php
+*.log

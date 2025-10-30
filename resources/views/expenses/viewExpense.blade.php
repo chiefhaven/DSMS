@@ -103,6 +103,7 @@
                                     <th class="text-center">Class</th>
                                     <th style="min-width: 10em">Expense type</th>
                                     <th class="invoice-td" >Amount</th>
+                                    <th class="invoice-td" >Balance</th>
                                     <th class="invoice-td" style="min-width: 6em">Status</th>
                                     <th class="invoice-td" style="min-width: 9em">Paid by</th>
                                     <th class="invoice-td" style="min-width: 10em">Date Paid</th>
@@ -148,6 +149,11 @@
                                     <td>
                                         <span>
                                             K@{{ student.expenses[0]?.pivot?.amount !== undefined ? Number(student.expenses[0].pivot.amount).toFixed(2) : 'N/A' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span>
+                                            K@{{ student.expenses[0]?.pivot?.balance !== undefined ? Number(student.expenses[0].pivot.balance).toFixed(2) : 'N/A' }}
                                         </span>
                                     </td>
                                     <td>
