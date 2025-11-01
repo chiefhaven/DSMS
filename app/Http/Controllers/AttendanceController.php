@@ -7,10 +7,8 @@ use App\Models\Invoice;
 use App\Models\Student;
 use App\Http\Requests\StoreAttendanceRequest;
 use App\Http\Requests\UpdateAttendanceRequest;
-use App\Models\Classroom;
 use App\Models\Fleet;
 use App\Models\Instructor;
-use App\Models\ScheduleLesson;
 use App\Models\Setting;
 use App\Notifications\AttendanceAdded;
 use Auth;
@@ -19,6 +17,7 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class AttendanceController extends Controller
@@ -197,121 +196,112 @@ class AttendanceController extends Controller
     public function store(StoreAttendanceRequest $request)
     {
         $messages = [
-            'student.required'   => 'Student is required!',
-            'lesson.required' => 'Lesson is required!',
+            'student.required' => 'Student is required!',
+            'lesson.required'  => 'Lesson is required!',
         ];
 
-        // Validate the request
+        // Validate input
         $this->validate($request, [
-            'student' =>'required',
-            'lesson'   =>'required',
-
-
+            'student' => 'required',
+            'lesson'  => 'required',
         ], $messages);
 
         $instructor_id = Auth::user()->instructor_id;
-
         $post = $request->all();
 
+        // Find the student
         $studentName = html_entity_decode($post['student']);
-
-        if (isset($studentName)) {
-            $student = havenUtils::student($studentName);
-            if ($student) {
-                $student_id = $student->id;
-            } else {
-                // Handle case where student is not found
-                Alert::error('Oops! Something went wrong');
-                return back();
-            }
-        } else {
-            // Handle case where 'student' key is missing
-            Alert::error('Oops! Something wrong happened');
+        if (!$studentName) {
+            Alert::error('Oops! Something went wrong', 'Student not registered');
             return back();
         }
 
-        //Check course days and compare with attendance
-        $courseID = Invoice::where('student_id', $student_id)->firstOrFail()->course_id;
-
-        $student = Student::find($student_id);
-
-        if(!isset($courseID)){
-            Alert()->error('Attendance can not be entered', $student->fname.' not enrolled to any course yet!');
+        $student = havenUtils::student($studentName);
+        if (!$student) {
+            Alert::error('Oops! Something went wrong', 'Student not found');
+            return back();
         }
 
+        $student_id = $student->id;
+
+        // Get student's course
+        $invoice = Invoice::where('student_id', $student_id)->first();
+        if (!$invoice || !$invoice->course_id) {
+            Alert::error('Attendance cannot be entered', $student->fname . ' is not enrolled in any course yet!');
+            return back();
+        }
+
+        $courseID = $invoice->course_id;
         $studentCourseDuration = havenUtils::courseDuration($courseID);
 
-        if(self::attendanceCount($student_id) >= $studentCourseDuration){
-            // dd(self::attendanceCount($student_id), $studentCourseDuration);
-            Alert()->error('Attendance not entered','You can not enter more attendances than course duration a student enrolled!');
+        // Check attendance limit
+        if (self::attendanceCount($student_id) >= $studentCourseDuration) {
+            Alert::error('Attendance not entered', 'You cannot enter more attendances than the course duration.');
             return redirect('/attendances');
         }
 
+        // Lesson validation
         $lesson_id = havenUtils::lessonID($post['lesson']);
+        if ($post['lesson'] == 'Theory') {
+            $attendanceCount = Attendance::where('lesson_id', $lesson_id)
+                ->where('student_id', $student_id)
+                ->count();
 
-        if($post['lesson'] == 'Theory'){
-           $attendanceCount = Attendance::Where('lesson_id', $lesson_id)->Where('student_id', $student_id)->count();
-            if($attendanceCount == 10){
-                Alert()->error('Attendance not entered!','You can not enter more than 10 attendances for Theory lessons for a student.');
+            if ($attendanceCount >= 10) {
+                Alert::error('Attendance not entered!', 'You cannot enter more than 10 Theory attendances.');
                 return back();
             }
         }
 
-        $attendance = new Attendance;
-
-        if(is_null($student_id)){
-
-            Alert::toast('No such student is registered with us!', 'error');
-            return redirect()->back()->withInput();
-        }
-
-        else{
-
-            $attendance->student_id = $student_id;
-        }
-
+        // Create attendance
+        $attendance = new Attendance();
+        $attendance->student_id     = $student_id;
+        $attendance->lesson_id      = $lesson_id;
+        $attendance->instructor_id  = $instructor_id;
         $attendance->attendance_date = Carbon::now()->tz('Africa/Blantyre');
-        $attendance->lesson_id = $lesson_id;
-        $attendance->instructor_id = $instructor_id;
+
+        $now = Carbon::now()->tz('Africa/Blantyre');
+        $existingAttendance = Attendance::where('student_id', $student_id)
+        ->where('lesson_id', $lesson_id)
+        ->where('instructor_id', $instructor_id)
+        ->whereBetween('attendance_date', [
+            $now->copy()->startOfSecond(),
+            $now->copy()->endOfSecond(),
+        ])
+        ->first();
+
+        if ($existingAttendance) {
+            \Log::info('Duplicate Entry', 'Attendance for this student and lesson has already been recorded just now.');
+            return redirect('/scanqrcode');
+        }
 
         $attendance->save();
 
-        if($attendance->save()){
-
-            if ($studentCourseDuration - self::attendanceCount($student_id) == 0) {
-                $student->status = 'Finished';
-                $student->trainingLevel_id = havenUtils::trainingLevelID('finished');
-                $message = 'This marks course and level completion for ' . $student->fname . ' ' . $student->sname . '. Student un-assigned from your car';
-            }
-
-            else{
-                $student->status = 'Inprogress';
-                $message = 'Attendance added successifuly!';
-            }
-
-            $sms = new NotificationController;
-            $sms->generalSMS($student, 'Attendance');
-            $admin = Instructor::find($instructor_id);
-            if (!$admin) {
-                // Handle the error, e.g., log or throw an exception
-                throw new Exception('Administrator not found.');
-            }
-
-            $adminName = $admin->fname . ' ' . $admin->sname;
-
-            if (!$student || !$student->user) {
-                throw new Exception('Student or associated user not found.');
-            }
-
-            $student->user->notify(new AttendanceAdded($student, $attendance, $adminName));
-
-
-            $student->save();
+        // Update student status
+        if ($studentCourseDuration - self::attendanceCount($student_id) == 0) {
+            $student->status = 'Finished';
+            $student->trainingLevel_id = havenUtils::trainingLevelID('finished');
+            $message = "This marks course and level completion for {$student->fname} {$student->sname}. Student unassigned from your car.";
+        } else {
+            $student->status = 'Inprogress';
+            $message = 'Attendance added successfully!';
         }
+
+        // Send notifications
+        $sms = new NotificationController;
+        $sms->generalSMS($student, 'Attendance');
+
+        $admin = Instructor::find($instructor_id);
+        $adminName = $admin ? ($admin->fname . ' ' . $admin->sname) : 'Instructor';
+
+        if ($student->user) {
+            $student->user->notify(new AttendanceAdded($student, $attendance, $adminName));
+        }
+
+        $student->save();
 
         Alert::toast($message, 'success');
         return redirect('/attendances');
-
     }
 
     /**

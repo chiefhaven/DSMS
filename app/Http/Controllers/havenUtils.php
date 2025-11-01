@@ -466,4 +466,11 @@ use Illuminate\Support\Facades\Log;
 
             return response()->json(['count' => $count]);
         }
+
+        public static function attendanceByDepartment($student_id, $department_name)
+        {
+            return Attendance::where('student_id', $student_id)
+                ->whereHas('lesson.department', fn($q) => $q->where('id', $department_name))
+                ->count();
+        }
     }

@@ -610,11 +610,10 @@ class StudentController extends Controller
         $courseId = optional($student->course)->id;
         $courseDuration = $courseId ? havenUtils::courseDuration($courseId) : 0;
 
-        $attendancePercent = havenUtils::attendancePercent($id)['attendanceCount'] ?? 0;
+        $attendancePercent = havenUtils::attendancePercent($id)['attendancePercent'] ?? 0;
 
-        $attendancePercent = havenUtils::attendancePercent($id)['attendanceCount'] ?? 0;
-        $attendanceTheoryCount = Attendance::where('student_id', $id)->where('lesson_id', 1)->count();
-        $attendancePracticalCount = Attendance::where('student_id', $id)->where('lesson_id', 2)->count();
+        $attendanceTheoryCount = havenUtils::attendanceByDepartment($id, 'd9b69664-b8ca-11ef-9fee-525400adf70e');
+        $attendancePracticalCount = havenUtils::attendanceByDepartment($id, 'd9b6a9c9-b8ca-11ef-9fee-525400adf70e');
 
         if (request()->wantsJson()) {
             return response()->json(compact(

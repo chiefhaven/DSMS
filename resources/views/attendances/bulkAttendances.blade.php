@@ -32,8 +32,11 @@
                     <thead class="thead-dark">
                         <tr>
                             <th class="text-center" style="min-width: 7rem;">Actions</th>
-                            <th style="min-width: 10rem;">Description</th>
                             <th style="min-width: 18rem;">Students</th>
+                            <th style="min-width: 18rem;">Entered by</th>
+                            <th style="min-width: 10rem;">Description</th>
+                            <th style="min-width: 10rem;">Created at</th>
+                            <th style="min-width: 10rem;">Updated at</th>
                         </tr>
                     </thead>
                 </table>
@@ -178,8 +181,12 @@
                 },
                 columns: [
                     { data: 'actions', className: 'text-center', orderable: false },
-                    { data: 'description', className: 'text-wrap' },
                     { data: 'students', className: 'text-wrap', orderable: false, searchable: false },
+                    { data: 'entered_by', className: 'text-wrap', orderable: false, searchable: false},
+                    { data: 'description', className: 'text-wrap' },
+                    { data: 'created_at', className: 'text-wrap', orderable: false, searchable: false},
+                    { data: 'updated_at', className: 'text-wrap', orderable: false, searchable: false}
+
                 ],
                 language: {
                     emptyTable: "No bulk attendance records found."

@@ -297,18 +297,44 @@
 
                                 <!-- Attendance Progress -->
                                 <div class="mt-4">
-                                    <h5 class="border-bottom pb-2 mb-3">Attendance Progress</h5>
+                                    <h5 class="border-bottom pb-2 mb-3 text-muted fw-semibold">Attendance Progress</h5>
+                                    @php
+                                        // Normalize attendance percent
+                                        $attendancePercent = max(0, min(100, round($attendancePercent ?? 0, 2)));
+
+                                        if ($attendancePercent < 50) {
+                                            $badgeColor = 'danger';
+                                            $statusLabel = 'Needs Improvement';
+                                        } elseif ($attendancePercent < 80) {
+                                            $badgeColor = 'warning';
+                                            $statusLabel = 'In Progress';
+                                        } else {
+                                            $badgeColor = 'success';
+                                            $statusLabel = 'On Track';
+                                        }
+
+                                        if ($student->status === 'Completed' || $student->status === 'Finished') {
+                                            $badgeColor = 'primary';
+                                            $statusLabel = 'Completed';
+                                        }
+                                    @endphp
                                     <div class="d-flex justify-content-between mb-2">
-                                        <span class="fw-semibold">Completion: {{ $attendancePercent }}%</span>
-                                        <span class="text-muted small">{{ $attendanceTheoryCount }} theory / {{ $attendancePracticalCount }} practical of {{ $courseDuration }}</span>
+                                        <span class="badge bg-{{ $badgeColor }} px-1 py-1 fs-6 shadow-sm small">
+                                            {{ $statusLabel }} — {{ $attendancePercent }}%
+                                        </span>
+                                        <span class="text-muted small">
+                                            {{ $attendanceTheoryCount }} theory / {{ $attendancePracticalCount }} practical of {{ $courseDuration }}
+                                        </span>
                                     </div>
+
                                     <div class="progress" style="height: 10px;">
-                                        <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated"
-                                             role="progressbar"
-                                             style="width: {{ $attendancePercent }}%"
-                                             aria-valuenow="{{ $attendancePercent }}"
-                                             aria-valuemin="0"
-                                             aria-valuemax="100">
+                                        <div
+                                            class="progress-bar bg-{{ $badgeColor }} progress-bar-striped progress-bar-animated"
+                                            role="progressbar"
+                                            style="width: {{ $attendancePercent }}%;"
+                                            aria-valuenow="{{ $attendancePercent }}"
+                                            aria-valuemin="0"
+                                            aria-valuemax="100">
                                         </div>
                                     </div>
                                 </div>
@@ -316,9 +342,9 @@
                                 <!-- Course Status -->
                                 <div class="mt-4 pt-3 border-top">
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <h5 class="mb-0">Course Status</h5>
-                                        <span class="badge bg-{{ $student->status === 'Active' ? 'success' : ($student->status === 'Completed' ? 'primary' : 'warning') }}">
-                                            {{ $student->status }}
+                                        <h5 class="mb-0 text-muted fw-semibold">Course Status</h5>
+                                        <span class="badge px-3 py-2 rounded-pill shadow-sm bg-{{ $badgeColor }} {{ $badgeColor === 'warning' ? 'text-dark' : '' }}">
+                                            {{ ucfirst($student->status) }}
                                         </span>
                                     </div>
                                 </div>

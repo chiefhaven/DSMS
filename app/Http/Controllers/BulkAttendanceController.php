@@ -44,45 +44,52 @@ class BulkAttendanceController extends Controller
         }
 
         return DataTables::of($bulkAttendances)
-            ->addColumn('description', fn($bulk)
-            => e($bulk->description))
+            ->addColumn('description', fn($bulk) => e($bulk->description))
+
             ->addColumn('students', function ($bulk) {
                 return $bulk->students
-                    ->map(function ($student) {
-                        return trim("{$student->fname} {$student->mname} {$student->sname}");
-                    })
+                    ->map(fn($student) => trim("{$student->fname} {$student->mname} {$student->sname}"))
                     ->implode(', ') ?: 'None';
             })
+
+            ->addColumn('entered_by', fn($bulk) => "{$bulk->administrator->fname} {$bulk->administrator->sname}")
+
+            ->addColumn('created_at', fn($bulk) => $bulk->created_at->format('d F, Y H:i:s'))
+
+            ->addColumn('updated_at', fn($bulk) => $bulk->updated_at->format('d F, Y H:i:s'))
+
             ->addColumn('actions', function ($bulk) {
                 $actions = '';
 
                 if (auth()->user()->hasAnyRole(['superAdmin', 'admin', 'financeAdmin'])) {
-                    $view = '<a class="dropdown-item nav-main-link btn" href="' . url('/view-bulk-attendance', $bulk->id) . '">
+                    $view = '<a class="dropdown-item nav-main-link btn" href="' . url("/view-bulk-attendance/{$bulk->id}") . '">
                                 <i class="fa fa-eye me-2"></i>View
                             </a>';
 
-                    $edit = '<a class="dropdown-item nav-main-link btn" href="' . url('/edit-bulk-attendance', $bulk->id) . '">
+                    $edit = '<a class="dropdown-item nav-main-link btn" href="' . url("/edit-bulk-attendance/{$bulk->id}") . '">
                                 <i class="fa fa-edit me-2"></i>Edit
                             </a>';
 
                     $delete = '<a class="dropdown-item nav-main-link btn text-danger" href="javascript:void(0);" onclick="openDeletebulkAttendance(\'' . $bulk->id . '\')">
-                                  <i class="fa fa-trash me-2"></i>Delete
-                              </a>';
+                                <i class="fa fa-trash me-2"></i>Delete
+                            </a>';
 
                     $actions = $view . $edit . $delete;
                 }
 
-                return '
+                return <<<HTML
                     <div class="dropdown d-inline-block">
                         <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown">Actions</button>
                         <div class="dropdown-menu dropdown-menu-end">
-                            ' . $actions . '
+                            {$actions}
                         </div>
                     </div>
-                ';
-            })
-            ->rawColumns(['actions'])
-            ->make(true);
+                HTML;
+    })
+
+    ->rawColumns(['actions'])
+    ->make(true);
+
     }
 
     /**
