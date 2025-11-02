@@ -41,10 +41,7 @@
                                     <th style="min-width: 18em;">Student</th>
                                     <th style="min-width: 20%;">Lesson</th>
 
-                                    {{-- Show Instructor column only if user is not an instructor --}}
-                                    @if (!auth()->user()->hasRole('instructor'))
-                                        <th style="min-width: 20%;">Entered by</th>
-                                    @endif
+                                    <th style="min-width: 20%;">Entered by</th>
                                     <th>Anomaly</th>
                                 </tr>
                             </thead>
