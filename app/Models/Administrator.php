@@ -30,6 +30,11 @@ class Administrator extends Model
        return $this->hasMany(bulkAttendance::class);
     }
 
+    public function attendance()
+    {
+       return $this->hasMany(Attendance::class);
+    }
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()

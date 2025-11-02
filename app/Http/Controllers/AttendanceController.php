@@ -58,7 +58,7 @@ class AttendanceController extends Controller
     public function fetchAttendances(Request $request)
     {
         // Base query
-        $attendances = Attendance::query()->with('student', 'lesson');
+        $attendances = Attendance::query()->with('student', 'lesson', 'administrator');
 
         // Only load instructor relation if user is not instructor
         if (!Auth::user()->hasRole('instructor')) {
@@ -81,9 +81,15 @@ class AttendanceController extends Controller
                     : '-';
             })
             ->addColumn('lesson', fn($attend) => $attend->lesson->name ?? '-')
-            ->addColumn('instructor', fn($attend) => isset($attend->instructor)
-                ? "{$attend->instructor->fname} {$attend->instructor->sname}"
-                : '-')
+            ->addColumn('instructor', function ($attend) {
+                if (isset($attend->instructor)) {
+                    return "{$attend->instructor->fname} {$attend->instructor->sname}";
+                } elseif (isset($attend->administrator)) {
+                    return "{$attend->administrator->fname} {$attend->administrator->sname} (bulk)";
+                } else {
+                    return '-';
+                }
+            })
             ->addColumn('attendance_date', fn($attend) => $attend->attendance_date->format('j F, Y, H:i:s'))
             ->addColumn('actions', function ($attend) {
                 $buttons = '<a href="' . url("/viewattendance/{$attend->id}") . '" class="dropdown-item">View</a>';

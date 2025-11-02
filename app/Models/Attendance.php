@@ -44,6 +44,11 @@ class Attendance extends Model
         return $this->belongsTo(Instructor::class);
     }
 
+    public function Administrator()
+    {
+        return $this->belongsTo(Administrator::class);
+    }
+
     public function scopeStudent($query, $student)
     {
         if ($student) {
