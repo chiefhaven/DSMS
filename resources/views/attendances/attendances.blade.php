@@ -222,17 +222,19 @@
                             try {
                                 const response = await axios.get('/api/fetch-attendances', { params: data });
 
-                                // Track duplicates by student + lesson + date (ignore seconds)
+                                // Track duplicates by student + lesson + full timestamp, only if instructor_id exists
                                 const seen = {};
                                 const processedData = response.data.data.map(att => {
-                                    const studentId = att.student_id; // make sure JSON includes this
-                                    const lessonId = att.lesson_id;   // make sure JSON includes this
-                                    const dateKey = att.attendance_date.split(' ')[0]; // YYYY-MM-DD only
+                                    const studentId = att.student_id;
+                                    const lessonId = att.lesson_id;
+                                    const timestamp = att.created_at; // full datetime including seconds
 
-                                    const key = `${studentId}-${lessonId}-${dateKey}`;
+                                    const key = `${studentId}-${lessonId}-${timestamp}`;
 
-                                    att.anomaly = seen[key] ? true : false;
-                                    if (!seen[key]) seen[key] = true;
+                                    // Only mark anomaly if instructor_id is set
+                                    att.anomaly = att.instructor_id && seen[key] ? true : false;
+
+                                    if (att.instructor_id && !seen[key]) seen[key] = true;
 
                                     return att;
                                 });
@@ -272,6 +274,8 @@
                             emptyTable: "No bulk attendance records found."
                         }
                     });
+
+
 
                 };
 

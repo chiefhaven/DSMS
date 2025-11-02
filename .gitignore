@@ -22,3 +22,4 @@ Modules/Pagination/Resources/views/bootstrap-5.blade.php
 *.log
 /storage
 *.log
+storage/logs/laravel.log
