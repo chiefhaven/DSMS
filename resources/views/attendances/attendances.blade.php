@@ -2,7 +2,7 @@
 
 @section('content')
   <!-- Hero -->
-    <div class="bg-body-light" id="attendances">
+    <div class="bg-body-light" id="attendancesReport">
         <div class="content content-full">
             <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
             <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Attendances</h1>
@@ -30,69 +30,25 @@
             </script>
         @endif
         @include('components.alert')
-        <div class="block block-rounded block-bordered">
+        <div class="block block-rounded block-bordered" id="attendances">
             <div class="block-content">
                     <div class="table-responsive">
-                    <table id="attendancesTable" class="table table-bordered table-striped table-vcenter">
-                        <thead>
-                            <tr>
-                                <th class="text-center" >Actions</th>
-                                <th style="min-width: 50px;">Date</th>
-                                <th>Student</th>
-                                <th style="width: 20%;">Lesson</th>
-                                @role(['superAdmin', 'admin'])
-                                    <th style="width: 20%;">Instructor</th>
-                                @endcan
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($attendance as $attend)
-                            <tr>
-                                <td class="text-center">
-                                    <div class="dropdown d-inline-block">
-                                        <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        <span class="d-none d-sm-inline-block">Action</span>
-                                        </button>
-                                        <div class="dropdown-menu dropdown-menu-end p-0">
-                                        <div class="p-2">
-                                            <button class="dropdown-item" type="submit" disabled>View</button>
-                                            @role(['superAdmin'])
-                                                <form method="POST" action="{{ url('/editattendance', $attend->id) }}">
-                                                    {{ csrf_field() }}
-                                                    <button class="dropdown-item" type="submit">Edit</button>
-                                                </form>
-                                                <form method="POST" action="{{ url('/deleteattendance', $attend->id) }}">
-                                                    {{ csrf_field() }}
-                                                    {{ method_field('DELETE') }}
-                                                    <button class="dropdown-item" onclick="return confirm('Are you sure you want to delete attendance?')" type="submit">Delete</button>
-                                                </form>
-                                            @endcan
-                                        </div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="font-w600">
-                                    {{$attend->attendance_date->format('j F, Y, H:i:s')}}
-                                </td>
-                                <td>
-                                    {{$attend->student->fname}} <strong>{{$attend->student->sname}}</strong>
-                                </td>
-                                <td>
-                                    {{$attend->lesson->name}}
-                                </td>
-                                @role(['superAdmin', 'admin'])
-                                    <td>
-                                        @if(isset($attend->instructor))
-                                            {{$attend->instructor->fname}}
-                                            <strong>{{$attend->instructor->sname}}</strong>
-                                        @endif
-                                        -
-                                    </td>
-                                @endcan
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                        <table id="attendancesTable" class="table table-striped table-bordered" style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">Actions</th>
+                                    <th style="min-width: 18em;">Date</th>
+                                    <th style="min-width: 18em;">Student</th>
+                                    <th style="min-width: 20%;">Lesson</th>
+
+                                    {{-- Show Instructor column only if user is not an instructor --}}
+                                    @if (!auth()->user()->hasRole('instructor'))
+                                        <th style="min-width: 20%;">Entered by</th>
+                                    @endif
+                                    <th>Anomaly</th>
+                                </tr>
+                            </thead>
+                        </table>
                     </div>
             </div>
         </div>
@@ -127,42 +83,8 @@
         </div>
     </div>
     <script>
-        $(document).ready(function () {
-            $.extend($.fn.dataTable.ext.type.order, {
-                "custom-date-pre": function (data) {
-                    // Handle "9 May, 2024, 02:00:00" format
-                    const parts = data.trim().split(/[\s,]+/);
-                    if (parts.length < 4) return 0;
 
-                    const day = parseInt(parts[0], 10);
-                    const monthNames = [
-                        "January", "February", "March", "April", "May", "June",
-                        "July", "August", "September", "October", "November", "December"
-                    ];
-                    const month = monthNames.indexOf(parts[1]);
-                    const year = parseInt(parts[2], 10);
-                    const timeParts = parts[3].split(':');
-                    const hours = parseInt(timeParts[0], 10);
-                    const minutes = parseInt(timeParts[1], 10);
-                    const seconds = timeParts.length > 2 ? parseInt(timeParts[2], 10) : 0;
-
-                    return new Date(year, month, day, hours, minutes, seconds).getTime();
-                }
-            });
-
-            $('#attendancesTable').DataTable({
-                order: [[1, 'desc']], // Sort by Date column
-                columnDefs: [
-                    { targets: 1, type: 'custom-date' }, // Apply custom date sorting
-                    { targets: 0, orderable: false },
-                ]
-            });
-        });
-    </script>
-
-    <script>
-
-        const attendances = createApp({
+        const attendancesReport = createApp({
             setup() {
                 const period = ref('today');
                 const startDate = ref('');
@@ -231,8 +153,147 @@
             }
         });
 
-        attendances.mount('#attendances');
+        attendancesReport.mount('#attendancesReport');
     </script>
 
+    <script>
+
+    </script>
+
+    <script setup>
+        const attendances = createApp({
+            setup() {
+                const loadingData = ref(false);
+                window.userIsInstructor = @json(auth()->user()->hasRole('instructor'));
+
+                const showToast = (message, icon = 'success') => {
+                    Swal.fire({
+                        icon,
+                        title: message,
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                    });
+                };
+
+                const deleteAttendance = async (attendance) => {
+                    Swal.fire({
+                        title: 'Delete attendance?',
+                        text: 'Are you sure you want to delete this attendance?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Delete',
+                    }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            try {
+                                NProgress.start();
+                                await axios.delete(`/api/attendance/${attendance.id}`);
+                                    showToast('Attendance deleted.');
+                                $('#attendancesTable').DataTable().ajax.reload();
+                            } catch (error) {
+                                console.error(error);
+                                showToast(error.response?.data?.message || 'An error occurred.', 'error');
+                            } finally {
+                                NProgress.done();
+                                loadingData.value = false;
+                            }
+                        }});
+                };
+
+                const getAttendances = () => {
+                    NProgress.start();
+                    loadingData.value = true;
+
+                    // Destroy any existing DataTable instance
+                    if ($.fn.DataTable.isDataTable('#attendancesTable')) {
+                        $('#attendancesTable').DataTable().destroy();
+                    }
+
+                    $('#attendancesTable').DataTable({
+                        serverSide: true,
+                        processing: true,
+                        scrollCollapse: true,
+                        scrollX: true,
+                        ajax: async function (data, callback, settings) {
+                            try {
+                                const response = await axios.get('/api/fetch-attendances', { params: data });
+
+                                // Track duplicates by student + lesson + date (ignore seconds)
+                                const seen = {};
+                                const processedData = response.data.data.map(att => {
+                                    const studentId = att.student_id; // make sure JSON includes this
+                                    const lessonId = att.lesson_id;   // make sure JSON includes this
+                                    const dateKey = att.attendance_date.split(' ')[0]; // YYYY-MM-DD only
+
+                                    const key = `${studentId}-${lessonId}-${dateKey}`;
+
+                                    att.anomaly = seen[key] ? true : false;
+                                    if (!seen[key]) seen[key] = true;
+
+                                    return att;
+                                });
+
+                                callback({
+                                    ...response.data,
+                                    data: processedData
+                                });
+                            } catch (error) {
+                                console.error('Error loading attendances:', error);
+                                callback({ data: [], recordsTotal: 0, recordsFiltered: 0 });
+                            } finally {
+                                loadingData.value = false;
+                                NProgress.done();
+                            }
+                        },
+                        columns: [
+                            { data: 'actions', className: 'text-wrap', name: 'actions', orderable: false, searchable: false },
+                            { data: 'attendance_date', className: 'text-wrap', name: 'attendance_date' },
+                            { data: 'student', className: 'text-wrap', name: 'students' },
+                            { data: 'lesson', className: 'text-wrap', name: 'lesson' },
+                            {
+                                data: 'instructor',
+                                className: 'text-wrap',
+                                name: 'instructor',
+                                visible: !window.userIsInstructor
+                            },
+                            {
+                                data: 'anomaly',
+                                className: 'text-center',
+                                render: data => data ? '<span class="badge bg-danger">Duplicate</span>' : '',
+                                orderable: false,
+                                searchable: false
+                            }
+                        ],
+                        language: {
+                            emptyTable: "No bulk attendance records found."
+                        }
+                    });
+
+                };
+
+
+                onMounted(() => { getAttendances(); });
+
+                return {
+                    loadingData, deleteAttendance
+                };
+            },
+        });
+
+            window.attendanceApp = attendances.mount('#attendances');
+
+            window.openEditAttendance = el => {
+            const attendance = JSON.parse(el.dataset.attendance);
+            window.attendanceApp.openEditModal(attendance);
+        };
+
+            window.openDeleteAttendance = attendance => {
+            window.attendanceApp.deleteAttendance(attendance);
+        };
+    </script>
 <!-- END Hero -->
 @endsection

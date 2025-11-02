@@ -20,3 +20,5 @@ yarn-error.log
 Modules/Pagination/Resources/views/bootstrap-5.blade.php
 *.log
 *.log
+/storage
+*.log

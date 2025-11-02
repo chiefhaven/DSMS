@@ -93,6 +93,7 @@ class studentProfileController extends Controller
         return response()->json($attendances);
     }
 
+
     public function courseDetails()
     {
         // Get the authenticated student's ID

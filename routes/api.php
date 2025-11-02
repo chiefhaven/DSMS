@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\MbiraStudentVersion;
 use App\Http\Controllers\Api\studentController as ApiStudentController;
 use App\Http\Controllers\Api\studentProfileController;
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\BulkAttendanceController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ExpensePaymentController;
@@ -63,6 +64,9 @@ Route::get('/student-mbira-version', [MbiraStudentVersion::class, 'index'])->nam
 
 Route::get('/notifications', [studentProfileController::class, 'notifications'])->middleware('auth:sanctum')->name('notifications');
 Route::get('/attendances', [studentProfileController::class, 'attendances'])->middleware('auth:sanctum')->name('attendances');
+
+Route::get('/fetch-attendances', [AttendanceController::class, 'fetchAttendances'])->middleware('auth')->name('fetch-attendances');
+
 Route::get('/courseDetails', [studentProfileController::class, 'courseDetails'])->middleware('auth:sanctum')->name('courseDetails');
 
 Route::get('/student-lessons', [havenUtils::class, 'getStudentLessons'])

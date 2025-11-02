@@ -19,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use RealRashid\SweetAlert\Facades\Alert;
+use Yajra\DataTables\Facades\DataTables;
 
 class AttendanceController extends Controller
 {
@@ -52,6 +53,61 @@ class AttendanceController extends Controller
         }
 
         return view('attendances.attendances', compact('attendance', 'instructor'));
+    }
+
+    public function fetchAttendances(Request $request)
+    {
+        // Base query
+        $attendances = Attendance::query()->with('student', 'lesson');
+
+        // Only load instructor relation if user is not instructor
+        if (!Auth::user()->hasRole('instructor')) {
+            $attendances->with('instructor');
+        }
+
+        // Filter for instructor role
+        if (Auth::user()->hasRole('instructor')) {
+            $attendances->where('instructor_id', Auth::user()->instructor_id);
+        }
+
+        // Order by latest attendance
+        $attendances->orderBy('attendance_date', 'DESC');
+
+
+        return DataTables::of($attendances)
+            ->addColumn('student', function ($attend) {
+                return $attend->student
+                    ? "{$attend->student->fname} {$attend->student->sname}"
+                    : '-';
+            })
+            ->addColumn('lesson', fn($attend) => $attend->lesson->name ?? '-')
+            ->addColumn('instructor', fn($attend) => isset($attend->instructor)
+                ? "{$attend->instructor->fname} {$attend->instructor->sname}"
+                : '-')
+            ->addColumn('attendance_date', fn($attend) => $attend->attendance_date->format('j F, Y, H:i:s'))
+            ->addColumn('actions', function ($attend) {
+                $buttons = '<a href="' . url("/viewattendance/{$attend->id}") . '" class="dropdown-item">View</a>';
+
+                if (auth()->user()->hasRole('superAdmin')) {
+                    $buttons .= '<form method="POST" action="' . url("/editattendance/{$attend->id}") . '" class="d-inline">'
+                        . csrf_field()
+                        . '<button class="dropdown-item" type="submit">Edit</button>'
+                        . '</form>';
+
+                    $buttons .= '<form method="POST" action="' . url("/deleteattendance/{$attend->id}") . '" class="d-inline">'
+                        . csrf_field()
+                        . method_field('DELETE')
+                        . '<button class="dropdown-item text-danger" type="submit" onclick="return confirm(\'Are you sure?\')">Delete</button>'
+                        . '</form>';
+                }
+
+                return '<div class="dropdown">'
+                    . '<button class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown">Actions</button>'
+                    . '<div class="dropdown-menu dropdown-menu-end">' . $buttons . '</div>'
+                    . '</div>';
+            })
+            ->rawColumns(['actions'])
+            ->make(true);
     }
 
     /**
