@@ -85,7 +85,7 @@ class AttendanceController extends Controller
                 if (isset($attend->instructor)) {
                     return "{$attend->instructor->fname} {$attend->instructor->sname}";
                 } elseif (isset($attend->administrator)) {
-                    return "{$attend->administrator->fname} {$attend->administrator->sname} (bulk)";
+                    return '<span class="text-danger">' . "{$attend->administrator->fname} {$attend->administrator->sname} (bulk)" . '</span>';
                 } else {
                     return '-';
                 }
@@ -112,7 +112,7 @@ class AttendanceController extends Controller
                     . '<div class="dropdown-menu dropdown-menu-end">' . $buttons . '</div>'
                     . '</div>';
             })
-            ->rawColumns(['actions'])
+            ->rawColumns(['actions', 'instructor'])
             ->make(true);
     }
 
