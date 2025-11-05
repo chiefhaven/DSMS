@@ -84,8 +84,22 @@ class AttendanceController extends Controller
                 ? 'K' . number_format($attend->student->invoice->invoice_balance)
                 : '0';
 
-            return "{$attend->student->fname} {$attend->student->sname}<br><span class=\"sm-text text-muted\">Fees balance: ({$balance})</span>";
-        })
+                $progress = havenUtils::studentProgress($attend->student->id);
+
+                // Determine color based on progress
+                if ($progress >= 80) {
+                    $progressColor = 'text-success fw-bold'; // Green
+                } elseif ($progress >= 50) {
+                    $progressColor = 'text-warning fw-bold'; // Yellow
+                } else {
+                    $progressColor = 'text-danger fw-bold'; // Red
+                }
+
+                return "
+                    {$attend->student->fname} {$attend->student->sname}
+                    <br><span class='small text-muted'>Fees balance: {$balance}</span> - <span class='small {$progressColor}'>Progress: {$progress}%</span>
+                ";
+            })
             ->addColumn('lesson', fn($attend) => $attend->lesson->name ?? '-')
             ->addColumn('instructor', function ($attend) {
                 if (isset($attend->instructor)) {
