@@ -195,6 +195,7 @@ class StudentController extends Controller
 
                 $edit = '';
                 $delete = '';
+                $paymentReminder = '';
 
                 $changeStatus = "<button
                                     class='dropdown-item change-status-btn'
@@ -205,14 +206,16 @@ class StudentController extends Controller
                                     data-status=\"" . e($student->status) . "\">
                                         <i class='fas fa-toggle-on me-2'></i> Change status
                                 </button>";
-                $paymentReminder = "
-                                    <form method='POST' action='" . url('send-balance-sms', [$student->id, 'Balance']) . "'>
-                                        " . csrf_field() . "
-                                        <button class='dropdown-item' type='submit'>
-                                            <i class='fas fa-bell me-2'></i> Send balance reminder
-                                        </button>
-                                    </form>
-                                ";
+                if (auth()->user()->hasRole(['superAdmin', 'admin'])) {
+                    $paymentReminder = '
+                        <form method="POST" action="' . url('send-balance-sms', [$student->id, 'Balance']) . '">
+                            ' . csrf_field() . '
+                            <button class="dropdown-item" type="submit">
+                                <i class="fas fa-bell me-2"></i> Send balance reminder
+                            </button>
+                        </form>
+                    ';
+                }
 
                 if (auth()->user()->hasRole('superAdmin')) {
                     $edit = '<a class="dropdown-item" href="' . url('/edit-student', $student->id) . '">
