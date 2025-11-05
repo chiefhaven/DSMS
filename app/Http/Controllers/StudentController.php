@@ -206,7 +206,7 @@ class StudentController extends Controller
                                     data-status=\"" . e($student->status) . "\">
                                         <i class='fas fa-toggle-on me-2'></i> Change status
                                 </button>";
-                if (auth()->user()->hasRole(['superAdmin', 'admin'])) {
+                if (auth()->user()->hasRole(['superAdmin', 'admin']) && ($student->invoice->invoice_balance ?? 0) > 0) {
                     $paymentReminder = '
                         <form method="POST" action="' . url('send-balance-sms', [$student->id, 'Balance']) . '">
                             ' . csrf_field() . '
