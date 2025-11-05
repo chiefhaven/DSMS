@@ -75,11 +75,17 @@ class AttendanceController extends Controller
 
 
         return DataTables::of($attendances)
-            ->addColumn('student', function ($attend) {
-                return $attend->student
-                    ? "{$attend->student->fname} {$attend->student->sname}"
-                    : '-';
-            })
+        ->addColumn('student', function ($attend) {
+            if (!$attend->student) {
+                return '-';
+            }
+
+            $balance = isset($attend->student->invoice)
+                ? 'K' . number_format($attend->student->invoice->invoice_balance)
+                : '0';
+
+            return "{$attend->student->fname} {$attend->student->sname}<br><span class=\"sm-text text-muted\">Fees balance: ({$balance})</span>";
+        })
             ->addColumn('lesson', fn($attend) => $attend->lesson->name ?? '-')
             ->addColumn('instructor', function ($attend) {
                 if (isset($attend->instructor)) {
@@ -112,7 +118,7 @@ class AttendanceController extends Controller
                     . '<div class="dropdown-menu dropdown-menu-end">' . $buttons . '</div>'
                     . '</div>';
             })
-            ->rawColumns(['actions', 'instructor'])
+            ->rawColumns(['actions', 'instructor', 'student'])
             ->make(true);
     }
 
