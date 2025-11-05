@@ -130,50 +130,71 @@ class NotificationController extends Controller
     // Send SMS for enrollment, payments, and balance reminders
     public function balanceSMS($studentId, $type)
     {
-        $student = Student::with('User', 'Invoice', 'Course')->find($studentId);
+        $student = Student::with(['user', 'invoice', 'course'])->find($studentId);
 
-        // Ensure all necessary relations are loaded
         if (!$student) {
             Alert::toast('Student not found', 'error');
             return back();
         }
 
-        $destination = $student->phone;
-
-        $course = $student->course;
-        $total = $student->invoice ? number_format($student->invoice->invoice_total, 2, '.', '') : '';
-        $paid = $student->invoice ? number_format($student->invoice->invoice_amount_paid, 2, '.', '') : '';
-        $balance = $student->invoice ? number_format($student->invoice->invoice_balance, 2, '.', '') : '';
-        $due_date = $student->invoice ? $student->invoice->invoice_payment_due_date->format('j F, Y') : '';
-
-        $variables = [
-            "first_name" => $student->fname ?? '',
-            "middle_name" => $student->mname ?? '',
-            "sir_name" => $student->sname ?? '',
-            "invoice_total" => $total,
-            "invoice_paid" => $paid,
-            "balance" => $balance,
-            "due_date" => $due_date,
-            "course_name" => $student->course->name ?? '',
-        ];
-
-        $sms_template = notification_template::where('type', $type)->firstOrFail()->body;
-
-        foreach ($variables as $key => $value) {
-            $sms_template = str_replace('{' . strtoupper($key) . '}', $value, $sms_template);
+        if (empty($student->phone)) {
+            Alert::toast('Student phone number is missing', 'error');
+            return back();
         }
 
-        $response = $this->sendSMS($sms_template, $destination);
+        $invoice = $student->invoice;
+        $course  = $student->course;
 
-        if ($response['statusCode'] == '200') {
-            Alert::toast($response['message'], 'success');
+        // Handle missing invoice
+        if (!$invoice) {
+            Alert::toast('No invoice found for this student', 'error');
+            return back();
+        }
+
+        $balance = (float) $invoice->invoice_balance;
+
+        // ✅ Check if balance is zero
+        if ($balance <= 0) {
+            Alert::toast('No outstanding balance to remind.', 'info');
+            return back();
+        }
+
+        $variables = [
+            "first_name"    => $student->fname ?? '',
+            "middle_name"   => $student->mname ?? '',
+            "sir_name"      => $student->sname ?? '',
+            "invoice_total" => number_format($invoice->invoice_total, 2),
+            "invoice_paid"  => number_format($invoice->invoice_amount_paid, 2),
+            "balance"       => number_format($invoice->invoice_balance, 2),
+            "due_date"      => $invoice->invoice_payment_due_date
+                                ? $invoice->invoice_payment_due_date->format('j F, Y')
+                                : 'N/A',
+            "course_name"   => $course->name ?? 'N/A',
+        ];
+
+        $template = notification_template::where('type', $type)->first();
+
+        if (!$template) {
+            Alert::toast('SMS template not found', 'error');
+            return back();
+        }
+
+        $smsBody = $template->body;
+        foreach ($variables as $key => $value) {
+            $smsBody = str_replace('{' . strtoupper($key) . '}', $value, $smsBody);
+        }
+
+        $response = $this->sendSMS($smsBody, $student->phone);
+
+        if (isset($response['statusCode']) && $response['statusCode'] == 200) {
+            Alert::toast($response['message'] ?? 'SMS sent successfully', 'success');
         } else {
-            Alert::toast($response['message'], 'error');
+            $errorMessage = $response['message'] ?? 'Failed to send SMS';
+            Alert::toast($errorMessage, 'error');
         }
 
         return back();
     }
-
 
     public function announcementSMS(){
 
