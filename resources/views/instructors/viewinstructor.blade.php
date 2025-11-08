@@ -51,6 +51,9 @@
                                 <p>
                                     Address: {{$instructor->address}} <br>Phone: {{$instructor->phone}}<br>Email: {{$instructor->user->email}}
                                 </p>
+                                <p>
+                                    Status: {{$instructor->status}}
+                                </p>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -79,7 +82,9 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td><b>Active Students:</b></td>
+                                            <td>
+                                                <b>Active Students:</b>
+                                            </td>
                                             <td>
                                                 {{ ($instructor->fleet && $instructor->fleet->student) || $instructor->classrooms ?
                                                     ($instructor->fleet && $instructor->fleet->student ? $instructor->fleet->student->where('status', '!=', 'Finished')->count() : 0) +
@@ -87,10 +92,6 @@
                                                         return $classroom->students ? $classroom->students->where('status', '!=', 'Finished')->count() : 0;
                                                     }) : 0) : 'None' }}
                                             </td>
-                                        </tr>
-                                        <tr>
-                                            <td><b>Month attendances:</b></td>
-                                            <td>{{ $instructor->attendances?->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])->count() ?? 0 }}</td>
                                         </tr>
                                     </tbody>
                                 </table>

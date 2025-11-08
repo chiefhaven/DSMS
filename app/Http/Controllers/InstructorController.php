@@ -180,6 +180,18 @@ class InstructorController extends Controller
 
                 $edit = '';
                 $delete = '';
+                $paymentReminder = '';
+
+                if (auth()->user()->hasRole(['superAdmin', 'admin']) && ($student->invoice->invoice_balance ?? 0) > 0) {
+                    $paymentReminder = '
+                        <form method="POST" action="' . url('send-balance-sms', [$student->id, 'Balance']) . '">
+                            ' . csrf_field() . '
+                            <button class="dropdown-item" type="submit">
+                                <i class="fas fa-bell me-2"></i> Send balance reminder
+                            </button>
+                        </form>
+                    ';
+                }
 
                 $changeStatus = "<button
                                     class='dropdown-item change-status-btn'
@@ -208,7 +220,7 @@ class InstructorController extends Controller
                     <div class="dropdown d-inline-block">
                         <button class="btn btn-primary" data-bs-toggle="dropdown">Actions</button>
                         <div class="dropdown-menu dropdown-menu-end">
-                            ' . $view . $edit . $delete . $changeStatus . '
+                            ' . $view . $edit . $paymentReminder . $delete . $changeStatus . '
                         </div>
                     </div>
                 ';
