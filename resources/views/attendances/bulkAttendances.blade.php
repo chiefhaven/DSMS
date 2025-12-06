@@ -189,7 +189,7 @@
 
                     ],
                     language: {
-                        emptyTable: "No bulk attendance records found."
+                        emptyTable: "No attendance records found."
                     }
                 });
             };
