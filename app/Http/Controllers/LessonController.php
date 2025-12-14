@@ -32,10 +32,27 @@ class LessonController extends Controller
 
     public function getLessons()
     {
-        $lessons = Lesson::with('department')->get();
-        $departments = Department::get();
-        return response()->json(['lessons' => $lessons, 'departments' => $departments], 200);
+        $lessons = Lesson::with('Department')->get()->map(function ($lesson) {
+            return [
+                'id' => $lesson->id,
+                'name' => $lesson->name,
+                'description' => $lesson->description,
+                'department' => [
+                    'id' => $lesson->Department->id ?? null,
+                    'name' => $lesson->Department->name ?? null,
+                ],
+                'lesson_contents' => $lesson->lesson_contents->body->render(), // HTML string
+            ];
+        });
+
+        $departments = Department::all(['id', 'name']);
+
+        return response()->json([
+            'lessons' => $lessons,
+            'departments' => $departments,
+        ], 200);
     }
+
 
     public function studentLessons($id)
     {
@@ -74,6 +91,7 @@ class LessonController extends Controller
             'lesson_description.required' => 'Lesson description is required!',
             'lesson_department.required' => 'Lesson department is required!',
             'lesson_department.exists' => 'The selected lesson department is invalid!',
+            'lesson_contents.string' => 'Lesson content must be a valid string!',
         ];
 
         // Validate the request
@@ -81,6 +99,7 @@ class LessonController extends Controller
             'lesson_name' => 'required|string',
             'lesson_description' => 'required|string',
             'lesson_department' => 'required|exists:departments,id',
+            'lesson_contents' => 'nullable|string',
         ], $messages);
 
         $post = $request->All();
@@ -90,6 +109,7 @@ class LessonController extends Controller
         $lesson->name = $post['lesson_name'];
         $lesson->description = $post['lesson_description'];
         $lesson->department_id = $post['lesson_department'];
+        $lesson->lesson_contents = $post['lesson_contents'];
 
         $lesson->save();
 
@@ -134,6 +154,7 @@ class LessonController extends Controller
             'lesson_description.required' => 'Lesson description is required!',
             'lesson_department.required' => 'Lesson type is required!',
             'lesson_department.exists' => 'The selected lesson type is invalid!',
+            'lesson_contents.string' => 'Lesson content must be a valid string!',
         ];
 
         // Validate the request
@@ -141,6 +162,7 @@ class LessonController extends Controller
             'lesson_name' => 'required|string',
             'lesson_description' => 'required|string',
             'lesson_department' => 'required|exists:departments,id',
+            'lesson_contents' => 'nullable|string',
         ], $messages);
 
         $post = $request->All();
@@ -150,6 +172,7 @@ class LessonController extends Controller
         $lesson->name = $post['lesson_name'];
         $lesson->description = $post['lesson_description'];
         $lesson->department_id = $post['lesson_department'];
+        $lesson->lesson_contents = $post['lesson_contents'];
 
         $lesson->save();
 

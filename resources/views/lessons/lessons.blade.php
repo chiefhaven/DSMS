@@ -88,9 +88,9 @@
         });
     });
 
-
     const lessons = createApp({
       setup() {
+        const quill = ref(null);
         const showAddLessonModal = ref(false);
         const lessonData = ref({});
         const lessons = ref([]);
@@ -101,43 +101,101 @@
             department: 'Practical',
             name:'',
             description:'',
+            lesson_contents:'',
             lessonId:null,
         })
 
-        const openAddLessonModal = (lesson) => {
-            if (lesson != 'null') {
-                // Populate modal for editing
+        const initQuill = async () => {
+            await nextTick();
+
+            if (quill.value) return;
+
+            const editor = document.getElementById('lesson_body_editor');
+            if (!editor) return;
+
+            quill.value = new Quill(editor, {
+                theme: 'snow',
+                placeholder: 'lesson content here...',
+                modules: {
+                    toolbar: [
+                        ['bold', 'italic', 'underline'],
+                        [{ list: 'ordered' }, { list: 'bullet' }],
+                        [{ header: [1, 2, false] }],
+                        ['link', 'image'],
+                        ['clean']
+                    ]
+                }
+            });
+
+            quill.value.on('text-change', () => {
+                state.value.lesson_contents = quill.value.root.innerHTML;
+            });
+        };
+
+        const openAddLessonModal = async (lessonId = null) => {
+            showAddLessonModal.value = true;
+
+            await nextTick();
+            await initQuill();
+
+            if (lessonId) {
+                const selectedLesson = lessons.value.find(l => l.id === lessonId);
+                if (!selectedLesson) return;
+
                 state.value.modalTitle = 'Edit Lesson';
                 state.value.buttonName = 'Update';
 
-                // Ensure lesson exists in the lessons array/object
-                const selectedLesson = lessons.value.find((l) => l.id === lesson);
-                if (selectedLesson) {
-                    state.value.lessonId = selectedLesson.id;
-                    state.value.name = selectedLesson.name;
-                    state.value.description = selectedLesson.description;
-                    state.value.department = selectedLesson.department.id;
-                } else {
-                    return; // Exit if lesson is invalid
-                }
+                state.value.name = selectedLesson.name;
+                state.value.description = selectedLesson.description;
+                state.value.department = selectedLesson.department.id;
+                state.value.lesson_contents = selectedLesson.lesson_contents || '';
+                state.value.lessonId = selectedLesson.id;
+
+                await setQuillContent(state.value.lesson_contents);
             } else {
-                // Reset modal for adding a new lesson
                 state.value.modalTitle = 'Add Lesson';
                 state.value.buttonName = 'Save';
-                state.value.lessonData = { name: '', description: '' }; // Clear form data
-            }
 
-            showAddLessonModal.value = true;
+                state.value.name = '';
+                state.value.description = '';
+                state.value.department = '';
+                state.value.lesson_contents = '';
+
+                await setQuillContent('');
+            }
         };
+
+
 
         onMounted(() => {
             fetchLessons();
         });
 
 
-        const closeForm = () => {
+        const closeForm = async () => {
+            // Destroy Quill instance
+            if (quill.value) {
+                quill.value.off('text-change');
+                quill.value = null;
+            }
+
+            // Reset form state
+            state.value = {
+                modalTitle: 'Add lesson',
+                buttonName: 'Save',
+                department: '',
+                name: '',
+                description: '',
+                lesson_contents: '',
+                lessonId: null,
+            };
+
+            // Remove modal from DOM
             showAddLessonModal.value = false;
-        }
+
+            await nextTick();
+        };
+
 
         const confirmDeleteLesson = async(lessonId) => {
             Swal.fire({
@@ -180,14 +238,13 @@
         const postLesson = async () => {
             NProgress.start();
 
-            console.log('haven')
-
             try {
                 // Prepare the payload
                 const payload = {
                     lesson_name: state.value.name,
                     lesson_description: state.value.description,
                     lesson_department: state.value.department,
+                    lesson_contents: state.value.lesson_contents,
                 };
 
                 // Determine if this is an update or a new lesson
@@ -230,9 +287,19 @@
             state.value.name = '';
             state.value.description = '';
             state.value.department = '';
-            state.value.lessonId = null; // Reset the ID for a new lesson
+            state.value.lessonId = null;
+            state.value.lesson_contents = '';
             state.value.modalTitle = 'Add Lesson'; // Set default title
             state.value.buttonName = 'Save'; // Set default button label
+        };
+
+        const setQuillContent = async (html = '') => {
+            await nextTick();
+
+            if (!quill.value || !quill.value.root) return;
+
+            quill.value.setContents([]);
+            quill.value.clipboard.dangerouslyPasteHTML(html);
         };
 
         const fetchLessons = async () => {
@@ -243,6 +310,7 @@
                 // Update the lesson list in state
                 lessons.value = response.data.lessons;
                 departments.value = response.data.departments;
+                console.log(lessons.value);
 
             } catch (error) {
 

@@ -15,7 +15,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <!-- Modal Header -->
-            <div class="modal-header">
+            <div class="modal-header text-white">
                 <h3>@{{ state.modalTitle }}</h3>
             </div>
 
@@ -50,6 +50,21 @@
                                     placeholder="Description"
                                 ></textarea>
                                 <label for="lesson_description">Description</label>
+                            </div>
+                            <!-- Description Input -->
+                            <div class="form-floating mb-4">
+                                <textarea
+                                    class="form-control"
+                                    id="lesson_body"
+                                    name="lesson_body"
+                                    v-model="state.lesson_contents"
+                                    style="height: 150px"
+                                    placeholder="lesson_contents"
+                                    hidden
+                                ></textarea>
+                            </div>
+                            <div v-show="showAddLessonModal" class="form-floating mb-4">
+                                <div id="lesson_body_editor" style="height:250px"></div>
                             </div>
                             <div class="form-floating mb-4">
                                 <select

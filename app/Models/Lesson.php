@@ -8,12 +8,22 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Tonysm\RichTextLaravel\Models\Traits\HasRichText;
 
 class Lesson extends Model
 {
-    use Notifiable, HasUuids, HasFactory, LogsActivity;
+    use Notifiable, HasUuids, HasFactory, LogsActivity, HasRichText;
     protected $keyType = 'string';
     public $incrementing = false;
+
+    protected $richTextFields = ['lesson_contents'];
+    protected $appends = ['lesson_contents'];
+
+    protected $fillable = [
+        'name',
+        'description',
+        'order',
+    ];
 
     public function Courses()
     {

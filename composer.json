@@ -52,6 +52,7 @@
         "spatie/laravel-permission": "^5.5",
         "srmklive/paypal": "^3.0",
         "stripe/stripe-php": "^7.122",
+        "tonysm/rich-text-laravel": "^1.7",
         "unicodeveloper/laravel-paystack": "^1.0",
         "yajra/laravel-datatables-oracle": "^10.11"
     },
