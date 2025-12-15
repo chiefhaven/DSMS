@@ -263,4 +263,9 @@
             position: absolute;
             font-size: 8px;
         }
+
+        .stamp-container{
+            width: 10em;
+            height: auto;
+        }
     </style>

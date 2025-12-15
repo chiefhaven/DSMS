@@ -39,3 +39,4 @@
 </div>
 
 @include('pdf_templates.partials.footer')
+@include('pdf_templates.partials.stamp')

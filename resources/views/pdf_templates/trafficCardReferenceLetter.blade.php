@@ -10,7 +10,8 @@
 @include('pdf_templates.partials.watermark')
 @include('pdf_templates.partials.pdf_template_style')
 @include('pdf_templates.partials.letter_head')
-
+@include('pdf_templates.partials.stamp')
+@include('pdf_templates.partials.seal')
 
             <h3 style="text-transform: uppercase;"><u>REFERENCE LETTER FOR {{$student->fname}} {{$student->mname}} {{$student->sname}}</u></h3>
 

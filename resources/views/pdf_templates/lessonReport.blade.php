@@ -8,6 +8,8 @@
     @include('pdf_templates.partials.header')
     @include('pdf_templates.partials.qrcode')
     @include('pdf_templates.partials.watermark')
+    @include('pdf_templates.partials.stamp')
+    @include('pdf_templates.partials.seal')
 
 <div class="container" style="padding: 60px">
     <div class="row">
