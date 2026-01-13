@@ -1,8 +1,8 @@
 <div class="stamp-container">
     <div class="stamp" style="
         position: absolute;
-        z-index: 9999;
-        top: 60%;
+        z-index: 9999 !important;
+        top: 70%;
         left: 60%;
         transform: translate(-60%, -50%) rotate(-15deg);
         text-align: center;
@@ -13,13 +13,13 @@
             top: 2.5%;
             left: 45%;
             transform: translate(-50%, -50%);
-            font-size: 5px;
+            font-size: 6px;
             font-weight: bold;
-            color: #2E3192;
+            color: #3a3d86;
             padding: 2px 6px;
             border-radius: 3px;
         ">
-            {{ now()->format('d M Y') }}
+            {{ now()->format('d M, Y') }}
         </div>
 
         <!-- Stamp Image -->
