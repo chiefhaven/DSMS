@@ -9,6 +9,8 @@
 {{--  @include('pdf_templates.partials.watermark')  --}}
 @include('pdf_templates.partials.pdf_template_style')
 @include('pdf_templates.partials.letter_head')
+@include('pdf_templates.partials.stamp')
+@include('pdf_templates.partials.seal')
 
 
     <h3 style="text-transform: uppercase;"><u>APPLICATION FOR A ROAD TRN</u></h3>
@@ -39,4 +41,3 @@
 </div>
 
 @include('pdf_templates.partials.footer')
-@include('pdf_templates.partials.stamp')
