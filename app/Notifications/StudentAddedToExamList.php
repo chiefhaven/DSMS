@@ -64,7 +64,7 @@ class StudentAddedToExamList extends Notification
             ->line("You have been added to an exam list " . ($this->formattedDate ? "scheduled for {$this->formattedDate}" : ''))
             ->line("Amount: K" . number_format($this->student->pivot->amount, 2))
             ->line("Expense: {$this->expenseType}")
-            ->action('View Details', url("#"))
+            ->action('View Details', url("https://play.google.com/store/apps/details?id=www.havenplustechnologies.co.mw.mbira_dsms"))
             ->line('Please go to the office and collect your cash.');
     }
 
