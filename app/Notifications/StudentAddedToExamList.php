@@ -71,11 +71,12 @@ class StudentAddedToExamList extends Notification
     public function toSms($notifiable)
     {
         return sprintf(
-            "You have been added to an exam list %s\nName: %s %s\nAmount: K%s\nExpense type: \nPlease go to office and collect your cash before date expires.",
+            "You have been added to an exam list %s\nName: %s %s\nAmount: K%s\nExpense type: %s\nPlease go to office and collect your cash before date expires.",
             $this->formattedDate ? "scheduled on {$this->formattedDate}" : '',
             $this->student->fname,
             $this->student->sname,
             number_format($this->student->pivot->amount, 2),
+            $this->expenseType,
         );
     }
 
