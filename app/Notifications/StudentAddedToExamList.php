@@ -59,7 +59,7 @@ class StudentAddedToExamList extends Notification
     public function toMail($notifiable)
     {
         return (new MailMessage)
-            ->subject('Added to '.$this->expenseType.'exam list')
+            ->subject('Added to '.$this->expenseType.' list')
             ->greeting("Hello {$this->student->fname},")
             ->line("You have been added to an exam list " . ($this->formattedDate ? "scheduled for {$this->formattedDate}" : ''))
             ->line("Amount: K" . number_format($this->student->pivot->amount, 2))
@@ -89,7 +89,7 @@ class StudentAddedToExamList extends Notification
     public function toDatabase($notifiable)
     {
         return [
-            'title' => 'Added to '.$this->expenseType.'exam list',
+            'title' => 'Added to '.$this->expenseType.' exam list',
             'body' => $this->formattedDate
                 ? "You have been added to an exam list scheduled for {$this->formattedDate}."
                 : "You have been added to an exam list.",
