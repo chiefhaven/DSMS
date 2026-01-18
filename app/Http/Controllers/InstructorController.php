@@ -285,6 +285,10 @@ class InstructorController extends Controller
             'address.required'         => 'The "Address" field is required!',
             'district.required'        => 'The "District" field is required!',
             'phone.required'           => 'The "Phone" field is required!',
+            'signature.required'       => 'The "Signature" field is required!',
+            'signature.image'          => 'The "Signature" must be an image!',
+            'signature.mimes'          => 'The "Signature" must be a file of type: jpeg, png, jpg, gif!',
+            'signature.max'            => 'The "Signature" may not be greater than 2MB!',
         ];
 
         $this->validate($request, [
@@ -297,11 +301,17 @@ class InstructorController extends Controller
             'district'      => 'required',
             'phone'         => 'required',
             'department'    => 'required|exists:departments,id',
+            'signature'     => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ], $messages);
 
         $post = $request->All();
 
         $district = havenUtils::selectDistrict($post['district']);
+
+        if ($request->hasFile('signature')) {
+            $filename = time() . '.' . $request->signature->extension();
+            $request->signature->move(public_path('media/signatures'), $filename);
+        }
 
         $instructor = new instructor;
 
@@ -314,7 +324,8 @@ class InstructorController extends Controller
         $instructor->date_of_birth = $post['date_of_birth'];
         $instructor->district_id = $district;
         $instructor->department_id = $post['department'];
-
+        $instructor->signature = $filename;
+        
         $instructor->save();
 
 
@@ -408,6 +419,9 @@ class InstructorController extends Controller
             'address.required'         => 'The "Address" field is required!',
             'district.required'        => 'The "District" field is required!',
             'phone.required'           => 'The "Phone" field is required!',
+            'signature.image'          => 'The "Signature" must be an image!',
+            'signature.mimes'          => 'The "Signature" must be a file of type: jpeg, png, jpg, gif!',
+            'signature.max'            => 'The "Signature" may not be greater than 2MB!',
         ];
 
         $this->validate($request, [
@@ -421,11 +435,17 @@ class InstructorController extends Controller
             'phone'         => 'required',
             'department'    => 'required|exists:departments,id',
             'status'        => 'required|in:active,pending,suspended,contract ended',
+            'signature'     => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ], $messages);
 
         $post = $request->all();
 
         $district = havenUtils::selectDistrict($post['district']);
+
+        if ($request->hasFile('signature')) {
+            $filename = time() . '.' . $request->signature->extension();
+            $request->signature->move(public_path('media/signatures'), $filename);
+        }
 
         $instructor = Instructor::find($request->instructor_id);
 
@@ -445,6 +465,9 @@ class InstructorController extends Controller
             }
         }
         $instructor->department_id = $post['department'];
+        
+        $instructor->signature = $filename;
+
         $instructor->save();
 
         // Update associated user

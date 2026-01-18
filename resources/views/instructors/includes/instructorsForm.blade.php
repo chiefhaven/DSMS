@@ -55,6 +55,35 @@
             <label class="form-label" for="date_of_birth">Date of birth</label>
         </div>
 
+        <div class="mb-4 foam-floating">
+            <label for="signature" class="form-label">Signature</label>
+
+            <input type="file"
+                class="form-control @error('signature') is-invalid @enderror"
+                id="signature"
+                name="signature"
+                accept="image/*"
+            >
+
+            @error('signature')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+
+            {{-- Existing signature preview --}}
+            @if(optional($instructor)->signature)
+                <div class="mt-2">
+                    <small class="text-muted">Current Signature:</small><br>
+                    <img
+                        src="{{ asset('media/signatures/' . $instructor->signature) }}"
+                        alt="Instructor Signature"
+                        style="height:30px; width:auto;"
+                    >
+                </div>
+            @endif
+
+        </div>
+
+
         <div class="row haven-floating">
             <!-- Phone -->
             <div class="mb-4 col-md-6 form-floating">
