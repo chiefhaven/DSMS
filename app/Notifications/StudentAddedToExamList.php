@@ -2,8 +2,11 @@
 
 namespace App\Notifications;
 
+use App\Models\expenseType;
+use App\Models\ExpenseTypeOption;
 use App\Notifications\Channels\SmsChannel;
 use Carbon\Carbon;
+use Database\Seeders\expenseTypeOptions;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -76,7 +79,7 @@ class StudentAddedToExamList extends Notification
             $this->student->fname,
             $this->student->sname,
             number_format($this->student->pivot->amount, 2),
-            $this->expenseType,
+            ExpenseTypeOption::where('id', $this->expenseType)->first()?->name ?? $this->expenseType,
         );
     }
 
