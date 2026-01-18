@@ -61,7 +61,7 @@
                                     @endif
                                 </td>
                                 <td class="invoice-td">
-                                    <!-- <img src="{{ public_path("media/signatures/{$setting->authorization_signature}") }}" alt="" style="width: auto; height: 20px;"></p>-->
+                                    <img src="{{ public_path("media/signatures/{$attendance->instructor->signature}") }}" alt="" style="width: auto; height: 30px;"></p>
                                 </td>
                                 <td class="invoice-td">
                                     <!-- <img src="{{ public_path("media/signatures/{$student->signature}") }}" alt="" style="width: auto; height: 20px;"></p> -->

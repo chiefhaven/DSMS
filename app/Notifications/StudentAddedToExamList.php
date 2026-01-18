@@ -42,7 +42,7 @@ class StudentAddedToExamList extends Notification
         }
 
         // Use pivot expense_type if available, fallback to "Exam"
-        $this->expenseType = $student->pivot->expense_type ?? 'Exam';
+        $this->expenseType =  ExpenseTypeOption::where('id', $student->pivot->expense_type)->first()?->name ?? 'Exam';
     }
 
     /**
@@ -79,7 +79,7 @@ class StudentAddedToExamList extends Notification
             $this->student->fname,
             $this->student->sname,
             number_format($this->student->pivot->amount, 2),
-            ExpenseTypeOption::where('id', $this->expenseType)->first()?->name ?? $this->expenseType,
+            $this->expenseType,
         );
     }
 
