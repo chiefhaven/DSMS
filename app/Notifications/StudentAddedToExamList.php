@@ -97,7 +97,7 @@ class StudentAddedToExamList extends Notification
             'student_id'   => $this->student->id,
             'amount'       => $this->student->pivot->amount,
             'expense_type' => $this->expenseType,
-            'url'          => url("#"),
+            'url'          => url("https://play.google.com/store/apps/details?id=www.havenplustechnologies.co.mw.mbira_dsms"),
             'created_at'   => now(),
         ];
     }
