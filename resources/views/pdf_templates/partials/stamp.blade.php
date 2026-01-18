@@ -10,10 +10,10 @@
         <!-- Date -->
         <div style="
             position: absolute;
-            top: 2.5%;
+            top: 4.0%;
             left: 45%;
             transform: translate(-50%, -50%);
-            font-size: 6px;
+            font-size: 10px;
             font-weight: bold;
             color: #3a3d86;
             padding: 2px 6px;
@@ -26,7 +26,7 @@
         <img
             src="{{ public_path('images/sealsandstamps/daron-driving-school-stamp.png') }}"
             alt="Stamp"
-            style="width: 100px; height: auto;"
+            style="width: 180px; height: auto;"
         >
     </div>
 </div>
