@@ -61,7 +61,11 @@
                                     @endif
                                 </td>
                                 <td class="invoice-td">
-                                    <img src="{{ public_path("media/signatures/{$attendance->instructor?->signature}") }}" alt="" style="width: auto; height: 30px;"></p>
+                                    @if($attendance->instructor?->signature)
+                                        <img src="{{ public_path('media/signatures/' . $attendance->instructor->signature) }}"
+                                            alt="Instructor Signature"
+                                            style="width:auto; height:30px;">
+                                    @endif
                                 </td>
                                 <td class="invoice-td">
                                     <!-- <img src="{{ public_path("media/signatures/{$student->signature}") }}" alt="" style="width: auto; height: 20px;"></p> -->
