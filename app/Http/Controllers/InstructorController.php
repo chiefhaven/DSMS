@@ -325,7 +325,7 @@ class InstructorController extends Controller
         $instructor->district_id = $district;
         $instructor->department_id = $post['department'];
         $instructor->signature = $filename;
-        
+
         $instructor->save();
 
 
@@ -465,7 +465,7 @@ class InstructorController extends Controller
             }
         }
         $instructor->department_id = $post['department'];
-        
+
         $instructor->signature = $filename;
 
         $instructor->save();
