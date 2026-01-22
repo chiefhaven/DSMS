@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AnnouncementController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\HomeController;
@@ -57,6 +58,9 @@ Route::get('/fleetDetails/{id}', [ApiStudentController::class, 'showFleet'])->mi
 Route::get('/attendance', [studentProfileController::class, 'showAttendance'])->middleware('auth:sanctum')->name('attendance');
 Route::get('/students', [StudentController::class, 'fetchStudents'])->name('students')->middleware('auth:sanctum')->name('students');
 Route::get('/instructor-students', [StudentController::class, 'fetchInstructorStudents'])->name('InstructorStudents')->middleware('auth:sanctum');
+
+Route::get('/fetch-instructors', [havenUtils::class, 'fetchInstructors'])->name('fetchInstructors')->middleware('auth:sanctum');
+
 
 Route::get('/courses', [studentProfileController::class, 'courses'])->middleware('auth:sanctum')->name('courses');
 
@@ -131,3 +135,6 @@ Route::get('/student-lesson-attendances-count', [havenUtils::class, 'StudentLess
 Route::get('/sms-balance', [havenUtils::class, 'getSmsBalance'])->name('sms.balance')->middleware('auth:sanctum');
 
 Route::get('/licence-classes', [havenUtils::class, 'getLicenceClasses'])->name('getLicenceClasses')->middleware('auth:sanctum');
+
+Route::post('/sendAnnouncement', [AnnouncementController::class,'send'])->middleware('auth:sanctum')->name('sendAnnouncement');
+

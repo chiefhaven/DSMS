@@ -188,7 +188,7 @@
           <!-- Right Section -->
           <div class="space-x-3">
             <!-- Notifications Dropdown -->
-            @include('/layouts/partials/notifications')
+                @include('/layouts/partials/notifications')
             <!-- END Notifications Dropdown -->
 
             <!-- User Dropdown -->
@@ -278,6 +278,9 @@
             <span data-toggle="year-copy"></span>
           </div>
         </div>
+      </div>
+      <div>
+            @include('/layouts/partials/announcementModal')
       </div>
     </footer>
     <!-- END Footer -->

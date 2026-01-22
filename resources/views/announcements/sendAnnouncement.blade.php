@@ -28,48 +28,48 @@
               </div>
           @endif
     <div class="block block-rounded" id="announcement">
-    <div class="block-content">
-        <div class="row">
-            <div class="col-lg-12 col-xl-12">
-                <form ref="state.announcementForm" class="mb-5" @submit.prevent="handleButtonClick">
-                        @csrf
-                    <div class="row">
-                        <div class="col-4 col-sm-12 form-floating mb-4">
-                            <select class="form-select" id="group" name="group"  v-model="state.group" @blur="getBalanceTemplate()">
-                                <option>All students</option>
-                                <option>Students with balance</option>
-                            </select>
-                            <label class="px-4" for="group">Group</label>
+        <div class="block-content">
+            <div class="row">
+                <div class="col-lg-12 col-xl-12">
+                    <form ref="state.announcementForm" class="mb-5" @submit.prevent="handleButtonClick">
+                            @csrf
+                        <div class="row">
+                            <div class="col-4 col-sm-12 form-floating mb-4">
+                                <select class="form-select" id="group" name="group"  v-model="state.group" @blur="getBalanceTemplate()">
+                                    <option>All students</option>
+                                    <option>Students with balance</option>
+                                </select>
+                                <label class="px-4" for="group">Group</label>
+                            </div>
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-12 mt-4">
-                            <P>
-                                Available tags:
-                                {{--  {FIRST_NAME} {SIR_NAME} {BALANCE} {FEES_PAID} {FEES_TOTAL} {INVOICE_NUMBER}  --}}
-                            </P>
+                        <div class="row">
+                            <div class="col-12 mt-4">
+                                <P>
+                                    Available tags:
+                                    {FIRST_NAME} {SIR_NAME} {BALANCE} {FEES_PAID} {FEES_TOTAL} {INVOICE_NUMBER}
+                                </P>
+                            </div>
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-12 form-floating mb-4">
-                            <textarea class="form-control" id="body" name="body" rows="5" placeholder="Announcement Body" v-model="state.body" required></textarea>
-                            <label class="px-4" for="invoice_discount">Body</label>
+                        <div class="row">
+                            <div class="col-12 form-floating mb-4">
+                                <textarea class="form-control" id="body" name="body" rows="5" placeholder="Announcement Body" v-model="state.body" required></textarea>
+                                <label class="px-4" for="invoice_discount">Body</label>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-primary" :disabled="state.isSubmitButtonDisabled">
-                            <template v-if="state.isLoading">
-                                Processing...
-                            </template>
-                            <template v-else>
-                                @{{ state.buttonText }}
-                            </template>
-                        </button>
-                    </div>
-                </form>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary" :disabled="state.isSubmitButtonDisabled">
+                                <template v-if="state.isLoading">
+                                    Processing...
+                                </template>
+                                <template v-else>
+                                    @{{ state.buttonText }}
+                                </template>
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
     </div>
   </div>
   <!-- END Hero -->

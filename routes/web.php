@@ -242,7 +242,6 @@ Route::get('/dashboard', [HomeController::class,'index'])->middleware(['auth'])-
 
 //Announcement routes
 Route::get('/send-announcement', [AnnouncementController::class,'create'])->middleware(['auth'])->name('send-announcement');
-Route::post('/sendAnnouncement', [AnnouncementController::class,'send'])->middleware(['auth'])->name('sendAnnouncement');
 Route::post('/get-balance-template', [AnnouncementController::class,'getBalanceTempplate'])->middleware(['auth'])->name('getBalanceTemplate');
 
 require __DIR__.'/auth.php';

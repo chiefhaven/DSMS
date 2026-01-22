@@ -523,4 +523,20 @@ class havenUtils extends Controller
             ->whereHas('lesson.department', fn($q) => $q->where('id', $department_name))
             ->count();
     }
+
+    public static function fetchInstructors(): JsonResponse
+    {
+        $instructors = Instructor::select('id', 'fname', 'sname')
+            ->where('status', 'Active')
+            ->orderBy('fname')
+            ->get()
+            ->map(function ($instructor) {
+                return [
+                    'id' => $instructor->id,
+                    'name' => trim("{$instructor->fname} {$instructor->sname}"),
+                ];
+            });
+
+        return response()->json($instructors);
+    }
 }

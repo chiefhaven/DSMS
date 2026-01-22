@@ -5,14 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Announcement;
 use App\Http\Requests\StoreAnnouncementRequest;
 use App\Http\Requests\UpdateAnnouncementRequest;
+use App\Jobs\SendAnnouncementSMS;
+use App\Models\Instructor;
 use App\Models\notification_template;
+use App\Models\SmsReport;
 use App\Models\Student;
-use App\Policies\NotificationTemplatePolicy;
 use Carbon\Carbon;
-use League\Uri\UriTemplate\Template;
-use Twilio\Rest\Api\V2010\Account\Call\NotificationContext;
 use Illuminate\Http\Request;
-
+use Log;
 class AnnouncementController extends Controller
 {
     public function __construct()
@@ -107,70 +107,92 @@ class AnnouncementController extends Controller
 
     public function send(Request $request)
     {
-        $post = $request->all();
         $today = Carbon::now();
-        $group = $post['group'];
+        $group = $request->group;
+        $body  = is_array($request->body) ? $request->body[0] : $request->body;
 
+        // Base student query
+        $studentsQuery = Student::query()
+            ->where('status', '!=', 'Finished');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Instructor Filter (Optional)
+        |--------------------------------------------------------------------------
+        */
+        if ($request->filled('instructor')) {
+
+            $instructor = Instructor::with(['fleet', 'classrooms'])
+                ->find($request->instructor);
+
+            if (!$instructor) {
+                return response()->json(['message' => 'Instructor not found'], 404);
+            }
+
+            $studentsQuery->where(function ($q) use ($instructor) {
+                if ($instructor->fleet) {
+                    $q->where('fleet_id', $instructor->fleet->id);
+                }
+
+                if ($instructor->classroom) {
+                    $q->orWhere('classroom_id', $instructor->classroom->id);
+                }
+            });
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Group Filter
+        |--------------------------------------------------------------------------
+        */
         switch ($group) {
+
             case 'All students':
-                // Get all students whose status is not 'Finished'
-                $students = Student::where('status', '!=', 'Finished')->get();
+                // No extra filtering
                 break;
 
             case 'Students with balance':
-                // Get students with invoices having a specific balance
-                $students = Student::where('status', '!=', 'Finished')
-                ->whereHas('invoice', function ($query) use ($today) {
+                $studentsQuery->whereHas('invoice', function ($query) use ($today) {
                     $query->where('invoice_balance', '!=', 0)
-                        ->where('invoice_payment_due_date', '<', $today); // Check if due_date is past due
-                })
-                ->get();
+                        ->whereDate('invoice_payment_due_date', '<', $today);
+                });
                 break;
 
             default:
-                // Return an error response for unsupported selections
-                return response()->json(['message' => 'Your selection failed'], 403);
+                return response()->json(['message' => 'Invalid group selected'], 422);
         }
 
-        // Check if the collection is empty
+        $students = $studentsQuery->with(['invoice', 'course'])->get();
+
         if ($students->isEmpty()) {
             return response()->json(['message' => 'No students found'], 404);
         }
 
-        // Access the first element if it's an array
-        if (is_array($post['body'])) {
-            $body = $post['body'][0];
-        } else {
-            $body = $post['body']; // It's already a string
-        }
+        /*
+        |--------------------------------------------------------------------------
+        | Send Messages
+        |--------------------------------------------------------------------------
+        */
+        $sent = 0;
 
         foreach ($students as $student) {
 
-            $variables = [
-                "FIRST_NAME" => $student->fname ?? '',
-                "MIDDLE_NAME" => $student->mname ?? '',
-                "SIR_NAME" => $student->sname ?? '',
-                "INVOICE_TOTAL" => $student->invoice->invoice_total ?? '',
-                "INVOICE_PAID" => $student->invoice->invoice_amount_paid ?? '',
-                "BALANCE" => $student->invoice->invoice_balance ?? '',
-                "DUE_DATE" => $student->invoice->invoice_payment_due_date->format('j F, Y') ?? '',
-                "COURSE_NAME" => $student->course->name ?? '',
-            ];
+            $report = SmsReport::create([
+                'student_id'    => $student->id,
+                'instructor_id' => $request->instructor,
+                'phone'         => $student->phone,
+                'message'       => $body,
+                'status'        => 'queued'
+            ]);
 
-            // Start with the original template body
-            $sms_template = $body;
-
-            // Replace placeholders with corresponding values
-            foreach ($variables as $key => $value) {
-                $sms_template = str_replace('{' . $key . '}', $value, $sms_template);
-            }
-
-            // Send the SMS
-            $sendSMS = new NotificationController;
-            $response = $sendSMS->sendSMS($sms_template, $student->phone);
+            SendAnnouncementSMS::dispatch($student, $body, $report->id)
+                ->onQueue('instructor_' . ($request->instructor ?? 'general'));
         }
 
-
-        return response()->json($sms_template, 200);
+        return response()->json([
+            'message' => 'Announcement queued successfully',
+            'recipients' => $students->count()
+        ], 200);
     }
+
 }

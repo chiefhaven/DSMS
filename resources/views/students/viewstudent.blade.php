@@ -343,7 +343,7 @@
                                 <div class="mt-4 pt-3 border-top">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h5 class="mb-0 text-muted fw-semibold">Course Status</h5>
-                                        <span class="badge px-3 py-2 rounded-pill shadow-sm bg-{{ $badgeColor }} {{ $badgeColor === 'warning' ? 'text-dark' : '' }}">
+                                        <span class="px-3 py-2 shadow-sm text-dark {{ $badgeColor === 'warning' ? 'text-dark' : '' }}">
                                             {{ ucfirst($student->status) }}
                                         </span>
                                     </div>

@@ -173,7 +173,16 @@
                     <span class="nav-main-link-name">Announcements</span>
                 </a>
                 <ul class="nav-main-submenu">
-                    <li><a class="nav-main-link" href="{{ url('/send-announcement') }}"><span class="nav-main-link-name">Make Announcement</span></a></li>
+                    <li>
+                        <a class="nav-main-link"
+                        href=""
+                            data-bs-toggle="modal"
+                            data-bs-target="#announcement-modal">
+                            <span class="nav-main-link-name">
+                                Make Announcement
+                            </span>
+                        </a>
+                    </li>
                     <li><a class="nav-main-link" href="{{ url('/sms-templates') }}"><span class="nav-main-link-name">Templates</span></a></li>
                     <li><a class="nav-main-link" href="{{ url('#') }}"><span class="nav-main-link-name">Configuration</span></a></li>
                 </ul>
