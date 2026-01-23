@@ -105,6 +105,7 @@ class AnnouncementController extends Controller
         return response()->json([$template], 200);
     }
 
+
     public function send(Request $request)
     {
         $today = Carbon::now();
@@ -130,13 +131,15 @@ class AnnouncementController extends Controller
             }
 
             $studentsQuery->where(function ($q) use ($instructor) {
+
                 if ($instructor->fleet) {
                     $q->where('fleet_id', $instructor->fleet->id);
                 }
 
-                if ($instructor->classroom) {
-                    $q->orWhere('classroom_id', $instructor->classroom->id);
+                if ($instructor->classrooms->isNotEmpty()) {
+                    $q->orWhereIn('classroom_id', $instructor->classrooms->pluck('id')->toArray());
                 }
+
             });
         }
 
@@ -164,35 +167,42 @@ class AnnouncementController extends Controller
 
         $students = $studentsQuery->with(['invoice', 'course'])->get();
 
+        Log::info('Preparing to send announcements to ' . $students->count() . ' students.');
+
         if ($students->isEmpty()) {
             return response()->json(['message' => 'No students found'], 404);
         }
 
         /*
         |--------------------------------------------------------------------------
-        | Send Messages
+        | Send Messages (Queue per student)
         |--------------------------------------------------------------------------
         */
-        $sent = 0;
+        $queuedCount = 0;
 
         foreach ($students as $student) {
+
+            // Skip students with no phone number
+            if (empty($student->phone)) continue;
 
             $report = SmsReport::create([
                 'student_id'    => $student->id,
                 'instructor_id' => $request->instructor,
                 'phone'         => $student->phone,
                 'message'       => $body,
-                'status'        => 'queued'
+                'status'        => 'queued',
             ]);
 
+            // Dispatch job to queue
             SendAnnouncementSMS::dispatch($student, $body, $report->id)
                 ->onQueue('instructor_' . ($request->instructor ?? 'general'));
+
+            $queuedCount++;
         }
 
         return response()->json([
             'message' => 'Announcement queued successfully',
-            'recipients' => $students->count()
+            'recipients' => $queuedCount
         ], 200);
     }
-
 }
