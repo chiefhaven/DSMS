@@ -180,6 +180,13 @@
                 }
             };
 
+            const selectInstructor = (event) => {
+                const instructorId = event.currentTarget.getAttribute('data-instructor-id');
+                state.value.instructor = instructorId;
+
+                getInstructors();
+            };
+
             const notification = (text, icon) => {
                 Swal.fire({
                     toast: true,
@@ -191,9 +198,18 @@
                 });
             };
 
-            // ✅ Attach modal listener once
-            Vue.onMounted(() => {
-                loadInstructorsOnModalOpen();
+
+            onMounted(() => {
+                // Listen for clicks on all links that open the announcement modal
+                document.querySelectorAll('[data-bs-target="#announcement-modal"]').forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        const instructorId = e.currentTarget.getAttribute('data-instructor-id');
+                        state.value.selectedInstructor = instructorId;
+
+                    loadInstructorsOnModalOpen();
+
+                });
+            });
             });
 
             return {
@@ -201,7 +217,8 @@
                 announcementForm,
                 sendAnnouncement,
                 cancelAnnouncement,
-                getBalanceTemplate
+                getBalanceTemplate,
+                selectInstructor
             };
         }
     });
