@@ -9,7 +9,7 @@
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
             <ol class="breadcrumb">
             <div class="dropdown d-inline-block">
-                <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <button type="button" class="btn btn-primary rounded-pill px-4" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <span class="d-sm-inline-block">Action</span>
                 </button>
                 <div class="dropdown-menu dropdown-menu-end p-0">
@@ -23,6 +23,15 @@
                         {{ method_field('DELETE') }}
                         <button class="dropdown-item delete-confirm" type="submit">Delete</button>
                     </form>
+                    <a class="dropdown-item"
+                        href="#"
+                        data-bs-toggle="modal"
+                        data-bs-target="#announcement-modal"
+                        data-instructor-id="{{ $instructor->id }}">
+                        <span class="nav-main-link-name">
+                            Make Announcement
+                        </span>
+                    </a>
                 </div>
                 </div>
             </div>
@@ -580,8 +589,6 @@
                         Attendances.value = allDates.map(date => dailyData[date] || 0);
                         Schedules.value = allDates.map(date => dailySchedules[date] || 0);
 
-                        console.log('Filtered Data:', labels.value, Attendances.value, Schedules.value);
-
                         nextTick(() => {
                             loadChart();
                         });
@@ -816,6 +823,9 @@
         });
 
         instructor.mount('#instructor');
+    </script>
+    <script>
+        
     </script>
 
 @endsection
