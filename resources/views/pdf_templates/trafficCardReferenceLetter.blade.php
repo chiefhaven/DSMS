@@ -26,5 +26,6 @@
                 @endif
 
                 application for a Traffic Register Card. {{$student->fname}} {{$student->mname}} {{$student->sname}} is one of our students here at DARON DRIVING SCHOOL and would like to apply for a traffic register card.</p>
-
+                
+@include('pdf_templates.partials.beginer')
 @include('pdf_templates.partials.footer')
