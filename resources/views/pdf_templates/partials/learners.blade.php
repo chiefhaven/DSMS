@@ -4,7 +4,7 @@
 
     <strong class="head" style="font-size:6px;">Learners Licence Process</strong>
     <ol class="list">
-        <li>Booking of Exams <strong>Highway code I</strong> (Lessons attendance &amp; Medical for <strong>C1 </strong>students are <strong>required</strong> )</li>
+        <li>Booking of <strong>Highway code I</strong> Exams (Lessons attendance &amp; Medical for <strong>C1 </strong>students are <strong>required</strong> )</li>
         <li>Payment for highway code 1 quotation </li>
         <li>Entering examination room &amp; Take Exams</li>
         <li>Payment for learners' quotation</li>
