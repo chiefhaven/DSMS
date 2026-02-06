@@ -2,7 +2,7 @@
 @include('pdf_templates.guidelines_css')
 <footer class="guide">
 
-    <strong style="font-size:10px;">TRN Process</strong>
+    <strong class="head" style="font-size:6px;">TRN Process</strong>
     <ol class="list">
         <li>Biometrics room for fingerprint and face capturing</li>
         <li>Entity enrolment &amp; collection of Traffic Registration Card quotation</li>
