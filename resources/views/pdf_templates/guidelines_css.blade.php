@@ -11,7 +11,7 @@
         padding-top: 8px;
     }
     .head::after{
-        content:' (For Student Use)';
+        content: '(For Students Use)';
     }
     .list{
         margin: 6px 0 8px 12px;
