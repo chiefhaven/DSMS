@@ -2,7 +2,7 @@
     .guide{
         position: fixed;
         bottom: 20px;
-        left: 55px;
+        left: 80px;
         right: 30px;
         font-size: 8px;
         font-family : DejaVu Sans, Helvetica, sans-serif;
