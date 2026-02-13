@@ -316,6 +316,9 @@ class AttendanceController extends Controller
         $courseID = $invoice->course_id;
         $studentCourseDuration = havenUtils::courseDuration($courseID);
 
+        Log::info("Student Course Duration: " . $studentCourseDuration);
+        Log::info("Current Attendance Count: " . self::attendanceCount($student_id));
+
         // Check attendance limit
         if (self::attendanceCount($student_id) >= $studentCourseDuration) {
             Alert::error('Attendance not entered', 'You cannot enter more attendances than the course duration.');
