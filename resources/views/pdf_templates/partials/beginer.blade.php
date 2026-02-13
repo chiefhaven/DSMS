@@ -1,8 +1,8 @@
 {{-- TRN Process Footer (A4 Letter) --}}
 @include('pdf_templates.guidelines_css')
-<footer class="guide">
+<footer class="guide" style="font-size:6px;">
 
-    <strong class="head" style="font-size:6px;">TRN Process</strong>
+    <strong class="head">TRN Process</strong>
     <ol class="list">
         <li>Biometrics room for fingerprint and face capturing</li>
         <li>Entity enrolment &amp; collection of Traffic Registration Card quotation</li>

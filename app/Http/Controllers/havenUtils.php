@@ -26,44 +26,13 @@ class havenUtils extends Controller
 {
     static function student($studentName){
 
-        $student_name = explode(" ", $studentName);
-        $studentnameCount = count($student_name);
+        $parts = preg_split('/\s+/', trim($studentName));
 
-        if($studentnameCount = 2){
-
-            $student = Student::where('fname', $student_name[0])->where('sname',$student_name[2])->first();
-
-            if(!is_null($student)){
-
-                return $student;
-            }
-
-            else{
-
-                return null;
-            }
-        }
-
-        elseif($studentnameCount = 3){
-
-            $student = Student::where('fname', $student_name[0])->where('mname',$student_name[1])->where('sname',$student_name[2])->first();
-
-            if(!is_null($student)){
-
-                return $student;
-            }
-
-            else{
-
-                return null;
-            }
-        }
-
-        else{
-
-            return null;
-
-        }
+        return Student::when(count($parts) >= 1, fn ($q) => $q->where('fname', $parts[0]))
+            ->when(count($parts) === 2, fn ($q) => $q->where('sname', $parts[1]))
+            ->when(count($parts) >= 3, fn ($q) => $q->where('mname', $parts[1])
+                                                ->where('sname', $parts[2]))
+            ->first();
 
     }
 
