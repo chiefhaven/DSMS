@@ -1,3 +1,4 @@
+@role(['superAdmin', 'financeAdmin'])
         <button type="button"
             class="btn btn-alt-secondary position-relative"
             title="Scan to Pay"
@@ -15,40 +16,41 @@
             <i class="fa fa-fw fa-qrcode"></i>
         </button>
 
-            @role('superAdmin')
-                <button type="button"
-                        class="btn btn-alt-secondary position-relative"
-                        title="SMS Balance"
-                        id="smsBalance"
-                        onclick="fetchBalance"
-                        v-cloak>
+        @role('superAdmin')
+            <button type="button"
+                    class="btn btn-alt-secondary position-relative"
+                    title="SMS Balance"
+                    id="smsBalance"
+                    onclick="fetchBalance"
+                    v-cloak>
 
-                    <!-- Balance badge -->
-                    <span v-if="!loading && !error"
-                        class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
-                        :class="balance < 100 ? 'bg-danger' : 'bg-success'"
-                        style="font-size: 12px; padding: 0.3em 0.6em;">
-                        @{{ balance }}
-                    </span>
+                <!-- Balance badge -->
+                <span v-if="!loading && !error"
+                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
+                    :class="balance < 100 ? 'bg-danger' : 'bg-success'"
+                    style="font-size: 12px; padding: 0.3em 0.6em;">
+                    @{{ balance }}
+                </span>
 
-                    <!-- Loading -->
-                    <span v-if="loading"
-                        class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-secondary"
-                        style="font-size: 11px; padding: 0.25em 0.5em;">
-                        ...
-                    </span>
+                <!-- Loading -->
+                <span v-if="loading"
+                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-secondary"
+                    style="font-size: 11px; padding: 0.25em 0.5em;">
+                    ...
+                </span>
 
-                    <!-- Error -->
-                    <span v-if="error"
-                        class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                        style="font-size: 11px; padding: 0.25em 0.5em;">
-                        !
-                    </span>
+                <!-- Error -->
+                <span v-if="error"
+                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                    style="font-size: 11px; padding: 0.25em 0.5em;">
+                    !
+                </span>
 
-                    <!-- SMS Icon -->
-                    <i class="fa fa-fw fa-sms"></i>
-                </button>
-            @endrole
+                <!-- SMS Icon -->
+                <i class="fa fa-fw fa-sms"></i>
+            </button>
+        @endrole
+@endrole
 
     <script>
         const smsBalance = createApp({
