@@ -25,11 +25,12 @@ class SmsChannel
             $response = Http::withHeaders([
                 'Authorization' => config('services.smsApi.token'),
                 'Accept'        => 'application/json',
-                'Content-Type'  => 'application/json',
-            ])->post(config('services.smsApi.url') . '/send-sms', [
-                'to'      => $phoneNumber,
-                'message' => $message,
-                'from'    => config('services.smsApi.from'),
+            ])
+            ->get(config('services.smsApi.url').'/sms/send', [
+                'message'    => $message,
+                'type'       => 'plain',
+                'sender_id'  => config('services.smsApi.from'),
+                'recipient' => $phoneNumber,
             ]);
 
             Log::info("SMS Sent: " . $response->body());
