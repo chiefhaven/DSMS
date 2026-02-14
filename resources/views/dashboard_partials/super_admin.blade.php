@@ -5,8 +5,6 @@
     <div class="col-md-8">
         <div class="p-3">
 
-            @include('/dashboard_partials/scan_to_pay')
-
             <div class="row block" id="dashboardSummary" v-cloak>
                 <div v-if="isLoading" class="text-center py-7">
                     <span class="spinner-border text-primary" role="status"></span>
@@ -485,41 +483,6 @@
             }
         }).mount('#invoices');
 
-        const smsBalance = createApp({
-            setup() {
-                const balance = ref(null);
-                const loading = ref(true);
-                const error = ref(null);
-
-                const fetchBalance = async () => {
-                    loading.value = true;
-                    try {
-                        const response = await axios.get("/api/sms-balance");
-                        balance.value = response.data.balance;
-                    } catch (err) {
-                        error.value = "Something went wrong";
-                        console.log(err.response?.data?.error || err.message)
-                    } finally {
-                        loading.value = false;
-                    }
-                };
-
-                onMounted(() => {
-                    fetchBalance();
-
-                    // Optional: auto-refresh every 30 seconds
-                    setInterval(fetchBalance, 30000);
-                });
-
-                return {
-                    balance,
-                    loading,
-                    error,
-                    fetchBalance
-                };
-            }
-        }).mount('#smsBalance');
-
         const dashboardSummary = createApp({
             setup() {
                 const filter = ref('today')
@@ -685,194 +648,194 @@
         }).mount('#dashboardSummary');
     </script>
 
-<script>
+    <script>
 
-    $(document).ready(function () {
-        $.extend($.fn.dataTable.ext.type.order, {
-            "custom-date-pre": function (data) {
-                // Handle "9 May, 2024, 02:00:00" format
-                const parts = data.trim().split(/[\s,]+/);
-                if (parts.length < 4) return 0;
+        $(document).ready(function () {
+            $.extend($.fn.dataTable.ext.type.order, {
+                "custom-date-pre": function (data) {
+                    // Handle "9 May, 2024, 02:00:00" format
+                    const parts = data.trim().split(/[\s,]+/);
+                    if (parts.length < 4) return 0;
 
-                const day = parseInt(parts[0], 10);
-                const monthNames = [
-                    "January", "February", "March", "April", "May", "June",
-                    "July", "August", "September", "October", "November", "December"
-                ];
-                const month = monthNames.indexOf(parts[1]);
-                const year = parseInt(parts[2], 10);
-                const timeParts = parts[3].split(':');
-                const hours = parseInt(timeParts[0], 10);
-                const minutes = parseInt(timeParts[1], 10);
-                const seconds = timeParts.length > 2 ? parseInt(timeParts[2], 10) : 0;
+                    const day = parseInt(parts[0], 10);
+                    const monthNames = [
+                        "January", "February", "March", "April", "May", "June",
+                        "July", "August", "September", "October", "November", "December"
+                    ];
+                    const month = monthNames.indexOf(parts[1]);
+                    const year = parseInt(parts[2], 10);
+                    const timeParts = parts[3].split(':');
+                    const hours = parseInt(timeParts[0], 10);
+                    const minutes = parseInt(timeParts[1], 10);
+                    const seconds = timeParts.length > 2 ? parseInt(timeParts[2], 10) : 0;
 
-                return new Date(year, month, day, hours, minutes, seconds).getTime();
-            }
-        });
-
-        $('#activitiesTable').DataTable({
-            order: [[1, 'desc']], // Sort by Date column
-            columnDefs: [
-                { targets: 1, type: 'custom-date' }, // Apply custom date sorting
-                { targets: 0, orderable: false },
-            ]
-        });
-    });
-
-</script>
-<script>
-    const ctx = document.getElementById('attendancesChart');
-    $(function() {
-        getXlsxData();
-      });
-      function getXlsxData() {
-        var xlsxUrl = "/summaryData";
-
-        $.getJSON(xlsxUrl, function(data) {
-
-            var labelsSet = new Set();
-            var attendancesMap = {};
-            var schedulesMap = {};
-
-            // Ensure data exists
-            if (!data || !data.attendances || !data.schedules) {
-                return;
-            }
-
-            // Process attendances
-            data.attendances.forEach(el => {
-                if (el.date) {
-                    labelsSet.add(el.date);
-                    attendancesMap[el.date] = el.count || 0;
+                    return new Date(year, month, day, hours, minutes, seconds).getTime();
                 }
             });
 
-            // Process schedules
-            data.schedules.forEach(el => {
-                if (el.date) {
-                    labelsSet.add(el.date);
-                    schedulesMap[el.date] = el.count || 0;
-                }
-            });
-
-            // Convert Set to sorted array
-            var labels = Array.from(labelsSet).sort();
-
-            // Create final arrays ensuring all dates exist
-            var attendances = labels.map(date => attendancesMap[date] || 0);
-            var schedules = labels.map(date => schedulesMap[date] || 0);
-
-            load_chart(labels, attendances, schedules);
-        }).fail(function(jqXHR, textStatus, errorThrown) {
-        });
-    }
-
-    function load_chart(labels, Attendances, Schedules) {
-        var ctx = document.getElementById('attendancesChart').getContext('2d');
-
-        var attendancesChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'Attendances',
-                        fill: false,
-                        data: Attendances,
-                        backgroundColor: 'rgb(255, 159, 64)',
-                        borderColor: 'rgb(255, 159, 64, 0.8)',
-                        borderWidth: 2,
-                        radius: 0,
-                    },
-                    {
-                        label: 'Schedules',
-                        fill: false,
-                        data: Schedules,
-                        backgroundColor: 'rgb(54, 162, 235)',
-                        borderColor: 'rgb(54, 162, 235, 0.8)',
-                        borderWidth: 2,
-                        radius: 0,
-                    }
+            $('#activitiesTable').DataTable({
+                order: [[1, 'desc']], // Sort by Date column
+                columnDefs: [
+                    { targets: 1, type: 'custom-date' }, // Apply custom date sorting
+                    { targets: 0, orderable: false },
                 ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
+            });
+        });
+
+    </script>
+    <script>
+        const ctx = document.getElementById('attendancesChart');
+        $(function() {
+            getXlsxData();
+        });
+        function getXlsxData() {
+            var xlsxUrl = "/summaryData";
+
+            $.getJSON(xlsxUrl, function(data) {
+
+                var labelsSet = new Set();
+                var attendancesMap = {};
+                var schedulesMap = {};
+
+                // Ensure data exists
+                if (!data || !data.attendances || !data.schedules) {
+                    return;
+                }
+
+                // Process attendances
+                data.attendances.forEach(el => {
+                    if (el.date) {
+                        labelsSet.add(el.date);
+                        attendancesMap[el.date] = el.count || 0;
                     }
-                },
-                layout: {
-                    padding: {
-                        top: 35,
-                        right: 15
+                });
+
+                // Process schedules
+                data.schedules.forEach(el => {
+                    if (el.date) {
+                        labelsSet.add(el.date);
+                        schedulesMap[el.date] = el.count || 0;
                     }
+                });
+
+                // Convert Set to sorted array
+                var labels = Array.from(labelsSet).sort();
+
+                // Create final arrays ensuring all dates exist
+                var attendances = labels.map(date => attendancesMap[date] || 0);
+                var schedules = labels.map(date => schedulesMap[date] || 0);
+
+                load_chart(labels, attendances, schedules);
+            }).fail(function(jqXHR, textStatus, errorThrown) {
+            });
+        }
+
+        function load_chart(labels, Attendances, Schedules) {
+            var ctx = document.getElementById('attendancesChart').getContext('2d');
+
+            var attendancesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Attendances',
+                            fill: false,
+                            data: Attendances,
+                            backgroundColor: 'rgb(255, 159, 64)',
+                            borderColor: 'rgb(255, 159, 64, 0.8)',
+                            borderWidth: 2,
+                            radius: 0,
+                        },
+                        {
+                            label: 'Schedules',
+                            fill: false,
+                            data: Schedules,
+                            backgroundColor: 'rgb(54, 162, 235)',
+                            borderColor: 'rgb(54, 162, 235, 0.8)',
+                            borderWidth: 2,
+                            radius: 0,
+                        }
+                    ]
                 },
-                scales: {
-                    x: {
-                        type: 'time',
-                        time: {
-                            parser: 'YYYY-MM-DD',
-                            unit: 'day',
-                            displayFormats: {
-                                day: 'D MMM'
-                            },
-                            tooltipFormat: 'D MMM YYYY'
-                        },
-                        ticks: {
-                            source: 'data',
-                            autoSkip: false,
-                            stepSize: 1,
-                            maxRotation: 60,
-                            minRotation: 60
-                        },
-                        title: {
-                            display: true,
-                            text: 'Date'
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
                         }
                     },
-                    y: {
-                        beginAtZero: true
+                    layout: {
+                        padding: {
+                            top: 35,
+                            right: 15
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                parser: 'YYYY-MM-DD',
+                                unit: 'day',
+                                displayFormats: {
+                                    day: 'D MMM'
+                                },
+                                tooltipFormat: 'D MMM YYYY'
+                            },
+                            ticks: {
+                                source: 'data',
+                                autoSkip: false,
+                                stepSize: 1,
+                                maxRotation: 60,
+                                minRotation: 60
+                            },
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true
+                        }
                     }
                 }
-            }
-        });
+            });
 
 
-        var ctx1 = document.getElementById('coursesChart');
+            var ctx1 = document.getElementById('coursesChart');
 
-        var coursesChart = new Chart(ctx1, {
-            type: 'doughnut',
-            data: {
-                labels: ['Full Course B', 'Full Course C1', 'Full Course B VIP', '20 Days Course B'], // Data labels
-                datasets: [{
-                    label: 'My Dataset',
-                    data: [100, 20, 10, 50], // Data values
-                    backgroundColor: ['rgba(255, 99, 132, 0.9)', 'rgba(54, 162, 235, 0.9)', 'rgba(255, 206, 86, 0.9)', 'rgba(255, 116, 86, 0.9)'], // Segment colors
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return context.label + ': ' + context.raw;
+            var coursesChart = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Full Course B', 'Full Course C1', 'Full Course B VIP', '20 Days Course B'], // Data labels
+                    datasets: [{
+                        label: 'My Dataset',
+                        data: [100, 20, 10, 50], // Data values
+                        backgroundColor: ['rgba(255, 99, 132, 0.9)', 'rgba(54, 162, 235, 0.9)', 'rgba(255, 206, 86, 0.9)', 'rgba(255, 116, 86, 0.9)'], // Segment colors
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.raw;
+                                }
                             }
                         }
-                    }
-                },
-                layout: {
-                    padding: {
-                        top: 20,
-                        bottom: 20
+                    },
+                    layout: {
+                        padding: {
+                            top: 20,
+                            bottom: 20
+                        }
                     }
                 }
-            }
-        });
-    }
-</script>
+            });
+        }
+    </script>

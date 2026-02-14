@@ -187,9 +187,14 @@
 
           <!-- Right Section -->
           <div class="space-x-3">
+
             <!-- Notifications Dropdown -->
                 @include('/layouts/partials/notifications')
             <!-- END Notifications Dropdown -->
+
+            <!-- QR Scan Button AND SMS Balance -->
+                @include('/layouts/partials/scan_to_pay_and_sms_balance')
+            <!-- END QR Scan Button And SMS Balance -->
 
             <!-- User Dropdown -->
             <div class="dropdown d-inline-block">
