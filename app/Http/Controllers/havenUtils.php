@@ -349,6 +349,8 @@ class havenUtils extends Controller
 
             $data = $response->json();
 
+            Log::info($data);
+
             // Assume your API returns something like ['balance' => 120]
             return response()->json(['balance' => $data['remaining_balance'] ?? 0]);
         } catch (\Exception $e) {
