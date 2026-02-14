@@ -353,7 +353,7 @@ class havenUtils extends Controller
             Log::info($data['data']['remaining_balance'] ?? 0);
 
             // Assume your API returns something like ['balance' => 120]
-            return response()->json(['balance' => $data['remaining_balance'] ?? 0]);
+            return response()->json(['balance' => $data['data']['remaining_balance'] ?? 0]);
         } catch (\Exception $e) {
             Log::error('SMS Balance Exception: ' . $e->getMessage());
             return response()->json(['balance' => null, 'error' => $e->getMessage()], 500);
