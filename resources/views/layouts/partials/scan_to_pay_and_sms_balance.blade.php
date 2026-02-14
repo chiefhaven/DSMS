@@ -29,7 +29,7 @@
                     class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
                     :class="balance < 100 ? 'bg-danger' : 'bg-success'"
                     style="font-size: 12px; padding: 0.3em 0.6em;">
-                    @{{ balance }}
+                    @{{ balance }} Units
                 </span>
 
                 <!-- Loading -->
