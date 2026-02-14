@@ -28,7 +28,7 @@
                 <span v-if="!loading && !error"
                     class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
                     :class="balance < 100 ? 'bg-danger' : 'bg-success'"
-                    style="font-size: 8px; padding: 0.3em 0.6em;">
+                    style="font-size: 10px; padding: 0.3em 0.6em;">
                     @{{ balance }} Units
                 </span>
 
