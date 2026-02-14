@@ -338,7 +338,7 @@ class havenUtils extends Controller
     {
         try {
             $response = Http::withHeaders([
-                'Authorization' => "Bearer 4|4VGn83GmZCbaCidTSxENKhvlbRls3TNrip9eq4W1cb1eadd8",
+                'Authorization' => config('services.smsApi.token'),
                 'Accept'        => 'application/json',
             ])->get(config('services.smsApi.url') . '/balance');
 
