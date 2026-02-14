@@ -340,7 +340,7 @@ class havenUtils extends Controller
             $response = Http::withHeaders([
                 'Authorization' => config('services.smsApi.token'),
                 'Accept'        => 'application/json',
-            ])->get(config('services.smsApi.url') . '/client-balance');
+            ])->get(config('services.smsApi.url') . '/balance');
 
             if ($response->failed()) {
                 Log::error('SMS Balance Fetch Failed: ' . $response->body());
@@ -350,7 +350,7 @@ class havenUtils extends Controller
             $data = $response->json();
 
             // Assume your API returns something like ['balance' => 120]
-            return response()->json(['balance' => $data['account_balance'] ?? 0]);
+            return response()->json(['balance' => $data['remaining_balance'] ?? 0]);
         } catch (\Exception $e) {
             Log::error('SMS Balance Exception: ' . $e->getMessage());
             return response()->json(['balance' => null, 'error' => $e->getMessage()], 500);
