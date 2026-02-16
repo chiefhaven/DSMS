@@ -5,11 +5,11 @@
     </div>
 
     <!-- Scan to Pay for Finance Admin only -->
-    @if (Auth::user()->hasRole('financeAdmin'))
+    {{--  @if (Auth::user()->hasRole('financeAdmin'))
         <div class="col-xl-12">
             @include('/dashboard_partials/scan_to_pay')
         </div>
-    @endif
+    @endif  --}}
 
     <!-- Students Block -->
     <div class="col-xl-6">
