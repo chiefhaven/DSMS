@@ -41,7 +41,7 @@
                 Adding attendance for
                 <h2 class="text-center">{{ $studentName }}</h2>
             </p>
-          <form ref="state.attendanceForm" class="mb-5" action="{{ url('/storeattendance') }}" method="post" @submit.prevent="handleButtonClick">
+          <form ref="state.attendanceForm" class="mb-5" action="{{ url('/storeattendance') }}" method="post" @submit.prevent="submitAttendance">
             @csrf
             <input class="" name="student" v-model="state.student" hidden>
             <div class="form-floating mb-4">
@@ -126,14 +126,37 @@
           buttonText: 'Save',
           attendanceForm: null,
           lesson: '',
-          student: '{{ $student->fname }} {{ $student->mname }} {{ $student->sname }}'
+          student: '{{ $student->fname }} {{ $student->mname }} {{ $student->sname }}',
+          attendanceCount: '{{ $attendanceCount }}',
+          studentCourseDuration: '{{ $studentCourseDuration }}'
         });
 
         onMounted(() => {
             state.value.attendanceForm = document.querySelector('#attendance form');
+            attendanceLimitReachingEnd()
         });
 
-        const handleButtonClick = async () => {
+        const attendanceLimitReachingEnd = async () => {
+            const remaining =
+                state.value.studentCourseDuration - state.value.attendanceCount;
+
+            if (remaining <= 45 && remaining > 0) {
+                notification(
+                    `${state.value.student}` + ' is approaching the attendance limit for their course',
+                    {
+                        remaining: state.value.studentCourseDuration - state.value.attendanceCount,
+                        showConfirmButton: true,
+                        confirmButtonText: 'OK',
+                        unit: 'lessons',
+                        criticalAt: 10
+                    }
+                );
+            }
+
+            return false;
+        };
+
+        const submitAttendance = async () => {
           state.value.isSubmitButtonDisabled = true;
           state.value.isLoading = true;
           state.value.buttonText = "Processing...";
@@ -147,25 +170,54 @@
 
         }
 
-        function notification($text, $icon){
-            Swal.fire({
-                toast: true,
-                position: "center",
-                text: $text,
-                showConfirmButton: false,
-                timer: 5500,
-                timerProgressBar: true,
-                icon: $icon,
-                didOpen: (toast) => {
-                    toast.onmouseenter = Swal.stopTimer;
-                    toast.onmouseleave = Swal.resumeTimer;
-                  }
-              });
+        function notification(message, options = {}) {
+
+            if (typeof options === 'string') {
+                options = { icon: options };
+            }
+
+            const remaining = options.remaining;
+
+            let html = message;
+
+            if (remaining !== undefined) {
+                const color =
+                    remaining <= (options.criticalAt ?? 10)
+                        ? '#d33'
+                        : remaining <= 30
+                        ? '#f39c12'
+                        : '#28a745';
+
+                html = `
+                    <div style="font-size:16px;margin-bottom:8px;">
+                        ${message}
+                    </div>
+                    <div style="font-size:56px;font-weight:700;">
+                        ${remaining}
+                    </div>
+                    <div style="font-size:14px;color:#666;">
+                        ${options.unit ?? 'lessons'} remaining.
+                    </div>
+                `;
+            }
+
+            return Swal.fire({
+                icon: options.icon ?? null,
+                html: html,
+                position: options.position ?? 'center',
+                toast: options.toast ?? false,
+
+                showConfirmButton: options.showConfirmButton ?? true,
+                confirmButtonText: options.confirmButtonText ?? 'OK',
+
+                timer: options.timer ?? null,
+                timerProgressBar: !!options.timer
+            });
         }
 
         return {
           state,
-          handleButtonClick
+          submitAttendance
         };
       }
     });

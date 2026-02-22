@@ -261,7 +261,7 @@ class AttendanceController extends Controller
             }
 
             $date = Carbon::now()->timezone('Africa/Blantyre');
-            return view('attendances.addattendance', compact('student', 'lessons', 'instructor', 'date'));
+            return view('attendances.addattendance', compact('student', 'lessons', 'instructor', 'date', 'attendanceCount', 'studentCourseDuration'));
         } else {
             $student = havenUtils::invoiceQrCode($token);
             return view('qrCodeGuest', compact('student'));

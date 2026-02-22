@@ -3,7 +3,7 @@
 
   <script>
 
-  const app = createApp({
+  const vehicleLocation = createApp({
     setup() {
       const latitude = ref(null);
       const longitude = ref(null);
