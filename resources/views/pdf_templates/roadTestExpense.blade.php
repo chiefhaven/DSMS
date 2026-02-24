@@ -10,6 +10,8 @@
 @include('pdf_templates.partials.pdf_template_style')
 @include('pdf_templates.partials.groupHeader')
 @include('pdf_templates.partials.letter_head')
+@include('pdf_templates.partials.stamp')
+@include('pdf_templates.partials.seal')
 
 
     <h3 style="text-transform: uppercase;"><u>APPLICATION FOR STUDENTS ROAD TEST</u></h3>
@@ -22,7 +24,7 @@
                 <th class="invoice-td">Code</th>
                 <th class="invoice-td">TRN</th>
                 <th class="invoice-td">Veihcle Reg Number</th>
-                <th class="invoice-td">Remarks</th>
+                <th class="invoice-td">Results</th>
             </thead>
             <tbody>
                 @foreach ($expense->students as $student)

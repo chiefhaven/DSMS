@@ -10,7 +10,6 @@
 @include('pdf_templates.partials.pdf_template_style')
 @include('pdf_templates.partials.letter_head')
 @include('pdf_templates.partials.groupHeader')
-
 @include('pdf_templates.partials.stamp')
 @include('pdf_templates.partials.seal')
 
@@ -25,6 +24,8 @@
             <th class="invoice-td">Code</th>
             <th class="invoice-td">Highway code I</th>
             <th class="invoice-td">Highway code II</th>
+            <th class="invoice-td">Results</th>
+
         </thead>
         <tbody>
             @foreach ($expense->students as $student)
@@ -51,6 +52,8 @@
                         @if ($student->pivot->expense_type == '9fd3074c-42a4-4aef-8818-e5379f1fa0cc')
                             <div style="font-family: DejaVu Sans, sans-serif;">✔</div>
                         @endif
+                    </td>
+                    <td class="invoice-td text-center">
                     </td>
                 </tr>
                 @endforeach
