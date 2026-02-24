@@ -845,15 +845,35 @@ class StudentController extends Controller
 
     public function lessonReport($id)
     {
-        $student = Student::find($id);
-        $attendance = Attendance::where('student_id', $id)->orderBy('attendance_date', 'ASC')->get();
+        $student = Student::with(['attendance', 'course.lessons'])->findOrFail($id);
+
+        $attendance = $student->attendance()->orderBy('attendance_date', 'ASC')->get();
+
         $setting = Setting::find(1);
-        $date = date('j F, Y');
+        $date = now()->format('j F, Y');
 
-        $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/'.$id);
+        $attendanceCount = $attendance->count();
 
-        $pdf = PDF::loadView('pdf_templates.lessonReport', compact('student', 'attendance', 'setting', 'date', 'qrCode'));
-        return $pdf->download('Daron Driving School-'.$student->fname.' '.$student->sname.' Lesson Report.pdf');
+        $courseId = optional($student->course)->id;
+        $courseDuration = $courseId ? havenUtils::courseDuration($courseId) : 0;
+
+        $qrCode = havenUtils::qrCode(
+            url('e8704ed2-d90e-41ca-9143-ceb2bb517cc7/' . $id)
+        );
+
+        $pdf = PDF::loadView('pdf_templates.lessonReport', compact(
+            'student',
+            'attendance',
+            'setting',
+            'date',
+            'qrCode',
+            'attendanceCount',
+            'courseDuration'
+        ));
+
+        return $pdf->download(
+            'Daron Driving School-' . $student->fname . ' ' . $student->sname . ' Lesson Report.pdf'
+        );
     }
 
     public function studentsPDF(PdfStudentRequest $request)

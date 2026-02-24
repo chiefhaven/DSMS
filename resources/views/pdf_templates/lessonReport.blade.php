@@ -33,9 +33,9 @@
         <strong>Address:</strong> {{ $student->address }}<br>
 
         <strong>Attendances:</strong>
-        {{ $student->attendance->count() }}
+        {{ $attendanceCount }} out
         of
-        {{ optional($student->course)->lessons->count() ?? 0 }} lessons<br>
+        {{ $courseDuration ?? 0 }} lessons<br>
 
         <strong>Course:</strong> {{ optional($student->course)->name ?? 'N/A' }}<br>
     </td>
