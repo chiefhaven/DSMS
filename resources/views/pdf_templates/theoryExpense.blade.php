@@ -11,6 +11,9 @@
 @include('pdf_templates.partials.letter_head')
 @include('pdf_templates.partials.groupHeader')
 
+@include('pdf_templates.partials.stamp')
+@include('pdf_templates.partials.seal')
+
 
     <h3 style="text-transform: uppercase;"><u>APPLICATION FOR STUDENT’S APTITUDE TEST</u></h3>
 
@@ -18,7 +21,8 @@
     <table class="table table-striped table-responsive" style="font-size:12px; background-color: #ffffff !important; overflow:visible">
         <thead style="color: #ffffff !important; background-color:#0665d0; text-align:left !important;">
             <th class="invoice-td" style="text-align:left !important">Student name</th>
-            <th class="invoice-td">Class</th>
+            <th class="invoice-td">TRN</th>
+            <th class="invoice-td">Code</th>
             <th class="invoice-td">Highway code I</th>
             <th class="invoice-td">Highway code II</th>
         </thead>
@@ -29,6 +33,9 @@
                         {{$student->fname}} {{$student->mname}} {{$student->sname}}
                     </td>
                     <td class="invoice-td text-center">
+                        {{$student->trn}}
+                    </td>
+                    <td class="invoice-td text-center">
                             @if (!$student->course)
                                 -
                             @else
@@ -36,12 +43,12 @@
                             @endif
                     </td>
                     <td class="invoice-td text-center">
-                        @if ($student->pivot->expense_type == '9f7503c3-9454-45c4-af8b-c403bc112517')
+                        @if ($student->pivot->expense_type == '9fd3074c-3d1b-4a58-9ea5-e7e6336296e9')
                             <div style="font-family: DejaVu Sans, sans-serif;">✔</div>
                         @endif
                     </td>
                     <td class="invoice-td text-center">
-                        @if ($student->pivot->expense_type == '9f7503c3-9626-4ddf-b31d-f38532e4580f')
+                        @if ($student->pivot->expense_type == '9fd3074c-42a4-4aef-8818-e5379f1fa0cc')
                             <div style="font-family: DejaVu Sans, sans-serif;">✔</div>
                         @endif
                     </td>

@@ -1,11 +1,11 @@
-<div class="seal-container">
-    <div class="seal" style="
+<div class="seal-container" style="
         position: absolute;
-        z-index: 9999;
-        top: 80%;
+        z-index: 9999 !important;
+        top: 85%;
         left: 45%;
         text-align: center;
     ">
+    <div class="seal">
 
         <!-- Stamp Image -->
         <img

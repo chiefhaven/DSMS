@@ -1,22 +1,21 @@
-<div class="stamp-container">
-    <div class="stamp" style="
+<div class="stamp-container" style="
         position: absolute;
         z-index: 9999 !important;
-        top: 70%;
+        top: 76%;
         left: 60%;
         transform: translate(-60%, -50%) rotate(-15deg);
         text-align: center;
     ">
+    <div class="stamp" >
         <!-- Date -->
         <div style="
             position: absolute;
             top: 4.0%;
             left: 45%;
             transform: translate(-50%, -50%);
-            font-size: 10px;
+            font-size: 8px;
             font-weight: bold;
             color: #3a3d86;
-            padding: 2px 6px;
             border-radius: 3px;
         ">
             {{ now()->format('d M, Y') }}
@@ -26,7 +25,7 @@
         <img
             src="{{ public_path('images/sealsandstamps/daron-driving-school-stamp.png') }}"
             alt="Stamp"
-            style="width: 180px; height: auto;"
+            style="width: 150px; height: auto;"
         >
     </div>
 </div>
