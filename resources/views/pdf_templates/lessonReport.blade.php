@@ -27,12 +27,23 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td style="border: solid #ffffff00; text-align:left; padding-left: 0px !important;">
-                                Name of Student: {{$student->fname}} {{$student->mname}} {{$student->sname}}<br>
-                                Address: {{$student->address}}<br>
-                            </td>
-                            <td style="border: solid #ffffff00;" valign="top">Phone: {{$student->phone}}</td>
-                        </tr>
+    <td style="border: none; text-align: left; padding-left: 0;">
+        <strong>Student:</strong> {{ $student->fname }} {{ $student->mname }} {{ $student->sname }}<br>
+
+        <strong>Address:</strong> {{ $student->address }}<br>
+
+        <strong>Attendances:</strong>
+        {{ $student->attendance->count() }}
+        of
+        {{ optional($student->course)->lessons->count() ?? 0 }} lessons<br>
+
+        <strong>Course:</strong> {{ optional($student->course)->name ?? 'N/A' }}<br>
+    </td>
+
+    <td style="border: none;" valign="top">
+        <strong>Phone:</strong> {{ $student->phone }}
+    </td>
+</tr>
                     </tbody>
                 </table>
             </div>
