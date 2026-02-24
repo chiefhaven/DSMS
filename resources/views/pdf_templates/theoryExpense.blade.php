@@ -24,7 +24,7 @@
             <th class="invoice-td">Code</th>
             <th class="invoice-td">Highway code I</th>
             <th class="invoice-td">Highway code II</th>
-            <th class="invoice-td">Results</th>
+            <th class="invoice-td">Remarks</th>
 
         </thead>
         <tbody>

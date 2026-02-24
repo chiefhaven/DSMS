@@ -24,7 +24,7 @@
                 <th class="invoice-td">Code</th>
                 <th class="invoice-td">TRN</th>
                 <th class="invoice-td">Veihcle Reg Number</th>
-                <th class="invoice-td">Results</th>
+                <th class="invoice-td">Remarks</th>
             </thead>
             <tbody>
                 @foreach ($expense->students as $student)
