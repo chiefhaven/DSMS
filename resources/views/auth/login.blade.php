@@ -10,6 +10,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 2rem;
     background: rgb(2, 2, 92);
     color: white;
 }
