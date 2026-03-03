@@ -45,6 +45,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 2rem;
     background-color: #f3f4f6; /* Moved from inline style */
 }
 
