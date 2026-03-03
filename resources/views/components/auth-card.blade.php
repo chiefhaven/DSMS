@@ -6,7 +6,7 @@
     <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg">
         {{ $slot }}
     </div>
-    <div style="color:aliceblue; text-align:center">
+    <div style="color:rgb(145, 145, 145); text-align:center; font-size:0.8rem; margin-top:1rem;">
         <p>&nbsp;</p>
         <p class="sm:center">
             Powered by {{ config('app.name') }} {{config('version.tag')}}.
