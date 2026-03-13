@@ -43,64 +43,150 @@ class AuthController extends Controller
 
     public function login(Request $request, RateLimiter $rateLimiter)
     {
-        $key = 'login-attempts:' . $request->ip();
+        // Use a more specific rate limit key that includes identifier
+        $key = 'login-attempts:' . $request->ip() . ':' . md5($request->login ?? '');
 
-        // Rate limiting
+        // Rate limiting - check before validation to prevent resource waste
         if ($rateLimiter->tooManyAttempts($key, 5)) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Too many login attempts. Please try again later.',
-            ], 429);
+            return $this->sendErrorResponse(
+                'Too many login attempts. Please try again in ' .
+                $rateLimiter->availableIn($key) . ' seconds.',
+                429
+            );
         }
 
-        // Validation
+        // Validation with better field names
         $validator = Validator::make($request->all(), [
             'login' => 'required|string|max:255',
-            'password' => 'required|string|min:6',
+            'password' => 'required|string|min:8', // Increased min length for better security
         ], [
-            'login.required' => 'Enter Email or Phone.',
-            'password.required' => 'The password field is required.',
+            'login.required' => 'Email or phone number is required.',
+            'password.required' => 'Password is required.',
+            'password.min' => 'Password must be at least 8 characters.',
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'errors' => $validator->errors(),
-            ], 422);
+            return $this->sendErrorResponse(
+                'Validation failed',
+                422,
+                $validator->errors()
+            );
         }
 
-        $loginInput = $request->login;
-        $user = null;
+        $loginInput = trim($request->login);
+        $user = $this->findUserByLogin($loginInput);
 
-        // Determine if login is email or phone
-        if (filter_var($loginInput, FILTER_VALIDATE_EMAIL)) {
-            // Login with email
-            $user = User::where('email', $loginInput)->first();
-        } else {
-            // Login with phone (students table)
-            $student = Student::where('phone', $loginInput)->first();
-            if ($student && $student->user) {
-                $user = $student->user;
-            }
-        }
-
-        // Check password
+        // Use constant-time comparison for password check
         if ($user && Hash::check($request->password, $user->password)) {
-            $token = $user->createToken('auth_token');
+            // Check if user is active/verified
+            if (!$this->isUserActive($user)) {
+                return $this->sendErrorResponse(
+                    'Account is not active or verified.',
+                    403
+                );
+            }
+
+            // Clear rate limiter on successful login
             $rateLimiter->clear($key);
+
+            // Log successful login
+            Log::info('User logged in successfully', [
+                'user_id' => $user->id,
+                'ip' => $request->ip()
+            ]);
+
+            // Create token with abilities/scopes if needed
+            $token = $user->createToken(
+                'auth_token_' . $request->userAgent(),
+                ['basic-access'] // Add appropriate abilities
+            );
 
             return response()->json([
                 'status' => 'success',
-                'data' => ['token' => $token->plainTextToken],
+                'data' => [
+                    'token' => $token->plainTextToken,
+                    'token_type' => 'Bearer',
+                    'expires_in' => config('sanctum.expiration'),
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                    ]
+                ],
             ], 200);
         }
 
+        // Record failed attempt
         $rateLimiter->hit($key);
 
-        return response()->json([
+        // Log failed attempt
+        Log::warning('Failed login attempt', [
+            'login' => $loginInput,
+            'ip' => $request->ip(),
+            'user_agent' => $request->userAgent()
+        ]);
+
+        // Use generic message to prevent user enumeration
+        return $this->sendErrorResponse(
+            'The provided credentials are incorrect.',
+            401 // Use 401 Unauthorized for failed auth
+        );
+    }
+
+    /**
+     * Find user by email or phone
+     */
+    private function findUserByLogin($login)
+    {
+        if (filter_var($login, FILTER_VALIDATE_EMAIL)) {
+            return User::where('email', $login)->first();
+        }
+
+        // Validate phone format if needed
+        if ($this->isValidPhoneNumber($login)) {
+            $student = Student::where('phone', $login)
+                ->with('user')
+                ->first();
+
+            return $student ? $student->user : null;
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if phone number is valid
+     */
+    private function isValidPhoneNumber($phone)
+    {
+        // Add phone validation logic based on your requirements
+        return preg_match('/^[0-9+\-\s()]{10,15}$/', $phone);
+    }
+
+    /**
+     * Check if user account is active
+     */
+    private function isUserActive($user)
+    {
+        // Implement your account status logic
+        return !$user->is_banned && $user->email_verified_at !== null;
+    }
+
+    /**
+     * Send consistent error response
+     */
+    private function sendErrorResponse($message, $statusCode, $errors = null)
+    {
+        $response = [
             'status' => 'error',
-            'message' => 'Invalid login credentials.',
-        ], 422);
+            'message' => $message,
+        ];
+
+        if ($errors) {
+            $response['errors'] = $errors;
+        }
+
+        return response()->json($response, $statusCode);
     }
 
     // Handle Forgot Password Request
