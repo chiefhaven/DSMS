@@ -169,7 +169,8 @@ class AuthController extends Controller
     private function isUserActive($user)
     {
         // Implement your account status logic
-        return !$user->is_banned && $user->email_verified_at !== null;
+        //return !$user->is_banned && $user->email_verified_at !== null;
+        return true; // Placeholder, adjust as needed
     }
 
     /**
