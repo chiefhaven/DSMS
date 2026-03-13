@@ -559,23 +559,39 @@ class AttendanceController extends Controller
         return $attendanceCount;
     }
 
+    /**
+     * Check if enough time has passed since the last attendance
+     *
+     * @param int $instructorId
+     * @param Carbon $currentTime
+     * @return bool
+     */
     public function attendanceLatest($instructor_token, $now){
-        $attendance = Attendance::where('instructor_id', $instructor_token)->orderBy('attendance_date', 'desc')->first();
+    $attendance = Attendance::where('instructor_id', $instructor_token)
+        ->orderBy('attendance_date', 'desc')
+        ->first();
 
-        if(is_null($attendance)){
-            return true;
-        }
-
-        $latestAttendance = $attendance->attendance_date;
-
-        $timeDifference = $now->diffInMinutes($latestAttendance);
-
-        if($timeDifference > $this->setting->time_between_attendances){
-            return true;
-        }
-
-        return false;
+    if(is_null($attendance)){
+        return true;
     }
+
+    $latestAttendance = $attendance->attendance_date;
+
+    // Calculate minutes passed SINCE the last attendance
+    // Older date first, newer date second = positive difference
+    $timeDifference = $latestAttendance->diffInMinutes($now);
+
+    Log::info("Last attendance: " . $latestAttendance->format('Y-m-d H:i:s'));
+    Log::info("Current time: " . $now->format('Y-m-d H:i:s'));
+    Log::info("Minutes passed: " . $timeDifference);
+
+    // Check if enough time has passed
+    if($timeDifference > $this->setting->time_between_attendances){
+        return true; // Enough time passed, can take attendance
+    }
+
+    return false; // Too soon, cannot take attendance
+}
 
     public function attendanceSummary(Request $request, $id)
     {
