@@ -45,6 +45,7 @@ class AuthController extends Controller
     {
         $key = 'login-attempts:' . $request->ip();
 
+        // Rate limiting
         if ($rateLimiter->tooManyAttempts($key, 5)) {
             return response()->json([
                 'status' => 'error',
@@ -52,11 +53,12 @@ class AuthController extends Controller
             ], 429);
         }
 
+        // Validation
         $validator = Validator::make($request->all(), [
-            'email' => 'required|string|max:255',
+            'login' => 'required|string|max:255',
             'password' => 'required|string|min:6',
         ], [
-            'email.required' => 'The email field is required.',
+            'login.required' => 'Enter Email or Phone.',
             'password.required' => 'The password field is required.',
         ]);
 
@@ -67,8 +69,22 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $user = User::where('email', $request->email)->first();
+        $loginInput = $request->login;
+        $user = null;
 
+        // Determine if login is email or phone
+        if (filter_var($loginInput, FILTER_VALIDATE_EMAIL)) {
+            // Login with email
+            $user = User::where('email', $loginInput)->first();
+        } else {
+            // Login with phone (students table)
+            $student = Student::where('phone', $loginInput)->first();
+            if ($student && $student->user) {
+                $user = $student->user;
+            }
+        }
+
+        // Check password
         if ($user && Hash::check($request->password, $user->password)) {
             $token = $user->createToken('auth_token');
             $rateLimiter->clear($key);
@@ -80,9 +96,10 @@ class AuthController extends Controller
         }
 
         $rateLimiter->hit($key);
+
         return response()->json([
             'status' => 'error',
-            'message' => 'Invalid email address or password',
+            'message' => 'Invalid login credentials.',
         ], 422);
     }
 
