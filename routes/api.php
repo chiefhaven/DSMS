@@ -5,7 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\HomeController as ApiHomeController;
-use App\Http\Controllers\Api\invoiceController as ApiInvoiceController;
+use App\Http\Controllers\Api\InvoiceController as ApiInvoiceController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\MbiraStudentVersion;
@@ -43,7 +43,8 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('
 
 Route::post('/forgot-password', [AuthController::class, 'forgotPasswordReset'])->name('forgotPasswordReset.api'); //send password reset email
 
-Route::post('/otp', [AuthController::class, 'otp']);
+Route::post('/otp', [AuthController::class, 'otp'])->name('otp.api'); // Request OTP
+Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->name('verifyOtp.api'); // Verify OTP and login
 Route::post('login', [AuthController::class, 'login'])->name('login.api'); // Login
 
 Route::get('invoicesHome', [HomeController::class],'index')->middleware('auth');

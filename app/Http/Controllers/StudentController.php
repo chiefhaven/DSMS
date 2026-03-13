@@ -9,7 +9,6 @@ use App\Models\Student;
 use App\Models\Invoice;
 use App\Models\User;
 use App\Models\District;
-use App\Models\Attendance;
 use App\Models\Setting;
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\PdfStudentRequest;

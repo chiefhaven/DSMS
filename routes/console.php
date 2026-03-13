@@ -5,6 +5,9 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
+use Spatie\OneTimePasswords\Models\OneTimePassword;
+use Illuminate\Support\Facades\Schedule;
+use Illuminate\Support\Facades\DB;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,6 +23,10 @@ use Illuminate\Support\Facades\Auth;
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+
+Schedule::command('model:prune', [
+    '--model' => [OneTimePassword::class],
+])->daily();
 
 Artisan::command('pay:early-bonuses', function () {
     // Simulate an authenticated user with the superAdmin role

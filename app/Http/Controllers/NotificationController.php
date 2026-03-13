@@ -154,7 +154,7 @@ class NotificationController extends Controller
 
         $balance = (float) $invoice->invoice_balance;
 
-        // ✅ Check if balance is zero
+        // Check if balance is zero
         if ($balance <= 0) {
             Alert::toast('No outstanding balance to remind.', 'info');
             return back();

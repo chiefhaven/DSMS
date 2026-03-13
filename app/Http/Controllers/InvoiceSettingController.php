@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\invoice_setting;
 use App\Http\Requests\Storeinvoice_settingRequest;
+use App\Models\InvoiceSetting;
+use App\Http\Requests\StoreInvoiceSettingRequest;
 use App\Http\Requests\Updateinvoice_settingRequest;
+use App\Http\Requests\UpdateInvoiceSettingRequest;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class InvoiceSettingController extends Controller
@@ -32,7 +34,7 @@ class InvoiceSettingController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \App\Http\Requests\Storeinvoice_settingRequest  $request
+     * @param  \App\Http\Requests\StoreInvoiceSettingRequest  $request
      * @return \Illuminate\Http\Response
      */
     public function store(Storeinvoice_settingRequest $request)
@@ -43,10 +45,10 @@ class InvoiceSettingController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\invoice_setting  $invoice_setting
+     * @param  \App\Models\InvoiceSetting  $InvoiceSetting
      * @return \Illuminate\Http\Response
      */
-    public function show(invoice_setting $invoice_setting)
+    public function show(InvoiceSetting $InvoiceSetting)
     {
         //
     }
@@ -54,10 +56,10 @@ class InvoiceSettingController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\invoice_setting  $invoice_setting
+     * @param  \App\Models\InvoiceSetting  $InvoiceSetting
      * @return \Illuminate\Http\Response
      */
-    public function edit(invoice_setting $invoice_setting)
+    public function edit(InvoiceSetting $InvoiceSetting)
     {
         //
     }
@@ -65,16 +67,16 @@ class InvoiceSettingController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \App\Http\Requests\Updateinvoice_settingRequest  $request
-     * @param  \App\Models\invoice_setting  $invoice_setting
+     * @param  \App\Http\Requests\UpdateInvoiceSettingRequest  $request
+     * @param  \App\Models\InvoiceSetting  $InvoiceSetting
      * @return \Illuminate\Http\Response
      */
-    public function update(Updateinvoice_settingRequest $request, invoice_setting $invoice_setting)
+    public function update(Updateinvoice_settingRequest $request, InvoiceSetting $InvoiceSetting)
     {
 
         $post = $request->All();
 
-        $settings = Invoice_Setting::find(1);
+        $settings = InvoiceSetting::find(1);
 
         $settings->invoice_due_days = $post['due'];
         $settings->year = $post['year'];
@@ -94,10 +96,10 @@ class InvoiceSettingController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\invoice_setting  $invoice_setting
+     * @param  \App\Models\InvoiceSetting  $InvoiceSetting
      * @return \Illuminate\Http\Response
      */
-    public function destroy(invoice_setting $invoice_setting)
+    public function destroy(InvoiceSetting $InvoiceSetting)
     {
         //
     }

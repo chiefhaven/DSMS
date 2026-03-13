@@ -16,7 +16,9 @@ class Lesson extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
-    protected $richTextFields = ['lesson_contents'];
+    protected $richTextAttributes = [
+        'lesson_contents',
+    ];
     protected $appends = ['lesson_contents'];
 
     protected $fillable = [

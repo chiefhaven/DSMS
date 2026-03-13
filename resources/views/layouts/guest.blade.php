@@ -16,7 +16,8 @@
 
         <!-- Scripts -->
         <script src="{{ asset('js/app.js') }}" defer></script>
-        <x-rich-text-trix-styles />
+
+        <x-rich-text::styles theme="richtextlaravel" data-turbo-track="false" />
 
     </head>
     <body>

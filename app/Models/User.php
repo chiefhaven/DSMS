@@ -13,10 +13,11 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\OneTimePasswords\Models\Concerns\HasOneTimePasswords;
 
 class User extends Authenticatable
 {
-    use HasUuids, HasApiTokens, HasFactory, Notifiable, HasRoles, SoftDeletes, LogsActivity;
+    use HasUuids, HasApiTokens, HasFactory, Notifiable, HasRoles, SoftDeletes, LogsActivity, HasOneTimePasswords;
     protected $keyType = 'string'; // Ensure it's a string (UUID)
     public $incrementing = false; // Disable auto-incrementing
 

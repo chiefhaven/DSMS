@@ -6,7 +6,11 @@ use Illuminate\Cache\RateLimiter;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\NotificationController;
+use App\Models\Student;
+use App\Notifications\Channels\SmsChannel;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Password;
 
@@ -103,45 +107,113 @@ class AuthController extends Controller
     public function otp(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'phonenumber' => 'required|tel|exists:students,phone',
+            'phonenumber' => 'required|exists:students,phone',
         ]);
 
+        Log::info("OTP Request received for phone number: {$request->phonenumber}");
+
         if ($validator->fails()) {
-            return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
         }
 
-        $status = Password::sendResetLink($request->only('email'));
+        // Find student
+        $student = Student::where('phone', $request->phonenumber)->first();
 
-        return $status === Password::RESET_LINK_SENT
-            ? response()->json(['status' => 'success', 'message' => 'Password reset link sent.'])
-            : response()->json(['status' => 'error', 'message' => 'Unable to send reset link.'], 500);
+        if (!$student) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Student not found'
+            ], 404);
+        }
+
+        // Get related user
+        $user = $student->user;
+
+        if (!$user) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User account not found'
+            ], 404);
+        }
+
+        // Create OTP
+        $otp = $user->createOneTimePassword();
+
+
+        //Send SMS
+        $sms = new NotificationController();
+        Log::info("Sending OTP to {$student->phone}: {$otp->password}");
+        $sms->sendSMS("Your OTP is: {$otp->password}", $student->phone);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'OTP sent successfully'
+        ]);
+    }
+
+    public function verifyOtp(Request $request)
+    {
+        $request->validate([
+            'phonenumber' => 'required|exists:students,phone',
+            'otp' => 'required|string',
+        ]);
+
+        $user = Student::where('phone', $request->phonenumber)->first()->user;
+
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'User not found.'], 404);
+        }
+
+        try {
+            $result = $user->consumeOneTimePassword($request->otp);
+
+            if ($result) {
+                // OTP is valid, user can proceed
+                return response()->json(['status' => 'success', 'message' => 'OTP verified successfully.']);
+            } else {
+                // OTP invalid or expired
+                return response()->json(['status' => 'error', 'message' => 'OTP is invalid or expired.'], 422);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => 'Failed to verify OTP.'], 500);
+        }
     }
 
     // Handle Password Reset
     public function resetPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email|exists:users,email',
-            'token' => 'required',
-            'password' => 'required|string|min:6|confirmed',
+            'phonenumber' => 'required|exists:students,phone',
+            'password' => 'required|string|min:6|confirmed', // expects password_confirmation in request
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
         }
 
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) {
-                $user->forceFill([
-                    'password' => Hash::make($password),
-                ])->save();
-            }
-        );
+        // Get the user linked to the student
+        $student = Student::where('phone', $request->phonenumber)->first();
 
-        return $status === Password::PASSWORD_RESET
-            ? response()->json(['status' => 'success', 'message' => 'Password reset successful.'])
-            : response()->json(['status' => 'error', 'message' => 'Invalid token or email.'], 500);
+        if (!$student || !$student->user) {
+            return response()->json(['status' => 'error', 'message' => 'User not found.'], 404);
+        }
+
+        $user = $student->user;
+
+        // Update password
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Password reset successful.'
+        ]);
     }
 
 }

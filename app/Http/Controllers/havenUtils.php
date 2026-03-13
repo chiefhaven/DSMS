@@ -11,7 +11,7 @@
     use App\Models\Attendance;
     use App\Models\ExpenseTypeOption;
     use App\Models\PaymentMethod;
-    use App\Models\Invoice_Setting;
+    use App\Models\InvoiceSetting;
 use App\Models\licenceClass;
 use App\Models\TrainingLevel;
     use Carbon\Carbon;
@@ -220,7 +220,7 @@ class havenUtils extends Controller
     //Generate invoice number
     public static function generateInvoiceNumber(){
         // Fetch invoice settings once to avoid multiple queries
-        $invoiceSettings = Invoice_Setting::find(1);
+        $invoiceSettings = InvoiceSetting::find(1);
         $prefix = $invoiceSettings->prefix ?? 'Invoice';
         $useYear = $invoiceSettings->year ?? 0;
 
