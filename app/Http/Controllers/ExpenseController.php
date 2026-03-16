@@ -674,7 +674,8 @@ class ExpenseController extends Controller
         }
 
         $pdf = PDF::loadView($template, compact('expense', 'qrCode','setting', 'date'));
-        return $pdf->download('Daron Driving School-'.$expense->group.'-'.$expense->group_type.' Expense.pdf');
+        Log::info('Generated PDF for expense ID: ' . $expense->group);
+        return $pdf->download('Daron Driving School-'.$expense->id.'-'.$expense->group_type.' Expense.pdf');
     }
 
     public function expensePaymentReport(expense $expense){
