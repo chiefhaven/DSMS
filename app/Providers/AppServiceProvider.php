@@ -3,6 +3,7 @@
 namespace App\Providers;
 use Illuminate\Support\Facades\Schema;
 use App\Models\Sanctum\PersonalAccessToken;
+use App\Services\MbiraSyncService;
 use Laravel\Sanctum\Sanctum;
 
 
@@ -30,5 +31,6 @@ class AppServiceProvider extends ServiceProvider
         Schema::defaultStringLength(191);
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
         date_default_timezone_set('Africa/Blantyre');
+        $this->app->singleton(MbiraSyncService::class);
     }
 }

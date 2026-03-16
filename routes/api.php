@@ -16,6 +16,7 @@ use App\Http\Controllers\BulkAttendanceController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ExpensePaymentController;
 use App\Http\Controllers\ExpenseTypeController;
+use App\Http\Controllers\FleetTrackerController;
 use App\Http\Controllers\havenUtils;
 use App\Http\Controllers\InstructorPaymentController;
 use App\Http\Controllers\PaymentController;
@@ -139,3 +140,8 @@ Route::get('/licence-classes', [havenUtils::class, 'getLicenceClasses'])->name('
 
 Route::post('/sendAnnouncement', [AnnouncementController::class,'send'])->middleware('auth:sanctum')->name('sendAnnouncement');
 
+Route::prefix('mbirasync')->group(function () {
+    Route::get('/positions',                    [FleetTrackerController::class, 'index']);
+    Route::get('/positions/live',               [FleetTrackerController::class, 'live']);
+    Route::get('/positions/{deviceId}/history', [FleetTrackerController::class, 'history']);
+});

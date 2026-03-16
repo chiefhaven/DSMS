@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Auth;
 use Spatie\OneTimePasswords\Models\OneTimePassword;
 use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Facades\DB;
+use App\Jobs\SyncMbiraSyncPositions;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -50,3 +52,6 @@ Artisan::command('pay:early-bonuses', function () {
 
     Auth::logout(); // Log the user back out
 })->purpose('Trigger early bonus payments for instructors');
+
+
+Schedule::job(new SyncMbiraSyncPositions)->everyMinute();
