@@ -515,17 +515,19 @@ class InvoiceController extends Controller
 
     public function search(Request $request){
 
-        $invoices = Invoice::with('Student')
+        $query = Invoice::with('Student')
             ->where('invoice_number', 'like', '%' . request('search') . '%')
             ->orWhere('date_created', 'like', '%' . request('search') . '%')
             ->orwhereHas('Student', function($q){
                 $q->where('fname','like', '%' . request('search') . '%')
-                ->orwhere('mname','like', '%' . request('search') . '%')
-                ->orwhere('sname','like', '%' . request('search') . '%');})->paginate(10);
+            ->orwhere('mname','like', '%' . request('search') . '%')
+            ->orwhere('sname','like', '%' . request('search') . '%');});
 
         if ($request->has(['field', 'sortOrder']) && $request->field != null) {
-            $student->orderBy(request('field'), request('sortOrder'));
+            $query->orderBy(request('field'), request('sortOrder'));
         }
+
+        $invoices = $query->paginate(10);
 
         return view('invoices.invoices', compact('invoices'));
     }
