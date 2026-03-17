@@ -35,56 +35,76 @@
       <div class="block-content">
       <div class="row">
         @foreach ($courses as $course)
-        <div class="col-md-6 col-xl-3">
-            <div class="block block-rounded block-link-shadow text-center">
-                <div class="block-content block-content-full p-5">
-                    <i class="fa fa-fw fa-book fa-2xl text-large"></i>
+        <div class="col-md-6 col-xl-3 mb-4">
+            <div class="block block-rounded block-link-shadow h-100 d-flex flex-column">
+                <!-- Icon/Header -->
+                <div class="block-content text-center py-4">
+                    <i class="fa fa-book fa-2x text-primary"></i>
                 </div>
-                <div class="block-content block-content-full block-content-sm bg-body-light">
-                    <p class="font-w600 mb-0">{{$course->name}}</p>
-                    <p class="text-sm font-italic text-muted mb-0">
-                        {{$course->short_description}}
-                    </p>
-                    <p class="font-size-sm font-italic text-muted mt-3">
-                        {{$course->practical_count}} Practicals, {{$course->theory_count}} Theories.
-                    </p>
-                </div>
-                <div class="block-content block-content-full overflow-visible">
-                    <div class="row gutters-tiny">
-                        <div class="col-12">
-                            <p class="mb-2">
 
-                            </p>
-                            <p class="font-size-sm text-muted mb-0">
-                                Active students: <b>{{ $course->student()->where('status', '!=', 'Finished')->count() }}
-                                </b>
-                            </p>
+                <!-- Course Info -->
+                <div class="block-content text-center border-top border-bottom pb-3">
+                    <h5 class="mb-1 fw-bold">{{ $course->name }}</h5>
+                    <p class="text-muted small mb-2">
+                        {{ $course->short_description }}
+                    </p>
+                    <span class="badge bg-success me-1 m-1">
+                        {{ $course->practical_count }} Practicals
+                    </span>
+                    <span class="badge bg-info">
+                        {{ $course->theory_count }} Theories
+                    </span>
+                </div>
+
+                <!-- Students Stats -->
+                <div class="block-content py-3">
+                    <div class="d-flex justify-content-between text-center">
+                        <div class="flex-fill">
+                            <small class="text-muted d-block">Active</small>
+                            <span class="fw-bold text-success fs-5">
+                                {{ $course->active_students_count ?? $course->student()->where('status','!=','Finished')->count() }}
+                            </span>
                         </div>
-                        <div class="col-12 pt-3">
-                            <div class="dropdown d-inline-block">
-                                <button type="button" class="btn btn-primary" id="" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    Actions
-                                </button>
-                                <div class="dropdown-menu dropdown-menu-end p-0">
-                                <div class="p-2">
-                                    <a class="dropdown-item" href="{{ url('/view-course', $course->id) }}">
-                                    View
-                                    </a>
-                                    <form method="GET" action="{{ url('/edit-course', $course->id) }}">
-                                        {{ csrf_field() }}
-                                        <button class="dropdown-item" type="submit">Edit</button>
-                                    </form>
-                                    <form method="POST" action="{{ url('/delete-course', $course->id) }}">
-                                    {{ csrf_field() }}
-                                    {{ method_field('DELETE') }}
-                                    <button class="dropdown-item delete-confirm" onclick="return confirm('Are you sure you want to delete this course?');" type="submit">Delete</button>
-                                    </form>
-                                </div>
-                                </div>
-                            </div>
+
+                        <div class="flex-fill border-start">
+                            <small class="text-muted d-block">Total</small>
+                            <span class="fw-bold text-dark fs-5">
+                                {{ $course->total_students_count ?? $course->student()->count() }}
+                            </span>
                         </div>
                     </div>
                 </div>
+
+                <!-- Actions -->
+                <div class="block-content mt-auto text-center mb-2">
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-primary px-4" data-bs-toggle="dropdown">
+                            Actions
+                        </button>
+
+                        <div class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                            <a class="dropdown-item" href="{{ url('/view-course', $course->id) }}">
+                                <i class="fa fa-eye me-2 text-info"></i> View
+                            </a>
+
+                            <a class="dropdown-item" href="{{ url('/edit-course', $course->id) }}">
+                                <i class="fa fa-edit me-2 text-warning"></i> Edit
+                            </a>
+
+                            <div class="dropdown-divider"></div>
+
+                            <form method="POST" action="{{ url('/delete-course', $course->id) }}">
+                                @csrf
+                                @method('DELETE')
+                                <button class="dropdown-item text-danger delete-confirm"
+                                    onclick="return confirm('Are you sure you want to delete this course?');">
+                                    <i class="fa fa-trash me-2"></i> Delete
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
         @endforeach

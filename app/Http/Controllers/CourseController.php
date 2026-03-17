@@ -11,6 +11,7 @@ use RealRashid\SweetAlert\Facades\Alert;
 use App\Enums\ServerStatus;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
+use Mpdf\Tag\A;
 
 class CourseController extends Controller
 {
@@ -264,20 +265,19 @@ class CourseController extends Controller
      */
     public function destroy($id)
     {
-        $studentlist = Student::where('course_id', $id)->get();
+        $studentlist = Student::where('course_id', $id)->where('status', '!=', 'Finished')->get();
         $studentCount = $studentlist->count();
 
-        if($studentCount >= 1){
+        if($studentCount > 0){
 
-            $message ="There are students enrolled to this course, delete them first";
+            Alert::toast('There are active students enrolled to this course, delete them first', 'error');
         }
-
         else{
 
             Course::find($id)->delete();
-            $message ="Course deleted";
+            Alert::toast('Course deleted successifully', 'success');
         }
 
-        return redirect('/courses')->with('message', $message);
+        return redirect('/courses');
     }
 }
