@@ -604,7 +604,7 @@ private function handleInstructorAssignmentForStore(Fleet $fleet, string $instru
                 'category' => 'vehicle',
                 'attributes' => [
                     'registration_number' => $data['reg_number'],
-                    'instructor_id' => $data['instructor'],
+                    'instructor_id' => $data['instructor'] ?? null,
                     'created_by' => Auth::user()->id,
                     'created_at' => now()->toDateTimeString()
                 ]
