@@ -192,6 +192,9 @@ Route::post('/storefleet', [FleetController::class, 'store'])->middleware('auth'
 Route::get('/editfleet/{id}', [FleetController::class, 'edit'])->middleware('auth')->name('editfleet');
 Route::post('/updatefleet', [FleetController::class, 'update'])->middleware('auth')->name('updatefleet');
 Route::delete('/deletefleet/{id}', [FleetController::class, 'destroy'])->middleware('auth')->name('deletefleet');
+Route::put('/fleet/{fleet}', [FleetController::class, 'update'])->name('fleet.update');
+Route::resource('fleet', FleetController::class);
+
 
 Route::get("/track-fleet", function(){
     return view("fleet.track-fleet");
