@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\FleetTracker;
 use App\Http\Requests\StoreFleetTrackerRequest;
 use App\Http\Requests\UpdateFleetTrackerRequest;
-use App\Models\Fleet;
 use App\Services\MbiraSyncService;
 use Illuminate\Http\JsonResponse;
 

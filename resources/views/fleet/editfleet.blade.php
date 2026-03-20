@@ -33,13 +33,17 @@
                   @csrf
                   <input type="text" class="form-control" id="id" name="id" value="{{$fleet->id}}" required hidden>
               <div class="row">
-                  <div class="col-6 form-floating mb-4">
+                  <div class="col-4 form-floating mb-4">
                       <input type="text" class="form-control" id="car_brand_model" name="car_brand_model" value="{{$fleet->car_brand_model}}" required>
                       <label class="px-4" for="car_brand_model">Car brand/Model</label>
                   </div>
-                  <div class="col-6 form-floating mb-4">
+                  <div class="col-4 form-floating mb-4">
                       <input type="text" class="form-control" id="reg_number" name="reg_number" value="{{$fleet->car_registration_number}}" required>
                       <label class="px-4" for="car_registration_number">Car number plate</label>
+                  </div>
+                  <div class="col-4 form-floating mb-4">
+                      <input type="text" class="form-control" id="tracker_device_id" name="tracker_device_id" value="{{$fleet->tracker_unique_id}}" required>
+                      <label class="px-4" for="tracker_device_id">Tracking device ID</label>
                   </div>
               </div>
               <div class="form-floating mb-4">

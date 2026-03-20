@@ -184,7 +184,7 @@
           };
 
           const updateRoute = () => {
-            axios.get(`/api/show-vehicle-geo-data/${vehicleId}`)
+            axios.get(`/show-vehicle-geo-data/${vehicleId}`)
               .then(res => {
                 const points = res.data.map(p => ({
                   lat: p.latitude,

@@ -8,16 +8,11 @@ use App\Models\Student;
 use App\Http\Requests\StoreFleetRequest;
 use App\Http\Requests\UpdateFleetRequest;
 use App\Models\licenceClass;
-use Session;
-use Illuminate\Support\Str;
-use PDF;
-use Illuminate\Foundation\Auth\RegistersUsers;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 use RealRashid\SweetAlert\Facades\Alert;
-use App\Models\Permission;
-use App\Models\Role;
+use App\Services\MbiraSyncService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Auth;
 
 class FleetController extends Controller
 {
@@ -77,63 +72,135 @@ class FleetController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(StoreFleetRequest $request)
-    {
-        $messages = [
-            'car_brand_model.required' => 'The "car name/brand" field is required!',
-            'reg_number.required'   => 'The "car number plate" field is should be unique!',
-            'licenceClass.required' => 'Licence class is required',
-        ];
+{
+    $messages = [
+        'car_brand_model.required' => 'The "car name/brand" field is required!',
+        'reg_number.required' => 'The "car number plate" field is required!',
+        'reg_number.unique' => 'This car number plate is already registered!',
+        'licenceClass.required' => 'Licence class is required',
+    ];
 
-        // Validate the request
-        $this->validate($request, [
-            'car_brand_model'  =>'required',
-            'licenceClass' =>'required',
-            'reg_number' =>'required'
+    // Validate the request
+    $this->validate($request, [
+        'car_brand_model' => 'required|string|max:255',
+        'licenceClass' => 'required|exists:licence_classes,id',
+        'reg_number' => 'required|string|unique:fleets,car_registration_number|max:20',
+        'tracker_device_id' => 'nullable|string|unique:fleets,tracker_device_id|max:50',
+        'instructor' => 'required|exists:instructors,id',
+        'fleet_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'car_description' => 'nullable|string|max:1000',
+        'group_id' => 'nullable|integer'
+    ], $messages);
 
-        ], $messages);
+    $post = $request->all();
+    $trackingResult = null;
+    $traccarDeviceId = null;
 
-        $post = $request->All();
+    // Handle tracking device creation if tracker_device_id is provided
+    if(isset($post['tracker_device_id']) && !empty($post['tracker_device_id'])){
+        try {
+            // Initialize the service
+            $mbiraSyncService = new MbiraSyncService();
 
-        $fleet = new fleet;
+            // Prepare device data matching Traccar payload structure
+            $deviceData = [
+                'name' => $post['car_brand_model'] . ' - ' . $post['reg_number'],
+                'unique_id' => $post['tracker_device_id'], // This maps to uniqueId
+                'status' => 'active',
+                'disabled' => false,
+                'group_id' => $post['group_id'] ?? 1,
+                'phone' => $post['contact_phone'] ?? '',
+                'model' => $post['car_brand_model'],
+                'contact' => '',
+                'category' => 'vehicle',
+                'attributes' => [
+                    'registration_number' => $post['reg_number'],
+                    'instructor_id' => $post['instructor'],
+                    'created_by' => Auth::user()->id,
+                    'created_at' => now()->toDateTimeString()
+                ]
+            ];
 
-        //car image processing
-        if($request->file('fleet_image')){
-            $carImageName = time().'-'.$request->file('fleet_image')->getClientOriginalName();
-            $request->fleet_image->move(public_path('media/fleet'), $carImageName);
-            $fleet->fleet_image = $carImageName;
-        }
+            // Call createDevice with the prepared data
+            $trackingResult = $mbiraSyncService->createDevice($deviceData);
 
-        else{
-
-            $fleet->fleet_image = 'driving-school-car-default.png';
-        }
-
-        if (!empty($post['instructor'])) {
-            $instructor = Instructor::find($post['instructor']);
-
-            if (!$instructor) {
-                return redirect()->back()->withErrors(['instructor' => 'Selected instructor not found.']);
+            // Check if device creation failed
+            if (!$trackingResult) {
+                return redirect()->back()
+                    ->withErrors(['tracker_device_id' => 'Failed to create tracking device. Please check if the device ID is valid.'])
+                    ->withInput();
             }
 
-            if ($instructor->status === 'Suspended' || $instructor->status == 0) {
-                return redirect()->back()->withErrors(['instructor' => 'The selected instructor is suspended or unavailable.']);
-            }
+            // Extract the Traccar device ID from the response
+            $traccarDeviceId = $trackingResult['id'] ?? null;
 
-            $fleet->instructor_id = $instructor->id;
-        } else {
-            return redirect()->back()->withErrors(['instructor' => 'Please select an instructor.']);
+            // Log success
+            Log::info('Tracking device created successfully', [
+                'device_id' => $post['tracker_device_id'],
+                'traccar_id' => $traccarDeviceId,
+                'response' => $trackingResult
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Tracking device creation failed', [
+                'error' => $e->getMessage(),
+                'device_id' => $post['tracker_device_id']
+            ]);
+
+            return redirect()->back()
+                ->withErrors(['tracker_device_id' => 'Error creating tracking device: ' . $e->getMessage()])
+                ->withInput();
         }
-
-
-        $fleet->car_brand_model = $post['car_brand_model'];
-        $fleet->licence_class_id = $post['licenceClass'];
-        $fleet->car_registration_number = $post['reg_number'];
-        $fleet->car_description = $post['car_description'];
-
-        $fleet->save();
-
-        return redirect()->back()->with('message', 'car added to fleet!');
     }
+
+    // Create new fleet record
+    $fleet = new Fleet();
+
+    // Car image processing
+    if($request->file('fleet_image')){
+        $carImageName = time() . '-' . $request->file('fleet_image')->getClientOriginalName();
+        $request->fleet_image->move(public_path('media/fleet'), $carImageName);
+        $fleet->fleet_image = $carImageName;
+    } else {
+        $fleet->fleet_image = 'driving-school-car-default.png';
+    }
+
+    // Get instructor
+    $instructor = Instructor::findOrFail($post['instructor']);
+
+    // Check instructor status
+    if ($instructor->status === 'Suspended' || $instructor->status == 0) {
+        return redirect()->back()
+            ->withErrors(['instructor' => 'The selected instructor is suspended or unavailable.'])
+            ->withInput();
+    }
+
+    // Assign all fleet data
+    $fleet->instructor_id = $instructor->id;
+    $fleet->car_brand_model = $post['car_brand_model'];
+    $fleet->licence_class_id = $post['licenceClass'];
+    $fleet->car_registration_number = $post['reg_number'];
+    $fleet->car_description = $post['car_description'] ?? '';
+
+    // Store tracking device information if available
+    if ($trackingResult) {
+        $fleet->tracker_device_id = $traccarDeviceId;
+        $fleet->tracker_unique_id = $post['tracker_device_id'];
+        // $fleet->traccar_device_id = $traccarDeviceId;
+        // $fleet->tracking_device_data = json_encode($trackingResult);
+        // $fleet->has_tracking = true;
+        // $fleet->tracking_status = $trackingResult['status'] ?? 'active';
+        // $fleet->last_tracking_update = now();
+    }
+
+    // Save the fleet record
+    $fleet->save();
+
+    // Prepare success message
+    $message = 'Car added to fleet successfully!';
+
+    return redirect()->back()->with('message', $message);
+}
 
     /**
      * Display the specified resource.

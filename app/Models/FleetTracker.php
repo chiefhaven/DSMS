@@ -23,4 +23,9 @@ class FleetTracker extends Model
         'fix_time'    => 'datetime',
         'valid'       => 'boolean',
     ];
+
+    public function Fleet()
+    {
+       return $this->belongsTo(Fleet::class, 'device_id', 'tracker_device_id');
+    }
 }

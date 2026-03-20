@@ -33,6 +33,11 @@ class Fleet extends Model
        return $this->hasMany(VehicleTracker::class);
     }
 
+    public function FleetTracker()
+    {
+       return $this->hasMany(FleetTracker::class, 'device_id', 'tracker_device_id');
+    }
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()

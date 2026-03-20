@@ -5,7 +5,7 @@
   <div class="bg-body-light">
     <div class="content content-full">
       <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
-        <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Vehicle location</h1>
+        <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Fleet location</h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
           <ol class="breadcrumb">
             <div class="dropdown d-inline-block">
@@ -23,54 +23,134 @@
     </div>
 </div>
 <script setup>
+const vehicleLocation = createApp({
+  setup() {
+    let map;
+    const markers = {};
+    let intervalId;
+    let hasFittedBounds = false;
 
-    const vehicleLocation = createApp({
-      setup() {
-        let map;
-        const markers = {};
+    // Create custom marker icon
+    const createCustomIcon = (color = 'blue') => {
+      return L.divIcon({
+        className: 'custom-marker',
+        html: `<div style="
+          background-color: ${color};
+          width: 24px;
+          height: 24px;
+          border-radius: 50% 50% 50% 0;
+          transform: rotate(-45deg);
+          border: 2px solid white;
+          box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        "></div>`,
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
+        popupAnchor: [0, -12]
+      });
+    };
 
-        const initMap = () => {
-          // Use a neutral default center
-          map = L.map('vehicleLocation').setView([-13.9626, 33.7741], 12);
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-        };
+    // Determine marker color based on vehicle state
+    const getVehicleColor = (item) => {
+      if (item.status === 'offline') return 'gray';
+      if (item.speed && item.speed > 0) return 'green';
+      return 'blue';
+    };
 
-        const updateLocations = () => {
-          axios.get('/api/get-all-vehicle-locations').then(res => {
-            const data = res.data;
-            const bounds = [];
+    // Initialize map
+    const initMap = () => {
+      map = L.map('vehicleLocation').setView([-13.9626, 33.7741], 12);
 
-            data.forEach(item => {
-              const latLng = [item.latitude, item.longitude];
-              bounds.push(latLng);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+    };
 
-              if (markers[item.fleet]) {
-                // Update existing marker
-                markers[item.fleet].setLatLng(latLng);
-              } else {
-                markers[item.fleet] = L.marker(latLng)
-                .addTo(map)
-                .bindPopup(`<strong>${item.registration_number || item.fleet.car_brand_model}</strong><br>${item.registration_number || item.fleet.car_registration_number}`)
-                .openPopup();
-              }
-            });
+    // Update vehicle locations
+    const updateLocations = async () => {
+      try {
+        const res = await axios.get('/get-all-vehicle-locations');
+        const data = res.data;
 
+        const bounds = [];
+        const currentVehicles = new Set();
 
-          }).catch(err => {
-            console.error('Error fetching vehicle locations:', err);
-          });
-        };
+        data.forEach(item => {
+          if (!item.latitude || !item.longitude || !item.fleet) return;
 
-        onMounted(() => {
-          initMap();
-          updateLocations();
-          setInterval(updateLocations, 2000); // Update every 2 seconds
+          const fleetId = item.fleet.id;
+          if (!fleetId) return;
+
+          const latLng = [
+            parseFloat(item.latitude),
+            parseFloat(item.longitude)
+          ];
+
+          bounds.push(latLng);
+          currentVehicles.add(fleetId);
+
+          const displayName =
+            item.registration_number ||
+            item.fleet.car_brand_model ||
+            'Unknown Vehicle';
+
+          const regNumber =
+            item.fleet.car_registration_number || '';
+
+          const color = getVehicleColor(item);
+
+          // Update existing marker
+          if (markers[fleetId]) {
+            markers[fleetId].setLatLng(latLng);
+          } else {
+            // Create new marker
+            const marker = L.marker(latLng).addTo(map);
+
+            marker.bindPopup(`
+              <strong>${displayName}</strong><br>
+              Reg: ${regNumber}<br>
+              Speed: ${item.speed ?? 'N/A'} km/h<br>
+            `);
+
+            markers[fleetId] = marker;
+          }
         });
 
-        return {};
+        // Remove old markers
+        Object.keys(markers).forEach(fleetId => {
+          if (!currentVehicles.has(parseInt(fleetId))) {
+            map.removeLayer(markers[fleetId]);
+            delete markers[fleetId];
+          }
+        });
+
+        // Fit bounds ONLY once
+        if (bounds.length > 0 && !hasFittedBounds) {
+          map.fitBounds(bounds, { padding: [50, 50] });
+          hasFittedBounds = true;
+        }
+
+      } catch (err) {
+        console.error('Error fetching vehicle locations:', err);
       }
+    };
+
+    onMounted(() => {
+      initMap();
+      updateLocations();
+
+      // Poll every 5 seconds (better performance)
+      intervalId = setInterval(updateLocations, 5000);
     });
 
-    vehicleLocation.mount('#vehicleLocation');
+    onUnmounted(() => {
+      if (intervalId) clearInterval(intervalId);
+      if (map) map.remove();
+    });
+
+    return {};
+  }
+});
+
+vehicleLocation.mount('#vehicleLocation');
 </script>
 @endsection

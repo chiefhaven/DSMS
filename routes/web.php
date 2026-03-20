@@ -26,6 +26,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\RoleDispatcherController;
 use App\Http\Controllers\ScheduleLessonController;
 use App\Http\Controllers\BulkAttendanceController;
+use App\Http\Controllers\VehicleTrackerController;
 use App\Models\expense;
 use Illuminate\Support\Facades\Artisan;
 
@@ -53,6 +54,7 @@ Route::post('/update-notification-templates/{template}', [NotificationTemplateCo
 
 
 Route::get('/students', [StudentController::class, 'index'])->middleware('auth')->name('students');
+Route::get('/fetch-students', [StudentController::class, 'fetchStudents'])->name('students')->middleware('auth')->name('students');
 Route::get('/finished-students', [StudentController::class, 'index'])->middleware('auth')->name('students');
 Route::get('/viewstudent/{id}', [StudentController::class, 'show'])->middleware('auth')->name('viewStudent');
 Route::get('/addstudent', [StudentController::class, 'create'])->middleware('auth')->name('addstudent');
@@ -286,6 +288,11 @@ Route::get("/scanqrcode", function(){
 
 Route::get('/lesson-search', [havenUtils::class, 'autocompleteLessonSearch'])->middleware('auth')->name('lesson-search');
 Route::post('/check-class-fleet-assignment', [havenUtils::class, 'checkInstructorClassFleetAssignment'])->middleware('auth')->name('check-class-fleet-assignment');
+
+Route::get('/get-all-vehicle-locations', [VehicleTrackerController::class, 'show'])->name('vehicle-locations')->middleware('auth');
+
+Route::get('/show-vehicle-geo-data/{vehicleId}', [VehicleTrackerController::class, 'showVehicleGeoData'])->name('vehicle-location')->middleware('auth');
+
 
 Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index')->middleware('auth');
 Route::get('/load-notifications', [NotificationController::class, 'loadNotifications'])->name('notifications.loadNotications')->middleware('auth');

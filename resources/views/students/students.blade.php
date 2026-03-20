@@ -290,7 +290,7 @@
                     try {
                         const csrfToken = $('meta[name="csrf-token"]').attr('content');
                         axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
-                        const response = await axios.get('/api/students', {
+                        const response = await axios.get('/fetch-students', {
                             params: { ...data, status: status.value },
                             withCredentials: true,
                             headers: {

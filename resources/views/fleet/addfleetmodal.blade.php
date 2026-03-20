@@ -17,7 +17,7 @@
                         @csrf
                         <div class="row g-3">
                             <!-- Vehicle Details -->
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="form-floating mb-4">
                                     <input type="text" class="form-control" id="car_brand_model" name="car_brand_model" required>
                                     <label for="car_brand_model" class="form-label">Brand & Model</label>
@@ -25,11 +25,19 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="form-floating mb-4">
                                     <input type="text" class="form-control" id="reg_number" name="reg_number" required>
-                                    <label for="reg_number" class="form-label">License Plate</label>
+                                    <label for="reg_number" class="form-label">License Plate Number</label>
                                     <div class="invalid-feedback">Please enter a valid license plate</div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-floating mb-4">
+                                    <input type="text" class="form-control" id="tracker_device_id" name="tracker_device_id" required>
+                                    <label for="tracker_device_id" class="form-label">Tracking device ID</label>
+                                    <div class="invalid-feedback">Please enter a valid tracking device ID</div>
                                 </div>
                             </div>
 

@@ -825,7 +825,7 @@
         instructor.mount('#instructor');
     </script>
     <script>
-        
+
     </script>
 
 @endsection

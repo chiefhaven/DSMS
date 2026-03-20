@@ -6,6 +6,7 @@ use App\Models\VehicleTracker;
 use App\Http\Requests\StoreVehicleTrackerRequest;
 use App\Http\Requests\UpdateVehicleTrackerRequest;
 use App\Models\Fleet;
+use App\Models\FleetTracker;
 use Auth;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -77,11 +78,11 @@ class VehicleTrackerController extends Controller
      * @param  \App\Models\VehicleTracker  $vehicleTracker
      * @return \Illuminate\Http\Response
      */
-    public function show(VehicleTracker $vehicleTracker)
+    public function show(FleetTracker $fleetTracker)
     {
-        $locations = VehicleTracker::select('fleet_id', 'latitude', 'longitude', DB::raw('MAX(created_at) as latest_time'))
+        $locations = FleetTracker::select('device_id', 'latitude', 'longitude', 'speed', DB::raw('MAX(created_at) as latest_time'))
         ->whereDate('created_at', Carbon::today())
-        ->groupBy('fleet_id', 'latitude', 'longitude')->with('fleet')
+        ->groupBy('device_id', 'latitude', 'longitude', 'speed')->with('fleet')
         ->get();
 
         return response()->json($locations);
@@ -123,8 +124,9 @@ class VehicleTrackerController extends Controller
 
     public function showVehicleGeoData($vehicleId)
     {
-        $dataPoints = VehicleTracker::with('fleet')
-            ->where('fleet_id', $vehicleId)
+        $deviceId = Fleet::where('id', $vehicleId)->value('tracker_device_id');
+        $dataPoints = FleetTracker::with('fleet')
+            ->where('device_id', $deviceId)
             ->whereDate('created_at', Carbon::today())
             ->orderBy('created_at', 'asc')
             ->get([
