@@ -720,7 +720,7 @@ class ExpenseController extends Controller
             $typeName = $expensegroupTypeNames[$expense->group_type] ?? 'Daron';
 
             return $pdf->download(
-                $expense->group . ' - ' . $typeName . ' Expense Payment Report - Daron Driving School.pdf'
+                $expense->id . ' - ' . $typeName . ' Expense Payment Report - Daron Driving School.pdf'
             );
     }
 
