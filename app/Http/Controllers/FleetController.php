@@ -594,20 +594,15 @@ private function handleInstructorAssignmentForStore(Fleet $fleet, string $instru
             // Prepare device data matching Traccar payload structure
             $deviceData = [
                 'name' => $data['car_brand_model'] . ' - ' . $data['reg_number'],
-                'unique_id' => $data['tracker_device_id'],
+                'uniqueId' => $data['tracker_device_id'],
                 'status' => 'active',
                 'disabled' => false,
-                'group_id' => $data['group_id'] ?? 1,
+                'groupId' => $data['group_id'] ?? 1,
                 'phone' => $data['contact_phone'] ?? '',
                 'model' => $data['car_brand_model'],
                 'contact' => '',
                 'category' => 'vehicle',
-                'attributes' => [
-                    'registration_number' => $data['reg_number'],
-                    'instructor_id' => $data['instructor'] ?? null,
-                    'created_by' => Auth::user()->id,
-                    'created_at' => now()->toDateTimeString()
-                ]
+                'attributes' => [],
             ];
 
             if ($fleet->tracker_device_id) {
