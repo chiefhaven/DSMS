@@ -108,7 +108,7 @@
 
             <div class="form-floating mb-4">
                 <select class="form-select @error('instructor') is-invalid @enderror"
-                        id="instructor" name="instructor" required>
+                        id="instructor" name="instructor">
                     <option value="">Select Instructor</option>
                     @foreach ($instructors as $instructor)
                         <option value="{{ $instructor->id }}"
