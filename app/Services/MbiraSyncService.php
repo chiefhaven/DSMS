@@ -90,7 +90,7 @@ class MbiraSyncService
                 'model' => $data['model'] ?? '',
                 'contact' => $data['contact'] ?? '',
                 'category' => $data['category'] ?? 'vehicle',
-                'attributes' => $data['attributes'] ?? (object)[]
+                'attributes' => (object)$data['attributes'] ?? (object)[]
             ];
 
             Log::info('Sending payload to MbiraSync:', $payload);
@@ -142,7 +142,7 @@ class MbiraSyncService
                 'model' => $data['model'] ?? '',
                 'contact' => $data['contact'] ?? '',
                 'category' => $data['category'] ?? 'vehicle',
-                'attributes' => $data['attributes'] ?? (object)[]
+                'attributes' => (object)$data['attributes'] ?? (object)[]
             ];
 
             $response = Http::withToken($this->token)
