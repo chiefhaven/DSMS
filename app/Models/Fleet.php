@@ -13,6 +13,13 @@ class Fleet extends Model
 {
     use HasFactory, LogsActivity;
 
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
+    public $timestamps = true;
+
     public function Instructor()
     {
         return $this->belongsTo(Instructor::class);

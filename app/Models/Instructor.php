@@ -16,8 +16,8 @@ use Spatie\Permission\Traits\HasRoles;
 class Instructor extends Model
 {
     use Notifiable, HasUuids, HasFactory, LogsActivity, SoftDeletes;
-    protected $keyType = 'string';
     public $incrementing = false;
+    protected $keyType = 'string';
 
     protected static function boot()
     {

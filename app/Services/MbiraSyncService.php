@@ -102,7 +102,7 @@ class MbiraSyncService
                 ])
                 ->post($this->baseUrl . '/api/devices', $payload);
 
-            if ($response->successful()) {
+            if ($response->status() === 200) {
                 $responseData = $response->json();
                 Log::info('MbiraSync device created successfully', ['response' => $responseData]);
                 return $responseData;
