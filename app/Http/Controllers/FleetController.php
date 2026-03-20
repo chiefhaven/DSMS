@@ -398,7 +398,6 @@ private function handleInstructorAssignmentForStore(Fleet $fleet, string $instru
         $messages = [
             'car_brand_model.required' => 'The "car name/brand" field is required!',
             'reg_number.required' => 'The "car number plate" field is required!',
-            'instructor.required' => 'The "instructor" field is required!',
             'licenceClass.required' => 'Licence class is required',
             'tracker_device_id.unique' => 'The tracker device ID is already in use.',
             'fleet_image.mimes' => 'The fleet image must be a file of type: jpeg, png, jpg, gif.',
@@ -409,7 +408,7 @@ private function handleInstructorAssignmentForStore(Fleet $fleet, string $instru
         $validatedData = $request->validate([
             'car_brand_model' => 'required|string|max:255',
             'reg_number' => 'required|string|max:50',
-            'instructor' => 'required|exists:instructors,id',
+            'instructor' => 'nullable|exists:instructors,id',
             'licenceClass' => 'required|exists:licence_classes,id',
             'tracker_device_id' => 'nullable|string|unique:fleets,tracker_device_id,' . $fleet->id . '|max:50',
             'fleet_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
