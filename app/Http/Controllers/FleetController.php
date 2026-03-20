@@ -470,7 +470,9 @@ private function handleInstructorAssignmentForStore(Fleet $fleet, string $instru
             }
 
             // Handle instructor assignment logic
-            $this->handleInstructorAssignmentForUpdate($fleet, $validatedData['instructor'], $message, $previousVehicle);
+            if($validatedData['instructor']) {
+                 $this->handleInstructorAssignmentForUpdate($fleet, $validatedData['instructor'], $message, $previousVehicle);
+            }
 
             // Update fleet details
             $fleet->car_brand_model = $validatedData['car_brand_model'];
