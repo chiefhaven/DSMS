@@ -92,7 +92,9 @@
                           </table>
                         </div>
                         <p class="text-muted text-center my-5">
-                          Thank you for doing business with us.
+                            <strong>Thank you for choosing {{$setting->school_name}}.</strong><br>
+                            We appreciate your trust in our services.<br>
+                            <span class="text-danger">Note:</span> Fees once paid are non-refundable.
                         </p>
                       </div>
                 </div>
