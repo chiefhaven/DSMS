@@ -459,14 +459,26 @@ class InstructorController extends Controller
         $instructor->date_of_birth = $post['date_of_birth'];
         $instructor->district_id = $district;
         if ($instructor->department_id != $post['department']) {
-            if($instructor->fleet){
-                $instructor->fleet->instructor_id = null;
-                $instructor->fleet->save();
-            }
+            DB::transaction(function () use ($instructor) {
+
+                // Unassign fleet (if exists)
+                if ($instructor->fleet) {
+                    $instructor->fleet()->update([
+                        'instructor_id' => null
+                    ]);
+                }
+
+                // Unassign all classrooms in one query
+                $instructor->classrooms()->detach();
+            });
         }
+
         $instructor->department_id = $post['department'];
 
-        $instructor->signature = $filename;
+        if($filename ?? false){
+            $instructor->signature = $filename;
+        }
+
 
         $instructor->save();
 
@@ -479,6 +491,7 @@ class InstructorController extends Controller
         }
 
         $user->save();
+        Alert::toast('Instructor updated!', 'success');
 
         return redirect('/instructors')->with('message', 'Instructor updated!');
     }

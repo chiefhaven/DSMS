@@ -210,10 +210,15 @@ class havenUtils extends Controller
 
     //check for course Duration a students is enrolled in based on current invoice
     static function courseDuration($course_id){
-
-        $course = Course::where('id', $course_id)->first();
-        //$courseDuration = $course->duration;
-        $courseDuration = $course->lessons->sum('pivot.lesson_quantity');
+        if(Auth::user()->hasRole('instructor') && Auth::user()->instructor?->department_id !== null){
+            $courseDuration = Course::where('id', $course_id)
+                ->whereHas('lessons', fn($q) => $q->where('department_id', Auth::user()->instructor?->department_id))
+                ->first()
+                ->lessons
+                ->sum(fn($lesson) => $lesson->pivot->lesson_quantity);
+        } else {
+            $courseDuration = Course::where('id', $course_id)->first()->lessons->sum(fn($lesson) => $lesson->pivot->lesson_quantity);
+        }
         return $courseDuration;
     }
 

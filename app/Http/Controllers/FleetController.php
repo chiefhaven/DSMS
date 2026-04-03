@@ -541,7 +541,7 @@ private function handleInstructorAssignmentForStore(Fleet $fleet, string $instru
             $fleet->instructor_id = $instructorId;
 
             if ($oldInstructorName) {
-                $message = "Instructor changed from {$oldInstructorName} to new instructor assigned to {$fleet->car_brand_model}.";
+                $message = "Instructor changed from {$oldInstructorName} to new instructor assigned for {$fleet->car_brand_model}.";
             } else {
                 $message = "Instructor assigned to {$fleet->car_brand_model} successfully.";
             }

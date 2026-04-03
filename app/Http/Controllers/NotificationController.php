@@ -212,10 +212,25 @@ class NotificationController extends Controller
             return back();
         }
 
-        $attendanceRequired = $student->course?->lessons?->sum(fn($lesson) => $lesson->pivot->lesson_quantity) ?? 0;
-        Log::info($attendanceRequired);
+        $user = Auth::user();
+        $attendanceRequired = 0;
+
+        $lessonDeptId = $student->attendance->first()?->lesson?->department_id;
+        $userDeptId = $user->instructor?->department_id;
+
+        if ($user->hasRole('instructor') && $userDeptId !== null && $userDeptId === $lessonDeptId) {
+            if ($lessonDeptId) {
+                $attendanceRequired = $student->course?->lessons()
+                    ->where('department_id', $lessonDeptId)
+                    ->sum('lesson_quantity') ?? 0;
+            }
+        } else {
+            $attendanceRequired = $student->course?->lessons()->sum('lesson_quantity') ?? 0;
+        }
+
         $attendanceCount = $student->attendance->count();
         $attendance_balance = $attendanceRequired - $attendanceCount;
+        Log::info("Attendance Required: {$attendanceRequired}, Attendance Count: {$attendanceCount}, Attendance Balance: {$attendance_balance}");
         $fleet = $student->fleet;
         $classRoom = $student->classroom;
 
