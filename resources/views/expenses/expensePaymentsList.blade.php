@@ -57,7 +57,7 @@
           setup() {
             const loadingData = ref(false);
             const status = ref('all');
-            const period = ref('Today');
+            const period = ref(" ");
             const startDate = ref('');
             const endDate = ref('');
 

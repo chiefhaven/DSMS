@@ -1,7 +1,7 @@
 <form @submit.prevent>
     Report &nbsp;
     <select v-model="period" class="btn btn-light" id="period" name="period" @change="handlePeriodChange">
-        <option value="" disabled selected>Choose period...</option>
+        <option value=" " disabled selected>Choose period...</option>
         <option value="today">Today</option>
         <option value="yesterday">Yesterday</option>
         <option value="thisweek">This Week</option>
