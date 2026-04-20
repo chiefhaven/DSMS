@@ -29,6 +29,7 @@ use App\Http\Controllers\BulkAttendanceController;
 use App\Http\Controllers\VehicleTrackerController;
 use App\Models\expense;
 use Illuminate\Support\Facades\Artisan;
+use Nette\Schema\Expect;
 
 /*
 |--------------------------------------------------------------------------
@@ -228,6 +229,8 @@ Route::post('/removeStudent', [ExpenseController::class, 'removeStudent'])->midd
 Route::post('/checkStudent', [ExpenseController::class, 'checkStudent'])->middleware('auth')->name('checkStudent');
 Route::post('/approveList', [ExpenseController::class, 'approveList'])->middleware('auth')->name('approveList');
 Route::get('/expenses/pay/{student}/{expense}', [ExpensePaymentController::class, 'store'])->middleware('auth')->name('expense.pay');
+Route::get('/expensePaymentReportSummary', [ExpenseController::class, 'expensePaymentReportSummary'])->middleware('auth')->name('expensePaymentReportSummary');
+
 
 Route::get("/expense-payments", function(){
     return view("expenses.expensePaymentsList");

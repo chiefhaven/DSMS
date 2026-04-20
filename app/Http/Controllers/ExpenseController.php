@@ -971,4 +971,90 @@ class ExpenseController extends Controller
         return $pdf->download($fileName);
     }
 
+    public function expensePaymentReportSummary(Request $request)
+    {
+        $period = $request->input('period');
+        $startDate = null;
+        $endDate = null;
+        $query = ExpensePayment::with(['student', 'expense']);
+
+        switch ($period) {
+            case 'today':
+                $query->whereDate('created_at', Carbon::today());
+                break;
+
+            case 'yesterday':
+                $query->whereDate('created_at', Carbon::yesterday());
+                break;
+
+            case 'thisweek':
+                $query->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+                break;
+
+            case 'lastweek':
+                $query->whereBetween('created_at', [Carbon::now()->subWeek()->startOfWeek(), Carbon::now()->subWeek()->endOfWeek()]);
+                break;
+
+            case 'thismonth':
+                $query->whereMonth('created_at', Carbon::now()->month)->whereYear('created_at', Carbon::now()->year);
+                break;
+
+            case 'lastmonth':
+                $query->whereMonth('created_at', Carbon::now()->subMonth()->month)->whereYear('created_at', Carbon::now()->subMonth()->year);
+                break;
+
+            case 'thisyear':
+                $query->whereYear('created_at', Carbon::now()->year);
+                break;
+
+            case 'lastyear':
+                $query->whereYear('created_at', Carbon::now()->subYear()->year);
+                break;
+
+            case 'custom':
+                $startDate = $request->input('start_date');
+                $endDate = $request->input('end_date');
+
+                if (!$startDate || !$endDate) {
+                    Alert::error('Invalid Date', 'Please select both start and end dates.');
+                    return back();
+                }
+
+                // Ensure dates are valid
+                try {
+                    $start = Carbon::parse($startDate)->startOfDay();
+                    $end = Carbon::parse($endDate)->endOfDay();
+
+                    if ($start->greaterThan($end)) {
+                        Alert::error('Invalid Date Range', 'Start date cannot be after the end date.');
+                        return back();
+                    }
+
+                    $query->whereBetween('created_at', [$start, $end]);
+                } catch (\Exception $e) {
+                    Alert::error('Invalid Date Format', 'Please enter valid dates.');
+                    return back();
+                }
+                break;
+
+            default:
+                Alert::error('No selection made', 'Please make a valid selection.');
+                return back();
+        }
+
+        $expensePayments = $query->get();
+
+        if ($expensePayments->isEmpty()) {
+            Alert::error('Empty', 'No expense payments found for the selected period.');
+            return back();
+        }
+
+        $setting = $this->setting;
+        $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com');
+
+        $pdf = PDF::loadView('pdf_templates.expensePaymentSummary', compact('setting', 'qrCode', 'expensePayments', 'period', 'startDate', 'endDate'));
+
+        return $pdf->download('Daron Driving School-' . $period . ' Expense Payment Summary.pdf');
+    }
+
 }

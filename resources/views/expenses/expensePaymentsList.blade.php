@@ -2,23 +2,26 @@
 
 @section('content')
   <!-- Hero -->
-  <div class="bg-body-light">
-    <div class="content content-full">
-      <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
-        <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Expense payments</h1>
-        <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
+  <div id="expensePaymentList">
+    <div class="bg-body-light">
+        <div class="content content-full">
+        <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
+            <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Expense payments</h1>
+            <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
 
-            @if(Session::has('message'))
-            <div class="alert alert-info">
-              {{Session::get('message')}}
-            </div>
-          @endif
-        </nav>
-      </div>
+                @role(['superAdmin', 'admin'])
+                    <div class="">
+                        <div class="col-md-12 block-rounded block-bordered p-4 dropdown d-inline-block">
+                            @include('expenses.partials.reportModal')
+                        </div>
+                    </div>
+                @endcan
+            </nav>
+        </div>
+        </div>
     </div>
-  </div>
 
-    <div class="content content-full" id="expensePaymentList">
+    <div class="content content-full">
         <div class="block block-rounded block-bordered">
             <div class="block-content">
                 <!-- Loading spinner -->
@@ -47,12 +50,16 @@
             </div>
         </div>
     </div>
+  </div>
     <script setup>
 
         const expensePaymentList = createApp({
           setup() {
             const loadingData = ref(false);
             const status = ref('all');
+            const period = ref('Today');
+            const startDate = ref('');
+            const endDate = ref('');
 
             const reloadTable = (val) => {
               status.value = val;
@@ -161,6 +168,41 @@
               return Swal.fire(baseOptions);
             };
 
+            const handlePeriodChange = () => {
+                if (period.value === 'custom') {
+                    let modal = new bootstrap.Modal(document.getElementById('customDateModal'));
+                    modal.show();
+                } else {
+                    downloadSummary();
+                }
+            };
+
+            const downloadSummary = async () => {
+                if (!period.value) {
+                    showError("Please select a period.", "error");
+                    return;
+                }
+
+                let url = `/expensePaymentReportSummary?period=${period.value}`;
+                if (period.value === 'custom') {
+                    if (!startDate.value || !endDate.value) {
+                        showError("Please select both start and end dates.", "error");
+                        return;
+                    }
+                    url += `&start_date=${startDate.value}&end_date=${endDate.value}`;
+                }
+
+                NProgress.start();
+                try {
+                    window.open(url, '_blank');
+                    document.getElementById('customDateModal').querySelector('.btn-close').click(); // Close modal
+                } catch (err) {
+                    console.error("Failed to fetch data", err);
+                } finally {
+                    NProgress.done();
+                }
+            };
+
             const showAlert = (message = '', detail = '', { icon = 'info' } = {}) => {
               const baseOptions = {
                 icon,
@@ -213,9 +255,14 @@
             });
 
             return {
-              reloadTable,
-              loadingData,
-              deletePayment,
+                reloadTable,
+                loadingData,
+                deletePayment,
+                handlePeriodChange,
+                downloadSummary,
+                period,
+                startDate,
+                endDate
             };
           },
         });
