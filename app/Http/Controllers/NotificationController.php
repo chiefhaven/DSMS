@@ -222,7 +222,7 @@ class NotificationController extends Controller
         $user        = Auth::user();
         $attendances = $student->attendance;
 
-        $lessonDeptId = $student->attendance->first()?->lesson?->department_id ?: null;
+        $lessonDeptId = $student->attendance->last()?->lesson?->department_id ?: null;
         $userDeptId   = $user->instructor?->department_id ?: null;
 
         $isFilteredInstructor = $user->hasRole('instructor')
