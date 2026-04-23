@@ -230,7 +230,7 @@ class NotificationController extends Controller
 
         $attendanceCount = $student->attendance->count();
         $attendance_balance = $attendanceRequired - $attendanceCount;
-        Log::info("Attendance Required: {$attendanceRequired}, Attendance Count: {$attendanceCount}, Attendance Balance: {$attendance_balance}");
+        Log::info("Attendance Required: {$attendanceRequired}, Attendance Count: {$attendanceCount}, Attendance Balance: {$attendance_balance}, Student: {$student}");
         $fleet = $student->fleet;
         $classRoom = $student->classroom;
 
