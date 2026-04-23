@@ -222,8 +222,8 @@ class NotificationController extends Controller
         $user        = Auth::user();
         $attendances = $student->attendance;
 
-        $lessonDeptId = (int) $student->attendance->first()?->lesson?->department_id ?: null;
-        $userDeptId   = (int) $user->instructor?->department_id ?: null;
+        $lessonDeptId = $student->attendance->first()?->lesson?->department_id ?: null;
+        $userDeptId   = $user->instructor?->department_id ?: null;
 
         $isFilteredInstructor = $user->hasRole('instructor')
             && $userDeptId !== null
