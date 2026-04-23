@@ -201,67 +201,102 @@ class NotificationController extends Controller
 
     }
 
-    public function generalSMS($student, $type)
+    public function generalSMS($student, string $type): \Illuminate\Http\RedirectResponse
     {
         $destination = $student->phone;
-        $student = Student::with('Classroom','User', 'Invoice', 'course', 'attendance', 'fleet.instructor')->find($student->id);
 
-        // Ensure all necessary relations are loaded
+        $student = Student::with([
+            'classroom',
+            'user',
+            'invoice',
+            'course.lessons',
+            'attendance.lesson',
+            'fleet.instructor',
+        ])->find($student->id);
+
         if (!$student || !$student->course) {
             Alert::toast('Student or course not found', 'error');
             return back();
         }
 
-        $user = Auth::user();
-        $attendanceRequired = 0;
+        $user        = Auth::user();
+        $attendances = $student->attendance; // use collection throughout
 
-        $lessonDeptId = $student->attendance->first()?->lesson?->department_id;
-        $userDeptId = $user->instructor?->department_id;
+        // ── Attendance required ───────────────────────────────────────────
+        $lessonDeptId = $attendances->first()?->lesson?->department_id;
+        $userDeptId   = $user->instructor?->department_id;
 
-        if ($user->hasRole('instructor') && $userDeptId !== null && $userDeptId === $lessonDeptId) {
-            if ($lessonDeptId) {
-                $attendanceRequired = $student->course?->lessons()
-                    ->where('department_id', $lessonDeptId)
-                    ->sum('lesson_quantity') ?? 0;
-            }
-        } else {
-            $attendanceRequired = $student->course?->lessons()->sum('lesson_quantity') ?? 0;
-        }
+        $isFilteredInstructor = $user->hasRole('instructor')
+            && $userDeptId !== null
+            && $userDeptId === $lessonDeptId
+            && $lessonDeptId !== null;
 
-        $attendanceCount = $student->attendance->count();
+        $attendanceRequired = $isFilteredInstructor
+            ? (int) $student->course->lessons
+                ->where('department_id', $lessonDeptId)
+                ->sum('lesson_quantity')
+            : (int) $student->course->lessons->sum('lesson_quantity');
+
+        // ── Attendance counts (no extra queries) ─────────────────────────
+        $attendanceCount   = $attendances->count();
         $attendance_balance = $attendanceRequired - $attendanceCount;
-        Log::info("Attendance Required: {$attendanceRequired}, Attendance Count: {$attendanceCount}, Attendance Balance: {$attendance_balance}, Student: {$student}");
-        $fleet = $student->fleet;
+
+        Log::info('Attendance summary', [
+            'required'  => $attendanceRequired,
+            'count'     => $attendanceCount,
+            'balance'   => $attendance_balance,
+            'student_id' => $student->id,
+        ]);
+
+        // ── Latest attendance date (collection, no extra query) ───────────
+        $attendanceLatest = $attendances->isNotEmpty()
+            ? $attendances->sortByDesc('created_at')->first()->created_at->format('Y-m-d H:i:s')
+            : '';
+
+        // ── Related models ────────────────────────────────────────────────
+        $fleet     = $student->fleet;
         $classRoom = $student->classroom;
+        $instructor = $fleet?->instructor;
 
-        $attendanceLatest = $student->attendance->isNotEmpty() ? $student->attendance()->orderBy('created_at', 'DESC')->first()->created_at->format('Y-m-d H:i:s') : '';
-
+        // ── Template variables ────────────────────────────────────────────
         $variables = [
-            "first_name" => $student->fname ?? '',
-            "middle_name" => $student->mname ?? '',
-            "sir_name" => $student->sname ?? '',
-            "total_attendance_entered" => $attendanceCount ?? '',
-            "attendance_difference" => $attendance_balance,
-            "total_required_attendance" => $attendanceRequired,
-            "attendance_date" => $attendanceLatest,
-            "car_assigned" => $fleet ? "{$fleet->car_brand_model}, {$fleet->car_registration_number}" : '',
-            "class_room_assigned" => $classRoom ? "{$classRoom->name}, {$classRoom->location}" : '',
-            "instructor" => $fleet ? "{$fleet->instructor->fname} {$fleet->instructor->mname} {$fleet->instructor->sname}, {$fleet->instructor->phone}" : '',
+            'first_name'                => $student->fname  ?? '',
+            'middle_name'               => $student->mname  ?? '',
+            'sir_name'                  => $student->sname  ?? '',
+            'total_attendance_entered'  => $attendanceCount,
+            'attendance_difference'     => $attendance_balance,
+            'total_required_attendance' => $attendanceRequired,
+            'attendance_date'           => $attendanceLatest,
+            'car_assigned'              => $fleet
+                ? "{$fleet->car_brand_model}, {$fleet->car_registration_number}"
+                : '',
+            'class_room_assigned'       => $classRoom
+                ? "{$classRoom->name}, {$classRoom->location}"
+                : '',
+            'instructor'                => $instructor
+                ? "{$instructor->fname} {$instructor->mname} {$instructor->sname}, {$instructor->phone}"
+                : '',
         ];
 
-        $sms_template = notification_template::where('type', $type)->firstOrFail()->body;
+        // ── Resolve template (handled exception) ─────────────────────────
+        $template = notification_template::where('type', $type)->first();
+
+        if (!$template) {
+            Alert::toast("SMS template '{$type}' not found", 'error');
+            return back();
+        }
+
+        $body = $template->body;
 
         foreach ($variables as $key => $value) {
-            $sms_template = str_replace('{' . strtoupper($key) . '}', $value, $sms_template);
+            $body = str_replace('{' . strtoupper($key) . '}', (string) $value, $body);
         }
 
-        $response = $this->sendSMS($sms_template, $destination);
+        // ── Send ──────────────────────────────────────────────────────────
+        $response = $this->sendSMS($body, $destination);
 
-        if ($response['statusCode'] == '200') {
-            Alert::toast($response['message'], 'success');
-        } else {
-            Alert::toast($response['message'], 'error');
-        }
+        $status = $response['statusCode'] == '200' ? 'success' : 'error';
+        Alert::toast($response['message'], $status);
 
         return back();
     }
