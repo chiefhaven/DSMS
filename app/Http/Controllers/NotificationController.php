@@ -230,18 +230,20 @@ class NotificationController extends Controller
             && $lessonDeptId !== null
             && $userDeptId === $lessonDeptId;
 
-        Log::info('Instructor filtering check', [
-            'user_id' => $user->id,
-            'user_dept_id' => $userDeptId,
-            'lesson_dept_id' => $lessonDeptId,
-            'is_filtered_instructor' => $isFilteredInstructor,
-        ]);
-
         $lessons = $student->course->lessons;
 
         $attendanceRequired = $isFilteredInstructor
-            ? $lessons->where('department_id', $lessonDeptId)->sum('lesson_quantity')
-            : $lessons->sum('lesson_quantity');
+            ? (int) $lessons->where('department_id', $lessonDeptId)->sum('pivot.lesson_quantity')
+            : (int) $lessons->sum('pivot.lesson_quantity');
+
+        Log::info('Attendance calculation', [
+            'is_filtered_instructor' => $isFilteredInstructor,
+            'lesson_department_id' => $lessonDeptId,
+            'user_department_id' => $userDeptId,
+            'attendance_required' => $attendanceRequired,
+            'total_lessons' => $lessons->count(),
+            'lessons' => $lessons,
+        ]);
 
         $attendanceCount   = $attendances->count();
         $attendance_balance = $attendanceRequired - $attendanceCount;
