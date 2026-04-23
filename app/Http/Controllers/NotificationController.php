@@ -237,9 +237,9 @@ class NotificationController extends Controller
         $attendanceLatest = $student->attendance->isNotEmpty() ? $student->attendance()->orderBy('created_at', 'DESC')->first()->created_at->format('Y-m-d H:i:s') : '';
 
         $variables = [
-            "first_name" => $student->fname,
+            "first_name" => $student->fname ?? '',
             "middle_name" => $student->mname ?? '',
-            "sir_name" => $student->sname,
+            "sir_name" => $student->sname ?? '',
             "total_attendance_entered" => $attendanceCount ?? '',
             "attendance_difference" => $attendance_balance,
             "total_required_attendance" => $attendanceRequired,
