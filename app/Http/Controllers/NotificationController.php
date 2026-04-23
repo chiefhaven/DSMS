@@ -222,19 +222,19 @@ class NotificationController extends Controller
         $user        = Auth::user();
         $attendances = $student->attendance;
 
-        $lessonDeptId = $attendances->first()?->lesson?->department_id;
-        $userDeptId   = $user->instructor?->department_id;
+        $lessonDeptId = (int) $student->attendance->first()?->lesson?->department_id ?: null;
+        $userDeptId   = (int) $user->instructor?->department_id ?: null;
 
         $isFilteredInstructor = $user->hasRole('instructor')
             && $userDeptId !== null
-            && $userDeptId === $lessonDeptId
-            && $lessonDeptId !== null;
+            && $lessonDeptId !== null
+            && $userDeptId === $lessonDeptId;
+
+        $lessons = $student->course->lessons;
 
         $attendanceRequired = $isFilteredInstructor
-            ? (int) $student->course->lessons
-                ->where('department_id', $lessonDeptId)
-                ->sum('lesson_quantity')
-            : (int) $student->course->lessons->sum('lesson_quantity');
+            ? (int) $lessons->where('department_id', $lessonDeptId)->sum('lesson_quantity')
+            : (int) $lessons->sum('lesson_quantity');
 
         $attendanceCount   = $attendances->count();
         $attendance_balance = $attendanceRequired - $attendanceCount;
