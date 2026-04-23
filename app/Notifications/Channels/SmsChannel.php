@@ -7,40 +7,62 @@ use Illuminate\Support\Facades\Log;
 
 class SmsChannel
 {
-    public function send($notifiable, Notification $notification)
+    public function send($notifiable, Notification $notification): void
     {
         if (!method_exists($notification, 'toSms')) {
             return;
         }
 
         $message = $notification->toSms($notifiable);
-        $phoneNumber = $notifiable->student->phone ?? null;
+
+        // Flexible phone resolution — works for User, Student, or any notifiable
+        $phoneNumber = $notifiable->phone
+            ?? $notifiable->student?->phone
+            ?? null;
 
         if (!$phoneNumber) {
-            Log::error("SMS Error: No phone number found for the recipient.");
+            Log::warning('SMS skipped: no phone number found.', [
+                'notifiable_type' => get_class($notifiable),
+                'notifiable_id'   => $notifiable->getKey(),
+                'notification'    => get_class($notification),
+            ]);
             return;
         }
 
         try {
             $response = Http::withHeaders([
-                'Authorization' => config('services.smsApi.token'),
+                'Authorization' => 'Bearer ' . config('services.smsApi.token'),
                 'Accept'        => 'application/json',
                 'Content-Type'  => 'application/json',
             ])
-            ->get(config('services.smsApi.url').'/sms/send', [
+            ->post(config('services.smsApi.url') . '/sms/send', [
                 'message'    => $message,
                 'type'       => 'plain',
                 'sender_id'  => config('services.smsApi.from'),
-                'recipient' => $phoneNumber,
+                'recipient'  => $phoneNumber,
             ]);
 
-            Log::info("SMS Sent: " . $response->body());
-
-            if ($response->failed()) {
-                Log::error("SMS Failed: " . $response->body());
+            if ($response->successful()) {
+                Log::info('SMS sent successfully.', [
+                    'notifiable_id' => $notifiable->getKey(),
+                    'phone'         => $phoneNumber,
+                    'response'      => $response->body(),
+                ]);
+            } else {
+                Log::error('SMS dispatch failed.', [
+                    'notifiable_id' => $notifiable->getKey(),
+                    'phone'         => $phoneNumber,
+                    'status'        => $response->status(),
+                    'response'      => $response->body(),
+                ]);
             }
+
         } catch (\Exception $e) {
-            Log::error("Error sending SMS: " . $e->getMessage());
+            Log::error('SMS exception during dispatch.', [
+                'notifiable_id' => $notifiable->getKey(),
+                'phone'         => $phoneNumber,
+                'error'         => $e->getMessage(),
+            ]);
         }
     }
 }
