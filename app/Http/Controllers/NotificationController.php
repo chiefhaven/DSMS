@@ -220,9 +220,8 @@ class NotificationController extends Controller
         }
 
         $user        = Auth::user();
-        $attendances = $student->attendance; // use collection throughout
+        $attendances = $student->attendance;
 
-        // ── Attendance required ───────────────────────────────────────────
         $lessonDeptId = $attendances->first()?->lesson?->department_id;
         $userDeptId   = $user->instructor?->department_id;
 
@@ -237,7 +236,6 @@ class NotificationController extends Controller
                 ->sum('lesson_quantity')
             : (int) $student->course->lessons->sum('lesson_quantity');
 
-        // ── Attendance counts (no extra queries) ─────────────────────────
         $attendanceCount   = $attendances->count();
         $attendance_balance = $attendanceRequired - $attendanceCount;
 
@@ -248,17 +246,14 @@ class NotificationController extends Controller
             'student_id' => $student->id,
         ]);
 
-        // ── Latest attendance date (collection, no extra query) ───────────
         $attendanceLatest = $attendances->isNotEmpty()
             ? $attendances->sortByDesc('created_at')->first()->created_at->format('Y-m-d H:i:s')
             : '';
 
-        // ── Related models ────────────────────────────────────────────────
         $fleet     = $student->fleet;
         $classRoom = $student->classroom;
         $instructor = $fleet?->instructor;
 
-        // ── Template variables ────────────────────────────────────────────
         $variables = [
             'first_name'                => $student->fname  ?? '',
             'middle_name'               => $student->mname  ?? '',
@@ -278,7 +273,6 @@ class NotificationController extends Controller
                 : '',
         ];
 
-        // ── Resolve template (handled exception) ─────────────────────────
         $template = notification_template::where('type', $type)->first();
 
         if (!$template) {
@@ -292,7 +286,6 @@ class NotificationController extends Controller
             $body = str_replace('{' . strtoupper($key) . '}', (string) $value, $body);
         }
 
-        // ── Send ──────────────────────────────────────────────────────────
         $response = $this->sendSMS($body, $destination);
 
         $status = $response['statusCode'] == '200' ? 'success' : 'error';

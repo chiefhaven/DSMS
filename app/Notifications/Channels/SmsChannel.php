@@ -25,6 +25,7 @@ class SmsChannel
             $response = Http::withHeaders([
                 'Authorization' => config('services.smsApi.token'),
                 'Accept'        => 'application/json',
+                'Content-Type'  => 'application/json',
             ])
             ->get(config('services.smsApi.url').'/sms/send', [
                 'message'    => $message,

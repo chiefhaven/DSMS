@@ -1083,44 +1083,55 @@ class StudentController extends Controller
 
     }
 
-    public function assignClassRoom(Request $request)
+    public function assignClassRoom(Request $request): \Illuminate\Http\JsonResponse
     {
-        $messages = [
+        $request->validate([
+            'classroom' => 'required|exists:classrooms,id',
+            'student'   => 'required|exists:students,id',
+        ], [
             'classroom.required' => 'The classroom field is required.',
             'classroom.exists'   => 'The selected classroom does not exist.',
             'student.required'   => 'The student field is required.',
             'student.exists'     => 'The selected student does not exist.',
-        ];
-
-        // Validate the request
-        $this->validate($request, [
-            'classroom' => 'required|exists:classrooms,id',
-            'student'   => 'required|exists:students,id',
-        ], $messages);
+        ]);
 
         try {
-            // Find the student
-            $student = Student::findOrFail($request->student);
+            $student = Student::with('user')->findOrFail($request->student);
 
-            // Assign the classroom
-            $student->classroom_id = $request->classroom;
-            $student->fleet_id = Null;
+            $student->classroom_id     = $request->classroom;
+            $student->fleet_id         = null;
             $student->trainingLevel_id = havenUtils::trainingLevelID('theory');
             $student->save();
 
-            $classRoom = Classroom::with('instructors')->find($student->classroom_id);
+            $classRoom = Classroom::with('instructors')->findOrFail($request->classroom);
 
+            if ($student->user) {
+                $student->user->notify(new StudentClassAssignment($classRoom, $student));
+            } else {
+                Log::warning('Student has no associated user; notification skipped.', [
+                    'student_id' => $student->id,
+                ]);
+            }
 
-            //$sms = new NotificationController;
-            //$sms->generalSMS($student, 'Carassignment');
+            return response()->json([
+                'message' => 'Student successfully assigned to classroom.',
+            ], 200);
 
-            $student->user->notify(new StudentClassAssignment($classRoom, $student));
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'Student or classroom not found.',
+            ], 404);
 
-            // Notify success
-            return response()->json('Success, student assigned to classroom', 200);
         } catch (\Exception $e) {
-            // Handle any exceptions
-            return response()->json(['error' => 'Something went wrong: ' . $e->getMessage()], 500);
+            Log::error('assignClassRoom failed', [
+                'student_id'   => $request->student   ?? null,
+                'classroom_id' => $request->classroom ?? null,
+                'error'        => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'error' => 'An unexpected error occurred. Please try again.',
+            ], 500);
         }
     }
 
