@@ -24,7 +24,17 @@ class StoreAdministratorRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            'first_name' => 'required',
+            'sir_name' => 'required',
+            'email' => 'required|email|unique:users,email',
+            'address' => 'required',
+            'gender' => 'required',
+            'date_of_birth' => 'required',
+            'district' => 'required',
+            'role' => 'required',
+            'phone' => 'required',
+            'password' => 'required|min:8',
+            'username' => 'required'
         ];
     }
 }

@@ -57,7 +57,7 @@
                           <option value="female" selected>Female</option>
                           <option value="other">Other</option>
                         </select>
-                        <label for="district">Gender</label>
+                        <label for="gender">Gender</label>
                     </div>
                     <div class="mb-4 form-floating">
                       <input type="date" class="form-control @error('date_of_birth') is-invalid @enderror" id="date_of_birth" name="date_of_birth" placeholder="DDMMYY" value="27-07-1999" formnovalidate="">

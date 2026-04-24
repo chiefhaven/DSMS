@@ -70,25 +70,13 @@ class AdministratorController extends Controller
             'password.required' => 'Password is required',
         ];
 
-        $this->validate($request, [
-            'first_name' => 'required',
-            'sir_name' => 'required',
-            'username' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'address' => 'required',
-            'gender' => 'required',
-            'date_of_birth' => 'required',
-            'district' => 'required',
-            'role' => 'required',
-            'phone' => 'required',
-            'password' => 'required|min:8'
-        ], $messages);
+        $request->validated();
 
         $post = $request->validated();
 
         DB::transaction(function () use ($post) {
 
-            $district = havenUtils::selectDistrict($post['district']);
+            $district = havenUtils::selectDistrict($post['district'] ?? null);
 
             $administrator = new Administrator();
             $administrator->fname = $post['first_name'];
