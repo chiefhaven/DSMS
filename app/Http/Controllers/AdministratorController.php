@@ -72,7 +72,7 @@ class AdministratorController extends Controller
         $this->validate($request, [
             'first_name'  =>'required',
             'sir_name' =>'required',
-            'email'   =>'required',
+            'email'   =>'required | unique:users,email',
             'address' =>'required',
             'gender'  =>'required',
             'date_of_birth' =>'required',
@@ -183,7 +183,7 @@ class AdministratorController extends Controller
         $this->validate($request, [
             'first_name'  =>'required',
             'sir_name' =>'required',
-            'email'   =>'required',
+            'email'   =>'required | unique:users,email,'.$request->administrator_id.',administrator_id',
             'address' =>'required',
             'gender'  =>'required',
             'date_of_birth' =>'required',
