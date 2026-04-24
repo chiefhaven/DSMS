@@ -170,34 +170,34 @@ class AdministratorController extends Controller
     public function update(UpdateAdministratorRequest $request, Administrator $Administrator)
     {
         $messages = [
-            'fname.required' => 'Firstname is required',
-            'sname.required'   => 'Sirname is required',
+            'first_name.required' => 'Firstname is required',
+            'sir_name.required' => 'Surname is required',
             'email.required' => 'Email is required',
-            'email.unique' => 'Email is already in use',
-            'gender.required'   => 'The "Gender" field required',
+            'email.unique' => 'Email address is already in use',
+            'gender.required' => 'The Gender field is required',
             'date_of_birth.required' => 'Date of birth is required',
             'role.required' => 'Role is required',
         ];
 
-        // Validate the request
-        $this->validate($request, [
-            'first_name'  =>'required',
-            'sir_name' =>'required',
-            'address' =>'required',
-            'gender'  =>'required',
-            'date_of_birth' =>'required',
-            'district' =>'required',
-            'role' =>'required',
-            'phone' =>'required'
+        $user = User::where('administrator_id', $request->administrator_id)->first();
 
+        $this->validate($request, [
+            'first_name' => 'required',
+            'sir_name' => 'required',
+            'email' => 'required|email|unique:users,email,' . optional($user)->id,
+            'address' => 'required',
+            'gender' => 'required',
+            'date_of_birth' => 'required',
+            'district' => 'required',
+            'role' => 'required',
+            'phone' => 'required'
         ], $messages);
 
-        $post = $request->All();
+        $post = $request->all();
 
         $district = havenUtils::selectDistrict($post['district']);
 
-        $Administrator = Administrator::find($post['administrator_id']);
-
+        // Update Administrator
         $Administrator->fname = $post['first_name'];
         $Administrator->sname = $post['sir_name'];
         $Administrator->gender = $post['gender'];
@@ -205,32 +205,27 @@ class AdministratorController extends Controller
         $Administrator->address = $post['address'];
         $Administrator->date_of_birth = $post['date_of_birth'];
         $Administrator->district_id = $district;
+        $Administrator->save();
 
-        $user = User::where('administrator_id', $post['administrator_id'])->first();
-
-        if ($user) {
-            // Update existing user
-            $user->email = $post['email'];
-            $user->save();
-        } else {
-            // Create a new user if not found
+        // Update or Create User
+        if (!$user) {
             $user = new User();
             $user->administrator_id = $post['administrator_id'];
-            $user->name = $post['sir_name'].'123';
-            $user->email = $post['email'];
-            $user->password = bcrypt('HavenPass123'); // Default password
-            $user->save();
+            $user->name = $post['sir_name'];
+            $user->password = Hash::make(Str::random(10));
         }
 
-        if(isset($post['password'])){
+        $user->email = $post['email'];
+
+        if (!empty($post['password'])) {
             $user->password = Hash::make($post['password']);
         }
 
-
-        $Administrator->save();
         $user->save();
+
+        // Sync Roles
         $user->syncRoles([
-            match($post['role']) {
+            match ($post['role']) {
                 'superAdmin' => 'superAdmin',
                 'financeAdmin' => 'financeAdmin',
                 default => 'admin'
