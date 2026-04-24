@@ -58,66 +58,67 @@ class AdministratorController extends Controller
     public function store(StoreAdministratorRequest $request)
     {
         $messages = [
-            'fname.required' => 'First name is required',
-            'sname.required'   => 'Sirname is required',
+            'first_name.required' => 'First name is required',
+            'sir_name.required' => 'Surname is required',
             'email.required' => 'Email is required',
             'email.unique' => 'Email is already in use',
-            'gender.required'   => 'The "Gender" field required',
+            'gender.required' => 'The Gender field is required',
             'date_of_birth.required' => 'Date of birth is required',
             'role.required' => 'Role is required',
             'password.required' => 'Password is required',
         ];
 
-        // Validate the request
         $this->validate($request, [
-            'first_name'  =>'required',
-            'sir_name' =>'required',
-            'email'   =>'required | unique:users,email',
-            'address' =>'required',
-            'gender'  =>'required',
-            'date_of_birth' =>'required',
-            'district' =>'required',
-            'role' =>'required',
-            'phone' =>'required',
-            'password' =>'required'
-
+            'first_name' => 'required',
+            'sir_name' => 'required',
+            'username' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'address' => 'required',
+            'gender' => 'required',
+            'date_of_birth' => 'required',
+            'district' => 'required',
+            'role' => 'required',
+            'phone' => 'required',
+            'password' => 'required|min:8'
         ], $messages);
 
-        $post = $request->All();
+        $post = $request->validated();
 
-        $district = havenUtils::selectDistrict($post['district']);
+        DB::transaction(function () use ($post) {
 
-        $administrator = new Administrator;
+            $district = havenUtils::selectDistrict($post['district']);
 
-        $administrator->fname = $post['first_name'];
-        $administrator->sname = $post['sir_name'];
-        $administrator->gender = $post['gender'];
-        $administrator->phone = $post['phone'];
-        $administrator->address = $post['address'];
-        $administrator->date_of_birth = $post['date_of_birth'];
-        $administrator->district_id = $district;
+            $administrator = new Administrator();
+            $administrator->fname = $post['first_name'];
+            $administrator->sname = $post['sir_name'];
+            $administrator->gender = $post['gender'];
+            $administrator->phone = $post['phone'];
+            $administrator->address = $post['address'];
+            $administrator->date_of_birth = $post['date_of_birth'];
+            $administrator->district_id = $district;
+            $administrator->save();
 
-        $administrator->save();
+            $user = new User();
+            $user->name = $post['username'];
+            $user->administrator_id = $administrator->id;
+            $user->email = $post['email'];
+            $user->password = Hash::make($post['password']);
+            $user->save();
 
-        $user = new User;
-        $user->name = $post['username'];
-        $user->administrator_id = $administrator->id;
-        $user->email = $post['email'];
-        $user->password = Hash::make($post['password']);
+            $user->assignRole(
+                match ($post['role']) {
+                    'superAdmin' => 'superAdmin',
+                    'financeAdmin' => 'financeAdmin',
+                    default => 'admin'
+                }
+            );
 
-        $user->save();
-        if($post['role'] == 'superAdmin'){
+            Alert::toast(
+                'Administrator ' . $administrator->fname . ' added successfully',
+                'success'
+            );
+        });
 
-            $user->assignRole('superAdmin');
-        }
-
-        else{
-
-            $user->assignRole('admin');
-        }
-
-
-        Alert::toast('Administrator'.' '.$administrator->fname.' '.'added successifully', 'success');
         return redirect('/administrators');
     }
 
