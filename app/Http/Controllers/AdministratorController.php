@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use RealRashid\SweetAlert\Facades\Alert;
 use Illuminate\Support\Facades\DB;
-use App\Utils\havenUtils;
+use App\Http\Controllers\havenUtils;
 
 class AdministratorController extends Controller
 {
