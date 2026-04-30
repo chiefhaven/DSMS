@@ -526,7 +526,7 @@ class ExpenseController extends Controller
             'expenseTypesOption' => 'required',
         ]);
 
-        $student = Student::find($request->student);
+        $student = Student::with('attendance')->find($request->student);
 
         if (!$student?->invoice) {
             return response()->json([
@@ -608,11 +608,33 @@ class ExpenseController extends Controller
             }
         }
 
+        if ($option->attendance_threshold !== null && $option->attendance_threshold !== 0) {
+            $totalLessons = DB::table('course_lesson')
+                ->sum('lesson_quantity');
+
+            $attendedSessions = $student->attendance()->count();
+
+            $attendancePercent = $totalLessons > 0
+                ? round(($attendedSessions / $totalLessons) * 100, 2)
+                : 0;
+
+            if ($attendancePercent < $option->attendance_threshold) {
+                return response()->json([
+                    'feedback' => 'error',
+                    'message'  => "{$fullName} cannot be selected for {$optionName}. "
+                                . "Attendance is at {$attendancePercent}%, which is below the "
+                                . "required threshold of {$option->attendance_threshold}%."
+                ]);
+            }
+        }
+
         return response()->json([
             'feedback' => 'success',
             'message' => 'Student added to list. Remember to click submit after selecting all students.'
         ], 200);
+
     }
+
 
     public function approveList(StoreexpenseRequest $request)
     {

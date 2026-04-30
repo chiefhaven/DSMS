@@ -16,6 +16,7 @@ class ExpenseTypeOption extends Model
         'expense_type_id',
         'fees_percent_threshhold',
         'period_threshold',
+        'attendance_threshold',
         'is_active',
     ];
 

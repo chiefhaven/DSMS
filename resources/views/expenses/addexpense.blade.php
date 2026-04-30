@@ -7,12 +7,11 @@
       <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
         <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Add expense</h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
-
             @if(Session::has('message'))
                 <div class="alert alert-info">
                     {{Session::get('message')}}
                 </div>
-          @endif
+            @endif
         </nav>
       </div>
     </div>
@@ -41,16 +40,12 @@
                         <input type="text" class="form-control" id="expense_description" name="expense_description" v-model="state.expenseDescription" placeholder="Enter Expense Description">
                         <label for="invoice_discount">Expense notes</label>
                     </div>
-                    {{--  <div class="col-12 form-floating mb-4">
-                        <input type="number" class="form-control" id="amount" name="amount" v-model="state.amount" required>
-                        <label for="amount">Amount per student</label>
-                    </div>  --}}
                 </form>
             </div>
         </div>
     </div>
     <div class="col-md-7 block block-rounded block-bordered">
-        <h2 class="flex-grow-1 fs-4 fw-semibold my-2 my-sm-3">Add student to the group</h1>
+        <h2 class="flex-grow-1 fs-4 fw-semibold my-2 my-sm-3">Add student to the group</h2>
             <div v-if="state">
                 <div class="row haven-floating">
                     <div class="col-6 form-floating mb-4 text-uppercase">
@@ -79,10 +74,21 @@
                     </div>
                 </div>
                 <div class="block-content block-content-full text-end">
-                    <button type="submit" @click="addStudentToGroup()" class="btn btn-primary rounded-pill px-4">Add to list</button>
+                    <button
+                        type="button"
+                        @click="addStudentToGroup()"
+                        :disabled="state.isAddingStudent"
+                        class="btn btn-primary rounded-pill px-4">
+                        <template v-if="state.isAddingStudent">
+                            Adding...
+                        </template>
+                        <template v-else>
+                            Add to list
+                        </template>
+                    </button>
                 </div>
                 <h2 class="flex-grow-1 fs-5 fw-semibold my-2 my-sm-3 border-lg mb-5">Select students</h2>
-                    <hr>
+                <hr>
                 <div>
                     <table class="table table-striped">
                         <thead class="bg-primary text-white">
@@ -120,10 +126,10 @@
         <button type="submit" :disabled="state.isSubmitButtonDisabled" @click="saveExpense()" class="btn btn-primary rounded-pill px-4">
             <template v-if="state.isLoading">
                 Processing...
-              </template>
-              <template v-else>
+            </template>
+            <template v-else>
                 @{{ state.buttonText }}
-              </template>
+            </template>
         </button>
     </div>
 </div>
@@ -137,24 +143,24 @@
             const currentDate = new Date();
             const options = { day: 'numeric', month: 'long', year: 'numeric'};
             const state = ref({
-                amount: 0,                 // Represents the amount an expense
-                expenseGroupName: currentDate.toLocaleDateString(options),       // Name of the expense group or category
-                expenseDescription: '',       // Name of the expense group or category
+                amount: 0,
+                expenseGroupName: currentDate.toLocaleDateString(options),
+                expenseDescription: '',
                 studentName: '',
                 studentId:'',
-                expenseTypesOption: '',            // Type of expense
-                selectedStudents: [],       // Array of selected students (possibly for group payments or expenses)
-                paymentMethod: 'Cash', // Preferred payment method (defaulting to 'Airtel Money')
-                errors: [],              // Array to store any validation or error messages
+                expenseTypesOption: '',
+                selectedStudents: [],
+                paymentMethod: 'Cash',
+                errors: [],
                 isSubmitButtonDisabled: false,
                 isLoading: false,
+                isAddingStudent: false,
                 buttonText: 'Submit',
                 expenseGroupType: '',
             })
 
             const expenseTypes = ref([])
 
-            // Options for payment methods
             const paymentMethodOptions = ref([
                 { text: 'Cash', value: 'Cash' },
                 { text: 'Bank', value: 'Bank' },
@@ -169,13 +175,13 @@
                 if (!state.value.studentName) {
                     notification('Student name must be filled', 'error');
                     hasError.value = true;
-                    return hasError;
+                    return;
                 }
 
                 if (!state.value.expenseTypesOption) {
                     notification('Expense Type must be filled', 'error');
                     hasError.value = true;
-                    return hasError;
+                    return;
                 }
 
                 const alreadyInList = state.value.selectedStudents.some(
@@ -184,9 +190,10 @@
 
                 if (alreadyInList) {
                     notification('Student already in list', 'error');
-                    hasError.value = true;
-                    return hasError;
+                    return;
                 }
+
+                state.value.isAddingStudent = true;
 
                 axios.post('/checkStudent', {
                     student: state.value.studentId,
@@ -212,11 +219,7 @@
                                 expenseTypesOption: optionId,
                                 expenseTypesOptionName: optionName,
                                 expenseTypesOptionAmount: optionAmount,
-                                expenses: [
-                                    {
-                                        pivot: { repeat: 0 }
-                                    }
-                                ]
+                                expenses: [{ pivot: { repeat: 0 } }]
                             });
 
                             state.value.studentName = '';
@@ -244,13 +247,7 @@
                                     studentId: state.value.studentId,
                                     studentName: state.value.studentName,
                                     expenseTypesOption: state.value.expenseTypesOption,
-                                    expenses: [
-                                        {
-                                            pivot: {
-                                                repeat: 1
-                                            }
-                                        }
-                                    ]
+                                    expenses: [{ pivot: { repeat: 1 } }]
                                 });
 
                                 state.value.studentName = '';
@@ -273,11 +270,12 @@
                         icon: 'error',
                         confirmText: 'Close'
                     });
+                }).finally(() => {
+                    state.value.isAddingStudent = false;
                 });
             }
 
             function removeStudentFromGroup(index) {
-
                 state.value.selectedStudents.splice(index, 1)
             }
 
@@ -285,29 +283,25 @@
                 return expenseTypes.value.find(type => type.id === state.value.expenseGroupType);
             });
 
-            const saveExpense = async()=> {
-                if(Object.keys( state.value.selectedStudents ).length == 0){
+            const saveExpense = async () => {
+                if (Object.keys(state.value.selectedStudents).length == 0) {
                     showAlert('Can not save', 'Student list must not be empty; add students or cancel the creation.', {
                         toast: false,
                         icon: 'error',
                         confirmText: 'Ok'
                     });
-
-                    return false
+                    return false;
                 }
 
-
-                if( !state.value.expenseGroupName){
+                if (!state.value.expenseGroupName) {
                     notification('Expense Group Name, must be filled', 'error')
-                    return false
+                    return false;
                 }
 
-                try{
+                try {
                     NProgress.start();
                     state.value.isSubmitButtonDisabled = true;
                     state.value.isLoading = true;
-
-                    console.log('Expense data to be saved:', state.value.selectedStudents)
 
                     const response = await axios.post('/storeexpense', {
                         students: state.value.selectedStudents,
@@ -318,12 +312,11 @@
 
                     notification('Expense added successfully, page redirecting...', 'success');
                     window.location.replace('/expenses');
-                }catch (error) {
+                } catch (error) {
                     notification('An error occurred while saving the expense. Please try again.', 'error');
                     state.value.isSubmitButtonDisabled = false;
                     state.value.isLoading = false;
                     state.value.buttonText = 'Submit';
-                    console.log(error);
                     if (error.response && error.response.data) {
                         console.error('Error response:', error.response.data);
                         showAlert('Error', error.response.data.message || 'An unexpected error occurred.', {
@@ -344,7 +337,7 @@
                 }
             }
 
-            const onStudentChange = async(event) => {
+            const onStudentChange = async (event) => {
                 state.value.studentName = event.target.value;
             }
 
@@ -375,13 +368,12 @@
                         } else {
                             notification('Invalid student selected', 'error');
                         }
-
                         return item.name || '';
                     }
                 });
             }
 
-            const notification = ($text, $icon) =>{
+            const notification = ($text, $icon) => {
                 Swal.fire({
                     toast: true,
                     position: "top-end",
@@ -404,17 +396,17 @@
                     format: 'dd/mm/yyyy',
                     autoclose: true,
                     todayHighlight: true
-                  }).on('changeDate', function() {
+                }).on('changeDate', function () {
                     state.value.expenseGroupName = $(this).val();
-                  });
+                });
 
-                  const today = new Date();
-                  $('#expense_group_name').datepicker('setDate', today);
+                const today = new Date();
+                $('#expense_group_name').datepicker('setDate', today);
 
-                  const day = String(today.getDate()).padStart(2, '0');
-                  const month = String(today.getMonth() + 1).padStart(2, '0');
-                  const year = today.getFullYear();
-                  state.value.expenseGroupName = `${day}/${month}/${year}`;
+                const day = String(today.getDate()).padStart(2, '0');
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const year = today.getFullYear();
+                state.value.expenseGroupName = `${day}/${month}/${year}`;
             });
 
             const getExpenseTypes = () => {
@@ -424,12 +416,12 @@
                     })
                     .catch(error => {
                         console.error('Error fetching expense types:', error);
-                });
+                    });
             };
 
             const showAlert = (
-                message = '', // title
-                detail = '',  // text
+                message = '',
+                detail = '',
                 {
                     icon = 'info',
                     toast = true,
@@ -478,4 +470,3 @@
         addExpense.mount('#expense')
     </script>
 @endsection
-

@@ -74,6 +74,7 @@ class ExpenseTypeController extends Controller
                             . '<br><small class="text-muted">'
                             . e($option->fees_percent_threshhold ?? 0) . '% fees threshold, '
                             . e($option->period_threshold ?? 0) . ' days for selection'
+                            . e($option->attendance_threshold !== null ? ', ' . e($option->attendance_threshold) . '% attendance threshold' : '')
                             . '</small></li>';
                     }
                     $options .= '</ol>';
@@ -158,6 +159,7 @@ class ExpenseTypeController extends Controller
             'options.*.amount_per_student' => 'nullable|numeric|min:0',
             'options.*.fees_percent_threshhold' => 'nullable|numeric|min:0|max:100',
             'options.*.period_threshold' => 'nullable|numeric|min:0|max:100',
+            'options.*.attendance_threshold' => 'nullable|numeric|min:0|max:100',
             'licence_classes' => 'nullable|array',
             'licence_classes.*' => 'uuid|exists:licence_classes,id',
         ]);
@@ -182,6 +184,7 @@ class ExpenseTypeController extends Controller
                     'amount_per_student' => $option['amount_per_student'] ?? 0,
                     'fees_percent_threshhold' => $option['fees_percent_threshhold'] ?? 0,
                     'period_threshold' => $option['period_threshold'] ?? 0,
+                    'attendance_threshold' => $option['attendance_threshold'] ?? 0,
                 ]);
             }
         }
@@ -246,6 +249,7 @@ class ExpenseTypeController extends Controller
             'options.*.amount_per_student' => 'nullable|numeric|min:0',
             'options.*.fees_percent_threshhold' => 'nullable|numeric|min:0|max:100',
             'options.*.period_threshold' => 'nullable|numeric|min:0|max:100',
+            'options.*.attendance_threshold' => 'nullable|numeric|min:0|max:100',
             'licence_classes' => 'nullable|array',
             'licence_classes.*' => 'uuid|exists:licence_classes,id',
         ]);
@@ -272,6 +276,7 @@ class ExpenseTypeController extends Controller
                     'amount_per_student' => $option['amount_per_student'] ?? 0,
                     'fees_percent_threshhold' => $option['fees_percent_threshhold'] ?? 0,
                     'period_threshold' => $option['period_threshold'] ?? 0,
+                    'attendance_threshold' => $option['attendance_threshold'] ?? 0,
                 ]);
             }
         }

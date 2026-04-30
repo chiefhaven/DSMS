@@ -1,213 +1,160 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Attendance;
-use App\Models\Expense;
 use App\Models\Instructor;
 use App\Models\InstructorPayment;
-use Illuminate\Http\Request;
 use App\Models\Invoice;
 use App\Models\Setting;
 use App\Models\Student;
-use View;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Models\Activity;
-use Auth;
-use Mpdf\Tag\Ins;
 
 class HomeController extends Controller
 {
-    protected $settings;
+    protected Setting $settings;
 
     public function __construct()
     {
         $this->middleware('auth');
-        $this->settings = Setting::find(1);
+        $this->settings = Setting::findOrFail(1);
     }
 
     public function index(Request $request)
     {
-        $validated = $request->validate([
-            'filter' => 'max:255',
-        ]);
+        $request->validate(['filter' => 'max:255']);
 
-        $filter = $request->input('filter');
-        $time = "today"; // Default to today
-
-        $attendanceCount = 0;
-
+        $attendanceCount        = 0;
         $instructorEstimatedPay = 0;
 
-
         if (Auth::user()->hasRole('instructor')) {
-            $attendanceCount = Attendance::whereMonth('created_at', Carbon::now()->month)
-                ->whereYear('created_at', Carbon::now()->year)
-                ->where('instructor_id', Auth::user()->instructor_id)
-                ->count();
-
-            // Get instructor ID
             $instructorId = Auth::user()->instructor_id;
 
-            // Get last payment record
             $lastPayment = InstructorPayment::where('instructor_id', $instructorId)
                 ->latest('payment_date')
                 ->first();
 
-            // Define date range
-            $startDate = $lastPayment ? Carbon::parse($lastPayment->payment_date) : Carbon::now()->startOfMonth();
-            $endDate = Carbon::now();
+            $startDate = $lastPayment
+                ? Carbon::parse($lastPayment->payment_date)
+                : Carbon::now()->startOfMonth();
 
-            $attendanceCount = Attendance::where('instructor_id', $instructorId)
-                ->whereBetween('created_at', [$startDate, $endDate])->count();
+            $attendanceCount        = Attendance::where('instructor_id', $instructorId)
+                ->whereBetween('created_at', [$startDate, Carbon::now()])
+                ->count();
 
             $instructorEstimatedPay = $attendanceCount * $this->settings->bonus;
-
         }
 
-        $student = Student::with('Invoice', 'User')
-            ->orderBy('created_at', 'DESC')
+        $students = Student::with('Invoice', 'User')
+            ->orderByDesc('created_at')
             ->take(10)
             ->get();
 
         $invoices = Invoice::with('Student')
-            ->orderBy('created_at', 'DESC')
+            ->orderByDesc('created_at')
             ->take(10)
             ->get();
 
-        $activities = Activity::orderBy('created_at', 'DESC')->paginate(500);
+        $activities = Activity::orderByDesc('created_at')->paginate(25);
 
         $instructors = Instructor::where('status', 'active')
-        ->with(['attendances', 'payments' => function ($q) {
-            $q->latest('payment_date');
-        }])
-        ->get();
+            ->with(['payments' => fn($q) => $q->latest('payment_date')])
+            ->get()
+            ->each(function (Instructor $instructor) {
+                $lastPayment = $instructor->payments->first();
+                $startDate   = $lastPayment
+                    ? Carbon::parse($lastPayment->payment_date)
+                    : $instructor->created_at;
 
-        $instructors->each(function ($instructor) {
-            $lastPayment = $instructor->payments->first(); // latest payment
-            $startDate = $lastPayment ? Carbon::parse($lastPayment->payment_date) : $instructor->created_at;
+                $instructor->start_date = $startDate;
+                $instructor->period_attendance_count = Attendance::where('instructor_id', $instructor->id)
+                    ->whereBetween('created_at', [$startDate, Carbon::now()])
+                    ->count();
+            });
 
-            $instructor->attendances = $instructor->attendances()
-                ->whereBetween('created_at', [$startDate, Carbon::now()])
-                ->get();
-        });
-
-        $settings = Setting::find(1);
-
-        return view('dashboard', compact(['settings', 'attendanceCount', 'instructors', 'activities', 'student', 'time', 'invoices', 'filter', 'instructorEstimatedPay']))
-            ->with('title', 'Dashboard');
+        return view('dashboard')
+            ->with('title', 'Dashboard')
+            ->with(compact(
+                'attendanceCount',
+                'instructorEstimatedPay',
+                'instructors',
+                'activities',
+                'students',
+                'invoices',
+            ))
+            ->with('filter', $request->input('filter'))
+            ->with('settings', $this->settings)
+            ->with('time', 'today');
     }
 
     public function summaryData()
     {
-        $startOfMonth = Carbon::now()->startOfMonth()->format('Y-m-d');
-        $endOfMonth = Carbon::now()->endOfMonth()->format('Y-m-d');
+        $start = Carbon::now()->startOfMonth();
+        $end   = Carbon::now()->endOfMonth();
 
-        // Initialize the dates collection for the current month
-        $dates = collect();
-        $currentDate = Carbon::parse($startOfMonth);
+        $scaffold = $this->buildDateScaffold($start, $end);
 
-        while ($currentDate->lte($endOfMonth)) {
-            $dates->put($currentDate->format('Y-m-d'), 0);
-            $currentDate->addDay();
-        }
-
-        // Get attendance count per date
-        $countAttendance = DB::table('attendances')
+        $attendances = DB::table('attendances')
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
-            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->whereBetween('created_at', [$start, $end])
             ->groupBy('date')
-            ->orderBy('date')
-            ->get();
+            ->pluck('count', 'date');
 
-        // Get schedule count per date
-        $countSchedules = DB::table('schedule_lessons')
-            ->select(DB::raw('DATE(start_time) as date'), DB::raw('count(*) as count')) // FIXED: Using start_time instead of created_at
-            ->whereBetween('start_time', [$startOfMonth, $endOfMonth])
+        $schedules = DB::table('schedule_lessons')
+            ->select(DB::raw('DATE(start_time) as date'), DB::raw('count(*) as count'))
+            ->whereBetween('start_time', [$start, $end])
             ->groupBy('date')
-            ->orderBy('date')
-            ->get();
-
-        // Convert attendance data to associative array
-        $arrayOfAttendances = $dates->toArray();
-        foreach ($countAttendance as $attendance) {
-            $arrayOfAttendances[$attendance->date] = $attendance->count;
-        }
-
-        // Convert schedule data to associative array
-        $arrayOfSchedules = $dates->toArray();
-        foreach ($countSchedules as $schedule) {
-            $arrayOfSchedules[$schedule->date] = $schedule->count;
-        }
-
-        // Convert associative arrays to simple arrays of objects
-        $attendanceMonthlyInfo = collect($arrayOfAttendances)->map(function ($count, $date) {
-            return (object) ['date' => $date, 'count' => $count];
-        })->values();
-
-        $schedulesMonthlyInfo = collect($arrayOfSchedules)->map(function ($count, $date) {
-            return (object) ['date' => $date, 'count' => $count];
-        })->values();
+            ->pluck('count', 'date');
 
         return response()->json([
-            'attendances' => $attendanceMonthlyInfo,
-            'schedules' => $schedulesMonthlyInfo
-        ], 200);
+            'attendances' => $this->mergeIntoScaffold($scaffold, $attendances),
+            'schedules'   => $this->mergeIntoScaffold($scaffold, $schedules),
+        ]);
     }
-
 
     public function instructorSummaryData()
     {
-        // Get the first day of the current month and the last day of the current month
-        $startOfMonth = Carbon::now()->startOfMonth()->format('Y-m-d');
-        $endOfMonth = Carbon::now()->endOfMonth()->format('Y-m-d');
+        abort_unless(Auth::user()->hasRole('instructor'), 403);
 
-        // Initialize the dates collection for the current month
-        $dates = collect();
-        $currentDate = Carbon::parse($startOfMonth);
+        $start = Carbon::now()->startOfMonth();
+        $end   = Carbon::now()->endOfMonth();
 
-        // Populate the collection with dates for the current month and initialize counts to 0
-        while ($currentDate->lte($endOfMonth)) {
-            $dates->put($currentDate->format('Y-m-d'), 0);
-            $currentDate->addDay();
-        }
+        $scaffold = $this->buildDateScaffold($start, $end);
 
-        // Query to get the count of attendances per date for the current month
-        $countAttendance = DB::table('attendances')
+        $attendances = DB::table('attendances')
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
-            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
-            ->where('instructor_id', Auth::user()->instructor->id)
+            ->whereBetween('created_at', [$start, $end])
+            ->where('instructor_id', Auth::user()->instructor_id)
             ->groupBy('date')
-            ->orderBy('date')
-            ->get();
+            ->pluck('count', 'date');
 
-        // Create an associative array to store the attendance counts by date
-        $arrayOfAttendances = [];
+        return response()->json(
+            $this->mergeIntoScaffold($scaffold, $attendances)
+        );
+    }
 
-        // Loop through the results to build the array
-        foreach ($countAttendance as $attendance) {
-            $arrayOfAttendances[$attendance->date] = $attendance->count;
-        }
+    // ---------------------------------------------------------------------------
+    // Private helpers
+    // ---------------------------------------------------------------------------
 
-        // Add dates with zero counts to ensure all dates are included
-        foreach ($dates as $date => $value) {
-            if (!array_key_exists($date, $arrayOfAttendances)) {
-                $arrayOfAttendances[$date] = 0;
-            }
-        }
+    private function buildDateScaffold(Carbon $start, Carbon $end): \Illuminate\Support\Collection
+    {
+        return collect(CarbonPeriod::create($start, $end))
+            ->mapWithKeys(fn(Carbon $date) => [$date->toDateString() => 0]);
+    }
 
-        // Sort the array by date
-        ksort($arrayOfAttendances);
-
-        // Convert the associative array to a simple array of objects
-        $attendanceMonthlyInfo = collect($arrayOfAttendances)->map(function ($count, $date) {
-            $item = new \stdClass();
-            $item->date = $date;
-            $item->count = $count;
-            return $item;
-        })->values();
-
-        // Return the data as JSON
-        return response()->json($attendanceMonthlyInfo, 200);
+    private function mergeIntoScaffold(
+        \Illuminate\Support\Collection $scaffold,
+        \Illuminate\Support\Collection $counts
+    ): \Illuminate\Support\Collection {
+        return $scaffold
+            ->merge($counts)
+            ->map(fn($count, $date) => (object) ['date' => $date, 'count' => $count])
+            ->values();
     }
 }

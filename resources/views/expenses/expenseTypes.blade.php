@@ -46,18 +46,19 @@
             <div v-show="!loadingData">
                 <div class="col-md-12 py-4">
                     <div class="m-4 table-responsive">
-                    <table id="expenseTypesTable" class="table table-bordered table-striped table-vcenter">
-                        <thead class="thead-dark">
-                            <tr>
-                            <th class="text-center" style="min-width: 7em;">Actions</th>
-                            <th style="min-width: 10rem;">Type</th>
-                            <th style="min-width: 10rem;">Description</th>
-                            <th style="min-width: 8rem;">Licence classes</th>
-                            <th style="min-width: 18rem;">Options</th>
-                            <th class="text-center" style="min-width: 7rem;">Status</th>
-                            </tr>
-                        </thead>
-                    </table>
+                        <table id="expenseTypesTable" class="table table-bordered table-striped table-vcenter">
+                            <thead class="thead-dark">
+                                <tr>
+                                <th class="text-center" style="min-width: 7em;">Actions</th>
+                                <th style="min-width: 10rem;">Type</th>
+                                <th style="min-width: 10rem;">Description</th>
+                                <th style="min-width: 8rem;">Licence classes</th>
+                                <th style="min-width: 18rem;">Options</th>
+                                <th class="text-center" style="min-width: 7rem;">Status</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -130,6 +131,13 @@
                             <span class="input-group-text">Days</span>
                         </div>
                     </div>
+                    <div class="col">
+                        <label class="form-label small">Attendance threshold</label>
+                        <div class="input-group">
+                            <input v-model="option.attendance_threshold" type="number" min="0" max="100" step="0.01" class="form-control" placeholder="Attendance threshold">
+                            <span class="input-group-text">%</span>
+                        </div>
+                    </div>
                     <div class="col-auto">
                         <button type="button" class="btn btn-danger" @click="removeOption(index)"><i class="fa fa-times"></i></button>
                     </div>
@@ -192,7 +200,7 @@
             };
 
             const addOption = () => {
-                form.value.options.push({ name: '', amount_per_student: 0, fees_percent_threshhold: 0, period_threshold: 0 });
+                form.value.options.push({ name: '', amount_per_student: 0, fees_percent_threshhold: 0, period_threshold: 0, attendance_threshold: 0 });
             };
 
             const removeOption = (index) => {
@@ -221,6 +229,7 @@
                             amount_per_student: opt.amount_per_student,
                             fees_percent_threshhold: opt.fees_percent_threshhold,
                             period_threshold: opt.period_threshold,
+                            attendance_threshold: opt.attendance_threshold,
                         })),
                 is_active: expenseType.is_active == 1 ? true : false,
             };

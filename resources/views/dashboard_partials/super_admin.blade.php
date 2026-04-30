@@ -128,7 +128,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach($student as $student)
+                                        @foreach($students as $student)
                                         <tr>
                                             <td class="text-center">
                                                 <img class="img-avatar img-avatar32 img-avatar-thumb" src="media/avatars/avatar2.jpg" alt="">
