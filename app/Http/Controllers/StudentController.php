@@ -154,7 +154,7 @@ class StudentController extends Controller
                 }
             })->addColumn('attendance', function ($student) {
                 $attendanceCount = $student->attendance ? $student->attendance->count() : 0;
-                $courseDuration = $student->course->duration ?? 0;
+                $courseDuration = $student->course?->lessons->sum('pivot.lesson_quantity') ?? 0;
                 $percentage = ($courseDuration > 0) ? number_format(($attendanceCount / $courseDuration) * 100, 1) : 0;
 
                 $text = "{$attendanceCount} of {$courseDuration} ";

@@ -7,7 +7,7 @@
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
                 <!-- Modal Header -->
-                <div class="modal-header">
+                <div class="modal-header text-white">
                     <h3><b v-if="showActions"> Edit</b> @{{ course.name }} lessons</h3>
                 </div>
 
