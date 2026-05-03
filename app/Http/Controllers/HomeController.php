@@ -63,19 +63,19 @@ class HomeController extends Controller
         $activities = Activity::orderByDesc('created_at')->paginate(25);
 
         $instructors = Instructor::where('status', 'active')
-            ->with(['payments' => fn($q) => $q->latest('payment_date')])
-            ->get()
-            ->each(function (Instructor $instructor) {
-                $lastPayment = $instructor->payments->first();
-                $startDate   = $lastPayment
-                    ? Carbon::parse($lastPayment->payment_date)
-                    : $instructor->created_at;
+            ->with(['attendances', 'payments' => function ($q) {
+                $q->latest('payment_date');
+            }])
+            ->get();
 
-                $instructor->start_date = $startDate;
-                $instructor->period_attendance_count = Attendance::where('instructor_id', $instructor->id)
+            $instructors->each(function ($instructor) {
+                $lastPayment = $instructor->payments->first(); // latest payment
+                $startDate = $lastPayment ? Carbon::parse($lastPayment->payment_date) : $instructor->created_at;
+
+                $instructor->attendances = $instructor->attendances()
                     ->whereBetween('created_at', [$startDate, Carbon::now()])
-                    ->count();
-            });
+                    ->get();
+        });
 
         return view('dashboard')
             ->with('title', 'Dashboard')
