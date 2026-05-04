@@ -155,41 +155,13 @@ class AttendanceController extends Controller
 
         if ($instructor->hasRole('instructor')) {
 
-            // $lessons = Lesson::where('department_id', $instructor->instructor->department_id)->get();
-            $student = Student::with(['Course.lessons', 'Attendance'])->find($token);
-
-            if ($student && $student->course) {
-                // Group attendance records by lesson_id and count occurrences
-                $lessonsCount = $student->attendance
-                ->groupBy('lesson_id')
-                ->map(fn($group) => $group->count());
-
-                // Filter and map lessons
-                $lessons = $student->course->lessons
-                ->filter(function ($lesson) use ($instructor, $lessonsCount) {
-                    // Ensure the lesson belongs to the instructor's department
-                    if ($lesson->department_id !== $instructor->instructor->department_id) {
-                        return false;
-                    }
-
-                    // Get attendance count or default to 0
-                    $attendanceCount = $lessonsCount->get($lesson->id, 0);
-
-                    // Include lessons with lesson_quantity > attendanceCount
-                    return $lesson->pivot->lesson_quantity > $attendanceCount;
-                })
-                ->map(function ($lesson) use ($lessonsCount) {
-                    // Add an 'attended' flag
-                    $lesson->attended = $lessonsCount->has($lesson->id);
-                    return $lesson;
-                })
-                ->sortBy('pivot.order') // Sort lessons by the order field in the pivot table
-                ->values(); // Reset collection keys
-
-            } else {
-                $lessons = collect(); // Return an empty collection if student or course is missing
-            }
-
+            $student = Student::with([
+                'Course.lessons',
+                'Attendance.lesson.department',
+                'invoice',
+                'fleet.instructor',
+                'classroom.instructors',
+            ])->find($token);
 
             if (!$student) {
                 Alert()->error('Student not found', 'Scan another document or contact the admin');
@@ -206,12 +178,10 @@ class AttendanceController extends Controller
                 return back();
             }
 
-
             if ($instructor->instructor->department->name == 'theory' && !$student->classroom) {
                 Alert()->error('Student not found', 'Student does not belong to any classroom, please scan another document or contact administrator.');
                 return back();
             }
-
 
             if ($student->fleet && !havenUtils::checkStudentInstructor($token) && isset($instructor->instructor->department) && $instructor->instructor->department->name == 'practical') {
                 $fleetDetails = $student->fleet->car_registration_number . ' ' . $student->fleet->car_brand_model;
@@ -223,10 +193,9 @@ class AttendanceController extends Controller
             if ($student->classroom && !havenUtils::checkClassRoom($token) && isset($instructor->instructor->department) && $instructor->instructor->department->name == 'theory') {
                 $classroomDetails = $student->classroom->name . ' ' . $student->classroom->location;
 
-                // Get all instructors' full names
-                $instructorNames = $student->classroom->instructors->pluck('fname', 'sname')->map(function($fname, $sname) {
+                $instructorNames = $student->classroom->instructors->pluck('fname', 'sname')->map(function ($fname, $sname) {
                     return $fname . ' ' . $sname;
-                })->implode(', '); // Join all instructor names with a comma
+                })->implode(', ');
 
                 if (empty($instructorNames)) {
                     $instructorNames = 'no instructors assigned';
@@ -236,11 +205,42 @@ class AttendanceController extends Controller
                 return back();
             }
 
+            // Filter practical attendance from already-loaded relationship
+            $practicalAttendance = $student->attendance->filter(
+                fn($a) => $a->lesson?->department?->name === 'practical'
+            );
 
-            $attendanceCount = $student->attendance->count();
+            $attendanceCount = $practicalAttendance->count();
+
+            // Group practical attendance by lesson_id for lesson filtering
+            $lessonsCount = $practicalAttendance
+                ->groupBy('lesson_id')
+                ->map(fn($group) => $group->count());
+
+            if ($student->course) {
+                $lessons = $student->course->lessons
+                    ->filter(function ($lesson) use ($instructor, $lessonsCount) {
+                        if ($lesson->department_id !== $instructor->instructor->department_id) {
+                            return false;
+                        }
+
+                        $attendanceCount = $lessonsCount->get($lesson->id, 0);
+
+                        return $lesson->pivot->lesson_quantity > $attendanceCount;
+                    })
+                    ->map(function ($lesson) use ($lessonsCount) {
+                        $lesson->attended = $lessonsCount->has($lesson->id);
+                        return $lesson;
+                    })
+                    ->sortBy('pivot.order')
+                    ->values();
+            } else {
+                $lessons = collect();
+            }
+
             $attendanceThreshold = $this->setting->attendance_threshold;
             $feesBalanceThreshold = $this->setting->fees_balance_threshold;
-            $studentCourseDuration = $student->course->duration;
+            $studentCourseDuration = havenUtils::courseDuration($student->course_id);
 
             if ($student->invoice->invoice_total > 0) {
                 $feesBalancePercentage = ($student->invoice->invoice_amount_paid / $student->invoice->invoice_total) * 100;
@@ -254,20 +254,20 @@ class AttendanceController extends Controller
                 $attendancePercentage = 0;
             }
 
-
             if ($attendancePercentage >= $attendanceThreshold && $feesBalancePercentage < $feesBalanceThreshold) {
                 Alert()->error('Fees balance', 'Attendance can not be entered, student has fees balance that must be paid...');
                 return back();
             }
 
             $date = Carbon::now()->timezone('Africa/Blantyre');
+
             return view('attendances.addattendance', compact('student', 'lessons', 'instructor', 'date', 'attendanceCount', 'studentCourseDuration'));
+
         } else {
             $student = havenUtils::invoiceQrCode($token);
             return view('qrCodeGuest', compact('student'));
         }
     }
-
 
     /**
      * Store a newly created resource in storage.
