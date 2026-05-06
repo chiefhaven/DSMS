@@ -37,7 +37,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($students as $student)
+                            @foreach ($student as $student)
                                 <tr>
                                     <td class="text-center">
                                         <img class="img-avatar img-avatar32 img-avatar-thumb" src="{{ asset('media/avatars/avatar2.jpg') }}" alt="Avatar">
