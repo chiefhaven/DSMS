@@ -601,10 +601,20 @@
                     }
                 };
 
-                // Format currency
-                const formatCurrency = (value) => {
-                    let val = (value / 1).toFixed(2).replace(',', '.');
-                    return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                const formatCurrency = (value, compact = true, decimals = 2, symbol = '') => {
+                    if (isNaN(value) || value === null || value === undefined) return '0.00';
+
+                    const abs  = Math.abs(value);
+                    const sign = value < 0 ? '-' : '';
+
+                    if (compact) {
+                        if (abs >= 1_000_000_000) return sign + symbol + (abs / 1_000_000_000).toFixed(1) + 'B';
+                        if (abs >= 1_000_000)     return sign + symbol + (abs / 1_000_000).toFixed(1) + 'M';
+                        if (abs >= 1_000)         return sign + symbol + (abs / 1_000).toFixed(1) + 'K';
+                    }
+
+                    let val = abs.toFixed(decimals).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                    return sign + symbol + val;
                 };
 
                 const showAlert = (
