@@ -357,7 +357,7 @@ class havenUtils extends Controller
 
             $data = $response->json();
 
-            Log::info($data['data'] ?? 0);
+            \Log::info($data['data'] ?? 0);
 
             return response()->json(['balance' => $data['data']['remaining_balance'] ?? 0]);
         } catch (\Exception $e) {
