@@ -609,8 +609,10 @@ class ExpenseController extends Controller
         }
 
         if ($option->attendance_threshold !== null && $option->attendance_threshold !== 0) {
-            $totalLessons = DB::table('course_lesson')
-                ->sum('lesson_quantity');
+
+            $totalLessons = $student->course ? $student->course->lessons()->sum('lesson_quantity') : 0;
+
+            \Log::info("Total lessons for student {$student->id}: {$totalLessons}");
 
             $attendedSessions = $student->attendance()->count();
 

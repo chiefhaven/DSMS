@@ -418,6 +418,7 @@
                 </div>
             </div>
         @include('students.partials.invoicesPayments')
+        @include('students.partials.studentExpensesList')
     </div>
     </div>
     </div>
