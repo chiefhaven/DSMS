@@ -24,7 +24,7 @@
     </div>
     </div>
 
-    <div class="content content-full" id="groupNotification">
+    <div class="content content-full" id="groupNotifications">
         <div class="bg-light p-4">
           <div v-if="isLoading" class="text-center py-7">
             <span class="spinner-border text-primary" role="status"></span>
@@ -185,8 +185,5 @@
 
         sendGroupNotification.mount('#groupNotifications');
     </script>
-
-
-
 <!-- END Hero -->
 @endsection
