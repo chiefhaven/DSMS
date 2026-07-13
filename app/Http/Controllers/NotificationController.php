@@ -90,6 +90,16 @@ class NotificationController extends Controller
         }
 
         try {
+
+            $destination = preg_replace('/\D/', '', $destination); // Remove non-numeric characters
+
+            // If the number doesn't already start with 265, add it
+            if (!str_starts_with($destination, '265')) {
+                // Remove leading 0 if present
+                $destination = ltrim($destination, '0');
+                $destination = '265' . $destination;
+            }
+
             $apiResponse = Http::withHeaders([
                 'Authorization' => config('services.smsApi.token'),
                 'Accept'        => 'application/json',
