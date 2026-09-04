@@ -842,6 +842,55 @@ class StudentController extends Controller
         return $pdf->download('Daron Driving School-'.$student->fname.' '.$student->sname.' Final Reference Letter.pdf');
     }
 
+    public function gdRoadTestReferenceLetter($id)
+    {
+        $student = Student::find($id);
+        $setting = Setting::find(1);
+        $date = date('j F, Y');
+
+        $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/'.$id);
+
+        $pdf = PDF::loadView('pdf_templates.gAndDRoadTestReferenceLetter', compact('student', 'setting', 'date', 'qrCode'));
+        return $pdf->download('Daron Driving School-'.$student->fname.' '.$student->sname.' G and D Road Test Reference Letter.pdf');
+    }
+
+    public function gdAptitudeTestReferenceLetter($id)
+    {
+        $student = Student::find($id);
+        $setting = Setting::find(1);
+        $date = date('j F, Y');
+
+        $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/'.$id);
+
+        $pdf = PDF::loadView('pdf_templates.gAndDAptitudeTestReferenceLetter', compact('student', 'setting', 'date', 'qrCode'));
+        return $pdf->download('Daron Driving School-'.$student->fname.' '.$student->sname.' G and D Aptitude Test Reference Letter.pdf');
+    }
+
+    public function categoryPAptitudeReferenceLetter($id)
+    {
+        $student = Student::find($id);
+        $setting = Setting::find(1);
+        $date = date('j F, Y');
+
+        $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/'.$id);
+
+        $pdf = PDF::loadView('pdf_templates.categoryPAptitudeTestReferenceLetter', compact('student', 'setting', 'date', 'qrCode'));
+        return $pdf->download('Daron Driving School-'.$student->fname.' '.$student->sname.' Category P Aptitude Test Reference Letter.pdf');
+
+    }
+
+    public function categoryPRoadTestReferenceLetter($id)
+    {
+        $student = Student::find($id);
+        $setting = Setting::find(1);
+        $date = date('j F, Y');
+
+        $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/'.$id);
+
+        $pdf = PDF::loadView('pdf_templates.categoryPRoadTestReferenceLetter', compact('student', 'setting', 'date', 'qrCode'));
+        return $pdf->download('Daron Driving School-'.$student->fname.' '.$student->sname.' Category P Road Test Reference Letter.pdf');
+    }
+
     public function lessonReport($id)
     {
         $student = Student::with(['attendance', 'course.lessons'])->findOrFail($id);

@@ -67,6 +67,23 @@ Route::post('/trafic-card-reference-letter/{id}', [StudentController::class, 'tr
 Route::post('/aptitude-test-reference-letter/{id}', [StudentController::class, 'aptitudeTestReferenceLetter'])->middleware('auth')->name('student_aptitude_test');
 Route::post('/second-aptitude-test-reference-letter/{id}', [StudentController::class, 'secondAptitudeTestReferenceLetter'])->middleware('auth')->name('students_final_aptitude');
 Route::post('/final-test-reference-letter/{id}', [StudentController::class, 'finalReferenceLetter'])->middleware('auth')->name('final-test-report');
+
+Route::post('/g-and-d-road-test-reference-letter/{id}', [StudentController::class, 'gdRoadTestReferenceLetter'])
+    ->middleware('auth')
+    ->name('gd.road-test-reference-letter');
+
+Route::post('/g-and-d-aptitude-test-reference-letter/{id}', [StudentController::class, 'gdAptitudeTestReferenceLetter'])
+    ->middleware('auth')
+    ->name('gd.aptitude-test-reference-letter');
+
+Route::post('/category-p-aptitude-test-reference-letter/{id}', [StudentController::class, 'categoryPAptitudeReferenceLetter'])
+    ->middleware('auth')
+    ->name('category-p.aptitude-reference-letter');
+
+Route::post('/category-p-road-test-reference-letter/{id}', [StudentController::class, 'categoryPRoadTestReferenceLetter'])
+    ->middleware('auth')
+    ->name('category-p.road-test-reference-letter');
+
 Route::post('/lesson-report/{id}', [StudentController::class, 'lessonReport'])->middleware('auth')->name('lesson-report');
 Route::get('/search-student', [StudentController::class, 'search'])->middleware('auth')->name('searchStudent');
 Route::post('/studentsPdf', [StudentController::class, 'studentsPDF'])->middleware('auth')->name('studentPDF');
