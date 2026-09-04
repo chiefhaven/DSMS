@@ -9,7 +9,7 @@
         "axios": "^1.1.2",
         "bootstrap": "^5.3.8",
         "laravel-vite-plugin": "^3.1.0",
-        "puppeteer": "^24.10.1",
+        "puppeteer": "^25.10.0",
         "sass": "^1.56.1",
         "trix": "^2.0.10",
         "vite": "^8.0.16",
