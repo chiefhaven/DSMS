@@ -25,6 +25,14 @@
         @endif
         
         Professional Driving Permit aptitude test for Categories Goods and Dangerous Goods.</p>
-    <p>{{$student->fname}} {{$student->mname}} {{$student->sname}} is one of our students at Daron Driving School and has held a Category C1 driver’s licence for a minimum of two years, making him/her eligible to apply for the professional driving permit aptitude test.</p>
+    <p>{{$student->fname}} {{$student->mname}} {{$student->sname}} is one of our students at Daron Driving School and has held a Category C1 driver’s licence for a minimum of two years, making 
+        @if($student->gender == "Male")
+            his
+        @elseif($student->gender == "Female")
+            her
+        @else
+            his/her
+        @endif
+         eligible to apply for the professional driving permit aptitude test.</p>
 
 @include('pdf_templates.partials.footer')
