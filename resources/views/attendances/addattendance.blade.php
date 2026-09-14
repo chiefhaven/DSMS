@@ -44,6 +44,7 @@
 
                         @csrf
                         <input name="student" v-model="state.student" hidden>
+                        <input name="studentId" v-model="state.studentId" hidden>
 
                         <!-- Student + Remaining Lessons -->
                         <div class="text-center mb-4">
@@ -166,6 +167,7 @@
           attendanceForm: null,
           lesson: '',
           student: '{{ $student->fname }} {{ $student->mname }} {{ $student->sname }}',
+          studentId: '{{ $student->id }}',
           attendanceCount: '{{ $attendanceCount }}',
           studentCourseDuration: '{{ $studentCourseDuration }}',
           remainingLessons: '{{ $studentCourseDuration - $attendanceCount }}'

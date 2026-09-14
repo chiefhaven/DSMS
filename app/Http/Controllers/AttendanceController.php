@@ -293,18 +293,21 @@ class AttendanceController extends Controller
 
         // Find the student
         $studentName = html_entity_decode($post['student']);
-        if (!$studentName) {
+        $studentId = html_entity_decode($post['studentId']);
+
+        if (!$studentName || !$studentId) {
             Alert::error('Oops! Something went wrong', 'Student not registered');
             return back();
         }
 
         $student = havenUtils::student($studentName);
+
         if (!$student) {
             Alert::error('Oops! Something went wrong', 'Student not found');
             return back();
         }
 
-        $student_id = $student->id;
+        $student_id = $studentId;
 
         // Get student's course
         $invoice = Invoice::where('student_id', $student_id)->first();
