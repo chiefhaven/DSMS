@@ -174,8 +174,8 @@
                     <table class="table align-middle mb-0 fs-sm">
                         <thead class="bg-light sticky-top">
                             <tr class="text-uppercase fs-xs text-muted tracking-wide">
-                                <th class="py-3 ps-4">Invoice No.</th>
-                                <th class="d-none d-sm-table-cell py-3">Date</th>
+                                <th class="py-3 ps-4" style="min-width: 200px;">Invoice No.</th>
+                                <th class="d-none d-sm-table-cell py-3" style="min-width:200px">Date</th>
                                 <th class="py-3" style="min-width: 150px;">Student</th>
                                 <th class="text-end py-3 pe-4">Balance</th>
                                 <th class="text-center py-3" style="width: 70px;">View</th>
