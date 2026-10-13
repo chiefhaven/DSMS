@@ -36,7 +36,7 @@
                     <table class="table align-middle mb-0 fs-sm">
                         <thead class="bg-light sticky-top">
                             <tr class="text-uppercase fs-xs text-muted tracking-wide">
-                                <th class="text-center py-3" style="width: 70px;">Photo</th>
+                                <th class="text-center py-3" style="min-width: 70px;">Photo</th>
                                 <th class="py-3" style="min-width: 150px;">Name</th>
                                 <th class="d-none d-sm-table-cell text-center py-3" style="min-width: 180px;">Course</th>
                                 <th class="text-center py-3" style="width: 70px;">View</th>
@@ -66,7 +66,7 @@
                                     </td>
                                     <td class="d-none d-sm-table-cell text-center py-3">
                                         @if (isset($student->course->name))
-                                            <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary fw-semibold px-3 py-1">
+                                            <span class="badge rounded-pill bg-primary bg-opacity-10 text-white fw-semibold px-3 py-1">
                                                 {{ $student->course->name }}
                                             </span>
                                             <div class="text-muted small mt-1">
@@ -74,7 +74,7 @@
                                                 {{ $student->course->duration }} days
                                             </div>
                                         @else
-                                            <span class="badge rounded-pill bg-danger bg-opacity-10 text-danger fw-semibold px-3 py-1">
+                                            <span class="badge rounded-pill bg-danger bg-opacity-10 fw-semibold px-3 py-1">
                                                 Not enrolled
                                             </span>
                                         @endif
@@ -140,8 +140,8 @@
                     <table class="table align-middle mb-0 fs-sm">
                         <thead class="bg-light">
                             <tr class="text-uppercase fs-xs text-muted tracking-wide">
-                                <th class="py-3 ps-4">Invoice No.</th>
-                                <th class="d-none d-sm-table-cell py-3">Date</th>
+                                <th class="py-3 ps-4" style="min-width: 200px;">Invoice No.</th>
+                                <th class="d-none d-sm-table-cell py-3" style="min-width:200px">Date</th>
                                 <th class="py-3" style="min-width: 150px;">Student</th>
                                 <th class="text-end py-3 pe-4">Balance</th>
                                 <th class="text-center py-3" style="width: 70px;">Action</th>
