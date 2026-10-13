@@ -224,6 +224,24 @@ class havenUtils extends Controller
         return $course->lessons->sum(fn($lesson) => $lesson->pivot->lesson_quantity);
     }
 
+    //check for course Duration a students is enrolled in based on current invoice
+    public static function totalAttendancePerDepartment($student_id)
+    {
+        $user = Auth::user();
+
+        $departmentId = $user->hasRole('instructor')
+            ? $user->instructor?->department_id
+            : null;
+
+        return Attendance::where('student_id', $student_id)
+            ->when($departmentId !== null, function ($query) use ($departmentId) {
+                $query->whereHas('lesson', function ($q) use ($departmentId) {
+                    $q->where('department_id', $departmentId);
+                });
+            })
+            ->count();
+    }
+
     //Generate invoice number
     public static function generateInvoiceNumber(){
         // Fetch invoice settings once to avoid multiple queries
