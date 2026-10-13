@@ -10,94 +10,105 @@
             {{-- Dashboard Summary --}}
             <div class="row g-3" id="dashboardSummary" v-cloak>
 
-                <div v-if="isLoading" class="col-12 text-center py-5">
-                    <span class="spinner-border text-primary" role="status"></span>
-                    <p class="text-muted mt-3 mb-0 fw-medium">Loading dashboard summary...</p>
-                </div>
+                {{-- Date Filter -- Always visible, no skeleton --}}
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm rounded-3">
+                        <div class="card-body p-3 p-sm-4">
+                            <form @submit.prevent="filterDashboard"
+                                  class="row g-3 align-items-end">
 
-                <template v-else>
+                                <div class="col-12 col-sm-auto">
+                                    <label for="filter" class="form-label fw-semibold text-secondary small text-uppercase tracking-wide">
+                                        Reporting Period
+                                    </label>
 
-                    {{-- Date Filter --}}
-                    <div class="col-12">
-                        <div class="card border-0 shadow-sm rounded-3">
-                            <div class="card-body p-3 p-sm-4">
-                                <form @submit.prevent="filterDashboard"
-                                      class="row g-3 align-items-end">
+                                    <select
+                                        id="filter"
+                                        v-model="filter"
+                                        name="filter"
+                                        class="form-select form-select-sm rounded-2 border-0 bg-light"
+                                        @change="onFilterChange"
+                                    >
+                                        <option value="today">Today</option>
+                                        <option value="yesterday">Yesterday</option>
+                                        <option value="thisweek">This Week</option>
+                                        <option value="thismonth">This Month</option>
+                                        <option value="lastmonth">Last Month</option>
+                                        <option value="thisyear">This Year</option>
+                                        <option value="lastyear">Last Year</option>
+                                        <option value="alltime">All Time</option>
+                                        <option value="custom">Custom Range</option>
+                                    </select>
+                                </div>
+
+                                <template v-if="filter === 'custom'">
 
                                     <div class="col-12 col-sm-auto">
-                                        <label for="filter" class="form-label fw-semibold text-secondary small text-uppercase tracking-wide">
-                                            Reporting Period
+                                        <label for="startDate" class="form-label fw-semibold text-secondary small text-uppercase tracking-wide">
+                                            Start Date
                                         </label>
-
-                                        <select
-                                            id="filter"
-                                            v-model="filter"
-                                            name="filter"
-                                            class="form-select form-select-sm rounded-2 border-0 bg-light"
-                                            @change="onFilterChange"
+                                        <input
+                                            type="text"
+                                            id="startDate"
+                                            class="form-control form-control-sm rounded-2 border-0 bg-light"
+                                            v-model="startDate"
+                                            placeholder="YYYY-MM-DD"
+                                            autocomplete="off"
                                         >
-                                            <option value="today">Today</option>
-                                            <option value="yesterday">Yesterday</option>
-                                            <option value="thisweek">This Week</option>
-                                            <option value="thismonth">This Month</option>
-                                            <option value="lastmonth">Last Month</option>
-                                            <option value="thisyear">This Year</option>
-                                            <option value="lastyear">Last Year</option>
-                                            <option value="alltime">All Time</option>
-                                            <option value="custom">Custom Range</option>
-                                        </select>
                                     </div>
 
-                                    <template v-if="filter === 'custom'">
+                                    <div class="col-12 col-sm-auto">
+                                        <label for="endDate" class="form-label fw-semibold text-secondary small text-uppercase tracking-wide">
+                                            End Date
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="endDate"
+                                            class="form-control form-control-sm rounded-2 border-0 bg-light"
+                                            v-model="endDate"
+                                            placeholder="YYYY-MM-DD"
+                                            autocomplete="off"
+                                        >
+                                    </div>
 
-                                        <div class="col-12 col-sm-auto">
-                                            <label for="startDate" class="form-label fw-semibold text-secondary small text-uppercase tracking-wide">
-                                                Start Date
-                                            </label>
-                                            <input
-                                                type="text"
-                                                id="startDate"
-                                                class="form-control form-control-sm rounded-2 border-0 bg-light"
-                                                v-model="startDate"
-                                                placeholder="YYYY-MM-DD"
-                                                autocomplete="off"
-                                            >
-                                        </div>
+                                    <div class="col-12 col-sm-auto">
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm btn-primary rounded-2 px-3"
+                                            @click="onCustomDateChange"
+                                            :disabled="!startDate || !endDate"
+                                        >
+                                            <i class="fa fa-filter me-1"></i>
+                                            Apply
+                                        </button>
+                                    </div>
 
-                                        <div class="col-12 col-sm-auto">
-                                            <label for="endDate" class="form-label fw-semibold text-secondary small text-uppercase tracking-wide">
-                                                End Date
-                                            </label>
-                                            <input
-                                                type="text"
-                                                id="endDate"
-                                                class="form-control form-control-sm rounded-2 border-0 bg-light"
-                                                v-model="endDate"
-                                                placeholder="YYYY-MM-DD"
-                                                autocomplete="off"
-                                            >
-                                        </div>
+                                </template>
 
-                                        <div class="col-12 col-sm-auto">
-                                            <button
-                                                type="button"
-                                                class="btn btn-sm btn-primary rounded-2 px-3"
-                                                @click="onCustomDateChange"
-                                                :disabled="!startDate || !endDate"
-                                            >
-                                                <i class="fa fa-filter me-1"></i>
-                                                Apply
-                                            </button>
-                                        </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
 
-                                    </template>
-
-                                </form>
+                <!-- Summary Cards — Skeleton Loader -->
+                <template v-if="isLoading">
+                    <div class="col-12 col-sm-6 col-xl-4" v-for="n in 6" :key="'skel-'+n">
+                        <div class="card border-0 shadow-sm rounded-3 h-100 stat-card">
+                            <div class="card-body p-3 d-flex align-items-center">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="skeleton skeleton-circle" style="width: 48px; height: 48px;"></div>
+                                </div>
+                                <div class="flex-grow-1 text-end overflow-hidden">
+                                    <div class="skeleton skeleton-text ms-auto" style="width: 80px; height: 20px;"></div>
+                                    <div class="skeleton skeleton-text ms-auto mt-2" style="width: 60px; height: 12px;"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
+                </template>
 
-                    {{-- Summary Cards --}}
+                <!-- Loaded Summary Cards -->
+                <template v-else>
                     <div
                         class="col-12 col-sm-6 col-xl-4"
                         v-for="(card, index) in summaryCards"
@@ -131,8 +142,8 @@
                             </div>
                         </div>
                     </div>
-
                 </template>
+
             </div>
 
             {{-- Attendance Statistics --}}
@@ -145,7 +156,7 @@
                 </div>
                 <div class="card-body p-4">
                     <div style="position: relative; min-height: 280px;">
-                        <canvas id="attendancesChart"></canvas>
+                        <canvas id="attendancesChart" v-cloak></canvas>
                     </div>
                 </div>
             </div>
@@ -162,20 +173,29 @@
                         <i class="fa fa-arrow-right ms-1"></i>
                     </a>
                 </div>
-                <div class="card-body p-0" style="max-height: 30em; overflow-y: auto;">
+
+                <div class="card-body p-0 bg-white" style="max-height: 30em; overflow-y: auto;">
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0 fs-sm">
+                        <table class="table align-middle mb-0 fs-sm">
                             <thead class="bg-light sticky-top">
                                 <tr class="text-uppercase fs-xs text-muted tracking-wide">
                                     <th class="text-center py-3" style="width: 70px;">Photo</th>
-                                    <th class="py-3">Name</th>
+                                    <th class="py-3" style="min-width: 150px;">Name</th>
                                     <th class="py-3">Gender</th>
-                                    <th class="d-none d-md-table-cell text-center py-3">Course</th>
+                                    <th class="d-none d-md-table-cell text-center py-3" style="min-width: 250px;">Course</th>
                                     <th class="text-center py-3" style="width: 80px;">View</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($students as $student)
+                                    @php
+                                        $gender = $student->gender ?? null;
+                                        $genderStyles = match ($gender) {
+                                            'Male'   => ['bg-primary',   'text-white'],
+                                            'Female' => ['bg-pink',      'text-white'],
+                                            default  => ['bg-secondary', 'text-white'],
+                                        };
+                                    @endphp
                                     <tr>
                                         <td class="text-center py-3">
                                             <img
@@ -189,7 +209,7 @@
                                             >
                                         </td>
                                         <td class="py-3">
-                                            <div class="fw-semibold text-dark">
+                                            <div class="fw-semibold text-dark text-uppercase">
                                                 {{ $student->fname }} {{ $student->sname }}
                                             </div>
                                             <div class="text-muted small">
@@ -197,20 +217,21 @@
                                             </div>
                                         </td>
                                         <td class="py-3">
-                                            <span class="badge rounded-pill bg-{{ $student->gender === 'Male' ? 'primary' : ($student->gender === 'Female' ? 'pink' : 'secondary') }} bg-opacity-10 text-{{ $student->gender === 'Male' ? 'primary' : ($student->gender === 'Female' ? 'pink' : 'secondary') }} fw-semibold px-3 py-1">
-                                                {{ $student->gender ?? 'Not specified' }}
+                                            <span class="badge rounded-pill {{ $genderStyles[0] }} {{ $genderStyles[1] }} fw-semibold px-3 py-1">
+                                                {{ $gender ?? 'Not specified' }}
                                             </span>
                                         </td>
                                         <td class="d-none d-md-table-cell text-center py-3">
                                             @if($student->course)
-                                                <div class="fw-semibold text-dark">
+                                                <div class="">
                                                     {{ $student->course->name }}
                                                 </div>
-                                                <div class="text-muted small">
+                                                <div class="text-muted small mt-1">
+                                                    <i class="fa fa-clock me-1 opacity-50"></i>
                                                     {{ $student->course->duration }} days
                                                 </div>
                                             @else
-                                                <span class="badge rounded-pill bg-danger bg-opacity-10 text-danger fw-semibold px-3 py-1">
+                                                <span class="badge rounded-pill bg-danger bg-opacity-10 fw-semibold px-3 py-1">
                                                     Not enrolled
                                                 </span>
                                             @endif
@@ -242,7 +263,7 @@
             </div>
 
             {{-- Invoices --}}
-            <div class="card border-0 shadow-sm rounded-3 overflow-hidden" id="invoices">
+            <div class="card border-0 shadow-sm rounded-3 overflow-hidden" id="invoices" v-cloak>
                 <div class="card-header bg-white border-bottom py-3 px-4">
                     <h6 class="card-title mb-0 fw-bold text-success">
                         <i class="fa fa-file-invoice me-2"></i>
@@ -250,17 +271,46 @@
                     </h6>
                 </div>
                 <div class="card-body p-0" style="max-height: 30em; overflow-y: auto;">
-                    <div v-if="loading" class="text-center py-5">
-                        <span class="spinner-border spinner-border-sm text-success"></span>
-                        <span class="text-muted ms-2 fw-medium">Loading invoices...</span>
+
+                    <!-- Skeleton Loader for Invoices -->
+                    <div v-if="loading" class="table-responsive">
+                        <table class="table align-middle mb-0 fs-sm">
+                            <thead class="bg-light">
+                                <tr class="text-uppercase fs-xs text-muted tracking-wide">
+                                    <th class="py-3 ps-4" style="min-width: 200px;">Invoice No.</th>
+                                    <th class="d-none d-sm-table-cell py-3" style="min-width:200px">Date</th>
+                                    <th class="py-3" style="min-width: 150px;">Student</th>
+                                    <th class="text-end py-3 pe-4">Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="n in 6" :key="'inv-skel-'+n">
+                                    <td class="py-3 ps-4">
+                                        <div class="skeleton skeleton-text" style="width: 80px;"></div>
+                                    </td>
+                                    <td class="d-none d-sm-table-cell py-3">
+                                        <div class="skeleton skeleton-text" style="width: 100px;"></div>
+                                    </td>
+                                    <td class="py-3">
+                                        <div class="skeleton skeleton-text" style="width: 140px;"></div>
+                                        <div class="skeleton skeleton-text mt-2" style="width: 90px;"></div>
+                                    </td>
+                                    <td class="text-end py-3 pe-4">
+                                        <div class="skeleton skeleton-text ms-auto" style="width: 70px;"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
+
+                    <!-- Loaded Invoices -->
                     <div v-else class="table-responsive">
-                        <table class="table table-hover align-middle mb-0 fs-sm">
+                        <table class="table align-middle mb-0 fs-sm">
                             <thead class="bg-light sticky-top">
                                 <tr class="text-uppercase fs-xs text-muted tracking-wide">
-                                    <th class="py-3 ps-4">Invoice No.</th>
-                                    <th class="d-none d-sm-table-cell py-3">Date</th>
-                                    <th class="py-3">Student</th>
+                                    <th class="py-3 ps-4" style="min-width: 200px;">Invoice No.</th>
+                                    <th class="d-none d-sm-table-cell py-3" style="min-width:200px">Date</th>
+                                    <th class="py-3" style="min-width: 150px;">Student</th>
                                     <th class="text-end py-3 pe-4">Balance</th>
                                 </tr>
                             </thead>
@@ -283,8 +333,6 @@
                                         <div class="fw-semibold text-dark">
                                             @{{ item.student?.fname || '' }}
                                             @{{ item.student?.mname || '' }}
-                                        </div>
-                                        <div class="text-muted small">
                                             @{{ item.student?.sname || 'Unknown student' }}
                                         </div>
                                     </td>
@@ -311,21 +359,22 @@
 
             {{-- System Activities --}}
             <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
-                <div class="card-header bg-white border-bottom py-3 px-4">
+                <div class="card-header bg-white border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
                     <h6 class="card-title mb-0 fw-bold text-info">
                         <i class="fa fa-history me-2"></i>
                         System Activities
                     </h6>
                 </div>
-                <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
+
+                <div class="card-body p-3" style="max-height: 500px; overflow-y: auto;">
                     <div class="table-responsive">
                         <table id="activitiesTable"
-                               class="table table-hover align-middle mb-0 fs-sm">
+                            class="table align-middle mb-0 fs-sm">
                             <thead class="bg-light sticky-top">
                                 <tr class="text-uppercase fs-xs text-muted tracking-wide">
                                     <th class="py-3 ps-4" style="width: 55%;">Activity</th>
-                                    <th class="py-3" style="width: 25%;">Performed By</th>
-                                    <th class="text-end py-3 pe-4" style="width: 20%;">Date &amp; Time</th>
+                                    <th class="py-3" style="min-width: 100px;">Performed By</th>
+                                    <th class="text-end py-3 pe-4" style="min-width: 200px;">Date &amp; Time</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -366,12 +415,6 @@
                             </tbody>
                         </table>
                     </div>
-
-                    @if($activities instanceof \Illuminate\Contracts\Pagination\Paginator && $activities->hasPages())
-                        <div class="px-4 py-3 border-top">
-                            {{ $activities->links() }}
-                        </div>
-                    @endif
                 </div>
             </div>
 
@@ -397,10 +440,10 @@
                         $totalAttendances = $instructors->sum('attendance_count');
                     @endphp
                     <div class="table-responsive" style="max-height: 24em; overflow: auto;">
-                        <table class="table table-hover align-middle mb-0 fs-sm">
+                        <table class="table align-middle mb-0 fs-sm">
                             <thead class="bg-light sticky-top">
                                 <tr class="text-uppercase fs-xs text-muted tracking-wide">
-                                    <th class="py-3 ps-4">Instructor</th>
+                                    <th class="py-3 ps-4" style="min-width: 200px;">Instructor</th>
                                     <th class="text-center py-3">Attendance</th>
                                     <th class="text-end py-3 pe-4">Bonus</th>
                                 </tr>
@@ -421,13 +464,10 @@
                                                 {{ $instructor->fname }}
                                                 {{ $instructor->sname }}
                                             </div>
-                                            <div class="text-muted fs-xs">
-                                                {{ number_format($percentage, 1) }}% of attendance
-                                            </div>
                                         </td>
                                         <td class="text-center py-3">
                                             <span class="fw-semibold">
-                                                {{ number_format($count) }}
+                                                {{ number_format($count) }} ({{ number_format($percentage, 1) }}%)
                                             </span>
                                         </td>
                                         <td class="text-end fw-semibold py-3 pe-4">
@@ -471,22 +511,21 @@
                         Bonuses are scheduled for the 28th.
                     </p>
 
-                    {{-- Early Bonus Payment --}}
-                    <div id="bonuses">
+                    {{-- Early Bonus Payment with Skeleton --}}
+                    <div id="bonuses" v-cloak>
                         <button
                             type="button"
                             class="btn btn-primary rounded-pill px-4 w-100"
                             :disabled="paymentLoading"
                             @click="payEarly"
                         >
-                            <span v-if="paymentLoading">
-                                <i class="fa fa-spinner fa-spin me-1"></i>
-                                Processing...
-                            </span>
-                            <span v-else>
+                            <template v-if="paymentLoading">
+                                <span class="skeleton skeleton-text d-inline-block" style="width: 100px; height: 14px; vertical-align: middle;"></span>
+                            </template>
+                            <template v-else>
                                 <i class="fa fa-money-bill-wave me-1"></i>
                                 Pay Early
-                            </span>
+                            </template>
                         </button>
                     </div>
                 </div>
@@ -1000,6 +1039,42 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 </script>
+
+
+{{-- ============================================================
+     SKELETON LOADER STYLES
+============================================================ --}}
+
+<style>
+    .skeleton {
+        background: #e2e8f0;
+        border-radius: 0.375rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .skeleton::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        animation: shimmer 1.5s infinite;
+    }
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+    .skeleton-circle {
+        border-radius: 50%;
+    }
+    .skeleton-text {
+        height: 0.75rem;
+        margin-bottom: 0.25rem;
+    }
+    .skeleton-input {
+        height: 2rem;
+        border-radius: 0.5rem;
+    }
+</style>
 
 
 {{-- ============================================================
