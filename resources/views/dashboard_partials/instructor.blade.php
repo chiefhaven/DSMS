@@ -1,232 +1,339 @@
-<div class="row">
-        <div class="col-md-12">
-            <div class="row">
-                @include('/dashboard_partials/quotes')
+@php
+    $user = Auth::user();
+    $instructor = $user->instructor;
 
-                @php
-    $instructor = Auth::user()->instructor ?? null;
+    $departmentName = $instructor?->department?->name ?? 'Not assigned';
+    $fleet = $instructor?->fleet;
+    $classrooms = $instructor?->classrooms ?? collect();
+
+    $assignment = $fleet
+        ? $fleet->car_registration_number
+        : ($classrooms->isNotEmpty()
+            ? $classrooms->pluck('name')->join(', ')
+            : 'Not yet assigned');
+
+    $assignmentIcon = $fleet ? 'fa-car' : 'fa-chalkboard-teacher';
+
+    $attendanceCount = $attendanceCount ?? 0;
+    $instructorEstimatedPay = $instructorEstimatedPay ?? 0;
 @endphp
 
-                <div class="col-md-12 col-xl-12 mb-4">
-                    <h5>Actions</h5>
-                    <hr>
-                    <div class="block block-content">
-                        <div class="row">
-                            <div class="block block-content">
-                                <div class="row">
-                                    <!-- Scan for Attendance -->
-                                    <div class="col-md-6">
-                                        <a href="{{ url('/scanqrcode') }}" class="text-decoration-none">
-                                            <div class="block block-rounded block-link-shadow border p-3 hover-effect">
-                                                <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                                                    <div>
-                                                        <i class="fa fa-4x fa-qrcode text-primary"></i>
-                                                    </div>
-                                                    <div class="ms-3 text-end">
-                                                        <p class="font-size-h4 font-w700 mb-0 text-dark">Scan for Attendance</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </a>
-                                    </div>
+<div class="row">
 
-                                    <!-- Schedule Attendance -->
-                                    <div class="col-md-6">
-                                        <a href="{{ url('/schedule-lesson-index') }}" class="text-decoration-none">
-                                            <div class="block block-rounded block-link-shadow border p-3 hover-effect">
-                                                <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                                                    <div>
-                                                        <i class="fa fa-4x fa-calendar-alt text-success"></i>
-                                                    </div>
-                                                    <div class="ms-3 text-end">
-                                                        <p class="font-size-h4 font-w700 mb-0 text-dark">Schedule lesson</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </a>
-                                    </div>
-                                </div>
+    {{-- Dashboard quotes --}}
+    <div class="col-12">
+        @include('/dashboard_partials/quotes')
+    </div>
+
+    {{-- Quick actions --}}
+    <div class="col-12 mb-4">
+        <h5 class="mb-2">Actions</h5>
+        <hr>
+
+        <div class="row">
+
+            {{-- Scan for attendance --}}
+            <div class="col-md-6 mb-3">
+                <a href="{{ url('/scanqrcode') }}"
+                   class="text-decoration-none">
+
+                    <div class="block block-rounded block-link-shadow border p-3 h-100">
+                        <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+
+                            <i class="fa fa-4x fa-qrcode text-primary"
+                               aria-hidden="true"></i>
+
+                            <div class="ms-3 text-end">
+                                <p class="font-size-h4 font-w700 mb-0 text-dark">
+                                    Scan for Attendance
+                                </p>
+                                <small class="text-muted">
+                                    Record student attendance
+                                </small>
                             </div>
+
                         </div>
                     </div>
-                </div>
+                </a>
+            </div>
 
-                <div class="row">
-                    <div class="col-md-12">
-                        <h5>Your Summary</h5>
-                        <hr>
+            {{-- Schedule lesson --}}
+            <div class="col-md-6 mb-3">
+                <a href="{{ url('/schedule-lesson-index') }}"
+                   class="text-decoration-none">
 
-                        <div class="row">
-                            <!-- Department -->
-                            <div class="col-md-4">
-                                <div class="block block-rounded block-link-shadow border">
-                                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                                        <div>
-                                            <i class="fa fa-2x fa-building"></i>
-                                        </div>
-                                        <div class="ms-3 text-right">
-                                            <p class="font-size-h2 font-w900 mb-0 text-uppercase">
-                                                {{ Auth::user()->instructor->department->name ?? '' }}
-                                            </p>
-                                            <p class="mb-0">Department</p>
-                                        </div>
-                                    </div>
-                                </div>
+                    <div class="block block-rounded block-link-shadow border p-3 h-100">
+                        <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+
+                            <i class="fa fa-4x fa-calendar-alt text-success"
+                               aria-hidden="true"></i>
+
+                            <div class="ms-3 text-end">
+                                <p class="font-size-h4 font-w700 mb-0 text-dark">
+                                    Schedule Lesson
+                                </p>
+                                <small class="text-muted">
+                                    Manage lesson schedules
+                                </small>
                             </div>
 
-                            <!-- Assigned Fleet or Classroom -->
-                            <div class="col-md-4">
-                                <div class="block block-rounded block-link-shadow border">
-                                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                                        <div>
-                                            @if ($instructor->fleet)
-                                                <i class="fa fa-2x fa-car"></i>
-                                            @else
-                                                <i class="fa fa-2x fa-chalkboard-teacher"></i>
-                                            @endif
-                                        </div>
-                                        <div class="ms-3 text-right">
-                                            <p class="font-size-h3 font-w900 mb-0 text-uppercase">
-                                                @if ($instructor->fleet)
-                                                    {{ $instructor->fleet->car_registration_number }}
-                                                @elseif ($instructor->classrooms && $instructor->classrooms->isNotEmpty())
-                                                    {{ $instructor->classrooms->pluck('name')->join(', ') }}
-                                                @else
-                                                    Not yet assigned car or classroom
-                                                @endif
-                                            </p>
-                                            <p class="mb-0">Assigned</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
 
+        </div>
+    </div>
 
-                            <!-- Total lessons this month -->
-                            <div class="col-md-4">
-                                <div class="block block-rounded block-link-shadow border">
-                                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                                        <div>
-                                            <i class="fa fa-2x fa-user-check"></i>
-                                        </div>
-                                        <div class="ms-3 text-right">
-                                            <p class="font-size-h3 font-w900 mb-0 text-uppercase">
-                                                {{ $attendanceCount }}
-                                            </p>
-                                            <p class="mb-0">Lessons this month</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+    {{-- Instructor summary --}}
+    <div class="col-12">
+        <h5 class="mb-2">Your Summary</h5>
+        <hr>
 
-                            <!-- Expected Pay -->
-                            <div class="col-md-4">
-                                <div class="block block-rounded block-link-shadow border">
-                                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
-                                        <div>
-                                            <i class="fa fa-2x fa-money-bill-wave"></i>
-                                        </div>
-                                        <div class="ms-3 text-right">
-                                            <p class="font-size-h3 font-w900 mb-0 text-uppercase">
-                                                K{{ $instructorEstimatedPay != 0 ? number_format($instructorEstimatedPay, 2) : 0 }}
-                                            </p>
-                                            <p class="mb-0">This month estimated pay</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div> <!-- End Row -->
+        <div class="row">
+
+            {{-- Department --}}
+            <div class="col-md-6 col-xl-3 mb-3">
+                <div class="block block-rounded block-link-shadow border h-100">
+                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+
+                        <i class="fa fa-2x fa-building text-primary"
+                           aria-hidden="true"></i>
+
+                        <div class="ms-3 text-end">
+                            <p class="font-size-h5 font-w900 mb-0 text-uppercase">
+                                {{ $departmentName }}
+                            </p>
+                            <p class="mb-0 text-muted">Department</p>
+                        </div>
+
                     </div>
                 </div>
+            </div>
 
-                <div class="col-sm-12 mt-5">
-                    <div class="block ">
-                        <div class="block-conent block-rounded block-bordered">
-                            <canvas id="attendancesChart" height="200"></canvas>
+            {{-- Assigned fleet or classroom --}}
+            <div class="col-md-6 col-xl-3 mb-3">
+                <div class="block block-rounded block-link-shadow border h-100">
+                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+
+                        <i class="fa fa-2x {{ $assignmentIcon }} text-info"
+                           aria-hidden="true"></i>
+
+                        <div class="ms-3 text-end">
+                            <p class="font-size-h5 font-w900 mb-0 text-uppercase">
+                                {{ $assignment }}
+                            </p>
+                            <p class="mb-0 text-muted">Assigned</p>
                         </div>
+
+                    </div>
+                </div>
+            </div>
+
+            {{-- Monthly attendance --}}
+            <div class="col-md-6 col-xl-3 mb-3">
+                <div class="block block-rounded block-link-shadow border h-100">
+                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+
+                        <i class="fa fa-2x fa-user-check text-success"
+                           aria-hidden="true"></i>
+
+                        <div class="ms-3 text-end">
+                            <p class="font-size-h3 font-w900 mb-0">
+                                {{ number_format($attendanceCount) }}
+                            </p>
+                            <p class="mb-0 text-muted">Lessons This Month</p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            {{-- Estimated monthly pay --}}
+            <div class="col-md-6 col-xl-3 mb-3">
+                <div class="block block-rounded block-link-shadow border h-100">
+                    <div class="block-content block-content-full d-flex align-items-center justify-content-between">
+
+                        <i class="fa fa-2x fa-money-bill-wave text-warning"
+                           aria-hidden="true"></i>
+
+                        <div class="ms-3 text-end">
+                            <p class="font-size-h5 font-w900 mb-0">
+                                K{{ number_format((float) $instructorEstimatedPay, 2) }}
+                            </p>
+                            <p class="mb-0 text-muted">Estimated Pay This Month</p>
+                        </div>
+
                     </div>
                 </div>
             </div>
 
         </div>
+    </div>
+
+    {{-- Attendance chart --}}
+    <div class="col-12 mt-4">
+        <div class="block block-rounded block-bordered">
+
+            <div class="block-header block-header-default">
+                <h3 class="block-title">
+                    <i class="fa fa-chart-line me-1"></i>
+                    Attendance Overview
+                </h3>
+            </div>
+
+            <div class="block-content">
+                <div style="position: relative; height: 350px;">
+                    <canvas id="attendancesChart"
+                            role="img"
+                            aria-label="Instructor attendance over time">
+                        Your browser does not support the canvas element.
+                    </canvas>
+                </div>
+
+                <div id="attendanceChartError"
+                     class="alert alert-warning d-none mt-3"
+                     role="alert">
+                    Unable to load attendance data. Please refresh the page to try again.
+                </div>
+            </div>
+
+        </div>
+    </div>
 
 </div>
 
+@push('scripts')
 <script>
-    const ctx = document.getElementById('attendancesChart');
-    $(function() {
-        getXlsxData();
-      });
+    $(function () {
+        loadAttendanceChart();
+    });
 
-      function getXlsxData() {
-        var xlsxUrl =
-          "/instructorSummaryData"
-        var xlsxData = $.getJSON(xlsxUrl, function(data) {
-          $.each(data, function(i, el) {
-            labels.push(el.date);
-            Attendances.push(el.count);
-          });
-          load_chart();
-        });
-      }
-      var labels = [],
-        Attendances = []
+    async function loadAttendanceChart() {
+        const canvas = document.getElementById('attendancesChart');
+        const errorElement = document.getElementById('attendanceChartError');
 
-      function load_chart() {
-        var attendancesChart = new Chart('attendancesChart', {
-          type: 'line',
-          data: {
-            labels: labels,
-            datasets: [{
-              label: 'Your Attendances ',
-              fill: false,
-              data: Attendances,
-              backgroundColor: 'rgb(255, 159, 64)',
-              borderColor: 'rgb(255, 159, 64, 0.8)',
-              borderWidth: 3,
-              radius: 0,
-            }, ]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            legend: {
-              position: 'bottom',
-            },
-            layout: {
-              padding: {
-                top: 35,
-                right: 15,
-              }
-            },
-            scales: {
-                x: {
-                    type: 'time',
-                    time: {
-                        parser: 'YYYY-MM-DD', // Ensure this matches your data format
-                        unit: 'day', // Use 'day' for daily data
-                        displayFormats: {
-                            day: 'D MMM' // Format for daily tick marks
-                        },
-                        tooltipFormat: 'D MMM YYYY' // Tooltip format
+        if (!canvas || typeof Chart === 'undefined') {
+            showChartError();
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                '/instructorSummaryData',
+                {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
                     },
-                    ticks: {
-                        source: 'data', // Ensures ticks are based on data
-                        autoSkip: false, // Disable automatic skipping
-                        stepSize: 1, // Display every day (adjust if necessary)
-                        maxRotation: 60, // Prevent tick label rotation
-                        minRotation: 60
-                    },
-                    title: {
-                        display: true,
-                        text: 'Date' // Optional: Add title for the x-axis
-                    }
-                },
-                y: {
-                    beginAtZero: true
+                    credentials: 'same-origin'
                 }
+            );
+
+            if (!response.ok) {
+                throw new Error(
+                    `Attendance request failed: ${response.status}`
+                );
             }
-          }
-        });
+
+            const data = await response.json();
+
+            if (!Array.isArray(data)) {
+                throw new Error('Invalid attendance response.');
+            }
+
+            const labels = data.map(item => item.date);
+            const attendanceCounts = data.map(
+                item => Number(item.count) || 0
+            );
+
+            const existingChart = Chart.getChart(canvas);
+
+            if (existingChart) {
+                existingChart.destroy();
+            }
+
+            new Chart(canvas, {
+                type: 'line',
+
+                data: {
+                    labels: labels,
+
+                    datasets: [{
+                        label: 'Your Attendances',
+                        data: attendanceCounts,
+
+                        borderColor: 'rgba(255, 159, 64, 0.9)',
+                        backgroundColor: 'rgba(255, 159, 64, 0.15)',
+
+                        borderWidth: 3,
+                        pointRadius: 3,
+                        pointHoverRadius: 5,
+
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+
+                        tooltip: {
+                            enabled: true
+                        }
+                    },
+
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            },
+
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 0,
+                                autoSkip: true
+                            }
+                        },
+
+                        y: {
+                            beginAtZero: true,
+
+                            title: {
+                                display: true,
+                                text: 'Attendance Records'
+                            },
+
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+
+        } catch (error) {
+            console.error('Failed to load attendance chart:', error);
+            showChartError();
+        }
+
+        function showChartError() {
+            if (errorElement) {
+                errorElement.classList.remove('d-none');
+            }
+        }
     }
 </script>
+@endpush
