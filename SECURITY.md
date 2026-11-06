@@ -1,5 +1,20 @@
 # Security Policy
 
+## Financial and fleet data access
+
+Global dashboard summaries and invoice API reads require an authenticated
+`superAdmin`, `admin`, or `financeAdmin` identity. The legacy seeded role
+`Super-Admin` is also accepted. Public registration does not assign a role.
+The web dashboard, invoice listing, search, details, and PDFs enforce the same
+financial role boundary. Existing stricter controller checks still apply.
+
+Fleet location and history reads, including all MbiraSync position routes,
+require `superAdmin`, `Super-Admin`, or `admin`. API callers authenticate with
+Sanctum; web callers use session authentication. Instructors cannot read these
+global feeds or arbitrary device histories. Instructor location uploads retain
+their existing instructor-to-fleet relationship checks. MbiraSync's configured
+token authenticates outbound requests only and does not authorize app callers.
+
 ## Supported Versions
 
 Use this section to tell people about which versions of your project are

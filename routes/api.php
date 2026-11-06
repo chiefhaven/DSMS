@@ -48,10 +48,13 @@ Route::post('/otp', [AuthController::class, 'otp'])->name('otp.api'); // Request
 Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->name('verifyOtp.api'); // Verify OTP and login
 Route::post('login', [AuthController::class, 'login'])->name('login.api'); // Login
 
-Route::get('invoicesHome', [HomeController::class],'index')->middleware('auth');
-Route::get('/invoices', [ApiInvoiceController::class, 'index']);
-Route::get('/fetchInvoices', [InvoiceController::class, 'fetchInvoices'])->middleware('auth');
-Route::get('invoice-view/{id}', [ApiInvoiceController::class, 'show'])->middleware('auth');
+Route::middleware(['auth:sanctum', 'role:superAdmin|Super-Admin|admin|financeAdmin'])->group(function () {
+    Route::get('invoicesHome', [HomeController::class, 'index']);
+    Route::get('/invoices', [ApiInvoiceController::class, 'index']);
+    Route::get('/fetchInvoices', [InvoiceController::class, 'fetchInvoices']);
+    Route::get('invoice-view/{id}', [ApiInvoiceController::class, 'show']);
+    Route::get('/dashboardSummary', [ApiHomeController::class, 'dashboardSummary'])->name('dashboardSummary');
+});
 
 
 Route::get('/studentProfile', [studentProfileController::class, 'show'])->middleware('auth:sanctum')->name('studentProfile');
@@ -92,8 +95,6 @@ Route::delete('/bulk-attendance/{bulkAttendance}', [BulkAttendanceController::cl
 
 Route::post('/bonuses/pay-early', [InstructorPaymentController::class, 'store'])->middleware('auth:sanctum')->name('pay-insturctor-bonuses');
 
-Route::get('/dashboardSummary', [ApiHomeController::class, 'dashboardSummary'])->middleware('auth:sanctum')->name('dashboardSummary');
-
 Route::get('/expenses', [ExpenseController::class, 'fetchExpenses'])->name('payments')->middleware('auth:sanctum');
 
 Route::get('/expense-types', [ExpenseTypeController::class, 'index'])->name('api.expense-types')->middleware('auth:sanctum');
@@ -124,9 +125,10 @@ Route::get('/getPaymentMethods', [PaymentMethodController::class, 'fetchPaymentM
 
 Route::post('/save-vehicle-location', [VehicleTrackerController::class, 'store'])->name('save-vehicle-location')->middleware('auth:sanctum');
 
-Route::get('/get-all-vehicle-locations', [VehicleTrackerController::class, 'show'])->name('vehicle-locations')->middleware('auth');
-
-Route::get('/show-vehicle-geo-data/{vehicleId}', [VehicleTrackerController::class, 'showVehicleGeoData'])->name('vehicle-location');
+Route::middleware(['auth:sanctum', 'role:superAdmin|Super-Admin|admin'])->group(function () {
+    Route::get('/get-all-vehicle-locations', [VehicleTrackerController::class, 'show'])->name('vehicle-locations');
+    Route::get('/show-vehicle-geo-data/{vehicleId}', [VehicleTrackerController::class, 'showVehicleGeoData'])->name('vehicle-location');
+});
 
 Route::get('/getExpenceTypeOption/{id}', [havenUtils::class, 'getExpenceTypeOption'])->name('getExpenceTypeOption')->middleware('auth:sanctum');
 
@@ -140,7 +142,7 @@ Route::get('/licence-classes', [havenUtils::class, 'getLicenceClasses'])->name('
 
 Route::post('/sendAnnouncement', [AnnouncementController::class,'send'])->middleware('auth:sanctum')->name('sendAnnouncement');
 
-Route::prefix('mbirasync')->group(function () {
+Route::prefix('mbirasync')->middleware(['auth:sanctum', 'role:superAdmin|Super-Admin|admin'])->group(function () {
     Route::get('/positions',                    [FleetTrackerController::class, 'index']);
     Route::get('/positions/live',               [FleetTrackerController::class, 'live']);
     Route::get('/positions/{deviceId}/history', [FleetTrackerController::class, 'history']);

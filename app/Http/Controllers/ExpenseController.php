@@ -699,7 +699,7 @@ class ExpenseController extends Controller
 
         $pdf = PDF::loadView($template, compact('expense', 'qrCode','setting', 'date'));
         Log::info('Generated PDF for expense ID: ' . $expense->group);
-        return $pdf->download(
+        return $pdf->download( 
             'Daron-Driving-School-' .
             str_replace('/', '', $expense->group) . '-' .
             ExpenseType::find($expense->group_type)?->name .

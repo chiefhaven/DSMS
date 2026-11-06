@@ -42,10 +42,10 @@ use Nette\Schema\Expect;
 |
 */
 
-Route::post('/', [HomeController::class,'index'])->middleware(['auth'])->name('dashboard');
-Route::get('/summaryData', [HomeController::class,'summaryData'])->middleware(['auth'])->name('summaryData');
+Route::post('/', [HomeController::class,'index'])->middleware(['auth', 'role:superAdmin|Super-Admin|admin|financeAdmin'])->name('dashboard');
+Route::get('/summaryData', [HomeController::class,'summaryData'])->middleware(['auth', 'role:superAdmin|Super-Admin|admin|financeAdmin'])->name('summaryData');
 Route::get('/instructorSummaryData', [HomeController::class,'instructorSummaryData'])->middleware(['auth'])->name('instructorSummaryData');
-Route::get('/', [HomeController::class,'index'])->middleware(['auth'])->name('dashboard');
+Route::get('/', [HomeController::class,'index'])->middleware(['auth', 'role:superAdmin|Super-Admin|admin|financeAdmin'])->name('dashboard');
 
 Auth::routes();
 
@@ -154,15 +154,15 @@ Route::post('/edit-classroom/{id}', [ClassroomController::class, 'edit'])->middl
 Route::delete('/delete-classroom/{id}', [ClassroomController::class, 'destroy'])->middleware('auth')->name('delete_classrooms');
 Route::put('/updateclassroom/{id}', [ClassroomController::class, 'update'])->middleware('auth')->name('update_classrooms');
 
-Route::get('/invoices', [InvoiceController::class, 'index'])->middleware('auth')->name('invoices');
-Route::get('/view-invoice/{id}', [InvoiceController::class, 'show'])->middleware('auth')->name('view-invoice');
-Route::get('/invoice-pdf/{id}', [InvoiceController::class, 'invoicePDF'])->middleware('auth')->name('invoice-pdf');
+Route::get('/invoices', [InvoiceController::class, 'index'])->middleware(['auth', 'role:superAdmin|Super-Admin|admin|financeAdmin'])->name('invoices');
+Route::get('/view-invoice/{id}', [InvoiceController::class, 'show'])->middleware(['auth', 'role:superAdmin|Super-Admin|admin|financeAdmin'])->name('view-invoice');
+Route::get('/invoice-pdf/{id}', [InvoiceController::class, 'invoicePDF'])->middleware(['auth', 'role:superAdmin|Super-Admin|admin|financeAdmin'])->name('invoice-pdf');
 Route::get('/addinvoice/{id}', [InvoiceController::class, 'create'])->middleware('auth')->name('addinvoices');
 Route::post('/store-invoice', [InvoiceController::class, 'store'])->middleware('auth')->name('store-invoice');
 Route::get('/edit-invoice/{id}', [InvoiceController::class, 'edit'])->middleware('auth')->name('edit-invoices');
 Route::delete('/invoice-delete/{invoice}', [InvoiceController::class, 'destroy'])->middleware('auth')->name('invoice-delete');
 Route::post('/invoice-update', [InvoiceController::class, 'update'])->middleware('auth')->name('invoice-update');
-Route::get('/search-invoice', [InvoiceController::class, 'search'])->middleware('auth')->name('searchInvoice');
+Route::get('/search-invoice', [InvoiceController::class, 'search'])->middleware(['auth', 'role:superAdmin|Super-Admin|admin|financeAdmin'])->name('searchInvoice');
 
 Route::get('/payments', [PaymentController::class, 'index'])->middleware('auth')->name('payments');
 Route::post('/add-payment', [PaymentController::class, 'store'])->middleware('auth')->name('add-payment');
@@ -263,7 +263,7 @@ Route::get('/expense-payment-receipt/{id}', [ExpenseController::class, 'download
 Route::get('/expense-payment-report/{expense}', [ExpenseController::class, 'expensePaymentReport'])->middleware('auth')->name('expense-payment-report');
 
 
-Route::get('/dashboard', [HomeController::class,'index'])->middleware(['auth'])->name('dashboard');
+Route::get('/dashboard', [HomeController::class,'index'])->middleware(['auth', 'role:superAdmin|Super-Admin|admin|financeAdmin'])->name('dashboard');
 
 //Announcement routes
 Route::get('/send-announcement', [AnnouncementController::class,'create'])->middleware(['auth'])->name('send-announcement');
@@ -312,9 +312,9 @@ Route::get("/scanqrcode", function(){
 Route::get('/lesson-search', [havenUtils::class, 'autocompleteLessonSearch'])->middleware('auth')->name('lesson-search');
 Route::post('/check-class-fleet-assignment', [havenUtils::class, 'checkInstructorClassFleetAssignment'])->middleware('auth')->name('check-class-fleet-assignment');
 
-Route::get('/get-all-vehicle-locations', [VehicleTrackerController::class, 'show'])->name('vehicle-locations')->middleware('auth');
+Route::get('/get-all-vehicle-locations', [VehicleTrackerController::class, 'show'])->name('vehicle-locations')->middleware(['auth', 'role:superAdmin|Super-Admin|admin']);
 
-Route::get('/show-vehicle-geo-data/{vehicleId}', [VehicleTrackerController::class, 'showVehicleGeoData'])->name('vehicle-location')->middleware('auth');
+Route::get('/show-vehicle-geo-data/{vehicleId}', [VehicleTrackerController::class, 'showVehicleGeoData'])->name('vehicle-location')->middleware(['auth', 'role:superAdmin|Super-Admin|admin']);
 
 
 Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index')->middleware('auth');
