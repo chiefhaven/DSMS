@@ -14,15 +14,19 @@
                     </button>
                     <div class="dropdown-menu dropdown-menu-end p-0">
                         <div class="p-2">
-                            @can('manage administration')
+                            @can('view expenses')
                                 <a href="{{ route('expenses.index') }}" class="dropdown-item nav-main-link">
                                     <i class="nav-main-link-icon  fas fa-file-invoice"></i>All Expenses
                                 </a>
+                            @endcan
+                            @can('edit expenses')
+                              @if (!$expense->approved)
                                 <a href="{{ route('expenses.edit', $expense->id) }}" class="dropdown-item nav-main-link">
                                     <i class="nav-main-link-icon  fas fa-edit"></i>Edit Expense
                                 </a>
+                              @endif
                             @endcan
-                            @can('manage system')
+                            @can('review expenses')
                                 <a href="/review-expense/{{ $expense->id }}" class="dropdown-item nav-main-link">
                                     <i class="nav-main-link-icon  fas fa-magnifying-glass"></i>Review Expense
                                 </a>

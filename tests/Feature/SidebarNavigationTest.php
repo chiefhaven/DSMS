@@ -48,6 +48,7 @@ class SidebarNavigationTest extends TestCase
         (require base_path('database/migrations/2026_11_12_000700_seed_settings_permissions.php'))->up();
         (require base_path('database/migrations/2026_11_12_000800_seed_announcement_permissions.php'))->up();
         (require base_path('database/migrations/2026_11_12_000900_seed_expense_payment_permissions.php'))->up();
+        (require base_path('database/migrations/2026_11_12_001000_seed_expense_permissions.php'))->up();
         Role::create(['name' => 'hrm-clerk', 'guard_name' => 'web'])->givePermissionTo('manage administration');
         Role::create(['name' => 'system-operator', 'guard_name' => 'web'])->givePermissionTo('manage system');
     }
@@ -128,6 +129,7 @@ class SidebarNavigationTest extends TestCase
         $role = Role::findByName('admin', 'web');
         $role->revokePermissionTo('manage administration');
         $role->revokePermissionTo('create students');
+        $role->revokePermissionTo('create expenses');
         $user = new User(['name' => 'Navigation test']);
         $user->id = '00000000-0000-4000-8000-000000000001';
         $user->setRelation('roles', collect([$role]));

@@ -203,7 +203,7 @@ class ManagementResourceRoutesTest extends TestCase
         }
         $this->assertContains('permission:manage administration', $routes->getByName('instructors.show')->gatherMiddleware());
         $this->assertContains('permission:manage administration', $routes->getByName('administrators.update')->gatherMiddleware());
-        $this->assertContains('permission:access management', $routes->getByName('expenses.show')->gatherMiddleware());
+        $this->assertContains('permission:view expenses', $routes->getByName('expenses.show')->gatherMiddleware());
     }
 
     public function test_guests_cannot_write_canonical_resources(): void

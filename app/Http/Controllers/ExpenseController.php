@@ -34,7 +34,23 @@ class ExpenseController extends Controller
 
     public function __construct()
     {
-        $this->middleware(['permission:access management'])->except(['downloadExpensePaymentReceipt', 'expensePaymentReportSummary']);
+        $this->middleware(['permission:access management'])->except([
+            'index', 'fetchExpenses', 'show', 'showPage', 'create', 'store', 'edit', 'update',
+            'destroy', 'reviewExpense', 'reviewExpenseData', 'removeStudent', 'checkStudent',
+            'approveList', 'download', 'expensePaymentReport', 'autocompletestudentSearch',
+            'downloadExpensePaymentReceipt', 'expensePaymentReportSummary',
+        ]);
+        $this->middleware('permission:view expenses')->only(['index', 'fetchExpenses', 'show', 'showPage']);
+        $this->middleware('permission:create expenses')->only(['create', 'store']);
+        $this->middleware('permission:edit expenses')->only(['edit', 'update']);
+        $this->middleware('permission:delete expenses')->only('destroy');
+        $this->middleware('permission:review expenses')->only('reviewExpense');
+        $this->middleware('permission:view expenses|edit expenses|review expenses')->only('reviewExpenseData');
+        $this->middleware('permission:edit expenses|review expenses')->only('removeStudent');
+        $this->middleware('permission:create expenses|edit expenses')->only('checkStudent');
+        $this->middleware('permission:approve expenses')->only('approveList');
+        $this->middleware('permission:download expense letters')->only('download');
+        $this->middleware('permission:report expenses')->only('expensePaymentReport');
         $this->middleware('permission:download expense payment receipts')->only('downloadExpensePaymentReceipt');
         $this->middleware('permission:report expense payments')->only('expensePaymentReportSummary');
         $this->setting = Setting::find(1);
@@ -122,9 +138,9 @@ class ExpenseController extends Controller
                 return $expense->date_approved ? $expense->date_approved->format('j F, Y') : '-';
             })
             ->addColumn('last_edited', function ($expense) {
-                $editedBy = 'You';
-
-                if ($expense->edited_by != Auth::user()->administrator->id) {
+                if ($expense->edited_by && $expense->edited_by == Auth::user()->administrator_id) {
+                    $editedBy = 'You';
+                } else {
                     $admin = Administrator::find($expense->edited_by);
                     $editedBy = $admin ? $admin->fname . ' ' . $admin->sname : 'Unknown';
                 }
@@ -149,10 +165,7 @@ class ExpenseController extends Controller
                 $review = '';
                 $view = '';
 
-                // Check if user has either role
-                if (auth()->user()->can('access management')) {
-
-                    // Download logic
+                if (auth()->user()->can('download expense letters')) {
                     if ($expense->group_type !== '39d3f058-4f04-11f0-aa86-52540066f921') {
                         if ($expense->approved == true) {
                             $download = '<form method="GET" action="' . url('expensedownload', $expense->id) . '">
@@ -167,49 +180,46 @@ class ExpenseController extends Controller
                     } else {
                         $download = '<p class="dropdown-item text-success">Go to student profile for TRN reference</p>';
                     }
+                }
 
-                    if ($expense->approved == true && auth()->user()->can('access management')) {
-                        $paymentReport = '<form method="GET" action="' . url('expense-payment-report', $expense->id) . '">
+                if ($expense->approved == true && auth()->user()->can('report expenses')) {
+                    $paymentReport = '<form method="GET" action="' . url('expense-payment-report', $expense->id) . '">
                                         ' . csrf_field() . '
                                         <button class="dropdown-item nav-main-link btn download-confirm" type="submit">
                                             <i class="fa fa-download me-3"></i> Payment report
                                         </button>
                                      </form>';
-                    } else {
-                        $download = '<p class="dropdown-item text-danger">Download not available</p>';
-                    }
+                }
 
-                    // Edit only allowed if not approved
-                    if (auth()->user()->can('access management')) {
-                        $view = '<a class="dropdown-item nav-main-link btn" href="' . route('expenses.show', $expense->id) . '">
+                if (auth()->user()->can('view expenses')) {
+                    $view = '<a class="dropdown-item nav-main-link btn" href="' . route('expenses.show', $expense->id) . '">
                                     <i class="fa fa-eye me-3"></i> View
                                 </a>';
-                    }
+                }
 
-                    // Edit only allowed if not approved
-                    if ($expense->approved != true && auth()->user()->can('manage administration')) {
-                        $edit = '<a class="dropdown-item nav-main-link btn" href="' . route('expenses.edit', $expense->id) . '">
+                if ($expense->approved != true && auth()->user()->can('edit expenses')) {
+                    $edit = '<a class="dropdown-item nav-main-link btn" href="' . route('expenses.edit', $expense->id) . '">
                                     <i class="fa fa-pencil me-3"></i> Edit
                                 </a>';
-                    }
+                }
 
-
-                    // Only superAdmin can review
-                    if (auth()->user()->can('manage system')) {
-                        $review = '<a class="dropdown-item nav-main-link btn" href="' . url('/review-expense', $expense->id) . '">
+                if (auth()->user()->can('review expenses')) {
+                    $review = '<a class="dropdown-item nav-main-link btn" href="' . url('/review-expense', $expense->id) . '">
                                         <i class="fa fa-magnifying-glass me-3"></i> Review
                                     </a>';
-                    }
+                }
 
-                    // Only superAdmin can delete if not approved
-                    if (auth()->user()->can('manage system') && $expense->approved == false) {
-                        $delete = '<form method="POST" action="' . route('expenses.destroy', $expense->id) . '" style="display:inline;">
+                if (auth()->user()->can('delete expenses') && $expense->approved == false) {
+                    $delete = '<form method="POST" action="' . route('expenses.destroy', $expense->id) . '" style="display:inline;">
                                         ' . csrf_field() . method_field('DELETE') . '
                                         <button type="submit" class="btn dropdown-item nav-main-link delete-confirm">
                                             <i class="fa fa-trash me-3"></i> Delete
                                         </button>
                                    </form>';
-                    }
+                }
+
+                if ($download === '' && $paymentReport === '' && $view === '' && $review === '' && $edit === '' && $delete === '') {
+                    return '';
                 }
 
                 // Combine and return the full dropdown
@@ -437,14 +447,20 @@ class ExpenseController extends Controller
                 'students'          => 'required|array|min:1'
             ], $messages);
 
-            DB::beginTransaction();
-
-            $post = $request->all();
-            $students = $post['students'];
-
             if($expense->approved == true){
                 return redirect()->back()->withErrors(['error' => 'You cannot edit an approved expense']);
             }
+
+            DB::beginTransaction();
+
+            $expense = Expense::whereKey($expense->id)->lockForUpdate()->firstOrFail();
+            if ($expense->approved) {
+                DB::rollBack();
+                return redirect()->back()->withErrors(['error' => 'You cannot edit an approved expense']);
+            }
+
+            $post = $request->all();
+            $students = $post['students'];
 
             // Update expense info
             $expense->group = $post['expenseGroupName'];
@@ -514,16 +530,28 @@ class ExpenseController extends Controller
      */
     public function destroy(expense $expense)
     {
-        $expense->delete();
+        DB::transaction(function () use ($expense) {
+            $expense = Expense::whereKey($expense->id)->lockForUpdate()->firstOrFail();
+            abort_if($expense->approved, 409, 'An approved expense cannot be deleted.');
+            $expense->delete();
+        });
         Alert::toast('Expense deleted', 'success');
         return redirect()->route('expenses.index');
     }
 
     public function removeStudent(StoreexpenseRequest $request)
     {
+        $request->validate([
+            'student' => 'required',
+            'expenseId' => 'required',
+        ]);
         $post = $request->all();
 
-        DB::table('expense_student')->where('student_id', $request['student'])->where('expense_id', $request['expenseId'])->delete();
+        DB::transaction(function () use ($request) {
+            $expense = Expense::whereKey($request->input('expenseId'))->lockForUpdate()->firstOrFail();
+            abort_if($expense->approved, 409, 'Students cannot be removed from an approved expense.');
+            DB::table('expense_student')->where('student_id', $request['student'])->where('expense_id', $expense->id)->delete();
+        });
 
         return response()->json([$post], 200);
     }
@@ -546,7 +574,7 @@ class ExpenseController extends Controller
 
         $option = ExpenseTypeOption::find($request->expenseTypesOption);
 
-        $expenseType = ExpenseType::find($option->expense_type_id);
+        $expenseType = $option ? ExpenseType::find($option->expense_type_id) : null;
 
         if (!$option || !$expenseType) {
             return response()->json([
@@ -655,13 +683,15 @@ class ExpenseController extends Controller
         ]);
 
         $user = Auth::user();
-        $expense = Expense::find($request->expenseId);
-
-        $expense->approved_by = $user->administrator_id;
-        $expense->approved_amount = $request->approvedAmount;
-        $expense->approved = !$expense->approved;
-        $expense->date_approved = Carbon::now();
-        $expense->save();
+        $expense = DB::transaction(function () use ($request, $user) {
+            $expense = Expense::whereKey($request->expenseId)->lockForUpdate()->firstOrFail();
+            $expense->approved_by = $user->administrator_id;
+            $expense->approved_amount = $request->approvedAmount;
+            $expense->approved = !$expense->approved;
+            $expense->date_approved = Carbon::now();
+            $expense->save();
+            return $expense;
+        });
 
         $admin = Administrator::with('user')->find($expense->added_by);
 
@@ -718,12 +748,6 @@ class ExpenseController extends Controller
 
     public function expensePaymentReport(expense $expense){
 
-        if (!Auth::user()->can('access management')) {
-            return response()->json([
-                'message' => 'You do not have permission to make a payment.'
-            ], 403);
-        }
-
         $setting = $this->setting;
         $date = date('j F, Y');
         $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/expense-payment-report/'.$expense->id);
@@ -764,6 +788,12 @@ class ExpenseController extends Controller
 
     public function autocompletestudentSearch(Request $request)
     {
+        $user = $request->user();
+        abort_unless(
+            $user->can('create expenses') || $user->can('edit expenses')
+                || ($user->can('access management') && $user->can('manage operations')),
+            403
+        );
         $search = $request->get('student');
 
         $students = \DB::table('students')

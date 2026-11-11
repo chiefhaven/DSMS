@@ -108,6 +108,12 @@ Apply `2026_11_12_000600_seed_expense_type_permissions`. Legacy grants are
 carried over when the same role or direct grant held all permissions previously
 required for the action.
 
+Expense permissions separately control viewing, creation, editing, deletion,
+review, approval, letters, and reports. Apply
+`2026_11_12_001000_seed_expense_permissions`; grants are copied conservatively
+from the legacy access and action permissions. Approved expenses cannot be
+edited, deleted, or have students removed.
+
 Expense payments use separate permissions for viewing, recording, deleting,
 downloading receipts, and generating summary reports. Apply
 `2026_11_12_000900_seed_expense_payment_permissions`; existing grants are

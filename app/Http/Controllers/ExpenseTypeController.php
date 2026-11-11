@@ -24,7 +24,7 @@ class ExpenseTypeController extends Controller
     public function __construct()
     {
         $this->middleware('permission:view expense types')->only(['index', 'show']);
-        $this->middleware('permission:view expense types|record expense payments')->only('fetch');
+        $this->middleware('permission:view expense types|record expense payments|view expenses|create expenses|edit expenses|review expenses')->only('fetch');
         $this->middleware('permission:create expense types')->only(['create', 'store']);
         $this->middleware('permission:edit expense types')->only(['edit', 'update']);
         $this->middleware('permission:delete expense types')->only('destroy');

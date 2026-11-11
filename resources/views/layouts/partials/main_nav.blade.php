@@ -108,6 +108,14 @@
                 ->filter(fn ($role) => in_array($role->name, ['superAdmin', 'Super-Admin'], true)
                     || $role->permissions->contains('name', 'view expense types'))
                 ->pluck('name')->all();
+            $expenseRoles = auth()->user()->roles
+                ->filter(fn ($role) => in_array($role->name, ['superAdmin', 'Super-Admin'], true)
+                    || $role->permissions->contains('name', 'view expenses'))
+                ->pluck('name')->all();
+            $expenseCreationRoles = auth()->user()->roles
+                ->filter(fn ($role) => in_array($role->name, ['superAdmin', 'Super-Admin'], true)
+                    || $role->permissions->contains('name', 'create expenses'))
+                ->pluck('name')->all();
             $expensePaymentRoles = auth()->user()->roles
                 ->filter(fn ($role) => in_array($role->name, ['superAdmin', 'Super-Admin'], true)
                     || $role->permissions->contains('name', 'view expense payments'))
@@ -165,16 +173,18 @@
         @endrole
 
             {{-- Expenses --}}
-        @role(array_values(array_unique(array_merge(['superAdmin', 'Super-Admin', 'admin', 'financeAdmin'], $expenseTypeRoles, $expensePaymentRoles, $expensePaymentEntryRoles))))
+        @role(array_values(array_unique(array_merge($expenseRoles, $expenseCreationRoles, $expenseTypeRoles, $expensePaymentRoles, $expensePaymentEntryRoles))))
             <li class="nav-main-item">
                 <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
                     <i class="nav-main-link-icon fa fa-file-invoice-dollar"></i>
                     <span class="nav-main-link-name">Expenses</span>
                 </a>
                 <ul class="nav-main-submenu">
-                    @role(['superAdmin', 'Super-Admin', 'admin', 'financeAdmin'])
+                    @role($expenseRoles)
                     <li><a class="nav-main-link" href="{{ route('expenses.index') }}"><span class="nav-main-link-name">All expenses</span></a></li>
-                    @can('manage administration')
+                    @endrole
+                    @role($expenseCreationRoles)
+                    @can('create expenses')
                         <li><a class="nav-main-link" href="{{ route('expenses.create') }}"><span class="nav-main-link-name">Add expense</span></a></li>
                     @endcan
                     @endrole
