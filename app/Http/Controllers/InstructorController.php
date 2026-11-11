@@ -110,6 +110,9 @@ class InstructorController extends Controller
         }
 
         return DataTables::of($students)
+            ->filter(function () {
+                // Search already applied above
+            })
             ->addColumn('full_name', function ($student) {
                 $middle = $student->mname ? $student->mname . ' ' : '';
                 return '<span class="text-uppercase">' . e($student->fname) . ' ' . e($middle) . '<b>' . e($student->sname) . '</b></span>';

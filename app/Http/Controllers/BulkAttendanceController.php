@@ -44,6 +44,9 @@ class BulkAttendanceController extends Controller
         }
 
         return DataTables::of($bulkAttendances)
+            ->filter(function () {
+                // Search already applied above
+            })
             ->addColumn('description', fn($bulk) => e($bulk->description))
 
             ->addColumn('students', function ($bulk) {

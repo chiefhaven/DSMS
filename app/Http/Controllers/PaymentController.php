@@ -58,6 +58,9 @@ class PaymentController extends Controller
         }
 
         return DataTables::of($payments)
+        ->filter(function () {
+            // Search already applied above
+        })
         ->addColumn('actions', function ($payment) {
             $download = '';
             $edit = '';

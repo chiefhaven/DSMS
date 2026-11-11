@@ -77,6 +77,9 @@ class ExpenseController extends Controller
         }
 
         return DataTables::of($expenses)
+            ->filter(function () {
+                // Search already applied above
+            })
             ->addColumn('group', function ($expense) {
                 return Carbon::createFromFormat('d/m/Y', $expense->group)->format('j F, Y');
             })
@@ -915,6 +918,9 @@ class ExpenseController extends Controller
         }
 
         return DataTables::eloquent($expensePayments)
+        ->filter(function () {
+            // Search already applied above
+        })
         ->addColumn('student', fn ($payment) =>
             $payment->student
                 ? trim($payment->student->fname . ' ' . $payment->student->mname . ' ' . $payment->student->sname)

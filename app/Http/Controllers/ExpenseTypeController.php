@@ -52,6 +52,9 @@ class ExpenseTypeController extends Controller
         }
 
         return DataTables::of($expenseTypes)
+            ->filter(function () {
+                // Search already applied above
+            })
             ->addColumn('type', function ($expenseType) {
                 return '<strong>' . e($expenseType->name) . '</strong>';
             })

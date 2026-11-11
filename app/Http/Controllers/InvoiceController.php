@@ -71,6 +71,9 @@ class InvoiceController extends Controller
         }
 
         return DataTables::of($invoices)
+            ->filter(function () {
+                // Search already applied above
+            })
             ->addColumn('invoice_number', function ($invoice) {
                 return e($invoice->invoice_number);
             })

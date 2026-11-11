@@ -60,6 +60,9 @@ class ExpensePaymentController extends Controller
         }
 
         return DataTables::eloquent($expensePayments)
+            ->filter(function () {
+                // Search already applied above
+            })
             ->addColumn('student', fn ($payment) =>
                 $payment->student
                     ? trim(
