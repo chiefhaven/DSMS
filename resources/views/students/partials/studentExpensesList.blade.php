@@ -17,7 +17,7 @@
                     @foreach($student->expenses as $expense)
                         <tr>
                             <td class="font-w600">
-                                <a href="{{ url('/view-expense/' . $expense->id) }}"
+                                <a href="{{ route('expenses.show', $expense->id) }}"
                                 class="fw-bold text-decoration-none"
                                 target="_blank"
                                 rel="noopener noreferrer">

@@ -50,7 +50,7 @@ class ExpenseCreated extends Notification
         return (new MailMessage)
             ->subject('New expense created')
             ->line("An expense slated for {$this->formattedDate} has been created by {$this->admin}.")
-            ->action('View Notification', url('/expenses'))
+            ->action('View Notification', route('expenses.index'))
             ->line('If you have any questions, feel free to reach out.')
             ->salutation('Warm regards');
     }

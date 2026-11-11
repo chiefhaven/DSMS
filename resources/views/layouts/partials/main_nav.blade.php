@@ -120,7 +120,7 @@
                     <span class="nav-main-link-name">Expenses</span>
                 </a>
                 <ul class="nav-main-submenu">
-                    <li><a class="nav-main-link" href="{{ url('/expenses') }}"><span class="nav-main-link-name">All expenses</span></a></li>
+                    <li><a class="nav-main-link" href="{{ route('expenses.index') }}"><span class="nav-main-link-name">All expenses</span></a></li>
                     @role(['superAdmin', 'admin'])
                         <li><a class="nav-main-link" href="{{ route('expenses.create') }}"><span class="nav-main-link-name">Add expense</span></a></li>
                     @endrole

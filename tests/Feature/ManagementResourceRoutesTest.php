@@ -148,8 +148,6 @@ class ManagementResourceRoutesTest extends TestCase
             'updateinstructor' => ['/updateinstructor', []],
             'viewadministrator' => ['/viewadministrator', []],
             'updateadministrator' => ['/updateadministrator', []],
-            'updateExpense' => ['/updateExpense', []],
-            'editexpense' => ['/editexpense/123', 123],
         ] as $name => [$path, $parameters]) {
             $this->assertSame($path, route($name, $parameters, false));
         }

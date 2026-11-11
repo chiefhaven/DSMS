@@ -224,17 +224,6 @@ Route::post('/invoicesettings-update', [InvoiceSettingController::class, 'update
 
 Route::get('/super-admin-profile', [InstructorController::class, 'show-super-admin'])->middleware('auth')->name('super-admin-profile');
 
-Route::get('/expenses', [ExpenseController::class, 'index'])->middleware('auth')->name('expenses');
-
-Route::get('/view-expense/{expense}', function (Expense $expense) {
-    return view('expenses.viewExpense', compact('expense'));
-})->middleware('auth');
-
-Route::get('/addexpense', [ExpenseController::class, 'create'])->middleware('auth')->name('legacy.expenses.create');
-Route::post('/storeexpense', [ExpenseController::class, 'store'])->middleware('auth')->name('legacy.expenses.store');
-Route::post('/updateExpense', [ExpenseController::class, 'update'])->middleware('auth')->name('updateExpense');
-Route::get('/editexpense/{expense}', [ExpenseController::class, 'edit'])->middleware('auth')->name('editexpense');
-Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->middleware('auth')->name('delete-expense');
 Route::get('/expensedownload/{expense}', [ExpenseController::class, 'download'])->middleware('auth')->name('downloadexpense');
 Route::get('/search-expense', [ExpenseController::class, 'searchExpense'])->middleware('auth')->name('searchExpense');
 Route::get('/expense-student-search', [ExpenseController::class, 'autocompletestudentSearch'])->middleware('auth')->name('expense-student-search');

@@ -67,7 +67,7 @@ class ExpenseApproved extends Notification
             'title' => 'Expense approved',
             'body' => "An expense slated for {$this->formattedDate} has been approved by {$this->admin}.",
             'expense_id' => $this->expense->id,
-            'url' => url("/expenses"),
+            'url' => route('expenses.index'),
             'created_at' => now(),
         ];
     }

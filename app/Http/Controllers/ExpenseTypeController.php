@@ -97,9 +97,7 @@ class ExpenseTypeController extends Controller
                 $delete = $view = $edit = '';
 
                 if (auth()->user()->hasAnyRole(['superAdmin', 'admin', 'financeAdmin'])) {
-                    $view = '<a class="dropdown-item nav-main-link btn" href="' . url('/view-expense', $expenseType->id) . '">
-                                <i class="fa fa-eye me-3"></i> View
-                            </a>';
+                    $view = '';
 
                     if (auth()->user()->hasAnyRole(['superAdmin', 'admin'])) {
                         $edit = '<a class="dropdown-item nav-main-link btn"
