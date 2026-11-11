@@ -104,6 +104,8 @@ exception handling and HTTP status codes are unchanged.
 Inline SVG artwork depicts a lost learner car on 404 and a car under repair on
 500. Illustrations scale to the content width and are decorative for screen readers.
 Error content sits directly on the page background without cards or shadows.
+Artwork has a brief car entrance plus route tracing (404) or wrench motion
+(500). Animations finish within four seconds and respect reduced-motion settings.
 Compact spacing and viewport-scaled artwork keep standard desktop and mobile
 error pages within the screen without hiding overflow or recovery links.
 

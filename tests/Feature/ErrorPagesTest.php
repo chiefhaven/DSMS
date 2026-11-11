@@ -26,6 +26,7 @@ class ErrorPagesTest extends TestCase
             }
             $xpath = new \DOMXPath($document);
             $this->assertSame(1, $xpath->query('//h1[@id="error-title"]')->length);
+            $this->assertSame(0, $xpath->query('//p[@class="error-code"]')->length);
             $this->assertSame(url('/'), $xpath->query('//nav/a[1]')->item(0)->getAttribute('href'));
             $this->assertSame(url('/login'), $xpath->query('//nav/a[2]')->item(0)->getAttribute('href'));
             $this->assertSame('noindex, nofollow', $xpath->query('//meta[@name="robots"]')->item(0)->getAttribute('content'));
@@ -38,6 +39,9 @@ class ErrorPagesTest extends TestCase
             $this->assertStringContainsString('border-radius: 50rem', $html);
             $this->assertStringNotContainsString('error-card', $html);
             $this->assertStringNotContainsString('box-shadow', $html);
+            $this->assertSame(1, $xpath->query('//svg/g[@class="artwork-car"]')->length);
+            $this->assertSame(1, $xpath->query($status === 404 ? '//svg/path[@class="artwork-route"]' : '//svg/path[@class="artwork-tool"]')->length);
+            $this->assertStringContainsString('prefers-reduced-motion: reduce', $html);
         }
     }
 

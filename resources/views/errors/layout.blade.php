@@ -31,13 +31,27 @@
         }
         .brand { margin: 0 0 .75rem; font-size: .875rem; font-weight: 600; letter-spacing: .12em; }
         .error-artwork { display: block; width: min(100%, 18rem); height: auto; max-height: 25svh; margin: 0 auto .5rem; }
-        .error-code {
-            margin: 0;
-            color: #0d6efd;
-            font-size: clamp(2.5rem, 8vw, 3rem);
-            font-weight: 700;
-            line-height: 1.1;
-            letter-spacing: -.05em;
+        .artwork-car { animation: car-arrive 1.5s ease-out both; }
+        .artwork-route { animation: route-trace 4s linear both; }
+        .artwork-tool {
+            transform-box: fill-box;
+            transform-origin: center;
+            animation: tool-turn 1s ease-in-out 4;
+        }
+        @keyframes car-arrive {
+            from { transform: translateX(-12px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes route-trace {
+            from { stroke-dashoffset: 52; }
+            to { stroke-dashoffset: 0; }
+        }
+        @keyframes tool-turn {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(-12deg); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .artwork-car, .artwork-route, .artwork-tool { animation: none; }
         }
         h1 { margin: .5rem 0; font-size: 1.375rem; font-weight: 600; }
         .message { margin: 0; color: #526175; }
@@ -66,7 +80,6 @@
             .error-page { gap: .5rem; padding: .5rem 1rem; }
             .brand { margin-bottom: .25rem; }
             .error-artwork { max-height: 18svh; margin-bottom: .25rem; }
-            .error-code { font-size: 2rem; }
             h1 { margin: .25rem 0; }
             .actions { margin-top: .5rem; }
         }
@@ -77,7 +90,6 @@
         <section class="error-content" aria-labelledby="error-title">
             <p class="brand">MBIRA DSMS</p>
             @yield('artwork')
-            <p class="error-code">@yield('code')</p>
             <h1 id="error-title">@yield('title')</h1>
             <p class="message">@yield('message')</p>
             <nav class="actions" aria-label="Recovery options">
