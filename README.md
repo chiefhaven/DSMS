@@ -96,6 +96,15 @@ Gradient stops follow recorded time, not point count. Equal timestamps are
 excluded from speed calculations; stationary routes remain green. These colors
 use a configured display threshold, not legal speed-limit warnings.
 
+404 and 500 pages share a responsive, standalone error layout with Home and
+Sign in links. They require no database queries, external fonts, scripts, or
+compiled assets, so recovery navigation remains available during failures.
+Production 500 pages show a generic message without exception details; debug
+exception handling and HTTP status codes are unchanged.
+Inline SVG artwork depicts a lost learner car on 404 and a car under repair on
+500. Illustrations scale to the content width and are decorative for screen readers.
+Error content sits directly on the page background without cards or shadows.
+
 Bulk model-based engine capacities carry an `engine_capacity_reference` source
 for provenance. They
 are not confirmed specifications of the actual vehicle. Editing engine capacity,
