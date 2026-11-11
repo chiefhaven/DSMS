@@ -213,7 +213,7 @@ class ExpenseController extends Controller
                 // Combine and return the full dropdown
                 return '
                     <div class="dropdown d-inline-block">
-                        <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown"><i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions</button>
+                        <button class="btn btn-sm btn-primary rounded-pill px-3 text-nowrap" data-bs-toggle="dropdown"><i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions</button>
                         <div class="dropdown-menu dropdown-menu-end">
                             ' . $download . $paymentReport . $view . $review . $edit . $delete .  '
                         </div>
@@ -970,7 +970,7 @@ class ExpenseController extends Controller
 
             return '
                 <div class="dropdown d-inline-block">
-                    <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown"><i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions</button>
+                    <button class="btn btn-sm btn-primary rounded-pill px-3 text-nowrap" data-bs-toggle="dropdown"><i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions</button>
                     <div class="dropdown-menu dropdown-menu-end">
                         ' . $receipt . $reverse . $delete . '
                     </div>

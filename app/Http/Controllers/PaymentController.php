@@ -80,7 +80,7 @@ class PaymentController extends Controller
 
             return '
                 <div class="dropdown d-inline-block">
-                    <button class="btn btn-primary" data-bs-toggle="dropdown"><i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions</button>
+                    <button class="btn btn-sm btn-primary rounded-pill px-3 text-nowrap" data-bs-toggle="dropdown"><i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions</button>
                     <div class="dropdown-menu dropdown-menu-end">
                         ' . $download . $review . $edit . $delete . '
                     </div>

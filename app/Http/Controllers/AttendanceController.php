@@ -93,7 +93,7 @@ class AttendanceController extends Controller
                         . csrf_field() . method_field('DELETE')
                         . '<button class="dropdown-item text-danger" type="submit" onclick="return confirm(\'Are you sure?\')">Delete</button></form>';
                 }
-                return '<div class="dropdown"><button class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown"><i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions</button>'
+                return '<div class="dropdown"><button class="btn btn-sm btn-primary rounded-pill px-3 text-nowrap" data-bs-toggle="dropdown"><i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions</button>'
                     . '<div class="dropdown-menu dropdown-menu-end">' . $buttons . '</div></div>';
             })
             ->rawColumns(['student', 'instructor', 'actions'])
