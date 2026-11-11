@@ -29,7 +29,7 @@
           @endif
         <div class="block block-rounded">
             <div class="block-content">
-              <form action="{{ route ('storeadministrator') }}" method="POST" enctype="multipart/form-data" onsubmit="return true;">
+              <form action="{{ route('administrators.store') }}" method="POST" enctype="multipart/form-data" onsubmit="return true;">
                 @csrf
                 <h2 class="content-heading pt-0">
                   <i class="fa fa-fw fa-user text-muted me-1"></i> Administrator Information
@@ -109,15 +109,7 @@
                       </div>
                   </div>
                 </div>
-                <div class="row push">
-                  <div class="col-lg-8 col-xl-5 offset-lg-4">
-                    <div class="mb-4">
-                      <button type="submit" class="btn btn-alt-primary">
-                        <i class="fa fa-check-circle opacity-50 me-1"></i> Add Administrator
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <x-form-actions :cancel-url="route('administrators.index')" />
               </form>
             </div>
           </div>

@@ -89,11 +89,11 @@ class AttendanceController extends Controller
                 if (Auth::user()->hasRole('superAdmin')) {
                     $buttons .= '<form method="POST" action="' . e(url("/editattendance/{$a->id}")) . '">'
                         . csrf_field() . '<button class="dropdown-item" type="submit">Edit</button></form>';
-                    $buttons .= '<form method="POST" action="' . e(url("/deleteattendance/{$a->id}")) . '">'
+                    $buttons .= '<form method="POST" action="' . e(route('attendances.destroy', $a->id)) . '">'
                         . csrf_field() . method_field('DELETE')
                         . '<button class="dropdown-item text-danger" type="submit" onclick="return confirm(\'Are you sure?\')">Delete</button></form>';
                 }
-                return '<div class="dropdown"><button class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown">Actions</button>'
+                return '<div class="dropdown"><button class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown"><i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions</button>'
                     . '<div class="dropdown-menu dropdown-menu-end">' . $buttons . '</div></div>';
             })
             ->rawColumns(['student', 'instructor', 'actions'])
@@ -361,14 +361,14 @@ class AttendanceController extends Controller
             'date' => ['required', 'date'],
             'student' => ['required', 'string'],
             'lesson' => ['required', 'string'],
-            'attendance_id' => ['required'],
+            'attendance_id' => [$attendance->exists ? 'nullable' : 'required'],
         ]);
         $student = havenUtils::student($data['student']);
         if (!$student) {
             Alert::error('Student not found', 'Please select a valid student.');
             return back();
         }
-        $record = Attendance::findOrFail($data['attendance_id']);
+        $record = $attendance->exists ? $attendance : Attendance::findOrFail($data['attendance_id']);
         $record->student_id = $student->id;
         $record->lesson_id = havenUtils::lessonID($data['lesson']);
         $record->attendance_date = Carbon::parse($data['date'], 'Africa/Blantyre');

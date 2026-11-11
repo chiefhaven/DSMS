@@ -17,7 +17,7 @@
             @role(['superAdmin', 'admin'])
                 <div class="dropdown d-inline-block">
                     <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <span class="d-sm-inline-block">Action</span>
+                        <i class="fa fa-angle-down me-1" aria-hidden="true"></i><span>Actions</span>
                     </button>
                     <div class="dropdown-menu dropdown-menu-end p-0">
                         <div class="p-2">
@@ -106,7 +106,7 @@
                                                         <tr>
                                                             <td class="text-center">
                                                                 <div class="dropdown d-inline-block">
-                                                                    <button class="btn btn-primary" data-bs-toggle="dropdown">Actions</button>
+                                                                    <button class="btn btn-primary" data-bs-toggle="dropdown"><i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions</button>
                                                                     <div class="dropdown-menu dropdown-menu-end">
                                                                         <a class="dropdown-item" href="{{ url('/viewstudent', $students->id) }}">
                                                                             <i class="fa fa-user"></i> Profile

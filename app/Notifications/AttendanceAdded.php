@@ -78,9 +78,8 @@ class AttendanceAdded extends Notification
             'title' => 'Attendance entered',
             'body' => "Your attendance; {$this->attendance->lesson->name} has been entered by {$this->attendance->administrator->fname}.",
             'student_id' => $this->student->id,
-            'url' => url("/viewstudent/{$this->student->id}"),
+            'url' => route('students.show', $this->student->id),
             'created_at' => now(),
         ];
     }
 }
-

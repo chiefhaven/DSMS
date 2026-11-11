@@ -176,14 +176,14 @@ class ExpenseController extends Controller
 
                     // Edit only allowed if not approved
                     if (auth()->user()->hasAnyRole(['superAdmin', 'admin', 'financeAdmin'])) {
-                        $view = '<a class="dropdown-item nav-main-link btn" href="' . url('/view-expense', $expense->id) . '">
+                        $view = '<a class="dropdown-item nav-main-link btn" href="' . route('expenses.show', $expense->id) . '">
                                     <i class="fa fa-eye me-3"></i> View
                                 </a>';
                     }
 
                     // Edit only allowed if not approved
                     if ($expense->approved != true && auth()->user()->hasAnyRole(['superAdmin', 'admin'])) {
-                        $edit = '<a class="dropdown-item nav-main-link btn" href="' . url('/editexpense', $expense->id) . '">
+                        $edit = '<a class="dropdown-item nav-main-link btn" href="' . route('expenses.edit', $expense->id) . '">
                                     <i class="fa fa-pencil me-3"></i> Edit
                                 </a>';
                     }
@@ -198,7 +198,7 @@ class ExpenseController extends Controller
 
                     // Only superAdmin can delete if not approved
                     if (auth()->user()->hasRole('superAdmin') && $expense->approved == false) {
-                        $delete = '<form method="POST" action="' . url('expenses', $expense->id) . '" style="display:inline;">
+                        $delete = '<form method="POST" action="' . route('expenses.destroy', $expense->id) . '" style="display:inline;">
                                         ' . csrf_field() . method_field('DELETE') . '
                                         <button type="submit" class="btn dropdown-item nav-main-link delete-confirm">
                                             <i class="fa fa-trash me-3"></i> Delete
@@ -210,7 +210,7 @@ class ExpenseController extends Controller
                 // Combine and return the full dropdown
                 return '
                     <div class="dropdown d-inline-block">
-                        <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown">Actions</button>
+                        <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown"><i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions</button>
                         <div class="dropdown-menu dropdown-menu-end">
                             ' . $download . $paymentReport . $view . $review . $edit . $delete .  '
                         </div>
@@ -334,6 +334,11 @@ class ExpenseController extends Controller
         //
     }
 
+    public function showPage(Expense $expense)
+    {
+        return view('expenses.viewExpense', compact('expense'));
+    }
+
     /**
      * Display the specified resource.
      *
@@ -393,7 +398,7 @@ class ExpenseController extends Controller
 
         if($expense->approved == true){
             Alert::toast('You cannot edit an approved expense', 'error');
-            return redirect('/expenses');
+            return redirect()->route('expenses.index');
         };
 
         return view('expenses.editExpense', compact('expense'));
@@ -408,6 +413,11 @@ class ExpenseController extends Controller
      */
     public function update(UpdateexpenseRequest $request, Expense $expense)
     {
+        if (!$expense->exists) {
+            $expense = Expense::findOrFail($request->input('expenseId'));
+        }
+        $request->merge(['expenseId' => $expense->id]);
+
         $messages = [
             'expenseGroupName.required' => 'Expense Group Name is required',
             'expenseAmount.required'   => 'Expense amount is required',
@@ -426,12 +436,6 @@ class ExpenseController extends Controller
 
             $post = $request->all();
             $students = $post['students'];
-
-            $expense = Expense::find($post['expenseId']);
-
-            if (!$expense) {
-                throw new ModelNotFoundException('Expense not found');
-            }
 
             if($expense->approved == true){
                 return redirect()->back()->withErrors(['error' => 'You cannot edit an approved expense']);
@@ -507,7 +511,7 @@ class ExpenseController extends Controller
     {
         $expense->delete();
         Alert::toast('Expense deleted', 'success');
-        return redirect('/expenses');
+        return redirect()->route('expenses.index');
     }
 
     public function removeStudent(StoreexpenseRequest $request)
@@ -960,7 +964,7 @@ class ExpenseController extends Controller
 
             return '
                 <div class="dropdown d-inline-block">
-                    <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown">Actions</button>
+                    <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown"><i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions</button>
                     <div class="dropdown-menu dropdown-menu-end">
                         ' . $receipt . $reverse . $delete . '
                     </div>

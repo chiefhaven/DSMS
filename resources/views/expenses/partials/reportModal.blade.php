@@ -30,12 +30,11 @@
                 <label for="end_date" class="mt-2">To:</label>
                 <input type="date" id="end_date" v-model="endDate" class="form-control" required>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button @click="downloadSummary()" class="btn btn-primary">
+            <x-form-actions modal>
+                <button type="button" @click="downloadSummary()" class="btn btn-primary rounded-pill px-4">
                     Download Report
                 </button>
-            </div>
+            </x-form-actions>
         </div>
     </div>
 </div>

@@ -120,14 +120,11 @@
                                 <option value="custom">Custom Range</option>
                             </select>
                         </div>
-                        <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-                            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">
-                                Close
-                            </button>
+                        <x-form-actions modal>
                             <button type="submit" class="btn btn-primary rounded-pill px-4">
                                 <i class="fa fa-download me-1"></i> Download
                             </button>
-                        </div>
+                        </x-form-actions>
                     </form>
                 </div>
             </div>

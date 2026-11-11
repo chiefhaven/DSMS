@@ -31,7 +31,7 @@
         <div class="block-content">
             <div class="row">
                 <div class="col-lg-12 col-xl-12">
-                    <form class="mb-5" action="{{ url('/store-invoice') }}" method="post" onsubmit="disableSubmit(this)">
+                    <form class="mb-5" action="{{ route('invoices.store') }}" method="post" onsubmit="disableSubmit(this)">
                             @csrf
                             <input type="text" class="form-control" id="student" name="student" placeholder="Student" value="{{$student->id}}" hidden>
 
@@ -69,9 +69,7 @@
                                 <label class="px-4" for="district">Payment Method</label>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-primary rounded-pill px-4">Save</button>
-                        </div>
+                        <x-form-actions :cancel-url="route('students.show', $student->id)" />
                     </form>
                 </div>
             </div>

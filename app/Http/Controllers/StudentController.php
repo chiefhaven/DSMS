@@ -188,7 +188,7 @@ class StudentController extends Controller
                 return $student->trn ?? '-';
             })
             ->addColumn('actions', function ($student) {
-                $view = '<a class="dropdown-item" href="' . url('/viewstudent', $student->id) . '">
+                $view = '<a class="dropdown-item" href="' . route('students.show', $student->id) . '">
                             <i class="fa fa-user me-2"></i> View
                         </a>';
 
@@ -217,11 +217,11 @@ class StudentController extends Controller
                 }
 
                 if (auth()->user()->hasRole('superAdmin')) {
-                    $edit = '<a class="dropdown-item" href="' . url('/edit-student', $student->id) . '">
+                    $edit = '<a class="dropdown-item" href="' . route('students.edit', $student->id) . '">
                                 <i class="fa fa-pencil me-2"></i> Edit
                             </a>';
 
-                    $delete = '<form method="POST" action="' . url('student-delete', $student->id) . '" style="display:inline;">
+                    $delete = '<form method="POST" action="' . route('students.destroy', $student->id) . '" style="display:inline;">
                                     ' . csrf_field() . method_field('DELETE') . '
                                     <button type="submit" class="dropdown-item delete-confirm">
                                         <i class="fa fa-trash me-2"></i> Delete
@@ -231,7 +231,7 @@ class StudentController extends Controller
 
                 return '
                     <div class="dropdown d-inline-block">
-                        <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown">Actions</button>
+                        <button class="btn btn-sm btn-primary rounded-pill px-3 text-nowrap" data-bs-toggle="dropdown"><i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions</button>
                         <div class="dropdown-menu dropdown-menu-end">
                             ' . $view . $edit . $delete . $paymentReminder . $changeStatus . '
                         </div>
@@ -380,7 +380,7 @@ class StudentController extends Controller
                 return $student->trn ?? '-';
             })
             ->addColumn('actions', function ($student) {
-                $view = '<a class="dropdown-item" href="' . url('/viewstudent', $student->id) . '">
+                $view = '<a class="dropdown-item" href="' . route('students.show', $student->id) . '">
                             <i class="fa fa-user"></i> View
                         </a>';
 
@@ -399,11 +399,11 @@ class StudentController extends Controller
                                 </button>";
 
                 if (auth()->user()->hasRole('superAdmin')) {
-                    $edit = '<a class="dropdown-item" href="' . url('/edit-student', $student->id) . '">
+                    $edit = '<a class="dropdown-item" href="' . route('students.edit', $student->id) . '">
                                 <i class="fa fa-pencil"></i> Edit
                             </a>';
 
-                    $delete = '<form method="POST" action="' . url('student-delete', $student->id) . '" style="display:inline;">
+                    $delete = '<form method="POST" action="' . route('students.destroy', $student->id) . '" style="display:inline;">
                                     ' . csrf_field() . method_field('DELETE') . '
                                     <button type="submit" class="dropdown-item delete-confirm">
                                         <i class="fa fa-trash"></i> Delete
@@ -424,7 +424,7 @@ class StudentController extends Controller
 
                 return '
                     <div class="dropdown d-inline-block">
-                        <button class="btn btn-primary" data-bs-toggle="dropdown">Actions</button>
+                        <button class="btn btn-sm btn-primary rounded-pill px-3 text-nowrap" data-bs-toggle="dropdown"><i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions</button>
                         <div class="dropdown-menu dropdown-menu-end">
                             ' . $view . $edit . $delete . $paymentReminder . $changeStatus . '
                         </div>
@@ -541,7 +541,7 @@ class StudentController extends Controller
             'date_of_birth' => 'required',
             'district' => 'required',
             'phone' => 'required|unique:students',
-            'trn' => 'unique:students',
+            'trn' => 'nullable|unique:students,trn',
             'signature' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ];
 
@@ -573,7 +573,7 @@ class StudentController extends Controller
         $student->mname = $post['mname'];
         $student->sname = $post['sname'];
         $student->gender = $post['gender'];
-        $student->trn = $post['trn'];
+        $student->trn = $request->input('trn');
         $student->phone = $post['phone'];
         $student->address = $post['address'];
         $student->date_of_birth = $post['date_of_birth'];
@@ -610,7 +610,7 @@ class StudentController extends Controller
         $studentLastID = Student::max('id');
         Alert::toast('Student ' . $student->fname . ' added successfully', 'success');
 
-        return redirect()->route('viewStudent', ['id' => $studentLastID]);
+        return redirect()->route('students.show', ['student' => $studentLastID]);
     }
 
     /**
@@ -702,11 +702,12 @@ class StudentController extends Controller
             'gender'  =>'required',
             'date_of_birth' =>'required',
             'district' =>'required',
-            'phone' =>'required'
+            'phone' =>'required',
+            'trn' =>'nullable'
 
         ], $messages);
 
-        $student = Student::find($post['student_id']);
+        $student = $student->exists ? $student : Student::findOrFail($request->input('student_id'));
         $district = havenUtils::selectDistrict($post['district']);
 
         //signature processing
@@ -720,13 +721,13 @@ class StudentController extends Controller
         $student->mname = $post['mname'];
         $student->sname = $post['sname'];
         $student->gender = $post['gender'];
-        $student->trn = $post['trn'];
+        $student->trn = $request->input('trn');
         $student->phone = $post['phone'];
         $student->address = $post['address'];
         $student->date_of_birth = $post['date_of_birth'];
         $student->district_id = $district;
 
-        $user = User::where('student_id', $post['student_id'])->firstOrFail();
+        $user = User::where('student_id', $student->id)->firstOrFail();
 
         $user->email = $post['email'];
 
@@ -735,7 +736,7 @@ class StudentController extends Controller
 
         Alert::toast('Student updated successifully', 'success');
 
-        return redirect()->route('viewStudent', ['id' => $post['student_id']]);
+        return redirect()->route('students.show', ['student' => $student->id]);
     }
 
     public function updateStudentStatus(UpdateStudentRequest $request, $student)

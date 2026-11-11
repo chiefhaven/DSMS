@@ -61,13 +61,13 @@ Route::get('/studentProfile', [studentProfileController::class, 'show'])->middle
 Route::get('/classroomDetails/{id}', [ApiStudentController::class, 'showClassRoom'])->middleware('auth:sanctum')->name('classroomDetails');
 Route::get('/fleetDetails/{id}', [ApiStudentController::class, 'showFleet'])->middleware('auth:sanctum')->name('fleetDetails');
 Route::get('/attendance', [studentProfileController::class, 'showAttendance'])->middleware('auth:sanctum')->name('attendance');
-Route::get('/students', [StudentController::class, 'fetchStudents'])->name('students')->middleware('auth:sanctum')->name('students');
+Route::get('/students', [StudentController::class, 'fetchStudents'])->middleware('auth:sanctum')->name('api.students.index');
 Route::get('/instructor-students', [StudentController::class, 'fetchInstructorStudents'])->name('InstructorStudents')->middleware('auth:sanctum');
 
 Route::get('/fetch-instructors', [havenUtils::class, 'fetchInstructors'])->name('fetchInstructors')->middleware('auth:sanctum');
 
 
-Route::get('/courses', [studentProfileController::class, 'courses'])->middleware('auth:sanctum')->name('courses');
+Route::get('/courses', [studentProfileController::class, 'courses'])->middleware('auth:sanctum')->name('api.student.courses');
 
 Route::get('/student-mbira-version', [MbiraStudentVersion::class, 'index'])->name('student-mbira-version');
 
@@ -76,7 +76,7 @@ Route::get('/attendances', [studentProfileController::class, 'attendances'])->mi
 
 Route::get('/fetch-attendances', [AttendanceController::class, 'fetchAttendances'])->middleware('auth')->name('fetch-attendances');
 
-Route::get('/courseDetails', [studentProfileController::class, 'courseDetails'])->middleware('auth:sanctum')->name('courseDetails');
+Route::get('/courseDetails', [studentProfileController::class, 'courseDetails'])->middleware('auth:sanctum')->name('api.student.course-details');
 
 Route::get('/student-lessons', [havenUtils::class, 'getStudentLessons'])
     ->middleware('auth:sanctum')
@@ -95,7 +95,7 @@ Route::delete('/bulk-attendance/{bulkAttendance}', [BulkAttendanceController::cl
 
 Route::post('/bonuses/pay-early', [InstructorPaymentController::class, 'store'])->middleware('auth:sanctum')->name('pay-insturctor-bonuses');
 
-Route::get('/expenses', [ExpenseController::class, 'fetchExpenses'])->name('payments')->middleware('auth:sanctum');
+Route::get('/expenses', [ExpenseController::class, 'fetchExpenses'])->name('api.expenses.index')->middleware('auth:sanctum');
 
 Route::get('/expense-types', [ExpenseTypeController::class, 'index'])->name('api.expense-types')->middleware('auth:sanctum');
 
@@ -103,19 +103,17 @@ Route::get('/fetch-expense-types', [ExpenseTypeController::class, 'fetch'])->nam
 
 Route::get('/viewExpenseData', [ExpenseController::class, 'show'])->middleware('auth')->name('viewExpenseData');
 
-Route::get('/payments', [PaymentController::class, 'fetchPayments'])->name('payments')->middleware('auth:sanctum');
+Route::get('/payments', [PaymentController::class, 'fetchPayments'])->name('api.payments.index')->middleware('auth:sanctum');
 
 Route::get('/expense-payments', [ExpensePaymentController::class, 'index'])->name('expense.expensePayments')->middleware('auth:sanctum');
 
 Route::middleware('auth:sanctum')->post('/reverse-payment/{id}', [ExpensePaymentController::class, 'reverseExpensePayment'])->name('reverseExpensePayments');
 Route::middleware('auth:sanctum')->post('/delete-payment/{id}', [ExpensePaymentController::class, 'destroy'])->name('deleteExpensePayments');
 
-Route::prefix('expense-types')->group(function () {
-    Route::post('/', [ExpenseTypeController::class, 'store']);
-    Route::put('/{id}', [ExpenseTypeController::class, 'update']);
-    Route::get('/', [ExpenseTypeController::class, 'index']);
-    Route::delete('/{id}', [ExpenseTypeController::class, 'destroy']);
-});
+Route::apiResource('expense-types', ExpenseTypeController::class)
+    ->only(['index', 'store', 'update', 'destroy'])
+    ->middleware('auth:sanctum')
+    ->names('api.expense-types');
 
 Route::post('/studentExpensePayment/{student}/{expense}', [ExpensePaymentController::class, 'store'])
     ->name('makeExpensePayment')
@@ -126,8 +124,8 @@ Route::get('/getPaymentMethods', [PaymentMethodController::class, 'fetchPaymentM
 Route::post('/save-vehicle-location', [VehicleTrackerController::class, 'store'])->name('save-vehicle-location')->middleware('auth:sanctum');
 
 Route::middleware(['auth:sanctum', 'role:superAdmin|Super-Admin|admin'])->group(function () {
-    Route::get('/get-all-vehicle-locations', [VehicleTrackerController::class, 'show'])->name('vehicle-locations');
-    Route::get('/show-vehicle-geo-data/{vehicleId}', [VehicleTrackerController::class, 'showVehicleGeoData'])->name('vehicle-location');
+    Route::get('/get-all-vehicle-locations', [VehicleTrackerController::class, 'show'])->name('api.vehicle-locations');
+    Route::get('/show-vehicle-geo-data/{vehicleId}', [VehicleTrackerController::class, 'showVehicleGeoData'])->name('api.vehicle-location');
 });
 
 Route::get('/getExpenceTypeOption/{id}', [havenUtils::class, 'getExpenceTypeOption'])->name('getExpenceTypeOption')->middleware('auth:sanctum');
@@ -147,3 +145,8 @@ Route::prefix('mbirasync')->middleware(['auth:sanctum', 'role:superAdmin|Super-A
     Route::get('/positions/live',               [FleetTrackerController::class, 'live']);
     Route::get('/positions/{deviceId}/history', [FleetTrackerController::class, 'history']);
 });
+
+Route::apiResource('bulk-attendances', BulkAttendanceController::class)
+    ->only(['index', 'store', 'update', 'destroy'])
+    ->middleware('auth')
+    ->names('api.bulk-attendances');

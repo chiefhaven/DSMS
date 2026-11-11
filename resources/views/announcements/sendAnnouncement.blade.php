@@ -56,8 +56,8 @@
                                 <label class="px-4" for="invoice_discount">Body</label>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-primary" :disabled="state.isSubmitButtonDisabled">
+                        <x-form-actions :cancel-url="route('students.index')">
+                            <button type="submit" class="btn btn-primary rounded-pill px-4" :disabled="state.isSubmitButtonDisabled">
                                 <template v-if="state.isLoading">
                                     Processing...
                                 </template>
@@ -65,7 +65,7 @@
                                     @{{ state.buttonText }}
                                 </template>
                             </button>
-                        </div>
+                        </x-form-actions>
                     </form>
                 </div>
             </div>

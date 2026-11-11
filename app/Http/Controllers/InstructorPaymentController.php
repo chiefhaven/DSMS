@@ -37,32 +37,7 @@ class InstructorPaymentController extends Controller
 
             return DataTables::of($payments)
             ->addColumn('actions', function ($payment) {
-                // View Action
-                $view = '<a class="dropdown-item" href="' . url('/viewpayment', $payment->id) . '">
-                            <i class="fa fa-eye"></i> View
-                        </a>';
-
-                // Edit Action
-                $edit = '<a class="dropdown-item" href="' . url('/editpayment', $payment->id) . '">
-                            <i class="fa fa-pencil-alt"></i> Edit
-                        </a>';
-
-                // Delete Action
-                $delete = '<form method="POST" action="' . url('delete-payment', $payment->id) . '" style="display:inline;">
-                                ' . csrf_field() . method_field('DELETE') . '
-                                <button type="submit" class="dropdown-item delete-confirm">
-                                    <i class="fa fa-trash"></i> Delete
-                                </button>
-                            </form>';
-
-                return '
-                    <div class="dropdown d-inline-block">
-                        <button class="btn btn-primary" data-bs-toggle="dropdown">Actions</button>
-                        <div class="dropdown-menu dropdown-menu-end">
-                            ' . $view . $edit . $delete . '
-                        </div>
-                    </div>
-                ';
+                return '-';
             })
             ->addColumn('instructor', function ($payment) {
                 return $payment->instructor->fname . ' ' . $payment->instructor->sname;

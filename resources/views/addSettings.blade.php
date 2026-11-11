@@ -107,10 +107,7 @@
                     <option selected value="1">Africal/Blantyre</option>
                 </select>
             </div>
-            <br>
-            <div class="form-group">
-                <button type="submit" class="btn btn-primary">Save</button>
-            </div>
+            <x-form-actions :cancel-url="route('settings.edit')" />
           </form>
         </div>
       </div>
@@ -151,10 +148,9 @@
                   <label class="form-label" for="example-textarea-floating">Footer text</label>
               </div>
             </div>
-            <br>
-            <div class="form-group">
-                <button class="btn btn-primary" id="invoicesettings-update">Save</button>
-            </div>
+            <x-form-actions :cancel-url="route('settings.edit')">
+                <button type="submit" class="btn btn-primary rounded-pill px-4" id="invoicesettings-update">Save</button>
+            </x-form-actions>
           </form>
         </div>
       </div>

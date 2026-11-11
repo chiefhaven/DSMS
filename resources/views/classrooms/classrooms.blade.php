@@ -56,13 +56,10 @@
                         <div class="col-md-12">
                             <div class="dropdown d-inline-block">
                                 <button type="button" class="btn btn-sm btn-primary" id="" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    Action
+                                    <i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions
                                 </button>
                                 <div class="dropdown-menu dropdown-menu-end p-0">
                                 <div class="p-2">
-                                    <a class="dropdown-item" href="{{ url('/view-classroom') }}">
-                                        View
-                                    </a>
                                     <button class="dropdown-item" @click="openAddclassroomModal(classroom.id)">
                                         Edit
                                     </button>
@@ -203,7 +200,7 @@
 
             // Perform the delete action
             try {
-                const response = await axios.delete(`/delete-classroom/${classRoom}`);
+                const response = await axios.delete(@json(route('classrooms.destroy', ['classroom' => '__CLASSROOM__'])).replace('__CLASSROOM__', encodeURIComponent(classRoom)));
 
                 if (response.status === 200) {
                     notification('Classroom deleted successfully.', 'success');
@@ -278,8 +275,8 @@
 
                 // Determine endpoint and HTTP method
                 const endpoint = state.value.classroomId
-                    ? `/updateclassroom/${state.value.classroomId}`
-                    : '/storeclassroom';
+                    ? @json(route('classrooms.update', ['classroom' => '__CLASSROOM__'])).replace('__CLASSROOM__', encodeURIComponent(state.value.classroomId))
+                    : @json(route('classrooms.store'));
                 const method = state.value.classroomId ? 'put' : 'post';
 
                 NProgress.start();
@@ -318,7 +315,7 @@
         const fetchClassRooms = async () => {
             try {
                 // Send GET request to fetch classrooms
-                const response = await axios.get('/getClassRooms');
+                const response = await axios.get(@json(route('getClassrooms')));
 
                 // Update the classroom list in state
                 classrooms.value = response.data;

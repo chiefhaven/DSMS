@@ -59,7 +59,7 @@
 
             {{-- Schedule lesson --}}
             <div class="col-md-6 mb-3">
-                <a href="{{ url('/schedule-lesson-index') }}"
+                <a href="{{ route('schedules.index') }}"
                    class="text-decoration-none">
 
                     <div class="block block-rounded block-link-shadow border p-3 h-100">

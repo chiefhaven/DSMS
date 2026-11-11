@@ -42,7 +42,8 @@
             Make changes to school details
             </div>
             <div class="row">
-            <form class="mb-5" action="{{url('/settings-update')}}" method="post" enctype="multipart/form-data">
+            <form class="mb-5" action="{{ route('settings.update') }}" method="post" enctype="multipart/form-data">
+                @method('PUT')
                 @csrf
                 <div class="form-floating mb-4">
                 <input type="text" class="form-control @error('school_name') is-invalid @enderror" id="school_name" name="school_name" value="{{$setting->school_name}}">
@@ -111,10 +112,7 @@
                         <option selected value="1">Africal/Blantyre</option>
                     </select>
                 </div>
-                <br>
-                <div class="form-group">
-                    <button type="submit" class="btn btn-primary">Update</button>
-                </div>
+                <x-form-actions :cancel-url="route('settings.edit')" />
             </form>
             </div>
         </div>
@@ -148,8 +146,8 @@
        var logo = $('#logo').val();
 
         $.ajax({
-           type:'POST',
-           url:"{{ url('/invoicesettings-update') }}",
+           type:'PUT',
+           url:"{{ route('invoice-settings.update') }}",
            data:{
             terms:terms,
             header:header,

@@ -23,6 +23,9 @@ use RealRashid\SweetAlert\Facades\Alert;
 use PDF;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use App\Services\StudentNumber;
 
 
 class InvoiceController extends Controller
@@ -127,7 +130,7 @@ class InvoiceController extends Controller
                     : '-';
             })
             ->addColumn('actions', function ($invoice) {
-                $view = '<a class="dropdown-item" href="' . url('/view-invoice', $invoice->id) . '">
+                $view = '<a class="dropdown-item" href="' . route('invoices.show', $invoice->id) . '">
                             <i class="fa fa-file-invoice"></i> View
                         </a>';
 
@@ -135,7 +138,7 @@ class InvoiceController extends Controller
                 $delete = '';
 
                 if (auth()->user()->hasRole('superAdmin')) {
-                    $edit = '<a class="dropdown-item" href="' . url('/edit-invoice', $invoice->id) . '">
+                    $edit = '<a class="dropdown-item" href="' . route('invoices.edit', $invoice->id) . '">
                                 <i class="fa fa-pencil"></i> Edit
                             </a>';
 
@@ -143,7 +146,7 @@ class InvoiceController extends Controller
                         <i class="si si-printer me-1"></i> Print Invoice
                     </a>';
 
-                    $delete = '<form method="POST" action="' . url('invoice-delete', $invoice->id) . '" style="display:inline;">
+                    $delete = '<form method="POST" action="' . route('invoices.destroy', $invoice->id) . '" style="display:inline;">
                                     ' . csrf_field() . method_field('DELETE') . '
                                     <button type="submit" class="dropdown-item delete-confirm">
                                         <i class="fa fa-trash"></i> Delete
@@ -153,7 +156,7 @@ class InvoiceController extends Controller
 
                 return '
                     <div class="dropdown d-inline-block">
-                        <button class="btn btn-primary" data-bs-toggle="dropdown">Actions</button>
+                        <button class="btn btn-primary" data-bs-toggle="dropdown"><i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions</button>
                         <div class="dropdown-menu dropdown-menu-end">
                             ' . $view . $edit . $delete . $print .'
                         </div>
@@ -169,8 +172,12 @@ class InvoiceController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create($id)
+    public function create(Request $request, $id = null)
     {
+        if ($id === null) {
+            $id = $request->validate(['student' => 'required|uuid|exists:students,id'])['student'];
+        }
+
         if (Auth::user()->hasRole('superAdmin')) {
             $course = Course::all();
             $classrooms = Classroom::all();
@@ -290,28 +297,31 @@ class InvoiceController extends Controller
         }
 
         else{
-            if($invoice->invoice_amount_paid > 0){
-
-                $payment = new Payment;
-                $payment->amount_paid = $invoice->invoice_amount_paid;
-                $payment->payment_method_id = 1;
-                $payment->transaction_id = Str::random(14);
-                $payment->student_id = $student_id;
-                $payment->entered_by = Auth::user()->name;
-
+            DB::transaction(function () use ($invoice, $student, $student_id) {
+                Student::whereKey($student_id)->lockForUpdate()->firstOrFail();
+                if (Invoice::where('student_id', $student_id)->exists()) {
+                    throw ValidationException::withMessages([
+                        'student' => 'Student is already enrolled.',
+                    ]);
+                }
                 $invoice->save();
+                $student->student_number = app(StudentNumber::class)->assign($student_id, $invoice->created_at);
                 $student->save();
-                $payment->save();
+
+                if ($invoice->invoice_amount_paid > 0) {
+                    $payment = new Payment;
+                    $payment->amount_paid = $invoice->invoice_amount_paid;
+                    $payment->payment_method_id = 1;
+                    $payment->transaction_id = Str::random(14);
+                    $payment->student_id = $student_id;
+                    $payment->entered_by = Auth::user()->name;
+                    $payment->save();
+                }
+            });
+            if ($invoice->invoice_amount_paid > 0) {
                 $sms->balanceSMS($student->id, 'Payment');
-                Alert::toast($student->fname.' successifully enrolled', 'success');
             }
-
-            else{
-
-                $invoice->save();
-                $student->save();
-                Alert::toast($student->fname.' successifully enrolled', 'success');
-            }
+            Alert::toast($student->fname.' successifully enrolled', 'success');
 
             $admin = Administrator::with('user')->find($student->added_by);
 
@@ -342,7 +352,7 @@ class InvoiceController extends Controller
 
         $student = Student::with('User', 'Course', 'Enrollment', 'Invoice', 'Payment')->find($student_id);
 
-        return redirect()->route('viewStudent', ['id' => $student_id]);
+        return redirect()->route('students.show', ['student' => $student_id]);
     }
 
     /**
@@ -354,7 +364,7 @@ class InvoiceController extends Controller
     public function show($id)
     {
         $setting= Setting::with('District')->find(1);
-        $invoice = Invoice::with('User', 'Course', 'Student')->find($id);
+        $invoice = Invoice::with('User', 'Course', 'Student')->findOrFail($id);
         return view('invoices.viewinvoice', [ 'invoice' => $invoice ], compact('invoice', 'setting'));
     }
 
@@ -398,6 +408,14 @@ class InvoiceController extends Controller
      */
     public function update(UpdateInvoiceRequest $request, Invoice $invoice)
     {
+        if (!$invoice->exists) {
+            $id = $request->input('invoice_id', $request->input('id'));
+            $invoice = $id
+                ? Invoice::findOrFail($id)
+                : Invoice::where('invoice_number', $request->input('invoice_number'))->firstOrFail();
+        }
+        $request->merge(['invoice_id' => $invoice->id]);
+
         // Validation messages
         $messages = [
             'student.required' => 'Please choose a student!',
@@ -462,7 +480,7 @@ class InvoiceController extends Controller
 
         Alert::toast('Invoice updated successfully, including classroom!', 'success');
         // Return success response
-        return redirect(url('/viewstudent/' . $student->id));
+        return redirect()->route('students.show', ['student' => $student->id]);
 
     }
 
@@ -472,8 +490,9 @@ class InvoiceController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Invoice $Invoice)
+    public function destroy(Invoice $invoice)
     {
+        $Invoice = $invoice;
         if (!Auth::user()->hasRole('superAdmin')) {
             Alert::toast('You do not have permission to delete invoice or student enrollment. Please contact the administrator for assistance.', 'warning');
             return back();

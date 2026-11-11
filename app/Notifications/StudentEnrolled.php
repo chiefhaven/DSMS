@@ -50,7 +50,7 @@ class StudentEnrolled extends Notification
             ->subject('New Student Enrollment Notification')
             ->greeting('Hello!')
             ->line("Student {$this->student->fname} {$this->student->mname} {$this->student->sname} has been successfully enrolled in the {$this->student->course->name} course.")
-            ->action('View Student Details', url("/viewstudent/{$this->student->id}"))
+            ->action('View Student Details', route('students.show', $this->student->id))
             ->line('Thank you.');
     }
 
@@ -61,7 +61,7 @@ class StudentEnrolled extends Notification
             'title' => 'Student Enrolled',
             'body' => "Student {$this->student->fname} {$this->student->mname} {$this->student->sname} has been enrolled in the {$this->student->course->name} course.",
             'student_id' => $this->student->id,
-            'url' => url("/viewstudent/{$this->student->id}"),
+            'url' => route('students.show', $this->student->id),
             'created_at' => now(),
         ];
     }
@@ -78,7 +78,7 @@ class StudentEnrolled extends Notification
             'title' => 'Student registered',
             'body' => "Student {$this->student->fname} {$this->student->mname} {$this->student->sname} has been enrolled by {$this->admin}.",
             'student_id' => $this->student->id,
-            'url' => url("/viewstudent/{$this->student->id}"),
+            'url' => route('students.show', $this->student->id),
             'created_at' => now(),
         ];
     }

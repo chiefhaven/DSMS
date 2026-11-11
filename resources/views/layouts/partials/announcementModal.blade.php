@@ -67,7 +67,7 @@
                         </div>
 
                         <!-- Buttons -->
-                        <div class="d-flex gap-2">
+                        <x-form-actions modal cancel-click="cancelAnnouncement">
                             <button type="submit"
                                     class="btn btn-primary rounded-pill px-4"
                                     :disabled="state.isSubmitButtonDisabled">
@@ -75,12 +75,7 @@
                                 <span v-else>@{{ state.buttonText }}</span>
                             </button>
 
-                            <button type="button"
-                                    class="btn btn-outline-secondary rounded-pill px-4"
-                                    @click="cancelAnnouncement">
-                                Cancel
-                            </button>
-                        </div>
+                        </x-form-actions>
                     </form>
                 </div>
 
@@ -225,4 +220,3 @@
 
     app.mount('#announcement');
 </script>
-

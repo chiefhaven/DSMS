@@ -26,24 +26,29 @@
         <div class="block-content">
             <div class="row">
                 <div class="col-lg-8 col-xl-5">
-                    <form action="{{ url('/storelesson') }}" method="POST">
+                    <form action="{{ route('lessons.store') }}" method="POST">
                         @csrf
                         <div class="form-floating mb-4">
                             <input type="text" class="form-control" id="lesson_name" name="lesson_name" required>
                             <label for="lesson_name">Lesson name</label>
                         </div>
                         <div class="form-floating mb-4">
-                            <textarea type="text" class="form-control" id="lesson_description" name="lesson_description" style="height: 150px"></textarea>
+                            <textarea class="form-control" id="lesson_description" name="lesson_description" style="height: 150px" required></textarea>
                             <label for="lesson_description">Description</label>
                         </div>
                         <div class="form-group mb-4">
-                            <label for="lesson_image">Lesson Image</label>
-                            <input type="file" class="form-control" id="lesson_image" name="lesson_image" value="">
+                            <label for="lesson_department">Department</label>
+                            <select class="form-control" id="lesson_department" name="lesson_department" required>
+                                @foreach ($departments as $department)
+                                    <option value="{{ $department->id }}">{{ $department->name }}</option>
+                                @endforeach
+                            </select>
                         </div>
-                        <br>
                         <div class="form-group mb-4">
-                            <button type="submit" class="btn btn-primary">Save</button>
+                            <label for="lesson_contents">Lesson content</label>
+                            <textarea class="form-control" id="lesson_contents" name="lesson_contents"></textarea>
                         </div>
+                        <x-form-actions :cancel-url="route('lessons.index')" />
                     </form>
                 </div>
             </div>

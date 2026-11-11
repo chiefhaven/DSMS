@@ -21,7 +21,7 @@
                 </ul>
                 <ul class="nav-main-submenu">
                   <li class="nav-main-item">
-                      <a class="nav-main-link" href="{{ url('/addstudent') }}">
+                      <a class="nav-main-link" href="{{ route('students.create') }}">
                         <span class="nav-main-link-name">Add student</span>
                       </a>
                     </li>
@@ -61,7 +61,7 @@
                 </ul>
                 <ul class="nav-main-submenu">
                   <li class="nav-main-item">
-                      <a class="nav-main-link" href="{{ url('/addcourse') }}">
+                      <a class="nav-main-link" href="{{ route('courses.create') }}">
                         <span class="nav-main-link-name">Add course</span>
                       </a>
                     </li>
@@ -87,7 +87,7 @@
                 </ul>
                 <ul class="nav-main-submenu">
                   <li class="nav-main-item">
-                      <a class="nav-main-link" href="{{ url('/addinstructor') }}">
+                      <a class="nav-main-link" href="{{ route('instructors.create') }}">
                         <span class="nav-main-link-name">Add instructor</span>
                       </a>
                     </li>

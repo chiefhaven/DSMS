@@ -174,7 +174,7 @@ class InstructorController extends Controller
                 return $student->trn ?? '-';
             })
             ->addColumn('actions', function ($student) {
-                $view = '<a class="dropdown-item" href="' . url('/viewstudent', $student->id) . '">
+                $view = '<a class="dropdown-item" href="' . route('students.show', ['student' => $student->id]) . '">
                             <i class="fa fa-user"></i> View
                         </a>';
 
@@ -204,11 +204,11 @@ class InstructorController extends Controller
                                 </button>";
 
                 if (auth()->user()->hasRole('superAdmin')) {
-                    $edit = '<a class="dropdown-item" href="' . url('/edit-student', $student->id) . '">
+                    $edit = '<a class="dropdown-item" href="' . route('students.edit', ['student' => $student->id]) . '">
                                 <i class="fa fa-pencil"></i> Edit
                             </a>';
 
-                    $delete = '<form method="POST" action="' . url('student-delete', $student->id) . '" style="display:inline;">
+                    $delete = '<form method="POST" action="' . route('students.destroy', ['student' => $student->id]) . '" style="display:inline;">
                                     ' . csrf_field() . method_field('DELETE') . '
                                     <button type="submit" class="dropdown-item delete-confirm">
                                         <i class="fa fa-trash"></i> Delete
@@ -218,7 +218,7 @@ class InstructorController extends Controller
 
                 return '
                     <div class="dropdown d-inline-block">
-                        <button class="btn btn-primary" data-bs-toggle="dropdown">Actions</button>
+                        <button class="btn btn-primary" data-bs-toggle="dropdown"><i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions</button>
                         <div class="dropdown-menu dropdown-menu-end">
                             ' . $view . $edit . $paymentReminder . $delete . $changeStatus . '
                         </div>
@@ -338,7 +338,7 @@ class InstructorController extends Controller
 
         $user->assignRole('instructor');
 
-        return redirect()->back()->with('message', 'Instructor added!');
+        return redirect()->route('instructors.index')->with('message', 'Instructor added!');
     }
 
     /**
@@ -367,7 +367,7 @@ class InstructorController extends Controller
      */
     public function instructorData($instructor)
     {
-        $instructor = Instructor::with('Fleet.student.invoice', 'classrooms.students.invoice', 'attendances.student', 'attendances.lesson', 'Schedules')->find($instructor);
+        $instructor = Instructor::with('Fleet.student.invoice', 'classrooms.students.invoice', 'attendances.student', 'attendances.lesson', 'Schedules')->findOrFail($instructor);
         return response()->json($instructor);
     }
 
@@ -391,7 +391,7 @@ class InstructorController extends Controller
      */
     public function edit($id)
     {
-        $instructor = Instructor::with('User')->find($id);
+        $instructor = Instructor::with('User')->findOrFail($id);
         $district = district::get();
         $departments = Department::get();
         return view('instructors.editinstructor', [ 'instructor' => $instructor ], compact('instructor', 'district', 'departments'));
@@ -406,6 +406,11 @@ class InstructorController extends Controller
      */
     public function update(UpdateInstructorRequest $request, Instructor $instructor)
     {
+        if (!$instructor->exists) {
+            $instructor = Instructor::findOrFail($request->input('instructor_id'));
+        }
+        $request->merge(['instructor_id' => $instructor->id]);
+
         $messages = [
             'first_name.required'      => 'The "First name" field is required!',
             'sir_name.required'        => 'The "Surname" field is required!',
@@ -427,7 +432,7 @@ class InstructorController extends Controller
         $this->validate($request, [
             'first_name'    => 'required',
             'sir_name'      => 'required',
-            'email'          => 'required|unique:users,email,' . Instructor::find($request->instructor_id)->user->id,
+            'email'          => 'required|unique:users,email,' . $instructor->user->id,
             'address'       => 'required',
             'gender'        => 'required',
             'date_of_birth' => ['required', 'date', 'before:' . now()->subYears(18)->format('Y-m-d')],
@@ -446,8 +451,6 @@ class InstructorController extends Controller
             $filename = time() . '.' . $request->signature->extension();
             $request->signature->move(public_path('media/signatures'), $filename);
         }
-
-        $instructor = Instructor::find($request->instructor_id);
 
         // Update instructor data
         $instructor->fname = $post['first_name'];
@@ -493,7 +496,7 @@ class InstructorController extends Controller
         $user->save();
         Alert::toast('Instructor updated!', 'success');
 
-        return redirect('/instructors')->with('message', 'Instructor updated!');
+        return redirect()->route('instructors.index')->with('message', 'Instructor updated!');
     }
 
     /**
@@ -504,7 +507,7 @@ class InstructorController extends Controller
      */
     public function destroy($id)
     {
-        $instructor = Instructor::find($id);
+        $instructor = Instructor::findOrFail($id);
 
         // Check if the instructor exists
         if ($instructor) {
@@ -542,7 +545,7 @@ class InstructorController extends Controller
         }
 
         // Redirect to the instructors page
-        return redirect('/instructors');
+        return redirect()->route('instructors.index');
     }
 
     public function instructorSearch(Request $request)

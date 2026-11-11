@@ -16,25 +16,31 @@
         <div class="block-content">
             <div class="row">
                 <div class="col-lg-8 col-xl-5">
-                    <form action="{{ url('/updatelesson') }}" method="POST">
+                    <form action="{{ route('lessons.update', $lesson->id) }}" method="POST">
                         @csrf
+                        @method('PUT')
                         <input type="text" name="lesson_id" id="lesson_id" value="{{$lesson->id}}" hidden>
                         <div class="form-floating mb-4">
                             <input type="text" class="form-control" id="lesson_name" name="lesson_name" value="{{$lesson->name}}">
                             <label for="example-ltf-email">Lesson name</label>
                         </div>
                         <div class="form-floating mb-4">
-                            <textarea type="text" class="form-control" id="lesson_description" name="lesson_description" style="height: 150px">{{$lesson->short_description}}</textarea>
+                            <textarea class="form-control" id="lesson_description" name="lesson_description" style="height: 150px" required>{{$lesson->description}}</textarea>
                             <label for="example-ltf-password">Description</label>
                         </div>
                         <div class="form-group mb-4">
-                            <label for="example-ltf-password">Lesson Image</label>
-                            <input type="file" class="form-control" id="example-ltf-password" name="example-ltf-password" value="course.png">
+                            <label for="lesson_department">Department</label>
+                            <select class="form-control" id="lesson_department" name="lesson_department" required>
+                                @foreach ($departments as $department)
+                                    <option value="{{ $department->id }}" @selected($lesson->department_id == $department->id)>{{ $department->name }}</option>
+                                @endforeach
+                            </select>
                         </div>
-                        <br>
                         <div class="form-group mb-4">
-                            <button type="submit" class="btn btn-primary">Update</button>
+                            <label for="lesson_contents">Lesson content</label>
+                            <textarea class="form-control" id="lesson_contents" name="lesson_contents">{{ $lesson->lesson_contents->body }}</textarea>
                         </div>
+                        <x-form-actions :cancel-url="route('lessons.index')" />
                     </form>
                 </div>
             </div>

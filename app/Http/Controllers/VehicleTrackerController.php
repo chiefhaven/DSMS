@@ -10,6 +10,8 @@ use App\Models\FleetTracker;
 use Auth;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class VehicleTrackerController extends Controller
 {
@@ -122,12 +124,36 @@ class VehicleTrackerController extends Controller
         //
     }
 
-    public function showVehicleGeoData($vehicleId)
+    public function showVehicleGeoData(Request $request, $vehicleId)
     {
-        $deviceId = Fleet::where('id', $vehicleId)->value('tracker_device_id');
+        $data = $request->validate([
+            'period' => ['sometimes', Rule::in(['hour', 'today', 'yesterday', 'custom'])],
+            'from' => 'required_if:period,custom|nullable|date_format:Y-m-d\TH:i',
+            'to' => 'required_if:period,custom|nullable|date_format:Y-m-d\TH:i|after:from',
+        ]);
+        $now = Carbon::now(date_default_timezone_get());
+        $period = $data['period'] ?? 'today';
+        if ($period === 'custom') {
+            $from = Carbon::createFromFormat('Y-m-d\TH:i', $data['from'], $now->timezone)->startOfMinute();
+            $to = Carbon::createFromFormat('Y-m-d\TH:i', $data['to'], $now->timezone)->startOfMinute();
+        } elseif ($period === 'hour') {
+            $from = $now->copy()->subHour();
+            $to = $now;
+        } else {
+            $from = $now->copy()->startOfDay();
+            if ($period === 'yesterday') {
+                $from->subDay();
+            }
+            $to = $from->copy()->addDay();
+        }
+        $fleet = Fleet::findOrFail($vehicleId);
+        if (!$fleet->tracker_device_id) {
+            return response()->json([]);
+        }
         $dataPoints = FleetTracker::with('fleet')
-            ->where('device_id', $deviceId)
-            ->whereDate('created_at', Carbon::today())
+            ->where('device_id', $fleet->tracker_device_id)
+            ->where('created_at', '>=', $from)
+            ->where('created_at', '<', $to)
             ->orderBy('created_at', 'asc')
             ->get([
                 'latitude',

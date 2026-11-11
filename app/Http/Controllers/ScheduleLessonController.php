@@ -28,7 +28,7 @@ class ScheduleLessonController extends Controller
     public function index()
     {
         if (!Auth::user()->hasRole('instructor')) {
-            return redirect()->route('dashboard')->with('error', 'Access denied');
+            return $this->schedules();
         }
         return view('schedules.scheduleLesson');
 

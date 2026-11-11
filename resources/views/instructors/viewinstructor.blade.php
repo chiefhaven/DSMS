@@ -10,15 +10,15 @@
             <ol class="breadcrumb">
             <div class="dropdown d-inline-block">
                 <button type="button" class="btn btn-primary rounded-pill px-4" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <span class="d-sm-inline-block">Action</span>
+                <i class="fa fa-angle-down me-1" aria-hidden="true"></i><span>Actions</span>
                 </button>
                 <div class="dropdown-menu dropdown-menu-end p-0">
                 <div class="p-2">
-                    <form method="GET" action="{{ url('/editinstructor', $instructor->id) }}">
+                    <form method="GET" action="{{ route('instructors.edit', $instructor->id) }}">
                         {{ csrf_field() }}
                         <button class="dropdown-item" type="submit">Edit</button>
                     </form>
-                    <form method="POST" action="{{ url('/deleteinstructor', $instructor->id) }}">
+                    <form method="POST" action="{{ route('instructors.destroy', $instructor->id) }}">
                         {{ csrf_field() }}
                         {{ method_field('DELETE') }}
                         <button class="dropdown-item delete-confirm" type="submit">Delete</button>

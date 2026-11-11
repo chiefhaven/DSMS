@@ -8,7 +8,7 @@
         <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Courses</h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
           <ol class="breadcrumb">
-            <a href="/addcourse" class="btn btn-primary">
+            <a href="{{ route('courses.create') }}" class="btn btn-primary">
                     <i class="fa fa-fw fa-plus mr-1"></i> Add Course
             </a>
           </ol>
@@ -79,21 +79,21 @@
                 <div class="block-content mt-auto text-center mb-2">
                     <div class="dropdown">
                         <button class="btn btn-sm btn-primary px-4" data-bs-toggle="dropdown">
-                            Actions
+                            <i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions
                         </button>
 
                         <div class="dropdown-menu dropdown-menu-end shadow-sm border-0">
-                            <a class="dropdown-item" href="{{ url('/view-course', $course->id) }}">
+                            <a class="dropdown-item" href="{{ route('courses.show', $course->id) }}">
                                 <i class="fa fa-eye me-2 text-info"></i> View
                             </a>
 
-                            <a class="dropdown-item" href="{{ url('/edit-course', $course->id) }}">
+                            <a class="dropdown-item" href="{{ route('courses.edit', $course->id) }}">
                                 <i class="fa fa-edit me-2 text-warning"></i> Edit
                             </a>
 
                             <div class="dropdown-divider"></div>
 
-                            <form method="POST" action="{{ url('/delete-course', $course->id) }}">
+                            <form method="POST" action="{{ route('courses.destroy', $course->id) }}">
                                 @csrf
                                 @method('DELETE')
                                 <button class="dropdown-item text-danger delete-confirm"

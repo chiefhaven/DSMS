@@ -29,7 +29,8 @@
         @endif
         <div class="block block-rounded">
             <div class="block-content">
-              <form action="{{ url('/updateadministrator') }}" enctype="multipart/form-data" method="POST">
+              <form action="{{ route('administrators.update', $administrator->id) }}" enctype="multipart/form-data" method="POST">
+                  @method('PUT')
                 @csrf
                 <input type="text" name="administrator_id" id="administrator_id" value="{{$administrator->id}}" hidden>
                 <h2 class="content-heading pt-0">
@@ -129,15 +130,7 @@
                         </div>
                     </div>  --}}
                 </div>
-                <div class="row push">
-                  <div class="col-lg-8 col-xl-5 offset-lg-4">
-                    <div class="mb-4">
-                      <button type="submit" class="btn btn-alt-primary">
-                        <i class="fa fa-check-circle opacity-50 me-1"></i> Update administrator
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <x-form-actions :cancel-url="route('administrators.index')" />
               </form>
             </div>
         </div>

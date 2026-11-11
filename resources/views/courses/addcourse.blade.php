@@ -26,7 +26,7 @@
         <div class="block-content">
             <div class="row">
                 <div class="col-lg-12 col-xl-5">
-                    <form action="{{ url('/storecourse') }}" method="POST">
+                    <form action="{{ route('courses.store') }}" method="POST">
                         @csrf
                         <div class="form-floating mb-4">
                             <input type="text" class="form-control @error('course_name') is-invalid @enderror" id="course_name" name="course_name" placeholder="Course name" required>
@@ -68,10 +68,7 @@
                             </select>
                             <label for="instructor">Instructor</label>
                         </div>  --}}
-                        <br>
-                        <div class="form-group mb-4">
-                            <button type="submit" class="btn btn-primary">Save</button>
-                        </div>
+                        <x-form-actions :cancel-url="route('courses.index')" />
                     </form>
                 </div>
             </div>

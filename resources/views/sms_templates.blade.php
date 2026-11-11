@@ -94,10 +94,7 @@
                             <div class="text-sm p-2"><strong>Available tags:</strong><br> <small>{{ $template->available_tags }}</small></div>
                             <textarea rows="15" cols="50" style="height: 150px" class="form-control small" id="body" name="body">{{ $template->body }}</textarea>
                         </div>
-                        <div class="block-content block-content-full text-end bg-body">
-                            <button type="submit" class="btn btn-primary">Save</button>
-                            <button type="button" class="btn btn-alt-secondary" data-bs-dismiss="modal">Close</button>
-                        </div>
+                        <x-form-actions modal />
                     </form>
                     </div>
                 </div>

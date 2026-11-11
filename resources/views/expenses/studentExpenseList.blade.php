@@ -148,27 +148,22 @@
                         </select>
                     </div>
 
-                    <div class="d-flex justify-content-end">
+                    <x-form-actions modal>
+                        <x-slot:cancel>
+                            <button type="button" class="btn btn-alt-secondary rounded-pill px-4" @click="cancel" :disabled="isSubmitting">Cancel</button>
+                        </x-slot:cancel>
                         <button
                           type="submit"
-                          class="btn btn-primary me-2 rounded-pill px-4"
+                          class="btn btn-primary rounded-pill px-4"
                           :disabled="isSubmitting"
                         >
                           <span v-if="isSubmitting">
                             <i class="fa fa-spinner fa-spin"></i> Submitting...
                           </span>
-                          <span v-else>Submit</span>
+                          <span v-else>Save</span>
                         </button>
 
-                        <button
-                          type="button"
-                          class="btn btn-outline-secondary rounded-pill px-4"
-                          @click="cancel"
-                          :disabled="isSubmitting"
-                        >
-                          Cancel
-                        </button>
-                    </div>
+                    </x-form-actions>
 
                     </form>
                 </div>

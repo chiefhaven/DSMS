@@ -82,7 +82,7 @@
         const courseLessons = ref([]);
         const theoryCount = ref(0);
         const practicalCount = ref(0);
-        const courseId = {{ $courseId }};
+        const courseId = @json($courseId);
         const showActions = ref(false);
         const showCourseLessons = ref(true);
         const lessonName = ref('');
@@ -196,7 +196,7 @@
                     courseId: courseId,
                 };
 
-                const response = await axios.put('/update-course-lesson', payload);
+                const response = await axios.put(@json(route('update-course-lessons')), payload);
 
                 if (response.status === 200 || response.status === 201) {
                     notification('Lesson saved successfully.', 'success');
@@ -275,7 +275,7 @@
             NProgress.start();
 
             try {
-                const response = await axios.get(`/course-details/${courseId}`);
+                const response = await axios.get(@json(route('courseDetails', ['id' => '__COURSE__'])).replace('__COURSE__', encodeURIComponent(courseId)));
 
                 if (response.data) {
                     const lessons = (response.data.course.lessons || [])

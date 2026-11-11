@@ -156,14 +156,7 @@
             </div>
           </div>
 
-          <div class="modal-footer">
-            <button type="submit" class="btn btn-primary rounded-pill px-4">
-              @{{ isEditMode ? 'Update' : 'Create' }}
-            </button>
-            <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">
-              Cancel
-            </button>
-          </div>
+          <x-form-actions modal />
         </form>
       </div>
     </div>

@@ -8,7 +8,7 @@
         <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Instructors</h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
           <ol class="breadcrumb">
-            <a href="{{ url('/addinstructor') }}" class="btn btn-primary">
+            <a href="{{ route('instructors.create') }}" class="btn btn-primary">
                     <i class="fa fa-fw fa-user-plus mr-1"></i> Add Instructor
             </a>
           </ol>
@@ -114,24 +114,24 @@
                                         id="instructorActionsDropdown"
                                         data-bs-toggle="dropdown"
                                         aria-expanded="false">
-                                        <i class="fas fa-user-tie me-2"></i> Manage Instructor
+                                        <i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions
                                 </button>
                                 <ul class="dropdown-menu w-100" aria-labelledby="instructorActionsDropdown">
                                     <li>
                                         <a class="dropdown-item d-flex align-items-center"
-                                           href="{{ route('viewinstructor', $instructor->id) }}">
+                                           href="{{ route('instructors.show', $instructor->id) }}">
                                             <i class="fas fa-eye me-2"></i> View Profile
                                         </a>
                                     </li>
                                     <li>
                                         <a class="dropdown-item d-flex align-items-center"
-                                           href="{{ route('editinstructor', $instructor->id) }}">
+                                           href="{{ route('instructors.edit', $instructor->id) }}">
                                             <i class="fas fa-edit me-2"></i> Edit Profile
                                         </a>
                                     </li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
-                                        <form method="POST" action="{{ url('/deleteinstructor', $instructor->id) }}">
+                                        <form method="POST" action="{{ route('instructors.destroy', $instructor->id) }}">
                                             @csrf
                                             @method('DELETE')
                                             <button class="dropdown-item d-flex align-items-center"

@@ -13,12 +13,57 @@ class Fleet extends Model
 {
     use HasFactory, LogsActivity;
 
+    public const DEFAULT_INSURER = 'Prime Insurance';
+
+    public const INSURERS = [
+        'Prime Insurance',
+        'Britam Insurance',
+        'CIC General Insurance',
+        'General Alliance Insurance',
+        'NICO General Insurance',
+        'Reunion Insurance',
+        'United General Insurance',
+    ];
+
+    protected $attributes = [
+        'insurance_provider' => self::DEFAULT_INSURER,
+    ];
+
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'manufacture_year' => 'integer',
+        'engine_capacity_cc' => 'integer',
+        'odometer_km' => 'integer',
+        'seating_capacity' => 'integer',
+        'next_service_km' => 'integer',
+        'insurance_expiry' => 'date',
+        'roadworthiness_expiry' => 'date',
+        'service_date' => 'date',
     ];
 
     public $timestamps = true;
+
+    public function estimatedFuelLitresPer100Km(): ?float
+    {
+        if (!$this->engine_capacity_cc || $this->engine_capacity_cc <= 0) {
+            return null;
+        }
+
+        $factor = [
+            'Petrol' => 1.0,
+            'Diesel' => 0.85,
+            'Hybrid' => 0.7,
+            'LPG' => 1.2,
+        ][$this->fuel_type] ?? null;
+
+        if ($factor === null) {
+            return null;
+        }
+
+        // Planning heuristic, not measured consumption or a manufacturer rating.
+        return round((4 + 2 * ($this->engine_capacity_cc / 1000)) * $factor, 2);
+    }
 
     public function Instructor()
     {

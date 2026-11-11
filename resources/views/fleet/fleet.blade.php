@@ -1,18 +1,54 @@
 @extends('layouts.backend')
 
+@section('css_after')
+<style>
+  #fleet-table_wrapper label,
+  #fleet-table_wrapper input,
+  #fleet-table_wrapper select,
+  #fleet-table .btn,
+  #fleet-table .dropdown-item {
+    font-family: inherit;
+    font-size: inherit;
+  }
+  #fleet-table_paginate {
+    font-size: 1rem;
+  }
+  #fleet-table th:first-child,
+  #fleet-table td:first-child,
+  #fleet-table th:nth-child(3),
+  #fleet-table td:nth-child(3) {
+    white-space: nowrap;
+  }
+  #fleet-table .fleet-image {
+    width: 64px;
+    height: 48px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+</style>
+@endsection
+
 @section('content')
+@php
+  $operationalFields = [
+    'insurance_expiry' => 'Insurance expiry', 'roadworthiness_expiry' => 'Roadworthiness expiry',
+    'odometer_km' => 'Odometer (km)', 'service_date' => 'Last service',
+    'next_service_km' => 'Next service (km)', 'insurance_provider' => 'Insurer',
+    'manufacture_year' => 'Year', 'engine_capacity_cc' => 'Engine (cc)',
+    'fuel_type' => 'Fuel', 'transmission' => 'Transmission',
+  ];
+@endphp
 <!-- Hero -->
 <div class="bg-body-light">
   <div class="content content-full">
-    <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
-      <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Fleet Management</h1>
-      <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
-        <ol class="breadcrumb">
-          <button class="btn btn-primary  rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#modal-block-addfleet">
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+      <div>
+        <h1 class="fs-3 fw-semibold mb-1">Fleet</h1>
+        <p class="text-muted mb-0">Vehicles and instructor assignments.</p>
+      </div>
+          <a href="{{ route('fleet.create') }}" class="btn btn-primary rounded-pill px-4 align-self-start align-self-sm-center">
             <i class="fa fa-plus me-1"></i> Add vehicle
-          </button>
-        </ol>
-      </nav>
+          </a>
     </div>
   </div>
 </div>
@@ -20,7 +56,6 @@
 
 <!-- Main content -->
 <div class="content content-full">
-  <div class="block-content">
     @if(Session::has('message'))
       <div class="alert alert-success alert-dismissible fade show" role="alert">
         {{ Session::get('message') }}
@@ -39,133 +74,110 @@
       </div>
     @endif
 
-    <div class="row g-4">
-      @forelse ($fleet as $car)
-        <div class="col-md-6 col-xl-4">
-          <div class="block block-rounded block-link-shadow h-100">
-            <div class="ratio ratio-16x9 bg-light">
-                <img src="{{ asset('public/media/fleet/' . $car->fleet_image) }}"
-                     class="img-fluid object-fit-cover p-4"
-                     alt="{{ $car->car_brand_model }}"
-                     onerror="this.onerror=null; this.src='{{ asset('path/to/default/image.jpg') }}'">
-            </div>
-            <div class="block-content block-content-full bg-body-light">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <h3 class="fs-lg fw-bold mb-0">{{ $car->car_brand_model }}</h3>
-                <span class="badge bg-primary">{{ $car->car_registration_number }}</span>
-              </div>
-              <p class="text-muted mb-3">Designated license class: {{ $car->licenceClass->class ?? 'Class not defined' }}</p>
-              <p class="text-muted mb-3">{{ Str::limit($car->car_description, 100) }}</p>
-
-              <div class="d-flex justify-content-between small">
-                <div>
-                  <i class="fa fa-user-tie text-muted me-1"></i>
-                  <span class="text-muted">Instructor: </span>
-                  @if($car->instructor)
-                    <span class="fw-semibold">{{ $car->instructor->fname }} {{ $car->instructor->sname }}</span>
-                  @else
-                    <span class="text-warning">Not assigned</span>
-                  @endif
-                </div>
-                <div>
-                  <i class="fa fa-users text-muted me-1"></i>
-                  <span class="text-muted">Students: </span>
-                  <span class="fw-semibold">{{ $car->student()->where('status', '!=', 'Finished')->count() }}</span>
-                </div>
-              </div>
-            </div>
-            <div class="block-content block-content-full bg-body-light border-top">
-              <div class="d-flex justify-content-between align-items-center">
-                <div class="dropdown">
-                  <button type="button" class="btn btn-sm btn-alt-secondary dropdown-toggle" id="dropdown-fleet-{{ $car->id }}" data-bs-toggle="dropdown">
-                    <i class="fa fa-cog"></i>
-                  </button>
-                  <div class="dropdown-menu dropdown-menu-end">
-                    <form method="GET" action="{{ url('/editfleet', $car->id) }}">
-                      @csrf
-                      <button class="dropdown-item d-flex align-items-center" type="submit">
-                        <i class="fa fa-edit me-2"></i> Edit
-                      </button>
-                    </form>
-                    <button class="dropdown-item d-flex align-items-center text-danger delete-confirm" type="button"
-                      data-car="{{ $car->car_brand_model }} - {{ $car->car_registration_number }}"
-                      data-url="{{ url('/deletefleet', $car->id) }}">
-                      <i class="fa fa-trash me-2"></i> Delete
-                    </button>
-                  </div>
-                </div>
-                <a href="/view-fleet/{{ $car->id }}" class="btn btn-sm btn-primary">View Details</a>
+    <div class="row g-3 mb-4">
+      @foreach ([
+        ['label' => 'Vehicles', 'value' => $vehicleCount, 'icon' => 'fa-car', 'color' => 'primary'],
+        ['label' => 'Instructor assigned', 'value' => $assignedVehicles, 'icon' => 'fa-user-check', 'color' => 'success'],
+        ['label' => 'Unassigned', 'value' => $vehicleCount - $assignedVehicles, 'icon' => 'fa-user-clock', 'color' => 'warning'],
+      ] as $stat)
+        <div class="col-12 col-sm-4">
+          <div class="block block-rounded mb-0">
+            <div class="block-content block-content-full d-flex align-items-center gap-3">
+              <span class="item item-rounded bg-{{ $stat['color'] }}-light text-{{ $stat['color'] }}">
+                <i class="fa {{ $stat['icon'] }} fs-4" aria-hidden="true"></i>
+              </span>
+              <div>
+                <div class="fs-3 fw-semibold">{{ $stat['value'] }}</div>
+                <div class="text-muted fs-sm">{{ $stat['label'] }}</div>
               </div>
             </div>
           </div>
         </div>
-      @empty
-        <div class="col-12">
-          <div class="block block-rounded text-center py-6">
-            <div class="block-content">
-              <i class="fa fa-car fa-3x text-muted mb-3"></i>
-              <h4 class="mb-3">No Vehicles in Fleet</h4>
-              <p class="text-muted mb-4">Get started by adding your first vehicle to the fleet</p>
-              <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-block-addfleet">
-                <i class="fa fa-plus me-1"></i> Add Vehicle
-              </button>
-            </div>
-          </div>
-        </div>
-      @endforelse
+      @endforeach
     </div>
-  </div>
-</div>
 
-@include('fleet.addfleetmodal')
+    <div class="block block-rounded">
+      <div class="block-header block-header-default">
+        <h2 class="block-title" id="fleet-table-title">All vehicles</h2>
+        <span class="badge bg-primary-light text-primary">{{ $vehicleCount }}</span>
+      </div>
+      <div class="block-content block-content-full fs-sm">
+        <div class="table-responsive">
+          <div id="fleet-table-error" class="alert alert-danger d-none" role="alert"></div>
+          <table id="fleet-table" class="table table-striped table-hover align-middle w-100 fs-sm" aria-labelledby="fleet-table-title">
+            <thead>
+              <tr>
+                <th scope="col">Vehicle</th>
+                <th scope="col">Registration</th>
+                <th scope="col">Instructor</th>
+                <th scope="col">Students</th>
+                @foreach ($operationalFields as $label)
+                  <th scope="col" class="text-nowrap">{{ $label }}</th>
+                @endforeach
+                <th scope="col" class="text-nowrap">Licence class</th>
+                <th scope="col" class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+</div>
 
 <!-- SweetAlert2 Delete Confirm -->
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    $(document).ready(function() {
-        // Initialize Select2 with floating label support
-        $('.select2-instructor').select2({
-            placeholder: "Select instructor...",
-            allowClear: true,
-            theme: 'bootstrap4',
-            templateResult: formatInstructor,
-            templateSelection: formatInstructorSelection,
-            dropdownParent: $('#modal-block-addfleet'),
-            width: '100%'
-        });
-
-        // Handle floating label with Select2
-        $('.select2-instructor').on('change', function() {
-            if ($(this).val()) {
-                $(this).addClass('has-value');
-            } else {
-                $(this).removeClass('has-value');
-            }
-        }).trigger('change');
-
-        function formatInstructor(instructor) {
-            if (!instructor.id) return instructor.text;
-
-            return $(`
-                <div class="d-flex align-items-center">
-                    <img src="${instructor.element.dataset.avatar}" class="rounded-circle me-3" width="30" height="30">
-                    <div>
-                        <div class="fw-semibold">${instructor.text}</div>
-                    </div>
-                </div>
-            `);
+  $(function () {
+    $('#fleet-table').DataTable({
+      serverSide: true,
+      processing: true,
+      ajax: {
+        url: @json(route('fleet.index')),
+        dataSrc: function (response) {
+          if (response.error) {
+            $('#fleet-table-error').removeClass('d-none').text('Unable to load fleet. Reload the page to try again.');
+          }
+          return response.data;
+        },
+        beforeSend: function () {
+          $('#fleet-table-error').addClass('d-none').text('');
+        },
+        error: function (xhr) {
+          $('#fleet-table_processing').hide();
+          $('#fleet-table-error').removeClass('d-none').text(
+            xhr.status === 401 || xhr.status === 403
+              ? 'Session expired or access denied. Reload the page.'
+              : 'Unable to load fleet. Reload the page to try again.'
+          );
         }
-
-        function formatInstructorSelection(instructor) {
-            if (!instructor.id) return instructor.text;
-            return $(`<span>${instructor.text}</span>`);
-        }
+      },
+      columns: [
+        { data: 'vehicle', name: 'car_brand_model' },
+        { data: 'car_registration_number', name: 'car_registration_number', className: 'text-nowrap' },
+        { data: 'instructor_name', name: 'instructor_name' },
+        { data: 'active_students_count', name: 'active_students_count', searchable: false },
+        @foreach ($operationalFields as $field => $label)
+          { data: @json($field), name: @json($field), className: 'text-nowrap' },
+        @endforeach
+        { data: 'licence_class', name: 'licenceClass.class', className: 'text-nowrap' },
+        { data: 'actions', name: 'actions', className: 'text-end', orderable: false, searchable: false }
+      ],
+      pageLength: 10,
+      lengthMenu: [10, 25, 50, 100],
+      scrollX: true,
+      scrollCollapse: true,
+      pagingType: 'simple_numbers',
+      order: [[0, 'asc']],
+      columnDefs: [{ targets: -1, orderable: false, searchable: false }],
+      language: {
+        emptyTable: 'No vehicles yet',
+        zeroRecords: 'No matching vehicles'
+      }
     });
-</script>
-<script>
-  document.querySelectorAll('.delete-confirm').forEach(button => {
-    button.addEventListener('click', function () {
+
+    $('#fleet-table').on('click', '.delete-confirm', function () {
       const carName = this.getAttribute('data-car');
       const url = this.getAttribute('data-url');
 

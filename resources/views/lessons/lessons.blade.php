@@ -44,13 +44,10 @@
                         <div class="col-md-12">
                             <div class="dropdown d-inline-block">
                                 <button type="button" class="btn btn-sm btn-primary" id="" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    Action
+                                    <i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions
                                 </button>
                                 <div class="dropdown-menu dropdown-menu-end p-0">
                                 <div class="p-2">
-                                    <a class="dropdown-item" href="{{ url('#') }}">
-                                        View
-                                    </a>
                                     <button class="dropdown-item" @click="openAddLessonModal(lesson.id)">
                                         Edit
                                     </button>
@@ -220,7 +217,7 @@
 
             // Perform the delete action
             try {
-                const response = await axios.delete(`/delete-lesson/${lesson}`);
+                const response = await axios.delete(@json(route('lessons.destroy', ['lesson' => '__LESSON__'])).replace('__LESSON__', encodeURIComponent(lesson)));
 
                 if (response.status === 200) {
                     notification('Lesson deleted successfully.', 'success');
@@ -249,8 +246,8 @@
 
                 // Determine if this is an update or a new lesson
                 const endpoint = state.value.lessonId
-                    ? `/updatelesson/${state.value.lessonId}`
-                    : '/storelesson';
+                    ? @json(route('lessons.update', ['lesson' => '__LESSON__'])).replace('__LESSON__', encodeURIComponent(state.value.lessonId))
+                    : @json(route('lessons.store'));
                 const method = state.value.lessonId ? 'put' : 'post';
 
                 // Send the request
@@ -305,7 +302,7 @@
         const fetchLessons = async () => {
             try {
                 // Send GET request to fetch lessons
-                const response = await axios.get('/getLessons');
+                const response = await axios.get(@json(route('getLessons')));
 
                 // Update the lesson list in state
                 lessons.value = response.data.lessons;

@@ -7,6 +7,7 @@ use App\Models\Instructor;
 use App\Http\Requests\StoreClassroomRequest;
 use App\Http\Requests\UpdateClassroomRequest;
 use App\Models\Fleet;
+use Illuminate\Http\Request;
 
 class ClassroomController extends Controller
 {
@@ -105,12 +106,12 @@ class ClassroomController extends Controller
      * @param  \App\Models\Classroom  $classroom
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateClassroomRequest $request, $classroom)
+    public function update(UpdateClassroomRequest $request, ?Classroom $classroom = null)
     {
         // Retrieve validated data
         $data = $request->validated();
 
-        $classroom = Classroom::find($classroom);
+        $classroom = $this->resolveClassroom($request, $classroom);
 
         // Update the existing classroom
         $classroom->update([
@@ -151,11 +152,10 @@ class ClassroomController extends Controller
      * @param  \App\Models\Classroom  $classroom
      * @return \Illuminate\Http\Response
      */
-    public function destroy($classroom)
+    public function destroy(Request $request, ?Classroom $classroom = null)
     {
+        $classroom = $this->resolveClassroom($request, $classroom);
         try {
-
-            $classroom = Classroom::find($classroom);
 
             // Optionally check for related data and handle deletion logic
             if ($classroom->students()->exists()) {
@@ -178,5 +178,14 @@ class ClassroomController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    private function resolveClassroom(Request $request, ?Classroom $classroom): Classroom
+    {
+        if ($classroom && $classroom->exists) {
+            return $classroom;
+        }
+
+        return Classroom::findOrFail($request->route('classroom') ?? $request->route('id') ?? $request->input('classroom_id'));
     }
 }

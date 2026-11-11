@@ -27,7 +27,7 @@
                     </li>
                     @role(['superAdmin', 'admin'])
                         <li class="nav-main-item">
-                            <a class="nav-main-link" href="{{ url('/addstudent') }}">
+                            <a class="nav-main-link" href="{{ route('students.create') }}">
                                 <span class="nav-main-link-name">Add student</span>
                             </a>
                         </li>
@@ -67,7 +67,7 @@
                         </a>
                     </li>
                     <li class="nav-main-item">
-                        <a class="nav-main-link" href="{{ url('/add-bulk-attendance') }}">
+                        <a class="nav-main-link" href="{{ route('bulk-attendances.create') }}">
                             <span class="nav-main-link-name">Add bulk attendance</span>
                         </a>
                     </li>
@@ -92,7 +92,7 @@
                     </a>
                     <ul class="nav-main-submenu">
                         <li><a class="nav-main-link" href="{{ url('#') }}"><span class="nav-main-link-name">Departments</span></a></li>
-                        <li><a class="nav-main-link" href="{{ url('/classes') }}"><span class="nav-main-link-name">Classrooms</span></a></li>
+                        <li><a class="nav-main-link" href="{{ route('classrooms.index') }}"><span class="nav-main-link-name">Classrooms</span></a></li>
                         <li><a class="nav-main-link" href="{{ url('/courses') }}"><span class="nav-main-link-name">Courses</span></a></li>
                         <li><a class="nav-main-link" href="{{ url('#') }}"><span class="nav-main-link-name">Training levels</span></a></li>
                         <li><a class="nav-main-link" href="{{ url('/lessons') }}"><span class="nav-main-link-name">Lessons</span></a></li>
@@ -122,7 +122,7 @@
                 <ul class="nav-main-submenu">
                     <li><a class="nav-main-link" href="{{ url('/expenses') }}"><span class="nav-main-link-name">All expenses</span></a></li>
                     @role(['superAdmin', 'admin'])
-                        <li><a class="nav-main-link" href="{{ url('/addexpense') }}"><span class="nav-main-link-name">Add expense</span></a></li>
+                        <li><a class="nav-main-link" href="{{ route('expenses.create') }}"><span class="nav-main-link-name">Add expense</span></a></li>
                     @endrole
                     @role(['superAdmin', 'financeAdmin'])
                         <li><a class="nav-main-link" href="{{ url('/scan-to-pay') }}"><span class="nav-main-link-name">Scan to pay</span></a></li>
@@ -143,7 +143,7 @@
                     </a>
                     <ul class="nav-main-submenu">
                         <li><a class="nav-main-link" href="{{ url('/instructors') }}"><span class="nav-main-link-name">All instructors</span></a></li>
-                        <li><a class="nav-main-link" href="{{ url('/addinstructor') }}"><span class="nav-main-link-name">Add instructor</span></a></li>
+                        <li><a class="nav-main-link" href="{{ route('instructors.create') }}"><span class="nav-main-link-name">Add instructor</span></a></li>
                         <li><a class="nav-main-link" href="{{ url('/instructor-payments') }}"><span class="nav-main-link-name">Bonus payments</span></a></li>
                     </ul>
                 </li>
@@ -159,7 +159,7 @@
                 </a>
                 <ul class="nav-main-submenu">
                     <li><a class="nav-main-link" href="{{ url('/administrators') }}"><span class="nav-main-link-name">All administrators</span></a></li>
-                    <li><a class="nav-main-link" href="{{ url('/addadministrator') }}"><span class="nav-main-link-name">Add administrator</span></a></li>
+                    <li><a class="nav-main-link" href="{{ route('administrators.create') }}"><span class="nav-main-link-name">Add administrator</span></a></li>
                 </ul>
             </li>
         @endrole
@@ -213,7 +213,7 @@
                 </a>
             </li>
             <li>
-                <a class="nav-main-link" href="{{ url('/schedule-lesson-index') }}">
+                <a class="nav-main-link" href="{{ route('schedules.index') }}">
                     <i class="nav-main-link-icon fa fa-calendar-alt"></i>
                     <span class="nav-main-link-name">Schedule lesson</span>
                     <span class="badge bg-danger ms-1">New</span>

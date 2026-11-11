@@ -34,8 +34,9 @@
     <div class="block block-rounded block-bordered">
           <div class="block-content">
           <div class="row">
-          <form class="mb-5" action="/updateattendance" method="post" onsubmit="return true;">
+          <form class="mb-5" action="{{ route('attendances.update', $attendance->id) }}" method="post" onsubmit="return true;">
             @csrf
+            @method('PUT')
             <input type="text" name="attendance_id" id="attendance_id" value="{{$attendance->id}}" hidden>
             <div class="form-floating mb-4">
               <input type="datetime-local" class="date form-control" id="date" name="date" value="{{$attendance->attendance_date}}">
@@ -53,10 +54,7 @@
               </select>
               <label for="lesson">Lesson attended</label>
             </div>
-            <br>
-            <div class="form-group">
-                <button type="submit" class="btn btn-primary">Save</button>
-            </div>
+            <x-form-actions :cancel-url="route('attendances.index')" />
           </form>
         </div>
           </div>

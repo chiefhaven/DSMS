@@ -33,18 +33,13 @@
                     </div>
 
                     <!-- Footer Buttons -->
-                    <div class="d-flex justify-content-end gap-3 pt-2">
+                    <x-form-actions modal>
                         <button type="button"
                                 class="btn btn-primary rounded-pill px-4"
                                 @click="assignClassRoom()">
                             <i class="fas fa-check-circle me-2"></i>Assign
                         </button>
-                        <button type="button"
-                                class="btn btn-outline-secondary rounded-pill px-4"
-                                data-bs-dismiss="modal">
-                            <i class="fas fa-times me-2"></i>Cancel
-                        </button>
-                    </div>
+                    </x-form-actions>
                 </div>
             </div>
         </div>

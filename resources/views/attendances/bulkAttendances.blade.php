@@ -128,7 +128,7 @@
 
                     try {
                         NProgress.start();
-                        await axios.delete(`/api/bulk-attendance/${bulkAttendance.id}`);
+                        await axios.delete(`/api/bulk-attendances/${bulkAttendance.id}`);
                         showToast('Bulk attendance deleted.');
                         $('#bulkAttendanceTable').DataTable().ajax.reload();
                     } catch (error) {

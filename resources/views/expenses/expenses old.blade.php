@@ -16,7 +16,7 @@
 
           @role(['superAdmin', 'admin'])
             <div class="">
-                <a class="btn btn-primary" href="/addexpense" data-bs-target="#modal-block-vcenter">
+                <a class="btn btn-primary" href="{{ route('expenses.create') }}" data-bs-target="#modal-block-vcenter">
                     <i class="fa fa-file-invoice-dollar"></i>&nbsp; Add expense
                 </a>
             </div>
@@ -60,7 +60,7 @@
                                         <td class="text-center">
                                             <div class="dropdown d-inline-block">
                                                 <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                    <span class="d-sm-inline-block">Action</span>
+                                                    <i class="fa fa-angle-down me-1" aria-hidden="true"></i><span>Actions</span>
                                                 </button>
                                                 <div class="dropdown-menu dropdown-menu-end p-0">
                                                     <div class="p-2">
@@ -79,7 +79,7 @@
                                                                 <p class="text-danger">Go to individual student profile to download TRN reference</p>
                                                             @endif
                                                             @if ($expense->approved == '0')
-                                                                <a class="dropdown-item nav-main-link" href="{{ url('editexpense', $expense) }}">
+                                                                <a class="dropdown-item nav-main-link" href="{{ route('expenses.edit', $expense) }}">
                                                                     {{ csrf_field() }}
                                                                     <i class="nav-main-link-icon fa fa-pen"></i>
                                                                     <div class="btn">Edit</div>
@@ -92,7 +92,7 @@
                                                                     <div class="btn">Review</div>
                                                                 </a>
                                                                 @if ($expense->approved == '0')
-                                                                    <form class="dropdown-item nav-main-link" method="POST" action="{{ url('expenses', $expense) }}">
+                                                                    <form class="dropdown-item nav-main-link" method="POST" action="{{ route('expenses.destroy', $expense) }}">
                                                                         {{ csrf_field() }}
                                                                         {{ method_field('DELETE') }}
                                                                         <i class="nav-main-link-icon text-danger fa fa-trash"></i>

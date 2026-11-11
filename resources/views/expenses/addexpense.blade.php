@@ -22,7 +22,7 @@
     <div class="col-md-5 block-rounded block-bordered">
         <div class="block block-rounded block-themed block-transparent mb-0" style="background-color:#ffffff">
             <div class="block-content">
-                <form class="mb-5" action="{{ url('/add-expense') }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
+                <form class="mb-5" action="{{ route('expenses.store') }}" method="post" enctype="multipart/form-data" onsubmit="return true;">
                     @csrf
                     <div class="col-12 form-floating mb-4">
                         <input type="text" class="form-control" id="expense_group_name" name="expense_group_name" v-model="state.expenseGroupName" placeholder="DD MM YY" required>
@@ -74,6 +74,7 @@
                     </div>
                 </div>
                 <div class="block-content block-content-full text-end">
+                  <x-form-actions :cancel-url="route('expenses.index')">
                     <button
                         type="button"
                         @click="addStudentToGroup()"
@@ -86,6 +87,7 @@
                             Add to list
                         </template>
                     </button>
+      </x-form-actions>
                 </div>
                 <h2 class="flex-grow-1 fs-5 fw-semibold my-2 my-sm-3 border-lg mb-5">Select students</h2>
                 <hr>
@@ -128,7 +130,7 @@
                 Processing...
             </template>
             <template v-else>
-                @{{ state.buttonText }}
+                Save
             </template>
         </button>
     </div>
@@ -303,7 +305,7 @@
                     state.value.isSubmitButtonDisabled = true;
                     state.value.isLoading = true;
 
-                    const response = await axios.post('/storeexpense', {
+                    const response = await axios.post(@json(route('expenses.store')), {
                         students: state.value.selectedStudents,
                         expenseGroupName: state.value.expenseGroupName,
                         expenseDescription: state.value.expenseDescription,
@@ -311,7 +313,7 @@
                     });
 
                     notification('Expense added successfully, page redirecting...', 'success');
-                    window.location.replace('/expenses');
+                    window.location.replace(@json(route('expenses.index')));
                 } catch (error) {
                     notification('An error occurred while saving the expense. Please try again.', 'error');
                     state.value.isSubmitButtonDisabled = false;

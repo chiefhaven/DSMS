@@ -13,7 +13,7 @@
                     </div>
                 </div>
                 <div class="block-content py-3 px-4">
-                    <form id="addFleetForm" action="{{ url('/storefleet') }}" method="post" enctype="multipart/form-data">
+                    <form id="addFleetForm" action="{{ route('fleet.store') }}" method="post" enctype="multipart/form-data">
                         @csrf
                         <div class="row g-3">
                             <!-- Vehicle Details -->
@@ -103,14 +103,7 @@
                         </div>
 
                         <!-- Form Footer -->
-                        <div class="block-content block-content-full bg-light rounded-bottom text-end">
-                            <button type="submit" class="btn btn-primary  rounded-pill px-4">
-                                <i class="fa fa-save me-1"></i> Save
-                            </button>
-                            <button type="button" class="btn btn-alt-secondary me-2  rounded-pill px-4" data-bs-dismiss="modal">
-                                <i class="fa fa-times me-1"></i> Cancel
-                            </button>
-                        </div>
+                        <x-form-actions modal />
                     </form>
                 </div>
             </div>

@@ -59,7 +59,7 @@ class StudentRegistered extends Notification
             'title' => 'Student registered',
             'body' => "Student {$this->student->fname} {$this->student->mname} {$this->student->sname} has been registerd by {$this->admin}.",
             'student_id' => $this->student->id,
-            'url' => url("/viewstudent/{$this->student->id}"),
+            'url' => route('students.show', $this->student->id),
             'created_at' => now(),
         ];
     }
@@ -76,7 +76,7 @@ class StudentRegistered extends Notification
             'title' => 'Student registered',
             'body' => "Student {$this->student->fname} {$this->student->mname} {$this->student->sname} has been registerd by {$this->admin}.",
             'student_id' => $this->student->id,
-            'url' => url("/viewstudent/{$this->student->id}"),
+            'url' => route('students.show', $this->student->id),
             'created_at' => now(),
         ];
     }

@@ -78,6 +78,7 @@
                     </div>
                 </div>
                 <div class="block-content block-content-full text-end">
+                  <x-form-actions :cancel-url="url('/bulk-attendances')">
                     <button type="submit" @click="addStudentToGroup()" class="btn btn-primary rounded-pill px-4">Add to list</button>
                 </div>
                 <h2 class="flex-grow-1 fs-5 fw-semibold my-2 my-sm-3 border-lg mb-5">Select students</h2>
@@ -108,6 +109,7 @@
                               <button class="btn btn-danger btn-sm" @click="removeStudentFromGroup(index)">
                                 Remove
                               </button>
+      </x-form-actions>
                             </td>
                           </tr>
                         </tbody>
@@ -121,7 +123,7 @@
                 Processing...
               </template>
               <template v-else>
-                @{{ state.buttonText }}
+                Save
               </template>
         </button>
     </div>
@@ -243,7 +245,7 @@
 
                     console.log('bulkAttendance data to be saved:', state.value.selectedStudents)
 
-                    const response = await axios.post('/api/update-bulk-attendance', {
+                    const response = await axios.put(`/api/bulk-attendances/${bulkAttendance.id}`, {
                         students: state.value.selectedStudents,
                         bulkAttendanceDescription: state.value.bulkAttendanceDescription,
                         bulkAttendanceId: bulkAttendance.id,
@@ -462,4 +464,3 @@
         editBulkAttendance.mount('#editBulkAttendance')
     </script>
 @endsection
-

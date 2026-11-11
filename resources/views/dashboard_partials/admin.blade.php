@@ -81,7 +81,7 @@
                                     </td>
                                     <td class="text-center py-3">
                                         <a
-                                            href="{{ url('/viewstudent', $student->id) }}"
+                                            href="{{ route('students.show', $student->id) }}"
                                             class="btn btn-sm btn-outline-primary rounded-2"
                                             data-bs-toggle="tooltip"
                                             title="View Student"
@@ -185,7 +185,7 @@
                             <tr v-for="item in info" :key="item.id">
                                 <td class="py-3 ps-4">
                                     <a
-                                        :href="'{{ url('/view-invoice') }}/' + item.id"
+                                        :href="'{{ route('invoices.show', '__invoice__') }}'.replace('__invoice__', encodeURIComponent(item.id))"
                                         class="fw-semibold text-dark text-decoration-none"
                                     >
                                         @{{ item.invoice_number }}
@@ -213,7 +213,7 @@
                                 </td>
                                 <td class="text-center py-3">
                                     <a
-                                        :href="'{{ url('/view-invoice') }}/' + item.id"
+                                        :href="'{{ route('invoices.show', '__invoice__') }}'.replace('__invoice__', encodeURIComponent(item.id))"
                                         class="btn btn-sm btn-outline-primary rounded-2"
                                         data-bs-toggle="tooltip"
                                         title="View Invoice"

@@ -29,20 +29,13 @@
           @endif
         <div class="block block-rounded">
             <div class="block-content">
-              <form action="{{ url('/updateinstructor') }}" enctype="multipart/form-data" method="POST">
+              <form action="{{ route('instructors.update', $instructor->id) }}" enctype="multipart/form-data" method="POST">
+                  @method('PUT')
                 @csrf
                 <input type="text" name="instructor_id" id="instructor_id" value="{{$instructor->id}}" hidden>
                 @include('instructors/includes/instructorsForm')
 
-                <div class="row push">
-                    <div class="col-lg-8 col-xl-5 offset-lg-4">
-                        <div class="mb-4">
-                            <button type="submit" class="btn btn-alt-primary">
-                                <i class="fa fa-check-circle opacity-50 me-1"></i> Update Instructor
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <x-form-actions :cancel-url="route('instructors.index')" />
               </form>
             </div>
           </div>

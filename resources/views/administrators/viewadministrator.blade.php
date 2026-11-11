@@ -10,11 +10,11 @@
           <ol class="breadcrumb">
             <div class="dropdown d-inline-block">
               <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <span class="d-none d-sm-inline-block">Action</span>
+                <i class="fa fa-angle-down me-1" aria-hidden="true"></i><span>Actions</span>
               </button>
               <div class="dropdown-menu dropdown-menu-end p-0">
                 <div class="p-2">
-                  <form method="POST" action="/edit-administrator/{{$userAdmin->id}}">
+                  <form method="GET" action="{{ route('administrators.edit', $userAdmin->administrator->id) }}">
                     {{ csrf_field() }}
                     <button class="dropdown-item" type="submit">Edit profile</button>
                   </form>

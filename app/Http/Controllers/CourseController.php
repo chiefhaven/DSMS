@@ -18,7 +18,7 @@ class CourseController extends Controller
     public function __construct()
     {
 
-        $this->middleware(['role:superAdmin|admin']);
+        $this->middleware(['role:superAdmin|admin'])->except('showPage');
 
     }
 
@@ -96,7 +96,7 @@ class CourseController extends Controller
             'course_price'   =>'required | numeric|min:0',
             //'course_practicals' =>'required | numeric|min:0',
             //'course_theory' =>'required | numeric|min:0',
-            'course_code' =>'required', [Rule::enum('B','C1')]
+            'course_code' => ['required', Rule::in(['B', 'C1'])],
 
         ], $messages);
 
@@ -114,7 +114,7 @@ class CourseController extends Controller
 
         $course->save();
         Alert::toast('New course added successifully', 'success');
-        return redirect('/courses')->with('message', 'New course added!');
+        return redirect()->route('courses.index')->with('message', 'New course added!');
     }
 
     /**
@@ -161,9 +161,16 @@ class CourseController extends Controller
      * @param  \App\Models\Course  $course
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function showPage(Course $course)
     {
-        $course = Course::with('Instructor')->find($id);
+        $courseId = $course->getKey();
+
+        return view('courses.viewcourse', compact('courseId'));
+    }
+
+    public function edit(Request $request, ?Course $course = null)
+    {
+        $course = $this->resolveCourse($request, $course)->load('Instructor');
         return view('courses.editcourse', compact('course'));
     }
 
@@ -174,8 +181,9 @@ class CourseController extends Controller
      * @param  \App\Models\Course  $course
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Course $course)
+    public function update(Request $request, ?Course $course = null)
     {
+        $course = $this->resolveCourse($request, $course);
         $messages = [
             'course_name.required' => 'Course name is required!',
             'course_description.required'   => 'Course description is required',
@@ -191,14 +199,13 @@ class CourseController extends Controller
             'course_name'  =>'required',
             'course_description' =>'required',
             'course_price'   =>'required | numeric|min:0',
+            'course_code' => ['required', Rule::in(['B', 'C1'])],
             //'course_practicals' =>'required | numeric|min:0',
             //'course_theory' =>'required | numeric|min:0'
 
         ], $messages);
 
         $post = $request->All();
-
-        $course = Course::find($post['course_id']);
 
         $course->name = $post['course_name'];
         $course->class = $post['course_code'];
@@ -210,7 +217,7 @@ class CourseController extends Controller
 
         $course->save();
 
-        return redirect('/courses')->with('message', 'Course updated successifully!');
+        return redirect()->route('courses.index')->with('message', 'Course updated successifully!');
     }
 
     public function updateCourseLessons(Request $request, Course $course)
@@ -263,8 +270,10 @@ class CourseController extends Controller
      * @param  \App\Models\Course  $course
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request, ?Course $course = null)
     {
+        $course = $this->resolveCourse($request, $course);
+        $id = $course->getKey();
         $studentlist = Student::where('course_id', $id)->where('status', '!=', 'Finished')->get();
         $studentCount = $studentlist->count();
 
@@ -274,10 +283,19 @@ class CourseController extends Controller
         }
         else{
 
-            Course::find($id)->delete();
+            $course->delete();
             Alert::toast('Course deleted successifully', 'success');
         }
 
-        return redirect('/courses');
+        return redirect()->route('courses.index');
+    }
+
+    private function resolveCourse(Request $request, ?Course $course): Course
+    {
+        if ($course && $course->exists) {
+            return $course;
+        }
+
+        return Course::findOrFail($request->route('course') ?? $request->route('id') ?? $request->input('course_id'));
     }
 }

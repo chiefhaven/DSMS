@@ -13,12 +13,12 @@
         <ol class="breadcrumb">
             <div class="dropdown d-inline-block">
                 <button type="button" class="btn btn-primary rounded-pill px-4" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <span class="d-sm-inline-block">Action</span>
+                    <i class="fa fa-angle-down me-1" aria-hidden="true"></i><span>Actions</span>
                 </button>
                 <div class="dropdown-menu dropdown-menu-end p-0">
                     <div class="p-2">
                         @role(['superAdmin', 'admin']),
-                            <a href="/expenses" class="dropdown-item nav-main-link">
+                            <a href="{{ route('expenses.index') }}" class="dropdown-item nav-main-link">
                                 <i class="nav-main-link-icon  fas fa-file-invoice"></i>All Expenses
                             </a>
                         @endrole
@@ -148,7 +148,7 @@
           </table>
         </div>
 
-        <div class="text-end mt-4">
+        <x-form-actions :cancel-url="route('expenses.index')">
           <button type="button"
             class="btn btn-primary rounded-pill px-4"
             :disabled="state.isSubmitButtonDisabled"
@@ -157,10 +157,10 @@
               <i class="fas fa-spinner fa-spin"></i> Processing...
             </span>
             <span v-else>
-              @{{ state.buttonText }}
+              Save
             </span>
           </button>
-        </div>
+        </x-form-actions>
       </div>
     </div>
   </div>
@@ -337,7 +337,7 @@
         state.value.isLoading = true;
         state.value.isSubmitButtonDisabled = true;
 
-        axios.post('/updateExpense', {
+        axios.put(@json(route('expenses.update', $expense->id)), {
             expenseId: state.value.expenseId,
             students: state.value.selectedStudents,
             expenseGroupName: state.value.expenseGroupName,
@@ -345,7 +345,7 @@
             expenseGroupType: state.value.expenseGroupType
         }).then(() => {
             Swal.fire('Success', 'Expense updated', 'success').then(() => {
-            window.location.href = '/expenses';
+            window.location.href = @json(route('expenses.index'));
             });
         }).catch(() => {
             Swal.fire('Error', 'Error updating expense', 'error');

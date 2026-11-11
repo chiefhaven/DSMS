@@ -40,7 +40,7 @@
             <div class="d-flex justify-content-center align-items-start">
                 <div class="w-100" style="max-width: 600px;">
                     <form ref="state.attendanceForm"
-                        action="{{ url('/storeattendance') }}" method="post" @submit.prevent="submitAttendance">
+                        action="{{ route('attendances.store') }}" method="post" @submit.prevent="submitAttendance">
 
                         @csrf
                         <input name="student" v-model="state.student" hidden>
@@ -99,22 +99,21 @@
                             </p>
 
                             <!-- Submit Button -->
-                            <div class="form-group text-center mt-3">
+                            <x-form-actions :cancel-url="route('attendances.index')">
                                 <button
                                     type="submit"
                                     :disabled="state.isSubmitButtonDisabled"
-                                    class="btn btn-primary rounded-pill px-4 py-2 shadow-sm"
-                                    style="min-width: 150px; font-weight: 600; font-size: 1rem;"
+                                    class="btn btn-primary rounded-pill px-4"
                                 >
                                     <template v-if="state.isLoading">
                                         <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                                         Processing...
                                     </template>
                                     <template v-else>
-                                        @{{ state.buttonText }}
+                                        Save
                                     </template>
                                 </button>
-                            </div>
+                            </x-form-actions>
                         @endif
                     </form>
                 </div>

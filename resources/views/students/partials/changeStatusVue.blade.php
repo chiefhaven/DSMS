@@ -90,7 +90,7 @@
                 </div>
 
                 <!-- Footer -->
-                <div class="modal-footer border-0 pt-3 bg-light" style="border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+                <x-form-actions modal cancel-click="closeStatusChangeModal">
                     <button type="button"
                             class="btn btn-primary rounded-pill px-4"
                             @click="confirmChangeStatus"
@@ -100,15 +100,10 @@
                             Updating...
                         </div>
                         <div v-else>
-                            <i class="fas fa-save me-2"></i> Update
+                            Save
                         </div>
                     </button>
-                    <button type="button"
-                            class="btn btn-outline-secondary rounded-pill px-4"
-                            @click="closeStatusChangeModal">
-                        <i class="fas fa-times me-2"></i> Cancel
-                    </button>
-                </div>
+                </x-form-actions>
             </div>
         </div>
     </div>

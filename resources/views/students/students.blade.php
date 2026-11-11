@@ -22,13 +22,13 @@
                                     data-bs-toggle="dropdown"
                                     aria-haspopup="true"
                                     aria-expanded="false">
-                                <i class="fa fa-cog me-1"></i>
-                                <span class="d-sm-inline-block">Action</span>
+                                <i class="fa fa-angle-down me-1" aria-hidden="true"></i>
+                                <span>Actions</span>
                             </button>
                             <div class="dropdown-menu dropdown-menu-end p-0">
                                 <div class="p-2">
                                     @role(['superAdmin', 'admin'])
-                                        <a href="{{ url('/addstudent') }}" class="dropdown-item">
+                                        <a href="{{ route('students.create') }}" class="dropdown-item">
                                             <i class="fa fa-fw fa-user-plus me-1"></i> Add student
                                         </a>
                                     @endrole
@@ -246,6 +246,7 @@
                             <tr class="text-uppercase fs-xs text-muted tracking-wide">
                                 <th class="text-center" style="min-width: 100px;">Actions</th>
                                 <th style="min-width: 15rem;">Name</th>
+                                <th>Student number</th>
                                 <th style="min-width: 15rem;">Course Enrolled</th>
                                 <th>Fees</th>
                                 <th>Balance</th>
@@ -329,14 +330,11 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-                                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">
-                                    Close
-                                </button>
+                            <x-form-actions modal>
                                 <button type="submit" class="btn btn-primary rounded-pill px-4">
                                     <i class="fa fa-download me-1"></i> Download
                                 </button>
-                            </div>
+                            </x-form-actions>
                         </form>
                     </div>
                 </div>
@@ -439,6 +437,7 @@
                         columns: [
                             { data: 'actions', className: 'text-center', orderable: false },
                             { data: 'full_name' },
+                            { data: 'student_number', defaultContent: '-' },
                             { data: 'course_enrolled', className: 'text-wrap' },
                             { data: 'fees', className: 'text-right' },
                             { data: 'balance', className: 'text-right' },

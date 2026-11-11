@@ -109,7 +109,7 @@ class AdministratorController extends Controller
             );
         });
 
-        return redirect('/administrators');
+        return redirect()->route('administrators.index');
     }
 
     /**
@@ -118,9 +118,11 @@ class AdministratorController extends Controller
      * @param  \App\Models\Administrator  $Administrator
      * @return \Illuminate\Http\Response
      */
-    public function show(Administrator $Administrator)
+    public function show(Administrator $administrator)
     {
-        $userAdmin = User::with('Administrator')->find(Auth::user()->id);
+        $userAdmin = $administrator->exists
+            ? User::with('Administrator')->where('administrator_id', $administrator->id)->firstOrFail()
+            : User::with('Administrator')->findOrFail(Auth::user()->id);
         return view('administrators.viewadministrator', [ 'userAdmin' => $userAdmin ], compact('userAdmin'));
     }
 
@@ -144,7 +146,7 @@ class AdministratorController extends Controller
      */
     public function edit($id)
     {
-        $administrator = Administrator::with('User')->find($id);
+        $administrator = Administrator::with('User')->findOrFail($id);
         $district = District::get();
         $role = Role::get();
         $genders = ['female' => 'Female', 'male' => 'Male', 'other' => 'Other'];
@@ -158,8 +160,14 @@ class AdministratorController extends Controller
      * @param  \App\Models\Administrator  $Administrator
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateAdministratorRequest $request, Administrator $Administrator)
+    public function update(UpdateAdministratorRequest $request, Administrator $administrator)
     {
+        if (!$administrator->exists) {
+            $administrator = Administrator::findOrFail($request->input('administrator_id'));
+        }
+        $request->merge(['administrator_id' => $administrator->id]);
+        $Administrator = $administrator;
+
         $messages = [
             'first_name.required' => 'Firstname is required',
             'sir_name.required' => 'Surname is required',
@@ -223,7 +231,7 @@ class AdministratorController extends Controller
             }
         ]);
 
-        return redirect('/administrators')->with('message', 'Administrator updated!');
+        return redirect()->route('administrators.index')->with('message', 'Administrator updated!');
     }
 
     /**
@@ -235,7 +243,7 @@ class AdministratorController extends Controller
     public function destroy($id)
     {
 
-            $administrator = Administrator::find($id);
+            $administrator = Administrator::findOrFail($id);
 
             $administrator->delete();
 
@@ -245,7 +253,7 @@ class AdministratorController extends Controller
 
             $message ="Administrator deleted";
 
-            return redirect('/administrators')->with('message', $message);
+            return redirect()->route('administrators.index')->with('message', $message);
 
     }
 }

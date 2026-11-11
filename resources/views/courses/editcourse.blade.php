@@ -16,7 +16,7 @@
         <div class="block-content">
             <div class="row">
                 <div class="col-lg-8 col-xl-5">
-                    <form action="{{ url('/updatecourse') }}" method="POST">
+                    <form action="{{ route('courses.update', $course->id) }}" method="POST">
                         @method('put')
                         @csrf
                         <input type="text" name="course_id" id="course_id" value="{{$course->id}}" hidden>
@@ -50,10 +50,7 @@
                             <input type="number" class="form-control @error('course_practicals') is-invalid @enderror" id="course_practicals" name="course_practicals" placeholder="Practicals number" value="{{$course->practicals}}">
                             <label for="course_practicals">Number of days for practicals</label>
                         </div>  --}}
-                        <br>
-                        <div class="form-group mb-4">
-                            <button type="submit" class="btn btn-primary">Save</button>
-                        </div>
+                        <x-form-actions :cancel-url="route('courses.index')" />
                     </form>
                 </div>
             </div>

@@ -11,7 +11,7 @@
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
 
             <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <span class="d-sm-inline-block">Action</span>
+                <i class="fa fa-angle-down me-1" aria-hidden="true"></i><span>Actions</span>
             </button>
             <div class="dropdown-menu dropdown-menu-end p-0">
                 <div class="p-2">
@@ -102,10 +102,10 @@
                         <textarea v-model="comments" id="comments" class="form-control" rows="3" placeholder="Additional notes..."></textarea>
                     </div>
 
-                    <div class="form-group">
+                    <x-form-actions modal>
                         <button
                             type="submit"
-                            class="btn btn-primary"
+                            class="btn btn-primary rounded-pill px-4"
                             :disabled="isSubmitting"
                         >
                             <span v-if="isSubmitting">
@@ -113,10 +113,10 @@
                                 @{{ selectedEvent ? "Updating..." : "Creating..." }}
                             </span>
                             <span v-else>
-                                @{{ selectedEvent ? "Update Schedule" : "Create Schedule" }}
+                                Save
                             </span>
                         </button>
-                    </div>
+                    </x-form-actions>
                 </form>
             </div>
             </div>
@@ -261,8 +261,8 @@
 
           try {
             const endpoint = selectedEvent.value?.id
-              ? `/update-lesson-schedule/${selectedEvent.value.id}`
-              : "/store-lesson-schedule";
+              ? `/schedules/${selectedEvent.value.id}`
+              : "{{ route('schedules.store') }}";
 
             const method = selectedEvent.value?.id ? "put" : "post";
             const response = await axios[method](endpoint, payload);
@@ -391,7 +391,7 @@
         const fetchSchedules = async () => {
           NProgress.start();
           try {
-            const response = await axios.get('schedule-lessons');
+            const response = await axios.get('{{ route('schedules.data') }}');
             events.value = Array.isArray(response.data) ? response.data : [];
             refreshCalendar();
           } catch (error) {
@@ -507,7 +507,7 @@
           if (confirm("Are you sure you want to delete this lesson?")) {
             try {
               NProgress.start();
-              await axios.delete(`/schedule-lesson/${eventId}`);
+              await axios.delete(`/schedules/${eventId}`);
               await fetchSchedules();
               notification("Lesson deleted successfully!", "success");
             } catch (error) {

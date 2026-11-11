@@ -66,7 +66,7 @@ class BulkAttendanceController extends Controller
                                 <i class="fa fa-eye me-2"></i>View
                             </a>';
 
-                    $edit = '<a class="dropdown-item nav-main-link btn" href="' . url("/edit-bulk-attendance/{$bulk->id}") . '">
+                    $edit = '<a class="dropdown-item nav-main-link btn" href="' . route('bulk-attendances.edit', $bulk->id) . '">
                                 <i class="fa fa-edit me-2"></i>Edit
                             </a>';
 
@@ -79,7 +79,7 @@ class BulkAttendanceController extends Controller
 
                 return <<<HTML
                     <div class="dropdown d-inline-block">
-                        <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown">Actions</button>
+                        <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown"><i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions</button>
                         <div class="dropdown-menu dropdown-menu-end">
                             {$actions}
                         </div>
@@ -99,7 +99,7 @@ class BulkAttendanceController extends Controller
      */
     public function create()
     {
-        //
+        return view('attendances.addBulkAttendance');
     }
 
     /**
@@ -175,7 +175,7 @@ class BulkAttendanceController extends Controller
      * @param  \App\Models\bulkAttendance  $bulkAttendance
      * @return \Illuminate\Http\Response
      */
-    public function edit(bulkAttendance $bulkAttendance, $id)
+    public function edit($id)
     {
         $bulkAttendance = BulkAttendance::with('students')->findOrFail($id);
         return view('attendances.editBulkAttendance', compact('bulkAttendance'));
@@ -201,7 +201,7 @@ class BulkAttendanceController extends Controller
 
         try {
             // Find the bulkAttendance record
-            $bulkAttendance = BulkAttendance::findOrFail($request->input('students')[0]['bulkAttendanceId'] ?? $request->input('bulkAttendanceId'));
+            $bulkAttendance = BulkAttendance::findOrFail($request->route('bulk_attendance') ?? $request->input('students')[0]['bulkAttendanceId'] ?? $request->input('bulkAttendanceId'));
 
             // Update description
             $bulkAttendance->description = $request->bulkAttendanceDescription;

@@ -98,20 +98,18 @@
                 </div>
 
                 <!-- Modal Footer -->
-                <div class="modal-footer">
-                    <button type="submit" v-if="showCourseLessons" class="btn btn-primary" @click="updateCourseLessons">
+                <x-form-actions modal>
+                    <x-slot:cancel>
+                        <button type="button" v-if="showActions" class="btn btn-alt-secondary rounded-pill px-4" @click="back">Cancel</button>
+                        <button type="button" v-if="showCourseLessons" class="btn btn-alt-secondary rounded-pill px-4" @click="closeForm">Cancel</button>
+                    </x-slot:cancel>
+                    <button type="submit" v-if="showCourseLessons" class="btn btn-primary rounded-pill px-4" @click="updateCourseLessons">
                         Edit
                     </button>
-                    <button type="submit" v-if="showActions" class="btn btn-primary" @click="saveCourseLessons">
+                    <button type="submit" v-if="showActions" class="btn btn-primary rounded-pill px-4" @click="saveCourseLessons">
                         Save
                     </button>
-                    <button type="button" v-if="showActions" class="btn btn-default" @click="back">
-                        Back
-                    </button>
-                    <button type="button" v-if="showCourseLessons" class="btn btn-default" @click="closeForm">
-                        Cancel
-                    </button>
-                </div>
+                </x-form-actions>
             </div>
         </div>
     </div>

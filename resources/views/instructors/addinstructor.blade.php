@@ -29,18 +29,10 @@
           @endif
         <div class="block block-rounded">
             <div class="block-content">
-              <form action="{{ url('/storeinstructor') }}" method="POST" enctype="multipart/form-data" onsubmit="return true;" autocomplete="off">
+              <form action="{{ route('instructors.store') }}" method="POST" enctype="multipart/form-data" onsubmit="return true;" autocomplete="off">
                 @csrf
                 @include('instructors/includes/instructorsForm')
-                <div class="row push">
-                    <div class="col-lg-8 col-xl-5 offset-lg-4">
-                      <div class="mb-4">
-                        <button type="submit" class="btn btn-alt-primary">
-                          <i class="fa fa-check-circle opacity-50 me-1"></i> Add Instructor
-                        </button>
-                      </div>
-                    </div>
-                </div>
+                <x-form-actions :cancel-url="route('instructors.index')" />
 
               </form>
             </div>

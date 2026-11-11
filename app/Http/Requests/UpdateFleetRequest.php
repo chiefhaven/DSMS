@@ -6,6 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateFleetRequest extends FormRequest
 {
+    use \App\Http\Requests\Concerns\VehicleDetailsRules;
     /**
      * Determine if the user is authorized to make this request.
      *

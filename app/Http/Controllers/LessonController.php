@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateLessonRequest;
 use App\Models\Attendance;
 use App\Models\Department;
 use App\Models\Student;
+use Illuminate\Http\Request;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class LessonController extends Controller
@@ -75,7 +76,9 @@ class LessonController extends Controller
      */
     public function create()
     {
-        return view('lessons.addlesson');
+        $departments = Department::all(['id', 'name']);
+
+        return view('lessons.addlesson', compact('departments'));
     }
 
     /**
@@ -109,12 +112,12 @@ class LessonController extends Controller
         $lesson->name = $post['lesson_name'];
         $lesson->description = $post['lesson_description'];
         $lesson->department_id = $post['lesson_department'];
-        $lesson->lesson_contents = $post['lesson_contents'];
+        $lesson->lesson_contents = $post['lesson_contents'] ?? '';
 
         $lesson->save();
 
         Alert::toast('New lesson added successifully', 'success');
-        return redirect('/lessons');
+        return redirect()->route('lessons.index');
     }
 
     /**
@@ -134,10 +137,12 @@ class LessonController extends Controller
      * @param  \App\Models\Lesson  $lesson
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(Request $request, ?Lesson $lesson = null)
     {
-        $lesson = Lesson::find($id);
-        return view('lessons.editlesson', compact('lesson'));
+        $lesson = $this->resolveLesson($request, $lesson);
+        $departments = Department::all(['id', 'name']);
+
+        return view('lessons.editlesson', compact('lesson', 'departments'));
     }
 
     /**
@@ -147,8 +152,9 @@ class LessonController extends Controller
      * @param  \App\Models\Lesson  $lesson
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateLessonRequest $request, $lesson)
+    public function update(UpdateLessonRequest $request, ?Lesson $lesson = null)
     {
+        $lesson = $this->resolveLesson($request, $lesson);
         $messages = [
             'lesson_name.required' => 'Lesson name is required!',
             'lesson_description.required' => 'Lesson description is required!',
@@ -167,12 +173,10 @@ class LessonController extends Controller
 
         $post = $request->All();
 
-        $lesson = Lesson::find($lesson);
-
         $lesson->name = $post['lesson_name'];
         $lesson->description = $post['lesson_description'];
         $lesson->department_id = $post['lesson_department'];
-        $lesson->lesson_contents = $post['lesson_contents'];
+        $lesson->lesson_contents = $post['lesson_contents'] ?? '';
 
         $lesson->save();
 
@@ -185,16 +189,10 @@ class LessonController extends Controller
      * @param  \App\Models\Lesson  $lesson
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request, ?Lesson $lesson = null)
     {
-        // Check if the lesson exists
-        $lesson = Lesson::find($id);
-
-        if (!$lesson) {
-            return response()->json([
-                'message' => 'Lesson not found.'
-            ], 404);
-        }
+        $lesson = $this->resolveLesson($request, $lesson);
+        $id = $lesson->getKey();
 
         // Check for related attendances
         $attendanceCount = Attendance::where('lesson_id', $id)->count();
@@ -213,4 +211,12 @@ class LessonController extends Controller
         ], 200);
     }
 
+    private function resolveLesson(Request $request, ?Lesson $lesson): Lesson
+    {
+        if ($lesson && $lesson->exists) {
+            return $lesson;
+        }
+
+        return Lesson::findOrFail($request->route('lesson') ?? $request->route('id') ?? $request->input('lesson_id'));
+    }
 }

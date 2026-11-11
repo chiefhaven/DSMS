@@ -10,15 +10,15 @@
             <ol class="breadcrumb">
                 <div class="dropdown d-inline-block">
                     <button type="button" class="btn btn-primary rounded-pill px-4" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <span class="d-sm-inline-block">Action</span>
+                        <i class="fa fa-angle-down me-1" aria-hidden="true"></i><span>Actions</span>
                     </button>
                     <div class="dropdown-menu dropdown-menu-end p-0">
                         <div class="p-2">
                             @role(['superAdmin', 'admin'])
-                                <a href="/expenses" class="dropdown-item nav-main-link">
+                                <a href="{{ route('expenses.index') }}" class="dropdown-item nav-main-link">
                                     <i class="nav-main-link-icon  fas fa-file-invoice"></i>All Expenses
                                 </a>
-                                <a href="/editexpense/{{ $expense->id }}" class="dropdown-item nav-main-link">
+                                <a href="{{ route('expenses.edit', $expense->id) }}" class="dropdown-item nav-main-link">
                                     <i class="nav-main-link-icon  fas fa-edit"></i>Edit Expense
                                 </a>
                             @endrole
@@ -117,7 +117,7 @@
                                     </td>
                                     <td>
                                         <div class="d-flex flex-column">
-                                            <a :href="`/viewstudent/${student.id}`" class="fw-bold text-decoration-none" target="_blank" rel="noopener noreferrer">
+                                            <a :href="'{{ route('students.show', ['student' => '__student__']) }}'.replace('__student__', encodeURIComponent(student.id))" class="fw-bold text-decoration-none" target="_blank" rel="noopener noreferrer">
                                                 <strong>@{{ student.sname }} @{{ student.fname }} @{{ student.mname }}</strong>
                                             </a>
                                             <small class="text-muted">
@@ -350,7 +350,7 @@
                 try {
                     NProgress.start();
 
-                    const response = await axios.post('/updateExpense', {
+                    const response = await axios.put(@json(route('expenses.update', $expense->id)), {
                         students: state.value.selectedStudents,
                         expenseGroupName: state.value.expenseGroupName,
                         paymentMethod: state.value.paymentMethod,
@@ -359,7 +359,7 @@
 
                     if (response.status === 200) {
                         notification('Expense saved successfully', 'success');
-                        window.location.replace('/expenses');
+                        window.location.replace(@json(route('expenses.index')));
                     }
                 } catch (error) {
                     if (error.response && error.response.data && error.response.data.errors) {
@@ -473,4 +473,3 @@
 
     </script>
 @endsection
-

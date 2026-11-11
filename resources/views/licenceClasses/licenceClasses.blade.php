@@ -109,8 +109,8 @@
 
           try {
             const endpoint = selectedSchedule.value?.id
-              ? `/update-lesson-schedule/${selectedSchedule.value.id}`
-              : "/store-lesson-schedule";
+              ? `/schedules/${selectedSchedule.value.id}`
+              : "{{ route('schedules.store') }}";
 
             const method = selectedSchedule.value?.id ? "put" : "post";
             const response = await axios[method](endpoint, payload);
@@ -313,7 +313,7 @@
               try {
                 NProgress.start();
 
-                await axios.delete(`/schedule-lesson/${eventId}`);
+                await axios.delete(`/schedules/${eventId}`);
 
                 await fetchSchedules();
                 closeModal('scheduleModal');

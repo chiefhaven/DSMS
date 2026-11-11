@@ -11,7 +11,7 @@
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
 
             <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <span class="d-sm-inline-block">Action</span>
+                <i class="fa fa-angle-down me-1" aria-hidden="true"></i><span>Actions</span>
             </button>
             <div class="dropdown-menu dropdown-menu-end p-0">
                 <div class="p-2">
@@ -150,17 +150,17 @@
                                 </label>
                             </div>
 
-                            <div class="form-group mt-4">
-                                <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+                            <x-form-actions modal>
+                                <button type="submit" class="btn btn-primary rounded-pill px-4" :disabled="isSubmitting">
                                 <span v-if="isSubmitting">
                                     <span class="spinner-border spinner-border-sm" role="status"></span>
                                     @{{ selectedSchedule ? "Updating..." : "Creating..." }}
                                 </span>
                                 <span v-else>
-                                    @{{ selectedSchedule ? "Update Schedule" : "Create Schedule" }}
+                                    Save
                                 </span>
                                 </button>
-                            </div>
+                            </x-form-actions>
                         </form>
                     </div>
                 </div>
@@ -320,8 +320,8 @@
 
           try {
             const endpoint = selectedSchedule.value?.id
-              ? `/update-lesson-schedule/${selectedSchedule.value.id}`
-              : "/store-lesson-schedule";
+              ? `/schedules/${selectedSchedule.value.id}`
+              : "{{ route('schedules.store') }}";
 
             const method = selectedSchedule.value?.id ? "put" : "post";
             const response = await axios[method](endpoint, payload);
@@ -495,7 +495,7 @@
         const fetchSchedules = async () => {
           NProgress.start();
           try {
-            const response = await axios.get('schedule-lessons');
+            const response = await axios.get('{{ route('schedules.data') }}');
             events.value = Array.isArray(response.data) ? response.data : [];
             refreshCalendar();
           } catch (error) {
@@ -657,7 +657,7 @@
               try {
                 NProgress.start();
 
-                await axios.delete(`/schedule-lesson/${eventId}`);
+                await axios.delete(`/schedules/${eventId}`);
 
                 await fetchSchedules();
                 closeModal('scheduleModal');

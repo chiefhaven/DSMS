@@ -42,10 +42,10 @@ use Nette\Schema\Expect;
 |
 */
 
-Route::post('/', [HomeController::class,'index'])->middleware(['auth', 'role:superAdmin|Super-Admin|admin|financeAdmin'])->name('dashboard');
+Route::post('/', [HomeController::class,'index'])->middleware(['auth', 'role:superAdmin|Super-Admin|admin|financeAdmin'])->name('dashboard.submit');
 Route::get('/summaryData', [HomeController::class,'summaryData'])->middleware(['auth', 'role:superAdmin|Super-Admin|admin|financeAdmin'])->name('summaryData');
 Route::get('/instructorSummaryData', [HomeController::class,'instructorSummaryData'])->middleware(['auth'])->name('instructorSummaryData');
-Route::get('/', [HomeController::class,'index'])->middleware(['auth', 'role:superAdmin|Super-Admin|admin|financeAdmin'])->name('dashboard');
+Route::get('/', [HomeController::class,'index'])->middleware(['auth', 'role:superAdmin|Super-Admin|admin|financeAdmin'])->name('dashboard.home');
 
 Auth::routes();
 
@@ -55,12 +55,12 @@ Route::post('/update-notification-templates/{template}', [NotificationTemplateCo
 
 
 Route::get('/students', [StudentController::class, 'index'])->middleware('auth')->name('students');
-Route::get('/fetch-students', [StudentController::class, 'fetchStudents'])->name('students')->middleware('auth')->name('students');
+Route::get('/fetch-students', [StudentController::class, 'fetchStudents'])->middleware('auth')->name('students.data');
 Route::get('/finished-students', [StudentController::class, 'index'])->middleware('auth')->name('students');
 Route::get('/viewstudent/{id}', [StudentController::class, 'show'])->middleware('auth')->name('viewStudent');
 Route::get('/addstudent', [StudentController::class, 'create'])->middleware('auth')->name('addstudent');
 Route::post('/storestudent', [StudentController::class, 'store'])->middleware('auth')->name('storestudents');
-Route::get('/edit-student/{id}', [StudentController::class, 'edit'])->middleware('auth')->name('editstudent');
+Route::get('/edit-student/{id}', [StudentController::class, 'edit'])->middleware('auth')->name('legacy.students.edit');
 Route::delete('/student-delete/{id}', [StudentController::class, 'destroy'])->middleware('auth')->name('students-delete');
 Route::post('/student-update', [StudentController::class, 'update'])->middleware('auth')->name('editstudent');
 Route::post('/trafic-card-reference-letter/{id}', [StudentController::class, 'trafficCardReferenceLetter'])->middleware('auth')->name('student_traffic_card');
@@ -105,7 +105,7 @@ Route::get("/bulk-attendances", function(){
 
 Route::get('/edit-bulk-attendance/{id}', [BulkAttendanceController::class, 'edit'])
     ->middleware('auth')
-    ->name('bulk-attendances.edit');
+    ->name('legacy.bulk-attendances.edit');
 
 Route::post('/storeattendance', [AttendanceController::class, 'store'])->middleware('auth')->name('storeattendance');
 Route::post('/editattendance/{id}', [AttendanceController::class, 'edit'])->middleware('auth')->name('editattendance');
@@ -210,8 +210,6 @@ Route::post('/storefleet', [FleetController::class, 'store'])->middleware('auth'
 Route::get('/editfleet/{id}', [FleetController::class, 'edit'])->middleware('auth')->name('editfleet');
 Route::post('/updatefleet', [FleetController::class, 'update'])->middleware('auth')->name('updatefleet');
 Route::delete('/deletefleet/{id}', [FleetController::class, 'destroy'])->middleware('auth')->name('deletefleet');
-Route::put('/fleet/{fleet}', [FleetController::class, 'update'])->name('fleet.update');
-Route::resource('fleet', FleetController::class);
 
 
 Route::get("/track-fleet", function(){
@@ -232,8 +230,8 @@ Route::get('/view-expense/{expense}', function (Expense $expense) {
     return view('expenses.viewExpense', compact('expense'));
 })->middleware('auth');
 
-Route::get('/addexpense', [ExpenseController::class, 'create'])->middleware('auth')->name('expenses.index');
-Route::post('/storeexpense', [ExpenseController::class, 'store'])->middleware('auth')->name('expenses.store');
+Route::get('/addexpense', [ExpenseController::class, 'create'])->middleware('auth')->name('legacy.expenses.create');
+Route::post('/storeexpense', [ExpenseController::class, 'store'])->middleware('auth')->name('legacy.expenses.store');
 Route::post('/updateExpense', [ExpenseController::class, 'update'])->middleware('auth')->name('updateExpense');
 Route::get('/editexpense/{expense}', [ExpenseController::class, 'edit'])->middleware('auth')->name('editexpense');
 Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->middleware('auth')->name('delete-expense');
@@ -334,3 +332,8 @@ Route::get("/scan-to-pay", function(){
 Route::get("/driving-license-classes", function(){
     return view("licenceClasses.licenceClasses");
 })->middleware('auth');
+
+require __DIR__.'/student-resources.php';
+require __DIR__.'/operations-resources.php';
+require __DIR__.'/teaching-resources.php';
+require __DIR__.'/management-resources.php';

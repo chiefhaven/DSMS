@@ -12,6 +12,7 @@ use RealRashid\SweetAlert\Facades\Alert;
 use App\Services\MbiraSyncService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Yajra\DataTables\Facades\DataTables;
 use Auth;
 use DB;
 
@@ -27,18 +28,47 @@ class FleetController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $fleet = Fleet::with('Instructor', 'licenceClass')->get();
+        if ($request->ajax()) {
+            $query = Fleet::select('fleets.*')->with('Instructor', 'licenceClass')
+                ->withCount(['Student as active_students_count' => function ($query) {
+                    $query->where('status', '!=', 'Finished');
+                }]);
+            $table = DataTables::eloquent($query)
+                ->addColumn('vehicle', fn ($car) => view('fleet.partials.list-cell', ['car' => $car, 'field' => 'vehicle'])->render())
+                ->addColumn('actions', fn ($car) => view('fleet.partials.list-cell', ['car' => $car, 'field' => 'actions'])->render())
+                ->addColumn('instructor_name', fn ($car) => view('fleet.partials.list-cell', ['car' => $car, 'field' => 'instructor_name'])->render())
+                ->addColumn('licence_class', fn ($car) => e($car->licenceClass->class ?? '-'))
+                ->filterColumn('instructor_name', function ($query, $keyword) {
+                    $query->whereHas('Instructor', function ($query) use ($keyword) {
+                        foreach (preg_split('/\s+/', trim($keyword)) as $word) {
+                            $query->where(function ($query) use ($word) {
+                                $query->where('fname', 'like', "%{$word}%")->orWhere('sname', 'like', "%{$word}%");
+                            });
+                        }
+                    });
+                })
+                ->orderColumn('instructor_name', function ($query, $direction) {
+                    foreach (['fname', 'sname'] as $field) {
+                        $query->orderBy(Instructor::select($field)->whereColumn('instructors.id', 'fleets.instructor_id'), $direction);
+                    }
+                });
+            $fields = [
+                'insurance_expiry', 'roadworthiness_expiry', 'odometer_km', 'service_date',
+                'next_service_km', 'insurance_provider', 'manufacture_year', 'engine_capacity_cc',
+                'fuel_type', 'transmission',
+            ];
+            foreach ($fields as $field) {
+                $table->editColumn($field, fn ($car) => view('fleet.partials.list-cell', ['car' => $car, 'field' => $field])->render());
+            }
+            return $table->rawColumns(array_merge($fields, ['vehicle', 'actions', 'instructor_name']))
+                ->toJson();
+        }
 
-        $instructors = Instructor::whereHas('department', function($query) {
-            $query->where('name', 'Practical');
-        })->get();
-
-        $licenceClasses = licenceClass::get();
-
-        $student = Student::get();
-        return view('fleet.fleet', compact('fleet', 'instructors', 'student', 'licenceClasses'));
+        $vehicleCount = Fleet::count();
+        $assignedVehicles = Fleet::whereHas('Instructor')->count();
+        return view('fleet.fleet', compact('vehicleCount', 'assignedVehicles'));
     }
 
     public function getFleet(Request $request)
@@ -63,7 +93,13 @@ class FleetController extends Controller
      */
     public function create()
     {
-        //
+        $instructors = Instructor::whereHas('department', function ($query) {
+            $query->where('name', 'Practical');
+        })->get();
+        $licenceClasses = licenceClass::get();
+        $fleet = new Fleet;
+
+        return view('fleet.addfleet', compact('fleet', 'instructors', 'licenceClasses'));
     }
 
     /**
@@ -76,6 +112,9 @@ class FleetController extends Controller
 {
     // The StoreFleetRequest already handles validation
     $validatedData = $request->validated();
+    if (isset($validatedData['make'], $validatedData['model'])) {
+        $validatedData['car_brand_model'] = $validatedData['make'].' '.$validatedData['model'];
+    }
 
     $trackingResult = null;
     $trackerDeviceId = null;
@@ -125,7 +164,7 @@ class FleetController extends Controller
         $fleet->fleet_image = $this->handleImageUpload($request);
 
         // Assign basic fleet data
-        $fleet->car_brand_model = $validatedData['car_brand_model'];
+        $this->applyVehicleDetails($fleet, $validatedData);
         $fleet->licence_class_id = $validatedData['licenceClass'];
         $fleet->car_registration_number = $validatedData['reg_number'];
         $fleet->car_description = $validatedData['car_description'] ?? '';
@@ -359,9 +398,9 @@ private function handleInstructorAssignmentForStore(Fleet $fleet, string $instru
      * @param  \App\Models\Fleet  $fleet
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Request $request, ?Fleet $fleet = null)
     {
-        $fleet = Fleet::with('instructor')->findOrFail($id);
+        $fleet = $this->resolveFleet($request, $fleet)->load('instructor');
 
         return view('fleet.viewfleet', compact('fleet'));
     }
@@ -372,9 +411,9 @@ private function handleInstructorAssignmentForStore(Fleet $fleet, string $instru
      * @param  \App\Models\Fleet  $fleet
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(Request $request, ?Fleet $fleet = null)
     {
-        $fleet = Fleet::with('Instructor')->find($id);
+        $fleet = $this->resolveFleet($request, $fleet)->load('Instructor');
 
         $instructors = Instructor::whereHas('department', function($query) {
             $query->where('name', 'Practical');
@@ -392,8 +431,9 @@ private function handleInstructorAssignmentForStore(Fleet $fleet, string $instru
      * @param  \App\Models\Fleet  $fleet
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateFleetRequest $request, Fleet $fleet)
+    public function update(UpdateFleetRequest $request, ?Fleet $fleet = null)
     {
+        $fleet = $this->resolveFleet($request, $fleet);
         // Custom validation messages
         $messages = [
             'car_brand_model.required' => 'The "car name/brand" field is required!',
@@ -405,15 +445,18 @@ private function handleInstructorAssignmentForStore(Fleet $fleet, string $instru
         ];
 
         // Validate the request data
-        $validatedData = $request->validate([
-            'car_brand_model' => 'required|string|max:255',
+        $validatedData = $request->validate(array_merge($request->vehicleDetailsRules($fleet), [
+            'car_brand_model' => 'nullable|required_without_all:make,model|string|max:255',
             'reg_number' => 'required|string|max:50',
             'instructor' => 'nullable|exists:instructors,id',
             'licenceClass' => 'required|exists:licence_classes,id',
             'tracker_device_id' => 'nullable|string|unique:fleets,tracker_device_id,' . $fleet->id . '|max:50',
             'fleet_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'car_description' => 'nullable|string|max:1000',
-        ], $messages);
+        ]), $messages);
+        if (isset($validatedData['make'], $validatedData['model'])) {
+            $validatedData['car_brand_model'] = $validatedData['make'].' '.$validatedData['model'];
+        }
 
         $trackingResult = null;
         $trackerDeviceId = null;
@@ -475,7 +518,7 @@ private function handleInstructorAssignmentForStore(Fleet $fleet, string $instru
             }
 
             // Update fleet details
-            $fleet->car_brand_model = $validatedData['car_brand_model'];
+            $this->applyVehicleDetails($fleet, $validatedData);
             $fleet->car_registration_number = $validatedData['reg_number'];
             $fleet->licence_class_id = $validatedData['licenceClass'];
             $fleet->car_description = $validatedData['car_description'] ?? null;
@@ -696,22 +739,15 @@ private function handleInstructorAssignmentForStore(Fleet $fleet, string $instru
      * @param  \App\Models\Fleet  $fleet
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request, ?Fleet $fleet = null)
     {
+        $fleet = $this->resolveFleet($request, $fleet);
+        $id = $fleet->getKey();
         // Check if any students are assigned to this fleet
         $studentsCount = Student::where('fleet_id', $id)->where('status', '!=', 'Finished')->count();
 
         if ($studentsCount > 0) {
             $message = "Cannot delete fleet as it still has active students assigned to it!";
-            Alert::toast($message, 'error');
-            return redirect()->back()->with('message', $message);
-        }
-
-        // Find the fleet
-        $fleet = Fleet::find($id);
-
-        if (!$fleet) {
-            $message = "Fleet not found";
             Alert::toast($message, 'error');
             return redirect()->back()->with('message', $message);
         }
@@ -725,4 +761,36 @@ private function handleInstructorAssignmentForStore(Fleet $fleet, string $instru
         return redirect()->back()->with('message', $message);
     }
 
+    private function applyVehicleDetails(Fleet $fleet, array $data): void
+    {
+        if ($fleet->engine_capacity_reference && (
+            (isset($data['engine_capacity_cc']) && (int) $data['engine_capacity_cc'] !== $fleet->engine_capacity_cc)
+            || (isset($data['make']) && $data['make'] !== $fleet->make)
+            || (isset($data['model']) && $data['model'] !== $fleet->model)
+        )) {
+            $fleet->engine_capacity_reference = null;
+        }
+        foreach ([
+            'make', 'model', 'manufacture_year', 'vin', 'engine_number', 'engine_capacity_cc',
+            'fuel_type', 'transmission', 'colour', 'odometer_km', 'seating_capacity',
+            'insurance_provider', 'insurance_expiry', 'roadworthiness_expiry',
+            'service_date', 'next_service_km',
+        ] as $field) {
+            if (array_key_exists($field, $data)) {
+                $fleet->{$field} = $data[$field];
+            }
+        }
+        $fleet->car_brand_model = isset($data['make'], $data['model'])
+            ? $data['make'].' '.$data['model']
+            : $data['car_brand_model'];
+    }
+
+    private function resolveFleet(Request $request, ?Fleet $fleet): Fleet
+    {
+        if ($fleet && $fleet->exists) {
+            return $fleet;
+        }
+
+        return Fleet::findOrFail($request->route('fleet') ?? $request->route('id') ?? $request->input('fleet_id'));
+    }
 }

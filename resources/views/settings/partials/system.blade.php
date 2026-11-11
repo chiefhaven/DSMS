@@ -61,10 +61,7 @@
                 <p class="muted small"><em>Instructor's bonus per attendance</em></p>
             </div>
           </div>
-          <br>
-          <div class="form-group">
-              <button type="submit" class="btn btn-primary">Update</button>
-          </div>
+          <x-form-actions :cancel-url="route('settings.edit')" />
         </form>
       </div>
   </div>

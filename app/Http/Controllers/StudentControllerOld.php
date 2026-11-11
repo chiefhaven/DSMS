@@ -150,7 +150,7 @@ class StudentControllerOld extends Controller
 
                 return '
                     <div class="dropdown d-inline-block">
-                        <button class="btn btn-primary" data-bs-toggle="dropdown">Actions</button>
+                        <button class="btn btn-primary" data-bs-toggle="dropdown"><i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions</button>
                         <div class="dropdown-menu dropdown-menu-end">
                             ' . $view . $edit . $delete . $changeStatus . '
                         </div>

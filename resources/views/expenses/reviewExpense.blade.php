@@ -10,14 +10,14 @@
         <ol class="breadcrumb">
             <div class="dropdown d-inline-block">
                 <button type="button" class="btn btn-primary rounded-pill px-4" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <span class="d-sm-inline-block">Action</span>
+                    <i class="fa fa-angle-down me-1" aria-hidden="true"></i><span>Actions</span>
                 </button>
                 <div class="dropdown-menu dropdown-menu-end p-0">
                     <div class="p-2">
-                        <a href="/expenses" class="dropdown-item nav-main-link">
+                        <a href="{{ route('expenses.index') }}" class="dropdown-item nav-main-link">
                             <i class="nav-main-link-icon  fas fa-file-invoice"></i>All Expenses
                         </a>
-                        <a href="/editexpense/{{ $expense->id }}" class="dropdown-item nav-main-link">
+                        <a href="{{ route('expenses.edit', $expense->id) }}" class="dropdown-item nav-main-link">
                             <i class="nav-main-link-icon  fas fa-edit"></i>Edit Expense
                         </a>
                     </div>
@@ -105,7 +105,7 @@
                   <td>@{{ index + 1 }}</td>
                   <td>
                     <div class="d-flex flex-column">
-                        <a :href="`/viewstudent/${student.studentId}`" class="fw-bold text-decoration-none" target="_blank" rel="noopener noreferrer">
+                        <a :href="'{{ route('students.show', ['student' => '__student__']) }}'.replace('__student__', encodeURIComponent(student.studentId))" class="fw-bold text-decoration-none" target="_blank" rel="noopener noreferrer">
                           @{{ student.sname }} @{{ student.fname }} @{{ student.mname }}
                         </a>
                         <small v-if="student.expenses && student.expenses.some(e => e.pivot?.repeat === 1)"

@@ -47,7 +47,7 @@ class AuthController extends Controller
         $key = 'login-attempts:' . $request->ip() . ':' . md5($request->login ?? '');
 
         // Rate limiting - check before validation to prevent resource waste
-        if ($rateLimiter->tooManyAttempts($key, 5)) {
+        if ($rateLimiter->tooManyAttempts($key, 4)) {
             return $this->sendErrorResponse(
                 'Too many login attempts. Please try again in ' .
                 $rateLimiter->availableIn($key) . ' seconds.',

@@ -65,20 +65,8 @@ class PaymentController extends Controller
             $review = '';
 
             if (auth()->user()->hasAnyRole(['superAdmin', 'admin'])) {
-                if ($payment->approved != true) {
-                    $edit = '<a class="dropdown-item nav-main-link btn" href="' . url('#', $payment->id) . '">
-                                <i class="fa fa-pencil me-3"></i> Edit
-                            </a>';
-                }
-
                 if (auth()->user()->hasRole('superAdmin')) {
-                    $review = '<a class="dropdown-item nav-main-link btn" href="' . url('#', $payment->id) . '">
-                                    <i class="fa fa-eye me-3"></i> View
-                                </a>';
-                }
-
-                if (auth()->user()->hasRole('superAdmin')) {
-                    $delete = '<form method="POST" action="' . url('delete-payment', $payment->id) . '" style="display:inline;">
+                    $delete = '<form method="POST" action="' . route('payments.destroy', $payment->id) . '" style="display:inline;">
                                     ' . csrf_field() . method_field('DELETE') . '
                                     <button type="submit" class="btn dropdown-item nav-main-link delete-confirm text-danger">
                                         <i class="fa fa-trash me-3"></i> Delete
@@ -89,7 +77,7 @@ class PaymentController extends Controller
 
             return '
                 <div class="dropdown d-inline-block">
-                    <button class="btn btn-primary" data-bs-toggle="dropdown">Actions</button>
+                    <button class="btn btn-primary" data-bs-toggle="dropdown"><i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions</button>
                     <div class="dropdown-menu dropdown-menu-end">
                         ' . $download . $review . $edit . $delete . '
                     </div>

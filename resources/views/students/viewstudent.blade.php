@@ -1,30 +1,105 @@
 @extends('layouts.backend')
 
+@section('css_after')
+<style>
+    #student .student-profile-card {
+        border: 0;
+        border-radius: .5rem;
+        background: var(--bs-body-bg, #fff);
+    }
+    #student .student-profile-card > h5,
+    #student .student-profile-card > h3 {
+        font-size: 1rem;
+        font-weight: 600;
+    }
+    #student .student-profile-card .table th,
+    #student .student-profile-card .table td {
+        padding: .75rem .5rem;
+        vertical-align: middle;
+    }
+    #student .student-profile-card .table th {
+        font-size: .875rem;
+        font-weight: 500;
+    }
+    #student .student-profile-card .table td,
+    #student .student-contact {
+        overflow-wrap: anywhere;
+    }
+    #student .student-profile-card .rounded-pill {
+        padding-left: .75rem !important;
+        padding-right: .75rem !important;
+    }
+    #student .student-profile-card .alert .row {
+        row-gap: .75rem;
+    }
+    #student .student-profile-card .alert .text-end {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: .5rem;
+    }
+    #student .student-profile-card .alert .text-end .btn {
+        margin: 0 !important;
+    }
+    #student .student-downloads {
+        margin-bottom: 0;
+    }
+    #student .student-downloads td:first-child,
+    #student .student-downloads th:first-child {
+        display: none;
+    }
+    #student .student-downloads td:last-child {
+        width: 1%;
+        white-space: nowrap;
+    }
+    @media (max-width: 767.98px) {
+        #student .student-profile-card .alert .text-end {
+            justify-content: flex-start;
+        }
+        #student .student-profile-card {
+            padding: 1rem !important;
+        }
+        #student .student-profile-card .table th {
+            width: 35%;
+        }
+    }
+</style>
+@endsection
+
 @section('content')
 <!-- Hero -->
 <div class=""  id="student">
     <div class="bg-body-light">
         <div class="content content-full">
-            <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
-            <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">{{$student->fname}} {{$student->mname}} {{$student->sname}}</h1>
-            <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
-                <ol class="breadcrumb">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+            <div>
+                <a class="fs-sm text-muted" href="{{ url('/students') }}"><i class="fa fa-arrow-left me-1" aria-hidden="true"></i>Back to students</a>
+                <h1 class="fs-3 fw-semibold mt-2 mb-1">{{$student->fname}} {{$student->mname}} {{$student->sname}}</h1>
+                <p class="text-muted mb-0">Student profile</p>
+            </div>
+            <div class="flex-shrink-0">
                     <div class="dropdown d-inline-block">
-                        <button type="button" class="btn btn-primary rounded-pill px-4" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <span class="d-sm-inline-block">Action</span>
+                        <button type="button" class="btn btn-primary" id="student-actions-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fa fa-angle-down me-1" aria-hidden="true"></i><span>Actions</span>
                         </button>
                         <div class="dropdown-menu dropdown-menu-end p-0">
                             <div class="p-2">
                             @role(['superAdmin'])
-                                <form method="GET" action="/edit-student/{{$student->id}}">
+                                <form method="GET" action="{{ route('students.edit', ['student' => $student->id]) }}">
                                     {{ csrf_field() }}
                                     <button class="dropdown-item nav-main-link" type="submit">
                                         <i class="nav-main-link-icon  fas fa-pencil"></i>Edit profile
                                     </button>
                                 </form>
-                                <button class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                                @if (isset($student->invoice))
+                                <button type="button" class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#paymentModal">
                                     <i class="nav-main-link-icon  fas fa-file-invoice"></i>Add payment
                                 </button>
+                                @else
+                                    <a class="dropdown-item nav-main-link" href="{{ url('/addinvoice', $student->id) }}">
+                                        <i class="nav-main-link-icon fas fa-plus-circle"></i>Enroll
+                                    </a>
+                                @endif
                             @endrole
                             <button class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#change-status">
                                 <i class="nav-main-link-icon  fas fa-toggle-on"></i>Change status
@@ -32,8 +107,7 @@
                             </div>
                         </div>
                     </div>
-                </ol>
-            </nav>
+            </div>
             </div>
         </div>
     </div>
@@ -47,7 +121,7 @@
         <ul class="nav nav-tabs nav-tabs-block" role="tablist">
             <li class="nav-item">
             <button class="nav-link active" id="student-details-tab" data-bs-toggle="tab" data-bs-target="#student-details" role="tab" aria-controls="student-details" aria-selected="true">
-                Student Details
+                Overview
             </button>
             </li>
             @role(['superAdmin', 'admin'])
@@ -58,41 +132,41 @@
                 </li>
                 <li class="nav-item">
                     <button class="nav-link" id="payments-tab" data-bs-toggle="tab" data-bs-target="#payments" role="tab" aria-controls="payments" aria-selected="false">
-                        Fees Payments
+                        Payments
                     </button>
                 </li>
                 <li class="nav-item">
-                    <button class="nav-link" id="expensesList-tab" data-bs-toggle="tab" data-bs-target="#expensesList" role="tab" aria-controls="payments" aria-selected="false">
-                        Expenses list
+                    <button class="nav-link" id="expensesList-tab" data-bs-toggle="tab" data-bs-target="#expensesList" role="tab" aria-controls="expensesList" aria-selected="false">
+                        Expenses
                     </button>
                 </li>
-            @endcan
+            @endrole
         </ul>
         <div class="block-content tab-content">
             <div class="tab-pane fade active show" id="student-details" role="tabpanel" aria-labelledby="student-details-tab">
                 <div class="content-full">
-                    <div class="row">
-                        <div class="col-md-6 py-4">
-                            <div class="card p-4 h-100">
+                    <div class="row g-4 pb-4">
+                        <div class="col-lg-6">
+                            <div class="card student-profile-card bg-body-light p-4 h-100">
                                 <!-- Profile Header -->
                                 <div class="text-center mb-4">
                                     <img class="img-avatar img-avatar96 img-avatar-thumb mb-3"
                                          src="{{ $student->avatar_url ?? asset('media/avatars/avatar2.jpg') }}"
                                          alt="{{ $student->fname }}'s avatar">
-                                    <h2 class="mb-1">
+                                    <h2 class="fs-4 fw-semibold mb-2">
                                         {{ $student->fname }} {{ $student->mname }} {{ $student->sname }}
                                     </h2>
-                                    <span class="badge bg-primary">{{ $student->student_id }}</span>
+                                    <span class="badge bg-primary">{{ $student->student_number ?? 'Not enrolled' }}</span>
                                 </div>
 
                                 <!-- Personal Details -->
                                 <div class="mb-4">
-                                    <h5 class="border-bottom pb-2 mb-3">Personal Details</h5>
-                                    <div class="row">
+                                    <h5 class="fs-6 fw-semibold border-bottom pb-2 mb-3">Contact &amp; identity</h5>
+                                    <div class="row student-contact">
                                         <div class="col-md-6 mb-2">
                                             <div class="d-flex align-items-center">
                                                 <i class="fas fa-venus-mars me-2 text-muted"></i>
-                                                <span>{{ $student->gender }}</span>
+                                                <span>{{ ucfirst($student->gender) }}</span>
                                             </div>
                                         </div>
                                         <div class="col-md-6 mb-2">
@@ -125,7 +199,7 @@
                                 <!-- Car Assignment Section (Admin Only) -->
                                 @role(['superAdmin','admin'])
                                 <div class="mt-auto">
-                                    <h5 class="border-bottom pb-2 mb-3">Vehicle Assignment</h5>
+                                    <h5 class="fs-6 fw-semibold border-bottom pb-2 mb-3">Vehicle</h5>
 
                                     @if(isset($student->invoice))
                                         @if(isset($student->fleet->car_brand_model))
@@ -180,7 +254,7 @@
                                         @endif
                                     @else
                                         <div class="text-muted fst-italic small">
-                                            Only enrolled students can be assigned to a vehicle.
+                                            Enroll to assign a vehicle.
                                         </div>
                                     @endif
                                 </div>
@@ -188,10 +262,10 @@
                                 @endrole
                             </div>
                         </div>
-                        <div class="col-md-6 py-4">
-                            <div class="card p-4 h-100">
+                        <div class="col-lg-6">
+                            <div class="card student-profile-card bg-body-light p-4 h-100">
                                 <!-- General Information Section -->
-                                <h5 class="card-title border-bottom pb-2 mb-4">General Information</h5>
+                                <h5 class="card-title border-bottom pb-2 mb-4">Course &amp; fees</h5>
 
                                 <div class="table-responsive">
                                     <table class="table table-borderless">
@@ -204,7 +278,7 @@
                                                         {{ $student->invoice->created_at->format('j F, Y') }}
                                                     @else
                                                         <a href="{{ url('/addinvoice', $student->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-4">
-                                                            <i class="fas fa-plus-circle me-1"></i> Enroll Course
+                                                            <i class="fas fa-plus-circle me-1"></i> Enroll
                                                         </a>
                                                     @endif
                                                 </td>
@@ -217,8 +291,8 @@
                                                     @if(isset($student->invoice) && isset($student->course))
                                                         <div class="d-flex align-items-center">
                                                             <div>
-                                                                <strong>{{ $student->course->name }}</strong> - Licence type: {{ $student->course->licenceClass->class }}
-                                                                <div class="small text-muted">{{ $student->course->duration }} days program</div>
+                                                                <strong>{{ $student->course->name }}</strong>
+                                                                <div class="small text-muted">Licence {{ $student->course->licenceClass->class }} · {{ $student->course->duration }} days</div>
                                                             </div>
                                                         </div>
                                                     @else
@@ -251,7 +325,7 @@
                                                                 class="btn btn-sm btn-primary rounded-pill px-4"
                                                                 data-bs-toggle="modal"
                                                                 data-bs-target=".assignClassRoom">
-                                                            <i class="fas fa-plus me-1"></i> Assign Classroom
+                                                            <i class="fas fa-plus me-1"></i> Assign
                                                         </button>
                                                     @endif
                                                 </td>
@@ -259,7 +333,7 @@
 
                                             <!-- Payment Information -->
                                             <tr class="border-top">
-                                                <th class="text-muted">Course Fees</th>
+                                                <th class="text-muted">Fees</th>
                                                 <td>
                                                     @if(isset($student->invoice->created_at))
                                                         <span class="fw-bold">K{{ number_format($student->invoice->invoice_total) }}</span>
@@ -269,7 +343,7 @@
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <th class="text-muted">Amount Paid</th>
+                                                <th class="text-muted">Paid</th>
                                                 <td>
                                                     @if(isset($student->invoice->created_at))
                                                         <span class="text-success fw-bold">K{{ number_format($student->invoice->invoice_amount_paid) }}</span>
@@ -297,7 +371,7 @@
 
                                 <!-- Attendance Progress -->
                                 <div class="mt-4">
-                                    <h5 class="border-bottom pb-2 mb-3 text-muted fw-semibold">Attendance Progress</h5>
+                                    <h5 class="fs-6 border-bottom pb-2 mb-3 fw-semibold">Attendance</h5>
                                     @php
                                         // Normalize attendance percent
                                         $attendancePercent = max(0, min(100, round($attendancePercent ?? 0, 2)));
@@ -318,7 +392,7 @@
                                             $statusLabel = 'Completed';
                                         }
                                     @endphp
-                                    <div class="d-flex justify-content-between mb-2">
+                                    <div class="d-flex flex-wrap gap-2 justify-content-between mb-2">
                                         <span class="badge bg-{{ $badgeColor }} px-1 py-1 fs-6 shadow-sm small">
                                             {{ $statusLabel }} — {{ $attendancePercent }}%
                                         </span>
@@ -342,18 +416,18 @@
                                 <!-- Course Status -->
                                 <div class="mt-4 pt-3 border-top">
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <h5 class="mb-0 text-muted fw-semibold">Course Status</h5>
-                                        <span class="px-3 py-2 shadow-sm text-dark {{ $badgeColor === 'warning' ? 'text-dark' : '' }}">
+                                        <h5 class="fs-6 mb-0 text-muted fw-semibold">Status</h5>
+                                        <span class="badge bg-primary-light text-primary px-3 py-2">
                                             {{ ucfirst($student->status) }}
                                         </span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-12 py-4">
-                            <div class="card p-4">
-                                <h3>Downloads</h3>
-                                <table class="table table-responsive table-striped">
+                        <div class="col-12">
+                            <div class="card student-profile-card bg-body-light p-4">
+                                <h3 class="border-bottom pb-2 mb-3">Downloads</h3>
+                                <table class="table student-downloads">
                                     <thead>
                                         <th>#</th>
                                         <th style="width:90%">Description</th>
@@ -464,6 +538,7 @@
     </div>
 
     @role(['superAdmin', 'admin'])
+        @if (isset($student->invoice))
         <!-- Payment Modal -->
         <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" style="display: none;" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
@@ -560,19 +635,13 @@
                             </div>
 
                             <!-- Footer Buttons -->
-                            <div class="modal-footer border-0 pt-4 px-0">
-                                <button type="submit" class="btn btn-primary rounded-pill px-4">
-                                    <i class="fas fa-save me-2"></i>Save
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
-                                    <i class="fas fa-times me-2"></i>Cancel
-                                </button>
-                            </div>
+                            <x-form-actions modal />
                         </form>
                     </div>
                 </div>
             </div>
         </div>
+        @endif
     @endrole
 
 

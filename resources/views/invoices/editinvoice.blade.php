@@ -31,7 +31,8 @@
     <div class="block-content">
         <div class="row">
             <div class="col-lg-12 col-xl-12">
-                <form class="mb-5" action="{{ url('/invoice-update') }}" method="POST">
+                <form class="mb-5" action="{{ route('invoices.update', $invoice->id) }}" method="POST">
+                        @method('PUT')
                         @csrf
                         <input type="text" name="invoice_number" id="invoice_number" value="{{$invoice->invoice_number}}" hidden>
                     <div class="row">
@@ -84,9 +85,7 @@
                         </select>
                         <label for="district">Assign classroom</label>
                     </div>
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-primary">Save</button>
-                    </div>
+                    <x-form-actions :cancel-url="route('invoices.index')" />
                 </form>
             </div>
         </div>

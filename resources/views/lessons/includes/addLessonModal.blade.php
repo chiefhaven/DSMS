@@ -87,12 +87,11 @@
             </div>
 
             <!-- Modal Footer -->
-            <div class="modal-footer">
-                <button type="submit" class="btn btn-primary" @click="postLesson">
-                    @{{ state.buttonName }}
+            <x-form-actions modal cancel-click="closeForm">
+                <button type="submit" class="btn btn-primary rounded-pill px-4" @click="postLesson">
+                    Save
                 </button>
-                <button type="button" class="btn btn-default" @click="closeForm">Cancel</button>
-            </div>
+            </x-form-actions>
         </div>
     </div>
 </div>

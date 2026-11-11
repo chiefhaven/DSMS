@@ -77,7 +77,7 @@
                             const csrfToken = $('meta[name="csrf-token"]').attr('content');
                             axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
                             const response = await axios.get('/fetchPayments', {
-                                params: { ...data, status: status.value },
+                                params: data,
                                 withCredentials: true,
                                 headers: {
                                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
