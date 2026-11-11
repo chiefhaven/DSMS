@@ -29,10 +29,22 @@
     <div class="content content-full" id="expenses">
         <div class="block block-rounded block-bordered">
             <div class="block-content">
-                <!-- Loading spinner -->
-                <div v-if="loadingData" class="d-flex flex-column justify-content-center align-items-center" style="height: 300px;">
-                <span class="spinner-border text-primary"></span>
-                <p class="mt-3">Loading expenses...</p>
+                <!-- Skeleton loader -->
+                <div v-if="loadingData" class="table-responsive">
+                  <table class="table table-bordered table-vcenter mb-0">
+                    <thead>
+                      <tr>
+                        <th v-for="i in 11" :key="'h' + i"><div class="skeleton" style="height: 12px; width: 70%;"></div></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="r in 8" :key="'r' + r">
+                        <td v-for="c in 11" :key="'c' + c">
+                          <div class="skeleton" :style="{ height: '14px', width: (50 + ((r * 7 + c * 13) % 45)) + '%' }"></div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
 
                 <!-- DataTable -->
@@ -92,10 +104,11 @@
 
               $('#expensesTable').DataTable({
                 serverSide: true,
-                processing: true,
+                processing: false,
                 scrollCollapse: true,
                 scrollX: true,
                 ajax: async function (data, callback) {
+                  loadingData.value = true;
                   try {
                     const csrfToken = $('meta[name="csrf-token"]').attr('content');
                     axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
@@ -128,6 +141,7 @@
                   } finally {
                     loadingData.value = false;
                     NProgress.done();
+                    nextTick(() => $('#expensesTable').DataTable().columns.adjust());
                   }
                 },
                 columns: [
@@ -223,6 +237,20 @@
 
         expenses.mount('#expenses');
     </script>
+
+    <style>
+        .skeleton {
+            background: linear-gradient(90deg, #e9edf3 25%, #f4f7fb 50%, #e9edf3 75%);
+            background-size: 200% 100%;
+            border-radius: 0.375rem;
+            animation: skeleton-shimmer 1.4s ease-in-out infinite;
+            display: inline-block;
+        }
+        @keyframes skeleton-shimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+    </style>
 
 <!-- END Hero -->
 

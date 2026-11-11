@@ -87,9 +87,23 @@
                     <h5 class="card-title mb-0">Students List</h5>
                 </div>
 
-                <div v-if="state.loadingData" class="card-body d-flex flex-column justify-content-center align-items-center" style="min-height: 300px;">
-                    <div class="spinner-border text-primary" role="status"></div>
-                    <p class="mt-3 mb-0">Loading student data...</p>
+                <div v-if="state.loadingData" class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th v-for="i in 11" :key="'h' + i"><div class="skeleton" style="height: 12px; width: 70%;"></div></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="r in 6" :key="'r' + r">
+                                    <td v-for="c in 11" :key="'c' + c">
+                                        <div class="skeleton" :style="{ height: '14px', width: (50 + ((r * 7 + c * 13) % 45)) + '%' }"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <div v-else class="card-body p-0">
@@ -214,7 +228,7 @@
                 totalAmount: 00,
                 expenseStatus: {{ $expense->approved }},
                 errors: [],                  // Array to store any validation or error messages
-                loadingData: false,
+                loadingData: true,
                 processing: false,
                 admins: [],
             })
@@ -472,4 +486,17 @@
         });
 
     </script>
+    <style>
+        .skeleton {
+            background: linear-gradient(90deg, #e9edf3 25%, #f4f7fb 50%, #e9edf3 75%);
+            background-size: 200% 100%;
+            border-radius: 0.375rem;
+            animation: skeleton-shimmer 1.4s ease-in-out infinite;
+            display: inline-block;
+        }
+        @keyframes skeleton-shimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+    </style>
 @endsection
