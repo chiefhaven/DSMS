@@ -80,6 +80,7 @@
                 <div class="block-content block-content-full text-end">
                   <x-form-actions :cancel-url="url('/bulk-attendances')">
                     <button type="submit" @click="addStudentToGroup()" class="btn btn-primary rounded-pill px-4">Add to list</button>
+                  </x-form-actions>
                 </div>
                 <h2 class="flex-grow-1 fs-5 fw-semibold my-2 my-sm-3 border-lg mb-5">Select students</h2>
                     <hr>
@@ -87,13 +88,18 @@
                     <table class="table table-striped">
                         <thead class="bg-primary text-white">
                           <tr>
+                            <th class="text-end">Action</th>
                             <th>Student Name</th>
                             <th>Lesson attended</th>
-                            <th class="text-end">Action</th>
                           </tr>
                         </thead>
                         <tbody>
                           <tr v-for="(student, index) in state.selectedStudents" :key="index">
+                            <td class="text-end">
+                              <button class="btn btn-danger btn-sm" @click="removeStudentFromGroup(index)">
+                                Remove
+                              </button>
+                            </td>
                             <td>
                               @{{ student.studentName }}
                               <div
@@ -104,12 +110,6 @@
                             </td>
                             <td>
                                 @{{ student.lessonName }}
-                            </td>
-                            <td class="text-end">
-                              <button class="btn btn-danger btn-sm" @click="removeStudentFromGroup(index)">
-                                Remove
-                              </button>
-      </x-form-actions>
                             </td>
                           </tr>
                         </tbody>

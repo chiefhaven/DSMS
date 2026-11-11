@@ -36,15 +36,26 @@
                     <table class="table align-middle mb-0 fs-sm">
                         <thead class="bg-light sticky-top">
                             <tr class="text-uppercase fs-xs text-muted tracking-wide">
+                                <th class="text-center py-3" style="width: 70px;">View</th>
                                 <th class="text-center py-3" style="min-width: 70px;">Photo</th>
                                 <th class="py-3" style="min-width: 150px;">Name</th>
                                 <th class="d-none d-sm-table-cell text-center py-3" style="min-width: 180px;">Course</th>
-                                <th class="text-center py-3" style="width: 70px;">View</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse ($students as $student)
                                 <tr>
+                                    <td class="text-center py-3">
+                                        <a
+                                            href="{{ route('students.show', $student->id) }}"
+                                            class="btn btn-sm btn-outline-primary rounded-2"
+                                            data-bs-toggle="tooltip"
+                                            title="View Student"
+                                            aria-label="View student"
+                                        >
+                                            <i class="fa fa-eye"></i>
+                                        </a>
+                                    </td>
                                     <td class="text-center py-3">
                                         <img
                                             class="rounded-circle border border-2 border-white shadow-sm"
@@ -78,17 +89,6 @@
                                                 Not enrolled
                                             </span>
                                         @endif
-                                    </td>
-                                    <td class="text-center py-3">
-                                        <a
-                                            href="{{ route('students.show', $student->id) }}"
-                                            class="btn btn-sm btn-outline-primary rounded-2"
-                                            data-bs-toggle="tooltip"
-                                            title="View Student"
-                                            aria-label="View student"
-                                        >
-                                            <i class="fa fa-eye"></i>
-                                        </a>
                                     </td>
                                 </tr>
                             @empty
@@ -140,15 +140,18 @@
                     <table class="table align-middle mb-0 fs-sm">
                         <thead class="bg-light">
                             <tr class="text-uppercase fs-xs text-muted tracking-wide">
+                                <th class="text-center py-3" style="width: 70px;">Action</th>
                                 <th class="py-3 ps-4" style="min-width: 200px;">Invoice No.</th>
                                 <th class="d-none d-sm-table-cell py-3" style="min-width:200px">Date</th>
                                 <th class="py-3" style="min-width: 150px;">Student</th>
                                 <th class="text-end py-3 pe-4">Balance</th>
-                                <th class="text-center py-3" style="width: 70px;">Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="n in 5" :key="'inv-skel-'+n">
+                                <td class="text-center py-3">
+                                    <div class="skeleton skeleton-circle mx-auto" style="width: 24px; height: 24px;"></div>
+                                </td>
                                 <td class="py-3 ps-4">
                                     <div class="skeleton skeleton-text" style="width: 80px;"></div>
                                 </td>
@@ -161,9 +164,6 @@
                                 <td class="text-end py-3 pe-4">
                                     <div class="skeleton skeleton-text ms-auto" style="width: 70px;"></div>
                                 </td>
-                                <td class="text-center py-3">
-                                    <div class="skeleton skeleton-circle mx-auto" style="width: 24px; height: 24px;"></div>
-                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -174,15 +174,26 @@
                     <table class="table align-middle mb-0 fs-sm">
                         <thead class="bg-light sticky-top">
                             <tr class="text-uppercase fs-xs text-muted tracking-wide">
+                                <th class="text-center py-3" style="width: 70px;">View</th>
                                 <th class="py-3 ps-4" style="min-width: 200px;">Invoice No.</th>
                                 <th class="d-none d-sm-table-cell py-3" style="min-width:200px">Date</th>
                                 <th class="py-3" style="min-width: 150px;">Student</th>
                                 <th class="text-end py-3 pe-4">Balance</th>
-                                <th class="text-center py-3" style="width: 70px;">View</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="item in info" :key="item.id">
+                                <td class="text-center py-3">
+                                    <a
+                                        :href="'{{ route('invoices.show', '__invoice__') }}'.replace('__invoice__', encodeURIComponent(item.id))"
+                                        class="btn btn-sm btn-outline-primary rounded-2"
+                                        data-bs-toggle="tooltip"
+                                        title="View Invoice"
+                                        aria-label="View invoice"
+                                    >
+                                        <i class="fa fa-eye"></i>
+                                    </a>
+                                </td>
                                 <td class="py-3 ps-4">
                                     <a
                                         :href="'{{ route('invoices.show', '__invoice__') }}'.replace('__invoice__', encodeURIComponent(item.id))"
@@ -210,17 +221,6 @@
                                     >
                                         K@{{ formatPrice(item.invoice_balance) }}
                                     </span>
-                                </td>
-                                <td class="text-center py-3">
-                                    <a
-                                        :href="'{{ route('invoices.show', '__invoice__') }}'.replace('__invoice__', encodeURIComponent(item.id))"
-                                        class="btn btn-sm btn-outline-primary rounded-2"
-                                        data-bs-toggle="tooltip"
-                                        title="View Invoice"
-                                        aria-label="View invoice"
-                                    >
-                                        <i class="fa fa-eye"></i>
-                                    </a>
                                 </td>
                             </tr>
                             <tr v-if="info.length === 0">

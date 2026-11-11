@@ -4,22 +4,17 @@
             <table class="table table-bordered table-striped table-vcenter">
                 <thead>
                     <tr>
+                        <th class="text-center" style="width: 100px;">Actions</th>
                         <th>Date</th>
                         <th>Invoice No</th>
                         <th>Total</th>
                         <th>Balance</th>
                         <th>Due</th>
-                        <th class="text-center" style="width: 100px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if(isset($student->invoice->created_at))
                     <tr>
-                        <td class="font-w600">{{ $student->invoice->date_created->format('j F, Y') }}</td>
-                        <td class="font-w600">{{ $student->invoice->invoice_number }}</td>
-                        <td>K{{ number_format($student->invoice->invoice_total) }}</td>
-                        <td>K{{ number_format($student->invoice->invoice_balance) }}</td>
-                        <td>{{ $student->invoice->invoice_payment_due_date->format('j F, Y') }}</td>
                         <td class="text-center">
                             <div class="dropdown d-inline-block">
                                 <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -51,6 +46,11 @@
                                 </div>
                             </div>
                         </td>
+                        <td class="font-w600">{{ $student->invoice->date_created->format('j F, Y') }}</td>
+                        <td class="font-w600">{{ $student->invoice->invoice_number }}</td>
+                        <td>K{{ number_format($student->invoice->invoice_total) }}</td>
+                        <td>K{{ number_format($student->invoice->invoice_balance) }}</td>
+                        <td>{{ $student->invoice->invoice_payment_due_date->format('j F, Y') }}</td>
                     </tr>
                     @else
                     <tr>
@@ -67,18 +67,38 @@
             <table class="table table-bordered table-striped table-vcenter">
                 <thead>
                     <tr>
+                        <th class="text-center" style="min-width: 7em;">Actions</th>
                         <th style="min-width: 7em;">Date</th>
                         <th>Reference number</th>
                         <th style="min-width: 7em;">Payment Method</th>
                         <th style="min-width: 7em;">Amount</th>
                         <th style="min-width: 7em;">Entered By</th>
                         <th style="min-width: 7em;">Payment Proof</th>
-                        <th class="text-center" style="min-width: 7em;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($student->payment as $payment)
                     <tr>
+                        <td class="text-center">
+                            <div class="dropdown d-inline-block">
+                                <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Action
+                                </button>
+                                @role('superAdmin')
+                                <div class="dropdown-menu dropdown-menu-end p-0">
+                                    <div class="p-2">
+                                        <form method="POST" action="{{ url('delete-payment', $payment->id) }}">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="dropdown-item delete-confirm" data-transaction-id="{{ $payment->transaction_id }}" type="submit">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                                @endrole
+                            </div>
+                        </td>
                         <td class="font-w600">{{ $payment->created_at->format('j F, Y') }}</td>
                         <td class="font-w600">{{ $payment->transaction_id }}</td>
                         <td>{{ $payment->paymentMethod->name ?? '' }}</td>
@@ -113,26 +133,6 @@
                             @else
                                 <span class="badge bg-secondary">No proof</span>
                             @endif
-                        </td>
-                        <td class="text-center">
-                            <div class="dropdown d-inline-block">
-                                <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    Action
-                                </button>
-                                @role('superAdmin')
-                                <div class="dropdown-menu dropdown-menu-end p-0">
-                                    <div class="p-2">
-                                        <form method="POST" action="{{ url('delete-payment', $payment->id) }}">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button class="dropdown-item delete-confirm" data-transaction-id="{{ $payment->transaction_id }}" type="submit">
-                                                Delete
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
-                                @endrole
-                            </div>
                         </td>
                     </tr>
                     @endforeach

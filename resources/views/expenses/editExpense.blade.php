@@ -124,25 +124,25 @@
           <table v-else class="table table-striped">
             <thead class="bg-primary text-white">
               <tr>
+                <th class="text-end">Action</th>
                 <th>Student</th>
                 <th>Expense Option</th>
                 <th>Amount</th>
-                <th class="text-end">Action</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="(student, index) in state.selectedStudents" :key="student.studentId">
+                <td class="text-end">
+                  <button class="btn btn-danger btn-sm" @click="removeStudentFromList(student.studentId, index)">
+                    Remove
+                  </button>
+                </td>
                 <td>
                   @{{ student.fname }} @{{ student.mname }} <strong>@{{ student.sname }}</strong>
                   <div v-if="student.expenses?.[0]?.pivot?.repeat === 1" class="text-danger small">Repeating</div>
                 </td>
                 <td>@{{ student.expenseTypesOptionName }}</td>
                 <td>@{{ formatter.format(student.expenseTypesOptionAmount) }}</td>
-                <td class="text-end">
-                  <button class="btn btn-danger btn-sm" @click="removeStudentFromList(student.studentId, index)">
-                    Remove
-                  </button>
-                </td>
               </tr>
             </tbody>
           </table>

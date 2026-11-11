@@ -107,6 +107,7 @@
           <table id="fleet-table" class="table table-striped table-hover align-middle w-100 fs-sm" aria-labelledby="fleet-table-title">
             <thead>
               <tr>
+                <th scope="col" class="text-end">Actions</th>
                 <th scope="col">Vehicle</th>
                 <th scope="col">Registration</th>
                 <th scope="col">Instructor</th>
@@ -115,7 +116,6 @@
                   <th scope="col" class="text-nowrap">{{ $label }}</th>
                 @endforeach
                 <th scope="col" class="text-nowrap">Licence class</th>
-                <th scope="col" class="text-end">Actions</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -154,6 +154,7 @@
         }
       },
       columns: [
+        { data: 'actions', name: 'actions', className: 'text-center', orderable: false, searchable: false },
         { data: 'vehicle', name: 'car_brand_model' },
         { data: 'car_registration_number', name: 'car_registration_number', className: 'text-nowrap' },
         { data: 'instructor_name', name: 'instructor_name' },
@@ -161,16 +162,15 @@
         @foreach ($operationalFields as $field => $label)
           { data: @json($field), name: @json($field), className: 'text-nowrap' },
         @endforeach
-        { data: 'licence_class', name: 'licenceClass.class', className: 'text-nowrap' },
-        { data: 'actions', name: 'actions', className: 'text-end', orderable: false, searchable: false }
+        { data: 'licence_class', name: 'licenceClass.class', className: 'text-nowrap' }
       ],
       pageLength: 10,
       lengthMenu: [10, 25, 50, 100],
       scrollX: true,
       scrollCollapse: true,
       pagingType: 'simple_numbers',
-      order: [[0, 'asc']],
-      columnDefs: [{ targets: -1, orderable: false, searchable: false }],
+      order: [[1, 'asc']],
+      columnDefs: [{ targets: 0, orderable: false, searchable: false }],
       language: {
         emptyTable: 'No vehicles yet',
         zeroRecords: 'No matching vehicles'

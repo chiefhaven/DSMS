@@ -429,100 +429,100 @@
                                 <h3 class="border-bottom pb-2 mb-3">Downloads</h3>
                                 <table class="table student-downloads">
                                     <thead>
+                                        <th>Action</th>
                                         <th>#</th>
                                         <th style="width:90%">Description</th>
-                                        <th>Action</th>
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td>1</td>
-                                            <td>Traffic Register Card-Reference</td>
                                             <td>
                                                 <form method="POST" action="{{ url('/trafic-card-reference-letter', $student->id) }}">
                                                 {{ csrf_field() }}
                                                 <button class="btn btn-primary rounded-pill px-4" type="submit">Download</button>
                                                 </form>
                                             </td>
+                                            <td>1</td>
+                                            <td>Traffic Register Card-Reference</td>
                                         </tr>
                                         <tr>
-                                            <td>2</td>
-                                            <td>Highway code 1 Aptitude Reference Letter</td>
                                             <td>
                                                 <form method="POST" action="{{ url('/aptitude-test-reference-letter', $student->id) }}">
                                                 {{ csrf_field() }}
                                                 <button class="btn btn-primary rounded-pill px-4" type="submit">Download</button>
                                                 </form>
                                             </td>
+                                            <td>2</td>
+                                            <td>Highway code 1 Aptitude Reference Letter</td>
                                         </tr>
                                         <tr>
-                                        <td>3</td>
-                                            <td>Highway code 2 Aptitude Reference Letter</td>
-                                            <td>
+                                        <td>
                                                 <form method="POST" action="{{ url('/second-aptitude-test-reference-letter', $student->id) }}">
                                                 {{ csrf_field() }}
                                                 <button class="btn btn-primary rounded-pill px-4" type="submit">Download</button>
                                                 </form>
                                             </td>
+                                            <td>3</td>
+                                            <td>Highway code 2 Aptitude Reference Letter</td>
                                         </tr>
                                         <tr>
-                                        <td>4</td>
-                                            <td>Road Test Reference Letter</td>
-                                            <td>
+                                        <td>
                                                 <form method="POST" action="{{ url('/final-test-reference-letter', $student->id) }}">
                                                 {{ csrf_field() }}
                                                 <button class="btn btn-primary rounded-pill px-4" type="submit">Download</button>
                                                 </form>
                                             </td>
+                                            <td>4</td>
+                                            <td>Road Test Reference Letter</td>
                                         </tr>
                                         <tr>
-                                            <td>5</td>
-                                            <td>G and D Aptitude Test Reference Letter</td>
                                             <td>
                                                 <form method="POST" action="{{ url('/g-and-d-aptitude-test-reference-letter', $student->id) }}">
                                                 {{ csrf_field() }}
                                                 <button class="btn btn-primary rounded-pill px-4" type="submit">Download</button>
                                                 </form>
                                             </td>
+                                            <td>5</td>
+                                            <td>G and D Aptitude Test Reference Letter</td>
                                         </tr>
                                         <tr>
-                                            <td>6</td>
-                                            <td>G and D Road Test Reference Letter</td>
                                             <td>
                                                 <form method="POST" action="{{ url('/g-and-d-road-test-reference-letter', $student->id) }}">
                                                 {{ csrf_field() }}
                                                 <button class="btn btn-primary rounded-pill px-4" type="submit">Download</button>
                                                 </form>
                                             </td>
+                                            <td>6</td>
+                                            <td>G and D Road Test Reference Letter</td>
                                         </tr>
                                         <tr>
-                                            <td>7</td>
-                                            <td>Category P Aptitude Test Reference Letter</td>
                                             <td>
                                                 <form method="POST" action="{{ url('/category-p-aptitude-test-reference-letter', $student->id) }}">
                                                 {{ csrf_field() }}
                                                 <button class="btn btn-primary rounded-pill px-4" type="submit">Download</button>
                                                 </form>
                                             </td>
+                                            <td>7</td>
+                                            <td>Category P Aptitude Test Reference Letter</td>
                                         </tr>
                                         <tr>
-                                            <td>8</td>
-                                            <td>Category P Road Test Reference Letter</td>
                                             <td>
                                                 <form method="POST" action="{{ url('/category-p-road-test-reference-letter', $student->id) }}">
                                                 {{ csrf_field() }}
                                                 <button class="btn btn-primary rounded-pill px-4" type="submit">Download</button>
                                                 </form>
                                             </td>
+                                            <td>8</td>
+                                            <td>Category P Road Test Reference Letter</td>
                                         </tr>
                                         <tr>
-                                            <td>9</td>
-                                            <td>Lesson Attendance Report</td>
                                             <td>
                                                 <form method="POST" action="{{ url('/lesson-report', $student->id) }}">
                                                 {{ csrf_field() }}
                                                 <button class="btn btn-primary rounded-pill px-4" type="submit">Download</button>
                                                 </form>
                                             </td>
+                                            <td>9</td>
+                                            <td>Lesson Attendance Report</td>
                                         </tr>
                                     </tbody>
                                 </table>

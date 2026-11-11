@@ -95,14 +95,19 @@
                     <table class="table table-striped">
                         <thead class="bg-primary text-white">
                           <tr>
+                            <th class="text-end">Action</th>
                             <th>Student Name</th>
                             <th>Expense Type</th>
                             <th>Amount</th>
-                            <th class="text-end">Action</th>
                           </tr>
                         </thead>
                         <tbody>
                           <tr v-for="(student, index) in state.selectedStudents" :key="index">
+                            <td class="text-end">
+                              <button class="btn btn-danger btn-sm" @click="removeStudentFromGroup(index)">
+                                Remove
+                              </button>
+                            </td>
                             <td>
                               @{{ student.studentName }}
                               <div
@@ -113,11 +118,6 @@
                             </td>
                             <td>@{{ student.expenseTypesOptionName }}</td>
                             <td>@{{ student.expenseTypesOptionAmount }}</td>
-                            <td class="text-end">
-                              <button class="btn btn-danger btn-sm" @click="removeStudentFromGroup(index)">
-                                Remove
-                              </button>
-                            </td>
                           </tr>
                         </tbody>
                     </table>

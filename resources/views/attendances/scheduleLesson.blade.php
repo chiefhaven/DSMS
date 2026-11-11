@@ -135,17 +135,14 @@
                         <table class="table table striped">
                             <thead>
                                 <tr>
+                                    <th style="min-width: 100px;">Action</th>
                                     <th>Student</th>
                                     <th>Lesson</th>
                                     <th>Date/Time</th>
-                                    <th style="min-width: 100px;">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="event in eventItems" :key="event.id">
-                                    <td>@{{ event.student.fname }} @{{ event.student.mname ?? '' }} @{{ event.student.sname }}</td>
-                                    <td>@{{ event.lesson.name }}</td>
-                                    <td>@{{ formatDate(event.start) }}</td>
                                     <td>
                                         <button class="btn btn-sm me-1" @click="editEvent(event)">
                                             <i class="fas fa-edit"></i>
@@ -155,6 +152,9 @@
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
+                                    <td>@{{ event.student.fname }} @{{ event.student.mname ?? '' }} @{{ event.student.sname }}</td>
+                                    <td>@{{ event.lesson.name }}</td>
+                                    <td>@{{ formatDate(event.start) }}</td>
                                 </tr>
                             </tbody>
                         </table>

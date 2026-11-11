@@ -106,20 +106,20 @@
                     <table class="table table-striped">
                       <thead>
                         <tr>
+                          <th>Action</th>
                           <th>Student</th>
                           <th>Lesson</th>
                           <th>Location</th>
-                          <th>Action</th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr v-for="(selectedStudent, index) in selectedStudents" :key="index">
-                            <td>@{{ selectedStudent.student }}</td>
-                            <td>@{{ selectedStudent.selectedLesson.name }}</td>
-                            <td>@{{ selectedStudent.location }}</td>
                             <td>
                                 <span><button class="btn btn-danger btn-sm" @click="removeStudentFromList(index)">Remove</button></span>
                             </td>
+                            <td>@{{ selectedStudent.student }}</td>
+                            <td>@{{ selectedStudent.selectedLesson.name }}</td>
+                            <td>@{{ selectedStudent.location }}</td>
                         </tr>
                       </tbody>
                     </table>

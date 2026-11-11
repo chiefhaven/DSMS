@@ -91,17 +91,27 @@
             <table class="table table-hover mb-0">
               <thead class="table-light">
                 <tr>
+                  <th width="15%">Actions</th>
                   <th width="5%">#</th>
                   <th>Student</th>
                   <th>Balance</th>
                   <th class="text-center">Class</th>
                   <th>Expense Type</th>
                   <th>Amount</th>
-                  <th width="15%">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="(student, index) in state.selectedStudents" :key="student.studentId">
+                  <td>
+                    <button
+                      :disabled="state.expenseStatus !== 0"
+                      class="btn btn-sm btn-outline-danger rounded-pill px-2"
+                      @click="removeStudentFromList(student.studentId, index)"
+                      :title="state.expenseStatus !== 0 ? 'Editing disabled for approved expenses' : 'Remove student'"
+                    >
+                      Remove
+                    </button>
+                  </td>
                   <td>@{{ index + 1 }}</td>
                   <td>
                     <div class="d-flex flex-column">
@@ -134,16 +144,6 @@
                     <span class="">
                       @{{ formatter.format(student.expenseTypesOptionAmount) || '-' }}
                     </span>
-                  </td>
-                  <td>
-                    <button
-                      :disabled="state.expenseStatus !== 0"
-                      class="btn btn-sm btn-outline-danger rounded-pill px-2"
-                      @click="removeStudentFromList(student.studentId, index)"
-                      :title="state.expenseStatus !== 0 ? 'Editing disabled for approved expenses' : 'Remove student'"
-                    >
-                      Remove
-                    </button>
                   </td>
                 </tr>
               </tbody>

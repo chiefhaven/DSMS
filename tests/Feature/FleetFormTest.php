@@ -85,9 +85,9 @@ class FleetFormTest extends TestCase
             $xpath = new \DOMXPath($document);
             $this->assertSame(16, $xpath->query('//table[@id="fleet-table"]/thead/tr/th')->length);
             $this->assertSame([
-                'Vehicle', 'Registration', 'Instructor', 'Students', 'Insurance expiry',
+                'Actions', 'Vehicle', 'Registration', 'Instructor', 'Students', 'Insurance expiry',
                 'Roadworthiness expiry', 'Odometer (km)', 'Last service', 'Next service (km)',
-                'Insurer', 'Year', 'Engine (cc)', 'Fuel', 'Transmission', 'Licence class', 'Actions',
+                'Insurer', 'Year', 'Engine (cc)', 'Fuel', 'Transmission', 'Licence class',
             ], array_map(fn ($node) => trim($node->textContent), iterator_to_array($xpath->query('//table[@id="fleet-table"]/thead/tr/th'))));
             $this->assertSame(0, $xpath->query('//table[@id="fleet-table"]/tbody/tr')->length);
             $this->assertSame(0, $xpath->query('//table[@id="fleet-table"]//script | //table[@id="fleet-table"]//td[@colspan]')->length);

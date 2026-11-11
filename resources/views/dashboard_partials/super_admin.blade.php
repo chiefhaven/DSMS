@@ -179,11 +179,11 @@
                         <table class="table align-middle mb-0 fs-sm">
                             <thead class="bg-light sticky-top">
                                 <tr class="text-uppercase fs-xs text-muted tracking-wide">
+                                    <th class="text-center py-3" style="width: 80px;">View</th>
                                     <th class="text-center py-3" style="width: 70px;">Photo</th>
                                     <th class="py-3" style="min-width: 150px;">Name</th>
                                     <th class="py-3">Gender</th>
                                     <th class="d-none d-md-table-cell text-center py-3" style="min-width: 250px;">Course</th>
-                                    <th class="text-center py-3" style="width: 80px;">View</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -197,6 +197,17 @@
                                         };
                                     @endphp
                                     <tr>
+                                        <td class="text-center py-3">
+                                            <a
+                                                href="{{ route('students.show', $student->id) }}"
+                                                class="btn btn-sm btn-outline-primary rounded-2"
+                                                data-bs-toggle="tooltip"
+                                                title="View Student"
+                                                aria-label="View student"
+                                            >
+                                                <i class="fa fa-eye"></i>
+                                            </a>
+                                        </td>
                                         <td class="text-center py-3">
                                             <img
                                                 class="rounded-circle border border-2 border-white shadow-sm"
@@ -235,17 +246,6 @@
                                                     Not enrolled
                                                 </span>
                                             @endif
-                                        </td>
-                                        <td class="text-center py-3">
-                                            <a
-                                                href="{{ route('students.show', $student->id) }}"
-                                                class="btn btn-sm btn-outline-primary rounded-2"
-                                                data-bs-toggle="tooltip"
-                                                title="View Student"
-                                                aria-label="View student"
-                                            >
-                                                <i class="fa fa-eye"></i>
-                                            </a>
                                         </td>
                                     </tr>
                                 @empty

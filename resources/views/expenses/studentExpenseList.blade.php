@@ -31,6 +31,7 @@
                         <table class="table table-bordered table-striped">
                             <thead>
                                 <tr>
+                                    <th>Action</th>
                                     <th>#</th>
                                     <th>Group</th>
                                     <th>Type</th>
@@ -39,35 +40,10 @@
                                     <th>Balance</th>
                                     <th>List status</th>
                                     <th>Payment status</th>
-                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="(expense, index) in student.expenses" :key="expense.id">
-                                    <td>@{{ index + 1 }}</td>
-                                    <td>
-                                        @{{ expense.group }}
-                                    </td>
-                                    <td>
-                                        @{{ getExpenseOptionName(expense.pivot?.expense_type) }}<br>
-                                        <span
-                                          v-if="expense.pivot?.repeat === 1"
-                                          class="badge bg-danger"
-                                          style="font-size: 0.8rem;">
-                                          <small>Repeating</small>
-                                        </span>
-                                    </td>
-                                    <td>K@{{ formatCurrency(expense.pivot?.amount) }}</td>
-                                    <td>K@{{ formatCurrency(expense.pivot?.paid) }}</td>
-                                    <td>K@{{ formatCurrency(expense.pivot?.balance) }}</td>
-                                    <td>
-                                        <span v-if="expense.approved" class="badge bg-success">Approved</span>
-                                        <span v-else class="badge bg-warning">Pending</span>
-                                    </td>
-                                    <td>
-                                        <span v-if="expense.pivot?.status === 1" class="badge bg-success">Paid</span>
-                                        <span v-else class="badge bg-warning">Pending</span>
-                                    </td>
                                     <td>
                                         <div class="d-flex flex-column align-items-start">
 
@@ -93,6 +69,30 @@
 
                                         </div>
                                       </td>
+                                    <td>@{{ index + 1 }}</td>
+                                    <td>
+                                        @{{ expense.group }}
+                                    </td>
+                                    <td>
+                                        @{{ getExpenseOptionName(expense.pivot?.expense_type) }}<br>
+                                        <span
+                                          v-if="expense.pivot?.repeat === 1"
+                                          class="badge bg-danger"
+                                          style="font-size: 0.8rem;">
+                                          <small>Repeating</small>
+                                        </span>
+                                    </td>
+                                    <td>K@{{ formatCurrency(expense.pivot?.amount) }}</td>
+                                    <td>K@{{ formatCurrency(expense.pivot?.paid) }}</td>
+                                    <td>K@{{ formatCurrency(expense.pivot?.balance) }}</td>
+                                    <td>
+                                        <span v-if="expense.approved" class="badge bg-success">Approved</span>
+                                        <span v-else class="badge bg-warning">Pending</span>
+                                    </td>
+                                    <td>
+                                        <span v-if="expense.pivot?.status === 1" class="badge bg-success">Paid</span>
+                                        <span v-else class="badge bg-warning">Pending</span>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
