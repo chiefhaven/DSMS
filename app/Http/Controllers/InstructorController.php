@@ -30,17 +30,81 @@ class InstructorController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['role:superAdmin|admin']);
+        $this->middleware(['permission:manage administration']);
     }
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $instructors = Instructor::with('User', 'Lesson', 'Fleet')->get();
-        return view('instructors.instructors', compact('instructors'));
+        if ($request->ajax()) {
+            $search = trim((string) $request->input('search.value', ''));
+            $instructors = Instructor::query()
+                ->with(['user', 'department', 'fleet', 'classrooms']);
+
+            if ($search !== '') {
+                $instructors->where(function ($query) use ($search) {
+                    $query->where('fname', 'like', "%{$search}%")
+                        ->orWhere('sname', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%")
+                        ->orWhere('status', 'like', "%{$search}%")
+                        ->orWhereHas('user', fn ($userQuery) => $userQuery->where('email', 'like', "%{$search}%"))
+                        ->orWhereHas('department', fn ($departmentQuery) => $departmentQuery->where('name', 'like', "%{$search}%"));
+                });
+            }
+
+            return DataTables::of($instructors)
+                ->filter(function () {
+                    // Search is applied to the instructor and related user/profile fields above.
+                })
+                ->addColumn('instructor', fn (Instructor $instructor) =>
+                    e(trim($instructor->fname . ' ' . $instructor->sname))
+                )
+                ->addColumn('email', fn (Instructor $instructor) => e($instructor->user?->email ?? '-'))
+                ->addColumn('department_name', fn (Instructor $instructor) => e($instructor->department?->name ?? '-'))
+                ->addColumn('assignment', function (Instructor $instructor) {
+                    $assignments = [];
+
+                    if ($instructor->fleet) {
+                        $assignments[] = '<div class="fw-semibold">'
+                            . e($instructor->fleet->car_registration_number)
+                            . '</div><small class="text-muted">'
+                            . e($instructor->fleet->car_brand_model)
+                            . '</small>';
+                    }
+
+                    foreach ($instructor->classrooms as $classroom) {
+                        $assignments[] = e($classroom->name . ' - ' . $classroom->location);
+                    }
+
+                    return $assignments ? implode('<br>', $assignments) : '<span class="text-muted">None</span>';
+                })
+                ->addColumn('status_badge', fn (Instructor $instructor) =>
+                    '<span class="badge bg-' . (strcasecmp($instructor->status, 'active') === 0 ? 'success' : 'secondary') . '">'
+                    . e($instructor->status) . '</span>'
+                )
+                ->addColumn('actions', function (Instructor $instructor) {
+                    $id = e($instructor->getKey());
+                    $name = e(trim($instructor->fname . ' ' . $instructor->sname));
+
+                    return '<div class="dropdown">'
+                        . '<button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Actions</button>'
+                        . '<ul class="dropdown-menu dropdown-menu-end">'
+                        . '<li><a class="dropdown-item" href="' . route('instructors.show', $id) . '"><i class="fas fa-eye me-2"></i>View Profile</a></li>'
+                        . '<li><a class="dropdown-item" href="' . route('instructors.edit', $id) . '"><i class="fas fa-edit me-2"></i>Edit Profile</a></li>'
+                        . '<li><hr class="dropdown-divider"></li>'
+                        . '<li><form method="POST" action="' . route('instructors.destroy', $id) . '">'
+                        . csrf_field() . method_field('DELETE')
+                        . '<button class="dropdown-item text-danger delete-confirm" type="submit" data-name="' . $name . '"><i class="fas fa-trash-alt me-2"></i>Delete</button>'
+                        . '</form></li></ul></div>';
+                })
+                ->rawColumns(['assignment', 'status_badge', 'actions'])
+                ->toJson();
+        }
+
+        return view('instructors.instructors');
     }
 
     public function fetchStudents(Request $request): JsonResponse
@@ -185,7 +249,7 @@ class InstructorController extends Controller
                 $delete = '';
                 $paymentReminder = '';
 
-                if (auth()->user()->hasRole(['superAdmin', 'admin']) && ($student->invoice->invoice_balance ?? 0) > 0) {
+                if (auth()->user()->can('manage administration') && ($student->invoice->invoice_balance ?? 0) > 0) {
                     $paymentReminder = '
                         <form method="POST" action="' . url('send-balance-sms', [$student->id, 'Balance']) . '">
                             ' . csrf_field() . '
@@ -206,7 +270,7 @@ class InstructorController extends Controller
                                         <i class='fas fa-toggle-on'></i> Change status
                                 </button>";
 
-                if (auth()->user()->hasRole('superAdmin')) {
+                if (auth()->user()->can('manage system')) {
                     $edit = '<a class="dropdown-item" href="' . route('students.edit', ['student' => $student->id]) . '">
                                 <i class="fa fa-pencil"></i> Edit
                             </a>';
@@ -350,16 +414,67 @@ class InstructorController extends Controller
      * @param  \App\Models\Instructor  $instructor
      * @return \Illuminate\Http\Response
      */
-    public function show($instructor)
+    public function show($instructor, Request $request)
     {
-        $instructor = Instructor::with([
-            'user',
-            'lesson',
-            'fleet.student.invoice',
-            'classrooms.students.invoice'
-        ])->findOrFail($instructor);
+        $instructor = Instructor::findOrFail($instructor);
 
-        return view('instructors.viewinstructor', compact('instructor'));
+        if ($request->ajax()) {
+            $request->validate(['section' => 'required|in:attendances,chart']);
+
+            if ($request->section === 'chart') {
+                $request->validate(['month' => 'sometimes|required|date_format:Y-m']);
+                $start = \Illuminate\Support\Carbon::createFromFormat('!Y-m', $request->input('month', now()->format('Y-m')));
+                $end = $start->copy()->addMonth();
+                $attendances = $instructor->attendances()
+                    ->where('attendance_date', '>=', $start)->where('attendance_date', '<', $end)
+                    ->selectRaw('DATE(attendance_date) as day, COUNT(*) as total')
+                    ->groupByRaw('DATE(attendance_date)')->pluck('total', 'day');
+                $schedules = $instructor->schedules()
+                    ->where('start_time', '>=', $start)->where('start_time', '<', $end)
+                    ->selectRaw('DATE(start_time) as day, COUNT(*) as total')
+                    ->groupByRaw('DATE(start_time)')->pluck('total', 'day');
+                $labels = $attendances->keys()->merge($schedules->keys())->unique()->sort()->values();
+
+                return response()->json([
+                    'labels' => $labels,
+                    'attendances' => $labels->map(fn ($day) => (int) $attendances->get($day, 0)),
+                    'schedules' => $labels->map(fn ($day) => (int) $schedules->get($day, 0)),
+                ]);
+            }
+
+            $search = trim((string) $request->input('search.value', ''));
+
+            return DataTables::of($instructor->attendances()->with(['student', 'lesson'])->select('attendances.*'))
+                ->makeHidden(['student', 'lesson'])
+                ->filter(function ($query) use ($search) {
+                    if ($search !== '') {
+                        $query->where(function ($query) use ($search) {
+                            $query->where('attendances.created_at', 'like', "%{$search}%")
+                                ->orWhereHas('student', function ($student) use ($search) {
+                                    $student->where('fname', 'like', "%{$search}%")
+                                        ->orWhere('mname', 'like', "%{$search}%")
+                                        ->orWhere('sname', 'like', "%{$search}%");
+                                })
+                                ->orWhereHas('lesson', fn ($lesson) => $lesson->where('name', 'like', "%{$search}%"));
+                        });
+                    }
+                })
+                ->editColumn('created_at', fn ($attendance) => $attendance->created_at?->toIso8601String())
+                ->addColumn('student_name', fn ($attendance) => $attendance->student
+                    ? trim(implode(' ', array_filter([
+                        $attendance->student->fname, $attendance->student->mname, $attendance->student->sname,
+                    ])))
+                    : 'Unavailable')
+                ->addColumn('lesson_name', fn ($attendance) => $attendance->lesson?->name ?? 'Unavailable')
+                ->only(['created_at', 'student_name', 'lesson_name'])
+                ->toJson();
+        }
+
+        $instructor->load(['user', 'department', 'fleet', 'classrooms']);
+        $activeStudents = $instructor->assignedStudents()->where('status', '!=', 'Finished')->count();
+        $completedStudents = $instructor->assignedStudents()->where('status', 'Finished')->count();
+
+        return view('instructors.viewinstructor', compact('instructor', 'activeStudents', 'completedStudents'));
     }
 
     /**
@@ -382,8 +497,7 @@ class InstructorController extends Controller
      */
     public function showProfile()
     {
-        $instructor = Instructor::find(Auth::user()->instructor_id);
-        return view('instructors.viewinstructor', compact('instructor'));
+        return $this->show(auth()->user()->instructor_id, request());
     }
 
     /**

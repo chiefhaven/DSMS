@@ -27,6 +27,7 @@
         <h1 class="fs-3 fw-semibold mt-2 mb-1">{{ $fleet->car_brand_model }}</h1>
         <p class="text-muted mb-0">{{ $fleet->car_registration_number }}</p>
       </div>
+      @can('edit fleet')
       <div class="flex-shrink-0">
             <div class="dropdown d-inline-block">
                 <button type="button" class="btn btn-primary rounded-pill px-3" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -47,6 +48,7 @@
                     <span>Assign Instructor</span>
                   </a>
                 </div>
+                @endcan
             </div>
       </div>
     </div>

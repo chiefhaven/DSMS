@@ -86,7 +86,7 @@ class AttendanceController extends Controller
             ->editColumn('attendance_date', fn (Attendance $a) => $a->attendance_date?->format('j F, Y, H:i:s') ?? '-')
             ->addColumn('actions', function (Attendance $a) {
                 $buttons = '<a href="' . e(url("/viewattendance/{$a->id}")) . '" class="dropdown-item">View</a>';
-                if (Auth::user()->hasRole('superAdmin')) {
+                if (Auth::user()->can('manage system')) {
                     $buttons .= '<form method="POST" action="' . e(url("/editattendance/{$a->id}")) . '">'
                         . csrf_field() . '<button class="dropdown-item" type="submit">Edit</button></form>';
                     $buttons .= '<form method="POST" action="' . e(route('attendances.destroy', $a->id)) . '">'
@@ -356,7 +356,7 @@ class AttendanceController extends Controller
 
     public function update(UpdateAttendanceRequest $request, Attendance $attendance)
     {
-        abort_unless(Auth::user()->hasRole('superAdmin'), 403);
+        abort_unless(Auth::user()->can('manage system'), 403);
         $data = $request->validate([
             'date' => ['required', 'date'],
             'student' => ['required', 'string'],
@@ -379,7 +379,7 @@ class AttendanceController extends Controller
 
     public function destroy($id)
     {
-        abort_unless(Auth::user()->hasRole('superAdmin'), 403);
+        abort_unless(Auth::user()->can('manage system'), 403);
         Attendance::findOrFail($id)->delete();
         Alert::toast('Attendance deleted!', 'success');
         return back();

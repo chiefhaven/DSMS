@@ -14,7 +14,7 @@
                         </div>
                     @endif
 
-                    @role(['superAdmin', 'admin', 'financeAdmin'])
+                    @canany(['create students', 'generate student reports'])
                         <div class="dropdown d-inline-block">
                             <button type="button"
                                     class="btn btn-primary rounded-pill px-4"
@@ -27,18 +27,20 @@
                             </button>
                             <div class="dropdown-menu dropdown-menu-end p-0">
                                 <div class="p-2">
-                                    @role(['superAdmin', 'admin'])
+                                    @can('create students')
                                         <a href="{{ route('students.create') }}" class="dropdown-item">
                                             <i class="fa fa-fw fa-user-plus me-1"></i> Add student
                                         </a>
-                                    @endrole
+                                    @endcan
+                                    @can('generate student reports')
                                     <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#download-student-report">
                                         <i class="fa fa-download me-1"></i> Students report
                                     </button>
+                                    @endcan
                                 </div>
                             </div>
                         </div>
-                    @endrole
+                    @endcanany
                 </nav>
             </div>
         </div>
@@ -46,7 +48,7 @@
 
     <div class="content content-full" id="students">
 
-        @role(['superAdmin', 'admin'])
+        @can('view all students')
         {{-- Stat Cards --}}
         <div class="row g-3 mb-4">
             <!-- Active Students -->
@@ -193,7 +195,7 @@
                 </div>
             </div>
         </div>
-        @endrole
+        @endcan
 
         {{-- Students Table --}}
         <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
@@ -265,11 +267,13 @@
             </div>
         </div>
 
-        @include('students.partials.changeStatusVue')
+        @can('change student status')
+            @include('students.partials.changeStatusVue')
+        @endcan
 
     </div>
 
-    @role(['superAdmin', 'admin'])
+    @can('generate student reports')
         <!-- Download Student Report Modal -->
         <div class="modal fade" id="download-student-report" tabindex="-1" aria-labelledby="download-student-report" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered" role="document">
@@ -340,7 +344,7 @@
                 </div>
             </div>
         </div>
-    @endrole
+    @endcan
 
     <script>
         const students = createApp({

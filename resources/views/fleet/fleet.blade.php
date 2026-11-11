@@ -46,9 +46,11 @@
         <h1 class="fs-3 fw-semibold mb-1">Fleet</h1>
         <p class="text-muted mb-0">Vehicles and instructor assignments.</p>
       </div>
+          @can('create fleet')
           <a href="{{ route('fleet.create') }}" class="btn btn-primary rounded-pill px-4 align-self-start align-self-sm-center">
             <i class="fa fa-plus me-1"></i> Add vehicle
           </a>
+          @endcan
     </div>
   </div>
 </div>

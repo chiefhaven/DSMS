@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Support\Str;
@@ -20,6 +21,18 @@ class Student extends Model
     public $incrementing = false;
 
     protected $fillable = ['_token', 'fname', 'sname', 'trn', 'date_of_birth', 'phone', 'gender', 'address', 'district', 'name', 'text'];
+
+    public static function readableBy(User $user): Builder
+    {
+        if ($user->can('view all students')) {
+            return static::query();
+        }
+
+        $instructor = Instructor::find($user->instructor_id);
+        abort_unless($instructor, 403, 'An instructor profile is required.');
+
+        return $instructor->assignedStudents();
+    }
 
     public function getFormattedStatusAttribute()
     {

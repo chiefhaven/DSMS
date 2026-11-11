@@ -5,12 +5,12 @@
         <a class="dropdown-item" href="{{ route('students.show', $student->id) }}">
             <i class="fa fa-user"></i> Profile
         </a>
-        @if(auth()->user()->hasRole(['superAdmin', 'admin']))
+        @can('edit students')
             <a class="dropdown-item" href="{{ route('students.edit', $student->id) }}">
                 <i class="fa fa-pencil"></i> Edit
             </a>
-        @endif
-        @if(auth()->user()->hasRole(['superAdmin']))
+        @endcan
+        @can('delete students')
             <form method="POST" action="{{ route('students.destroy', $student->id) }}">
                 @csrf
                 @method('DELETE')
@@ -18,6 +18,6 @@
                     <i class="fa fa-trash"></i> Delete
                 </button>
             </form>
-        @endif
+        @endcan
     </div>
 </div>

@@ -1,4 +1,4 @@
-@role(['superAdmin', 'admin', 'instructor', 'financeAdmin'])
+@can('access operations')
     <!-- Modal Backdrop -->
     <div v-if="showStatusChangeModal" class="modal-backdrop fade show" style="background-color: rgba(0,0,0,0.5);"></div>
 
@@ -43,14 +43,14 @@
                                     class="form-select border-2 rounded-3 py-3"
                                     id="studentStatus"
                                     style="background-image: none; border-color: #dee2e6;">
-                                @role(['superAdmin', 'admin'])
+                                @can('manage administration')
                                 <option value="Pending" class="text-warning">
                                     <i class="fas fa-clock me-2"></i> Pending
                                 </option>
                                 <option value="In progress" class="text-primary">
                                     <i class="fas fa-spinner me-2"></i> In Progress
                                 </option>
-                                @endrole
+                                @endcan
                                 <option value="Finished" class="text-success">
                                     <i class="fas fa-check-circle me-2"></i> Finished
                                 </option>
@@ -109,4 +109,4 @@
     </div>
     <div v-else>
     </div>
-@endrole
+@endcan

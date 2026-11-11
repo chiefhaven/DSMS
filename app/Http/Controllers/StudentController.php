@@ -26,6 +26,7 @@ use PDF;
 use RealRashid\SweetAlert\Facades\Alert;
 use Auth;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
@@ -34,7 +35,48 @@ class StudentController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['role:superAdmin|admin|instructor|financeAdmin']);
+        $this->middleware('permission:view students')->only(['index', 'fetchStudents', 'fetchInstructorStudents', 'show', 'search']);
+        $this->middleware('permission:create students')->only(['create', 'store']);
+        $this->middleware('permission:edit students')->only(['edit', 'update']);
+        $this->middleware('permission:delete students')->only('destroy');
+        $this->middleware('permission:change student status')->only('updateStudentStatus');
+        $this->middleware('permission:assign students')->only(['assignCar', 'unAssignCar', 'assignClassRoom']);
+        $this->middleware('permission:generate student reports')->only(['studentsPDF', 'lessonReport']);
+        $this->middleware('permission:generate student letters')->only([
+            'trafficCardReferenceLetter', 'aptitudeTestReferenceLetter', 'secondAptitudeTestReferenceLetter',
+            'finalReferenceLetter', 'gdRoadTestReferenceLetter', 'gdAptitudeTestReferenceLetter',
+            'categoryPAptitudeReferenceLetter', 'categoryPRoadTestReferenceLetter',
+        ]);
+        $this->middleware(function ($request, $next) {
+            $student = $request->route('student') ?? $request->route('id')
+                ?? $request->input('student') ?? $request->input('student_id');
+            if ($student instanceof Student) {
+                $student = $student->getKey();
+            }
+            if (is_string($student) && $student !== '') {
+                $this->readableStudents()->findOrFail($student);
+            }
+            return $next($request);
+        })->only(['edit', 'update', 'destroy', 'updateStudentStatus', 'assignCar', 'unAssignCar', 'assignClassRoom']);
+        $this->middleware(function ($request, $next) {
+            $this->readableStudents()->findOrFail($request->route('id'));
+            return $next($request);
+        })->only([
+            'lessonReport', 'trafficCardReferenceLetter', 'aptitudeTestReferenceLetter',
+            'secondAptitudeTestReferenceLetter', 'finalReferenceLetter', 'gdRoadTestReferenceLetter',
+            'gdAptitudeTestReferenceLetter', 'categoryPAptitudeReferenceLetter', 'categoryPRoadTestReferenceLetter',
+        ]);
+    }
+
+    private function readableStudents(): Builder
+    {
+        return Student::readableBy(Auth::user());
+    }
+
+    private function studentLevelCount(Builder $students, string $level): int
+    {
+        $levelId = TrainingLevel::where('name', $level)->firstOrFail()->id;
+        return (clone $students)->whereHas('course', fn ($query) => $query->where('trainingLevel_id', $levelId))->count();
     }
     /**
      * Display a listing of the resource.
@@ -48,7 +90,7 @@ class StudentController extends Controller
 
         $status = $request->status;
 
-        $students = Student::with(['user', 'course', 'fleet', 'invoice', 'classroom', 'trainingLevel'])
+        $students = $this->readableStudents()->with(['user', 'course', 'fleet', 'invoice', 'classroom', 'trainingLevel'])
             ->when($status === 'active', function ($query) {
                 $query->where(function ($q) {
                     $q->whereNotNull('fleet_id')
@@ -74,35 +116,6 @@ class StudentController extends Controller
                     ->where('status', '!=', 'Finished');
             })
             ->orderBy('created_at', 'desc');
-
-        if (Auth::user()->hasRole('instructor')) {
-
-            $instructor = Auth::user()->instructor;
-
-            if ($instructor->department) {
-                $departmentName = $instructor->department->name;
-
-                switch ($departmentName) {
-                    case 'practical':
-                        $fleetAssigned = Fleet::where('instructor_id', $instructor->id)->first();
-                        if ($fleetAssigned) {
-                            $students->where('fleet_id', $fleetAssigned->id);
-                        } else {
-                            throw new ModelNotFoundException(__('You are not allocated a car.'));
-                        }
-                        break;
-
-                    case 'theory':
-                        $classroomIds = $instructor->classrooms->pluck('id');
-                        if ($classroomIds->isNotEmpty()) {
-                            $students->whereIn('classroom_id', $classroomIds);
-                        } else {
-                            throw new ModelNotFoundException(__('You are not allocated a class room.'));
-                        }
-                        break;
-                }
-            }
-        }
 
         // Apply the search filter to the 'fname', 'mname', and 'sname' columns
         if ($search) {
@@ -173,6 +186,9 @@ class StudentController extends Controller
                 return $text . '<br>' . $badge;
             })
             ->addColumn('course_status', function ($student) {
+                if (!auth()->user()->can('change student status')) {
+                    return e(ucfirst($student->status));
+                }
                 return '<span class="status-span"
                             data-status="' . e($student->status) . '"
                             data-fname="' . e($student->fname) . '"
@@ -199,7 +215,7 @@ class StudentController extends Controller
                 $delete = '';
                 $paymentReminder = '';
 
-                $changeStatus = "<button
+                $changeStatus = auth()->user()->can('change student status') ? "<button
                                     class='dropdown-item change-status-btn'
                                     data-fname=\"" . e($student->fname) . "\"
                                     data-mname=\"" . e($student->mname) . "\"
@@ -207,8 +223,8 @@ class StudentController extends Controller
                                     data-id=\"" . e($student->id) . "\"
                                     data-status=\"" . e($student->status) . "\">
                                         <i class='fas fa-toggle-on me-2'></i> Change status
-                                </button>";
-                if (auth()->user()->hasRole(['superAdmin', 'admin']) && ($student->invoice->invoice_balance ?? 0) > 0) {
+                                </button>" : '';
+                if (auth()->user()->can('manage administration') && ($student->invoice->invoice_balance ?? 0) > 0) {
                     $paymentReminder = '
                         <form method="POST" action="' . url('send-balance-sms', [$student->id, 'Balance']) . '">
                             ' . csrf_field() . '
@@ -219,11 +235,12 @@ class StudentController extends Controller
                     ';
                 }
 
-                if (auth()->user()->hasRole('superAdmin')) {
+                if (auth()->user()->can('edit students')) {
                     $edit = '<a class="dropdown-item" href="' . route('students.edit', $student->id) . '">
                                 <i class="fa fa-pencil me-2"></i> Edit
                             </a>';
-
+                }
+                if (auth()->user()->can('delete students')) {
                     $delete = '<form method="POST" action="' . route('students.destroy', $student->id) . '" style="display:inline;">
                                     ' . csrf_field() . method_field('DELETE') . '
                                     <button type="submit" class="dropdown-item delete-confirm">
@@ -250,6 +267,9 @@ class StudentController extends Controller
         $search = $request->input('search.value');
         $status = $request->status;
         $instructorId = $request->instructorId;
+        if (!Auth::user()->can('view all students')) {
+            abort_unless(Auth::user()->instructor_id && Auth::user()->instructor_id === $instructorId, 403);
+        }
 
         $instructor = Instructor::find($instructorId);
 
@@ -257,15 +277,9 @@ class StudentController extends Controller
             return response()->json(['error' => 'No students found.'], 404);
         }
 
-        // Decide which relationships to eager load based on department
-        $relations = ['user', 'course', 'invoice'];
-        if ($instructor->department?->name === 'practical') {
-            $relations[] = 'fleet';
-        } elseif ($instructor->department?->name === 'theory') {
-            $relations[] = 'classroom';
-        }
-
-        $students = Student::with($relations)
+        $students = $instructor->assignedStudents()
+            ->with(['user', 'course', 'invoice'])
+            ->withCount('attendance')
             ->when($status === 'active', function ($query) {
                 $query->where(function ($q) {
                     $q->whereNotNull('fleet_id')->orWhereNotNull('classroom_id');
@@ -277,32 +291,7 @@ class StudentController extends Controller
             ->when($status === 'finished', function ($query) {
                 $query->where('status', 'Finished');
             })
-            ->orderBy('created_at', 'desc');
-
-        // Apply instructor-specific filtering
-        if ($instructor->department) {
-            $departmentName = $instructor->department->name;
-
-            switch ($departmentName) {
-                case 'practical':
-                    $fleetAssigned = Fleet::where('instructor_id', $instructor->id)->first();
-                    if ($fleetAssigned) {
-                        $students->where('fleet_id', $fleetAssigned->id);
-                    } else {
-                        throw new ModelNotFoundException(__('Instructor not allocated a car.'));
-                    }
-                    break;
-
-                case 'theory':
-                    $classroomIds = $instructor->classrooms->pluck('id');
-                    if ($classroomIds->isNotEmpty()) {
-                        $students->whereIn('classroom_id', $classroomIds);
-                    } else {
-                        throw new ModelNotFoundException(__('Instructor not allocated classroom.'));
-                    }
-                    break;
-            }
-        }
+            ->when(!$request->has('order'), fn ($query) => $query->orderBy('created_at', 'desc'));
 
         if ($search) {
             $students->where(function ($query) use ($search) {
@@ -347,7 +336,7 @@ class StudentController extends Controller
                 }
             })
             ->addColumn('attendance', function ($student) {
-                $attendanceCount = $student->attendance ? $student->attendance->count() : 0;
+                $attendanceCount = $student->attendance_count;
                 $courseDuration = $student->course->duration ?? 0;
 
                 if ($courseDuration <= 0) {
@@ -368,6 +357,9 @@ class StudentController extends Controller
                 return $text . $badge;
             })
             ->addColumn('course_status', function ($student) {
+                if (!auth()->user()->can('change student status')) {
+                    return e(ucfirst($student->status));
+                }
                 return '<span class="status-span"
                             data-status="' . e($student->status) . '"
                             data-fname="' . e($student->fname) . '"
@@ -394,7 +386,7 @@ class StudentController extends Controller
                 $delete = '';
                 $paymentReminder = '';
 
-                $changeStatus = "<button
+                $changeStatus = auth()->user()->can('change student status') ? "<button
                                     class='dropdown-item change-status-btn'
                                     data-fname=\"" . e($student->fname) . "\"
                                     data-mname=\"" . e($student->mname) . "\"
@@ -402,13 +394,14 @@ class StudentController extends Controller
                                     data-id=\"" . e($student->id) . "\"
                                     data-status=\"" . e($student->status) . "\">
                                         <i class='fas fa-toggle-on'></i> Change status
-                                </button>";
+                                </button>" : '';
 
-                if (auth()->user()->hasRole('superAdmin')) {
+                if (auth()->user()->can('edit students')) {
                     $edit = '<a class="dropdown-item" href="' . route('students.edit', $student->id) . '">
                                 <i class="fa fa-pencil"></i> Edit
                             </a>';
-
+                }
+                if (auth()->user()->can('delete students')) {
                     $delete = '<form method="POST" action="' . route('students.destroy', $student->id) . '" style="display:inline;">
                                     ' . csrf_field() . method_field('DELETE') . '
                                     <button type="submit" class="dropdown-item delete-confirm">
@@ -417,7 +410,7 @@ class StudentController extends Controller
                                 </form>';
                 }
 
-                if (auth()->user()->hasRole(['superAdmin', 'admin']) && ($student->invoice->invoice_balance ?? 0) > 0) {
+                if (auth()->user()->can('manage administration') && ($student->invoice->invoice_balance ?? 0) > 0) {
                     $paymentReminder = '
                         <form method="POST" action="' . url('send-balance-sms', [$student->id, 'Balance']) . '">
                             ' . csrf_field() . '
@@ -443,45 +436,13 @@ class StudentController extends Controller
 
     public function index()
     {
+        $readableStudents = $this->readableStudents();
         try {
             $fleet = Fleet::all();
-            $students = Student::with('User')->latest('created_at');
+            $students = (clone $readableStudents)->with('User')->latest('created_at')->get();
 
-            if (Auth::user()->hasRole('instructor')) {
-                $instructor = Auth::user()->instructor()->with(['department', 'classrooms'])->first();
-
-                if ($instructor && $instructor->department) {
-                    $departmentName = $instructor->department->name;
-
-                    if ($departmentName === 'practical') {
-                        $fleetAssigned = Fleet::where('instructor_id', $instructor->id)->first();
-                        if ($fleetAssigned) {
-                            $students->where('fleet_id', $fleetAssigned->id);
-                        } else {
-                            throw new ModelNotFoundException(__('You are not allocated a car.'));
-                        }
-                    }
-
-                    if ($departmentName === 'theory') {
-                        $classroomIds = $instructor->classrooms->pluck('id');
-                        if ($classroomIds->isNotEmpty()) {
-                            $students->whereIn('classroom_id', $classroomIds);
-                        } else {
-                            throw new ModelNotFoundException(__('You are not allocated a class room.'));
-                        }
-                    }
-                }
-            }
-
-            $students = $students->get();
-
-            $theoryCount = Student::whereHas('Course', function ($query) {
-                $query->where('trainingLevel_id', TrainingLevel::where('name', 'theory')->first()->id);
-            })->count();
-
-            $practicalCount = Student::whereHas('Course', function ($query) {
-                $query->where('trainingLevel_id', TrainingLevel::where('name', 'practical')->first()->id);
-            })->count();
+            $theoryCount = $this->studentLevelCount($readableStudents, 'theory');
+            $practicalCount = $this->studentLevelCount($readableStudents, 'practical');
 
             return view('students.students', compact('students', 'fleet', 'theoryCount', 'practicalCount'));
 
@@ -504,13 +465,8 @@ class StudentController extends Controller
      */
     public function create()
     {
-        if(!Auth::user()->hasRole('instructor')){
-            $district = district::get();
-            return view('students.addstudent', compact('district'));
-        }
-
-        abort(403);
-
+        $district = district::get();
+        return view('students.addstudent', compact('district'));
     }
 
     /**
@@ -627,13 +583,7 @@ class StudentController extends Controller
      */
     public function show($id)
     {
-        $student = Student::With('User', 'Course', 'Enrollment', 'Invoice', 'Payment', 'Classroom')->find($id);
-
-        if(!isset($student)){
-            abort(404);
-        }
-
-        havenUtils::checkStudentInstructor($id);
+        $student = $this->readableStudents()->with('User', 'Course', 'Enrollment', 'Invoice', 'Payment', 'Classroom')->findOrFail($id);
 
         $courseId = optional($student->course)->id;
         $courseDuration = $courseId ? havenUtils::courseDuration($courseId) : 0;
@@ -672,7 +622,7 @@ class StudentController extends Controller
     {
         $student = Student::with('User')->find($id);
 
-        if(!isset($student) || !Auth::user()->hasRole('superAdmin')){
+        if(!isset($student)){
             abort(404);
         }
 
@@ -987,14 +937,14 @@ class StudentController extends Controller
         switch($balance){
             case('balance'):
                 if(isset($fleet_id)){
-                    $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')
+                    $student = $this->readableStudents()->with('User', 'Invoice', 'Attendance', 'Fleet')
                     ->WhereRelation('invoice','invoice_balance','>', 0)
                     ->Where('fleet_id', $fleet_id)
                     ->Where('status', $status)
                     ->orderBy('sname', 'ASC')->get();
                 }
                 else{
-                    $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')
+                    $student = $this->readableStudents()->with('User', 'Invoice', 'Attendance', 'Fleet')
                     ->whereRelation('invoice','invoice_balance','>', 0)
                     ->where('status', $status)
                     ->orderBy('sname', 'ASC')->get();
@@ -1003,14 +953,14 @@ class StudentController extends Controller
 
             case('no_balance'):
                 if(isset($fleet_id)){
-                        $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')
+                        $student = $this->readableStudents()->with('User', 'Invoice', 'Attendance', 'Fleet')
                         ->WhereRelation('invoice','invoice_balance','=', 0)
                         ->Where('status', $status)
                         ->Where('fleet_id', $fleet_id)
                         ->orderBy('sname', 'ASC')->get();
                 }
                 else{
-                    $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')
+                    $student = $this->readableStudents()->with('User', 'Invoice', 'Attendance', 'Fleet')
                     ->WhereRelation('invoice','invoice_balance','=', 0)
                     ->Where('status', $status)
                     ->orderBy('sname', 'ASC')->get();
@@ -1019,14 +969,14 @@ class StudentController extends Controller
 
             case('all'):
                 if(isset($fleet_id)){
-                        $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')
+                        $student = $this->readableStudents()->with('User', 'Invoice', 'Attendance', 'Fleet')
                         ->Where('fleet_id', $fleet_id)
                         ->Where('status', $status)
                         ->orderBy('sname', 'ASC')
                         ->get();
                 }
                 else{
-                    $student = Student::With('User', 'Invoice', 'Attendance', 'Fleet')
+                    $student = $this->readableStudents()->with('User', 'Invoice', 'Attendance', 'Fleet')
                     ->Where('status', $status)
                     ->orderBy('sname', 'ASC')
                     ->get();
@@ -1034,7 +984,7 @@ class StudentController extends Controller
             break;
 
             default:
-                $student = Student::With('User', 'Invoice', 'Attendance')
+                $student = $this->readableStudents()->with('User', 'Invoice', 'Attendance')
                 ->orderBy('sname', 'ASC')->get();
 
         }
@@ -1045,37 +995,24 @@ class StudentController extends Controller
     }
 
     public function search(Request $request){
-
-
-        if(Auth::user()->hasRole('instructor')){
-            $fleet_id = Fleet::Where('instructor_id', Auth::user()->instructor_id)->firstOrFail()->id;
-            $fleet = Fleet::Where('instructor_id', Auth::user()->instructor_id)->get();
-            $activeStudents = Student::with('User')
-            ->Where('fleet_id', $fleet_id)
-            ->where(function ($query) {$query
-                ->Where('fname', 'like', '%' . request('search') . '%')
-                ->orWhere('mname', 'like', '%' . request('search') . '%')
-                ->orWhere('sname', 'like', '%' . request('search') . '%')
-                ->orWhere('phone', 'like', '%' . request('search') . '%')
-                ->orWhere('trn', 'like', '%' . request('search') . '%')
-                ->orwhereHas('User', function($q){$q->where('email','like', '%' . request('search') . '%');})->orderBy('fname', 'ASC');}
-            )->paginate(20);
-        }
-        else{
-            $fleet = Fleet::get();
-            $activeStudents = Student::with('User')
-                ->where('fname', 'like', '%' . request('search') . '%')
-                ->orWhere('mname', 'like', '%' . request('search') . '%')
-                ->orWhere('sname', 'like', '%' . request('search') . '%')
-                ->orWhere('phone', 'like', '%' . request('search') . '%')
-                ->orWhere('trn', 'like', '%' . request('search') . '%')
-                ->orwhereHas('User', function($q){
-                    $q->where('email','like', '%' . request('search') . '%');})->orderBy('fname', 'ASC')->paginate(20);
-        }
+        $fleet = Fleet::get();
+        $search = '%' . $request->input('search') . '%';
+        $readableStudents = $this->readableStudents();
+        $activeStudents = (clone $readableStudents)->with('User')
+            ->where(function ($query) use ($search) {
+                $query->where('fname', 'like', $search)
+                    ->orWhere('mname', 'like', $search)
+                    ->orWhere('sname', 'like', $search)
+                    ->orWhere('phone', 'like', $search)
+                    ->orWhere('trn', 'like', $search)
+                    ->orWhereHas('User', fn ($user) => $user->where('email', 'like', $search));
+            })->orderBy('fname', 'ASC')->paginate(20);
 
         $finishedStudents = $activeStudents;
+        $theoryCount = $this->studentLevelCount($readableStudents, 'theory');
+        $practicalCount = $this->studentLevelCount($readableStudents, 'practical');
 
-        return view('students.students', compact('activeStudents', 'fleet', 'finishedStudents'));
+        return view('students.students', compact('activeStudents', 'fleet', 'finishedStudents', 'theoryCount', 'practicalCount'));
     }
 
     public function assignCar(Request $request, student $student)

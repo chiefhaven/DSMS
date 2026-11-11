@@ -34,7 +34,9 @@ class ExpenseController extends Controller
 
     public function __construct()
     {
-        $this->middleware(['role:superAdmin|admin|financeAdmin']);
+        $this->middleware(['permission:access management'])->except(['downloadExpensePaymentReceipt', 'expensePaymentReportSummary']);
+        $this->middleware('permission:download expense payment receipts')->only('downloadExpensePaymentReceipt');
+        $this->middleware('permission:report expense payments')->only('expensePaymentReportSummary');
         $this->setting = Setting::find(1);
     }/**
      * Display a listing of the resource.
@@ -148,7 +150,7 @@ class ExpenseController extends Controller
                 $view = '';
 
                 // Check if user has either role
-                if (auth()->user()->hasAnyRole(['superAdmin', 'admin', 'financeAdmin'])) {
+                if (auth()->user()->can('access management')) {
 
                     // Download logic
                     if ($expense->group_type !== '39d3f058-4f04-11f0-aa86-52540066f921') {
@@ -166,7 +168,7 @@ class ExpenseController extends Controller
                         $download = '<p class="dropdown-item text-success">Go to student profile for TRN reference</p>';
                     }
 
-                    if ($expense->approved == true && auth()->user()->hasAnyRole(['superAdmin', 'financeAdmin', 'admin'])) {
+                    if ($expense->approved == true && auth()->user()->can('access management')) {
                         $paymentReport = '<form method="GET" action="' . url('expense-payment-report', $expense->id) . '">
                                         ' . csrf_field() . '
                                         <button class="dropdown-item nav-main-link btn download-confirm" type="submit">
@@ -178,14 +180,14 @@ class ExpenseController extends Controller
                     }
 
                     // Edit only allowed if not approved
-                    if (auth()->user()->hasAnyRole(['superAdmin', 'admin', 'financeAdmin'])) {
+                    if (auth()->user()->can('access management')) {
                         $view = '<a class="dropdown-item nav-main-link btn" href="' . route('expenses.show', $expense->id) . '">
                                     <i class="fa fa-eye me-3"></i> View
                                 </a>';
                     }
 
                     // Edit only allowed if not approved
-                    if ($expense->approved != true && auth()->user()->hasAnyRole(['superAdmin', 'admin'])) {
+                    if ($expense->approved != true && auth()->user()->can('manage administration')) {
                         $edit = '<a class="dropdown-item nav-main-link btn" href="' . route('expenses.edit', $expense->id) . '">
                                     <i class="fa fa-pencil me-3"></i> Edit
                                 </a>';
@@ -193,14 +195,14 @@ class ExpenseController extends Controller
 
 
                     // Only superAdmin can review
-                    if (auth()->user()->hasRole('superAdmin')) {
+                    if (auth()->user()->can('manage system')) {
                         $review = '<a class="dropdown-item nav-main-link btn" href="' . url('/review-expense', $expense->id) . '">
                                         <i class="fa fa-magnifying-glass me-3"></i> Review
                                     </a>';
                     }
 
                     // Only superAdmin can delete if not approved
-                    if (auth()->user()->hasRole('superAdmin') && $expense->approved == false) {
+                    if (auth()->user()->can('manage system') && $expense->approved == false) {
                         $delete = '<form method="POST" action="' . route('expenses.destroy', $expense->id) . '" style="display:inline;">
                                         ' . csrf_field() . method_field('DELETE') . '
                                         <button type="submit" class="btn dropdown-item nav-main-link delete-confirm">
@@ -716,7 +718,7 @@ class ExpenseController extends Controller
 
     public function expensePaymentReport(expense $expense){
 
-        if (!Auth::user()->hasRole(['superAdmin', 'financeAdmin', 'admin'])) {
+        if (!Auth::user()->can('access management')) {
             return response()->json([
                 'message' => 'You do not have permission to make a payment.'
             ], 403);
@@ -793,7 +795,7 @@ class ExpenseController extends Controller
 
     public function makePayment(Request $request, $studentId, $expenseId)
     {
-        if (!Auth::user()->hasRole(['superAdmin', 'financeAdmin'])) {
+        if (!Auth::user()->can('manage finance')) {
             return response()->json([
                 'message' => 'You do not have permission to make a payment.'
             ], 403);
@@ -866,19 +868,20 @@ class ExpenseController extends Controller
      */
     public function studentExpenses(Request $request, $token)
     {
-        if (!Auth::user()->hasRole(['superAdmin', 'financeAdmin'])) {
+        if (!Auth::user()->can('record expense payments')) {
             Alert::toast('You do not have permission to make a payment', 'error');
             return redirect()->back();
         }
 
         $student = Student::with('expenses')->find($token);
-        $expenses = $student->expenses()->orWherePivot('repeat', null)->orWherePivot('repeat', 0)->get();
 
         // Check if the student exists
         if (!$student) {
             Alert::error('Student Not Found', 'The student record could not be found, scan another document or contact the Admin.');
             return redirect()->to('/scan-to-pay');
         }
+
+        $expenses = $student->expenses()->orWherePivot('repeat', null)->orWherePivot('repeat', 0)->get();
 
         if ($expenses->isEmpty()) {
             Alert::warning('No Expenses Found', 'No expenses list is available for this student.');
@@ -942,7 +945,7 @@ class ExpenseController extends Controller
             $delete = '';
 
             // Roles allowed
-            if (auth()->user()->hasAnyRole(['superAdmin', 'financeAdmin'])) {
+            if (auth()->user()->can('manage finance')) {
 
                 $receipt = '<form method="GET" action="' . url('expense-payment-receipt', $payment->id) . '">
                     <button class="dropdown-item nav-main-link btn download-confirm" type="submit">
@@ -951,14 +954,14 @@ class ExpenseController extends Controller
                 </form>';
 
                 // Reverse allowed for superAdmin
-                if (auth()->user()->hasRole('superAdmin')) {
+                if (auth()->user()->can('manage system')) {
                     $reverse = '<a href="javascript:void(0);" class="dropdown-item nav-main-link btn" onclick="reversePayment(' . $payment->id . ')">
                                     <i class="fa fa-undo me-3"></i> Reverse
                                 </a>';
                 }
 
                 // Delete allowed for superAdmin if not approved
-                if (auth()->user()->hasRole('superAdmin') && $payment->approved == false) {
+                if (auth()->user()->can('manage system') && $payment->approved == false) {
                     $delete = '<form method="POST" action="' . url('expense-payments', $payment->id) . '" style="display:inline;">
                                     ' . csrf_field() . method_field('DELETE') . '
                                     <button type="submit" class="btn dropdown-item nav-main-link delete-confirm">
@@ -988,11 +991,6 @@ class ExpenseController extends Controller
         // Find the payment
         $payment = ExpensePayment::with(['student', 'expense', 'paymentUser.administrator'])
                         ->findOrFail($id);
-
-        // Optional: check permission
-        if (!auth()->user()->hasAnyRole(['superAdmin', 'financeAdmin'])) {
-            abort(403, 'Unauthorized.');
-        }
 
         // Prepare PDF with thermal printer paper size
         $pdf = Pdf::loadView('pdf_templates.paymentReceipt', [

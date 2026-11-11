@@ -168,9 +168,7 @@ class AuthController extends Controller
      */
     private function isUserActive($user)
     {
-        // Implement your account status logic
-        //return !$user->is_banned && $user->email_verified_at !== null;
-        return true; // Placeholder, adjust as needed
+        return $user->is_active;
     }
 
     /**
@@ -243,6 +241,10 @@ class AuthController extends Controller
             ], 404);
         }
 
+        if (!$user->is_active) {
+            return $this->sendErrorResponse('Account is not active.', 403);
+        }
+
         // Create OTP
         $otp = $user->createOneTimePassword();
 
@@ -269,6 +271,10 @@ class AuthController extends Controller
 
         if (!$user) {
             return response()->json(['status' => 'error', 'message' => 'User not found.'], 404);
+        }
+
+        if (!$user->is_active) {
+            return $this->sendErrorResponse('Account is not active.', 403);
         }
 
         try {

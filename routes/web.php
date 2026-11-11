@@ -42,10 +42,10 @@ use Nette\Schema\Expect;
 |
 */
 
-Route::post('/', [HomeController::class,'index'])->middleware(['auth', 'role:superAdmin|Super-Admin|admin|financeAdmin'])->name('dashboard.submit');
-Route::get('/summaryData', [HomeController::class,'summaryData'])->middleware(['auth', 'role:superAdmin|Super-Admin|admin|financeAdmin'])->name('summaryData');
+Route::post('/', [HomeController::class,'index'])->middleware(['auth', 'can:view-dashboard'])->name('dashboard.submit');
+Route::get('/summaryData', [HomeController::class,'summaryData'])->middleware(['auth', 'permission:access management'])->name('summaryData');
 Route::get('/instructorSummaryData', [HomeController::class,'instructorSummaryData'])->middleware(['auth'])->name('instructorSummaryData');
-Route::get('/', [HomeController::class,'index'])->middleware(['auth', 'role:superAdmin|Super-Admin|admin|financeAdmin'])->name('dashboard.home');
+Route::get('/', [HomeController::class,'index'])->middleware(['auth', 'can:view-dashboard'])->name('dashboard.home');
 
 Auth::routes();
 
@@ -97,11 +97,11 @@ Route::post('/addattendance/{token}', [AttendanceController::class, 'create'])->
 
 Route::get("/add-bulk-attendance", function(){
     return view("attendances.addBulkAttendance");
- })->middleware('auth');
+ })->middleware(['auth', 'permission:manage operations']);
 
 Route::get("/bulk-attendances", function(){
     return view("attendances.bulkAttendances");
-})->middleware('auth');
+})->middleware(['auth', 'permission:access operations']);
 
 Route::get('/edit-bulk-attendance/{id}', [BulkAttendanceController::class, 'edit'])
     ->middleware('auth')
@@ -126,7 +126,7 @@ Route::patch('/schedule-lesson/{id}/restore', [ScheduleLessonController::class, 
 Route::get('/courses', [CourseController::class, 'index'])->middleware('auth')->name('courses');
 Route::get('/view-course/{id}', function ($courseId) {
     return view('courses.viewcourse', compact('courseId'));
-})->middleware('auth')->name('view-course');
+})->middleware(['auth', 'permission:view courses'])->name('view-course');
 Route::get('/course-details/{id}', [CourseController::class, 'show'])->middleware('auth')->name('courseDetails');
 Route::get('/addcourse', [CourseController::class, 'create'])->middleware('auth')->name('addcourse');
 Route::post('/storecourse', [CourseController::class, 'store'])->middleware('auth')->name('editcourse');
@@ -154,15 +154,15 @@ Route::post('/edit-classroom/{id}', [ClassroomController::class, 'edit'])->middl
 Route::delete('/delete-classroom/{id}', [ClassroomController::class, 'destroy'])->middleware('auth')->name('delete_classrooms');
 Route::put('/updateclassroom/{id}', [ClassroomController::class, 'update'])->middleware('auth')->name('update_classrooms');
 
-Route::get('/invoices', [InvoiceController::class, 'index'])->middleware(['auth', 'role:superAdmin|Super-Admin|admin|financeAdmin'])->name('invoices');
-Route::get('/view-invoice/{id}', [InvoiceController::class, 'show'])->middleware(['auth', 'role:superAdmin|Super-Admin|admin|financeAdmin'])->name('view-invoice');
-Route::get('/invoice-pdf/{id}', [InvoiceController::class, 'invoicePDF'])->middleware(['auth', 'role:superAdmin|Super-Admin|admin|financeAdmin'])->name('invoice-pdf');
+Route::get('/invoices', [InvoiceController::class, 'index'])->middleware(['auth', 'permission:access management'])->name('invoices');
+Route::get('/view-invoice/{id}', [InvoiceController::class, 'show'])->middleware(['auth', 'permission:access management'])->name('view-invoice');
+Route::get('/invoice-pdf/{id}', [InvoiceController::class, 'invoicePDF'])->middleware(['auth', 'permission:access management'])->name('invoice-pdf');
 Route::get('/addinvoice/{id}', [InvoiceController::class, 'create'])->middleware('auth')->name('addinvoices');
 Route::post('/store-invoice', [InvoiceController::class, 'store'])->middleware('auth')->name('store-invoice');
 Route::get('/edit-invoice/{id}', [InvoiceController::class, 'edit'])->middleware('auth')->name('edit-invoices');
 Route::delete('/invoice-delete/{invoice}', [InvoiceController::class, 'destroy'])->middleware('auth')->name('invoice-delete');
 Route::post('/invoice-update', [InvoiceController::class, 'update'])->middleware('auth')->name('invoice-update');
-Route::get('/search-invoice', [InvoiceController::class, 'search'])->middleware(['auth', 'role:superAdmin|Super-Admin|admin|financeAdmin'])->name('searchInvoice');
+Route::get('/search-invoice', [InvoiceController::class, 'search'])->middleware(['auth', 'permission:access management'])->name('searchInvoice');
 
 Route::get('/payments', [PaymentController::class, 'index'])->middleware('auth')->name('payments');
 Route::post('/add-payment', [PaymentController::class, 'store'])->middleware('auth')->name('add-payment');
@@ -238,11 +238,11 @@ Route::get('/expensePaymentReportSummary', [ExpenseController::class, 'expensePa
 
 Route::get("/expense-payments", function(){
     return view("expenses.expensePaymentsList");
- })->middleware('auth');
+ })->middleware(['auth', 'permission:view expense payments']);
 
 Route::get('/expense-types', function () {
     return view('expenses.expenseTypes');
-})->middleware(['auth', 'role:superAdmin']);
+})->middleware(['auth', 'permission:view expense types']);
 
 Route::get('/expense-payment-receipt/{id}', [ExpenseController::class, 'downloadExpensePaymentReceipt'])->middleware('auth')
 ->name('expense-payments.download-receipt');
@@ -250,7 +250,7 @@ Route::get('/expense-payment-receipt/{id}', [ExpenseController::class, 'download
 Route::get('/expense-payment-report/{expense}', [ExpenseController::class, 'expensePaymentReport'])->middleware('auth')->name('expense-payment-report');
 
 
-Route::get('/dashboard', [HomeController::class,'index'])->middleware(['auth', 'role:superAdmin|Super-Admin|admin|financeAdmin'])->name('dashboard');
+Route::get('/dashboard', [HomeController::class,'index'])->middleware(['auth', 'can:view-dashboard'])->name('dashboard');
 
 //Announcement routes
 Route::get('/send-announcement', [AnnouncementController::class,'create'])->middleware(['auth'])->name('send-announcement');
@@ -287,7 +287,7 @@ Route::get("/scanqrcode", function(){
     }
 
     // Ensure the user has an appropriate role or permission (e.g., 'admin')
-    if (!auth()->user()->hasRole('superAdmin')) {
+    if (!auth()->user()->can('manage system')) {
         abort(403, 'Unauthorized action.');
     }
 
@@ -296,12 +296,13 @@ Route::get("/scanqrcode", function(){
     return response()->json(['message' => 'Database migration completed successfully!']);
 })->middleware(['auth']);
 
-Route::get('/lesson-search', [havenUtils::class, 'autocompleteLessonSearch'])->middleware('auth')->name('lesson-search');
+Route::get('/lesson-search', [havenUtils::class, 'autocompleteLessonSearch'])
+    ->middleware(['auth', 'permission:view lessons|edit course lessons'])->name('lesson-search');
 Route::post('/check-class-fleet-assignment', [havenUtils::class, 'checkInstructorClassFleetAssignment'])->middleware('auth')->name('check-class-fleet-assignment');
 
-Route::get('/get-all-vehicle-locations', [VehicleTrackerController::class, 'show'])->name('vehicle-locations')->middleware(['auth', 'role:superAdmin|Super-Admin|admin']);
+Route::get('/get-all-vehicle-locations', [VehicleTrackerController::class, 'show'])->name('vehicle-locations')->middleware(['auth', 'permission:manage administration']);
 
-Route::get('/show-vehicle-geo-data/{vehicleId}', [VehicleTrackerController::class, 'showVehicleGeoData'])->name('vehicle-location')->middleware(['auth', 'role:superAdmin|Super-Admin|admin']);
+Route::get('/show-vehicle-geo-data/{vehicleId}', [VehicleTrackerController::class, 'showVehicleGeoData'])->name('vehicle-location')->middleware(['auth', 'permission:manage administration']);
 
 
 Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index')->middleware('auth');
@@ -312,11 +313,10 @@ Route::patch('/notifications/mark-all-read', [NotificationController::class, 'ma
 
 Route::get('/knowledge', [knowledgeController::class, 'index'])->middleware('auth')->name('knolwedge')->middleware('auth');
 
-Route::get('/roles', [RoleController::class, 'index'])->middleware('auth')->name('roles');
 
 Route::get("/scan-to-pay", function(){
     return view("expenses.scanToPay");
- })->middleware('auth');
+ })->middleware(['auth', 'permission:record expense payments']);
 
 Route::get("/driving-license-classes", function(){
     return view("licenceClasses.licenceClasses");

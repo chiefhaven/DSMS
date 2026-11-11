@@ -13,7 +13,13 @@
         </li>
 
         {{-- Students --}}
-        @role(['superAdmin', 'admin', 'instructor', 'financeAdmin'])
+        @php
+            $studentRoles = auth()->user()->roles
+                ->filter(fn ($role) => in_array($role->name, ['superAdmin', 'Super-Admin'], true)
+                    || $role->permissions->contains('name', 'view students'))
+                ->pluck('name')->all();
+        @endphp
+        @role($studentRoles)
             <li class="nav-main-item">
                 <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
                     <i class="nav-main-link-icon fa fa-user-graduate"></i>
@@ -25,14 +31,14 @@
                             <span class="nav-main-link-name">All students</span>
                         </a>
                     </li>
-                    @role(['superAdmin', 'admin'])
+                    @can('create students')
                         <li class="nav-main-item">
                             <a class="nav-main-link" href="{{ route('students.create') }}">
                                 <span class="nav-main-link-name">Add student</span>
                             </a>
                         </li>
-                    @endrole
-                    @role(['superAdmin', 'admin', 'financeAdmin'])
+                    @endcan
+                    @role(['superAdmin', 'Super-Admin', 'admin', 'financeAdmin'])
                         <li>
                             <a class="nav-main-link" href="{{ url('/invoices') }}">
                                 <span class="nav-main-link-name">Invoices</span>
@@ -46,8 +52,10 @@
                     @endrole
                 </ul>
             </li>
+        @endrole
 
-            {{-- Attendances --}}
+        {{-- Attendances --}}
+        @role(['superAdmin', 'Super-Admin', 'admin', 'instructor', 'financeAdmin'])
             <li class="nav-main-item">
                 <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
                     <i class="nav-main-link-icon fa fa-user-clock"></i>
@@ -59,119 +67,189 @@
                             <span class="nav-main-link-name">All attendances</span>
                         </a>
                     </li>
-                    @role(['superAdmin', 'admin'])
+                    @role(['superAdmin', 'Super-Admin', 'admin'])
 
                     <li class="nav-main-item">
                         <a class="nav-main-link" href="{{ url('/bulk-attendances') }}">
                             <span class="nav-main-link-name">Bulk attendances</span>
                         </a>
                     </li>
+                    @can('manage operations')
                     <li class="nav-main-item">
                         <a class="nav-main-link" href="{{ route('bulk-attendances.create') }}">
                             <span class="nav-main-link-name">Add bulk attendance</span>
                         </a>
                     </li>
-                    <li class="nav-main-item">
-                        <a class="nav-main-link" href="{{ url('/schedules') }}">
-                            <span class="nav-main-link-name">Schedules</span>
-                            <span class="badge bg-danger ms-1">New</span>
-                        </a>
-                    </li>
+                    @endcan
                     @endrole
                 </ul>
             </li>
         @endrole
 
         {{-- School --}}
-        @role(['superAdmin', 'admin', 'financeAdmin'])
-            @role(['superAdmin', 'admin'])
+        @php
+            $courseRoles = auth()->user()->roles
+                ->filter(fn ($role) => in_array($role->name, ['superAdmin', 'Super-Admin'], true)
+                    || $role->permissions->contains('name', 'view courses'))
+                ->pluck('name')->all();
+            $lessonRoles = auth()->user()->roles
+                ->filter(fn ($role) => in_array($role->name, ['superAdmin', 'Super-Admin'], true)
+                    || $role->permissions->contains('name', 'view lessons'))
+                ->pluck('name')->all();
+            $classroomRoles = auth()->user()->roles
+                ->filter(fn ($role) => in_array($role->name, ['superAdmin', 'Super-Admin'], true)
+                    || $role->permissions->contains('name', 'view classrooms'))
+                ->pluck('name')->all();
+            $fleetRoles = auth()->user()->roles
+                ->filter(fn ($role) => in_array($role->name, ['superAdmin', 'Super-Admin'], true)
+                    || $role->permissions->contains('name', 'view fleet'))
+                ->pluck('name')->all();
+            $expenseTypeRoles = auth()->user()->roles
+                ->filter(fn ($role) => in_array($role->name, ['superAdmin', 'Super-Admin'], true)
+                    || $role->permissions->contains('name', 'view expense types'))
+                ->pluck('name')->all();
+            $expensePaymentRoles = auth()->user()->roles
+                ->filter(fn ($role) => in_array($role->name, ['superAdmin', 'Super-Admin'], true)
+                    || $role->permissions->contains('name', 'view expense payments'))
+                ->pluck('name')->all();
+            $expensePaymentEntryRoles = auth()->user()->roles
+                ->filter(fn ($role) => in_array($role->name, ['superAdmin', 'Super-Admin'], true)
+                    || $role->permissions->contains('name', 'record expense payments'))
+                ->pluck('name')->all();
+        @endphp
+        @role(array_values(array_unique(array_merge(['superAdmin', 'Super-Admin', 'admin'], $courseRoles, $lessonRoles, $classroomRoles))))
                 <li class="nav-main-item">
                     <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
                         <i class="nav-main-link-icon fa fa-bar-chart"></i>
                         <span class="nav-main-link-name">School</span>
                     </a>
                     <ul class="nav-main-submenu">
+                        @role(['superAdmin', 'Super-Admin', 'admin'])
                         <li><a class="nav-main-link" href="{{ url('#') }}"><span class="nav-main-link-name">Departments</span></a></li>
+                        @endrole
+                        @role($classroomRoles)
                         <li><a class="nav-main-link" href="{{ route('classrooms.index') }}"><span class="nav-main-link-name">Classrooms</span></a></li>
+                        @endrole
+                        @role($courseRoles)
                         <li><a class="nav-main-link" href="{{ url('/courses') }}"><span class="nav-main-link-name">Courses</span></a></li>
+                        @endrole
+                        @role(['superAdmin', 'Super-Admin', 'admin'])
                         <li><a class="nav-main-link" href="{{ url('#') }}"><span class="nav-main-link-name">Training levels</span></a></li>
+                        @endrole
+                        @role($lessonRoles)
                         <li><a class="nav-main-link" href="{{ url('/lessons') }}"><span class="nav-main-link-name">Lessons</span></a></li>
+                        @endrole
+                        @role(['superAdmin', 'Super-Admin', 'admin'])
                         <li><a class="nav-main-link" href="{{ url('/#') }}"><span class="nav-main-link-name">Satelites</span></a></li>
                         <li><a class="nav-main-link" href="{{ url('/driving-license-classes') }}"><span class="nav-main-link-name">Driving license classes</span></a></li>
+                        @endrole
                     </ul>
                 </li>
+        @endrole
 
+        @role(array_values(array_unique(array_merge(['superAdmin', 'Super-Admin', 'admin'], $fleetRoles))))
                 <li class="nav-main-item">
                     <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
                         <i class="nav-main-link-icon fa fa-car"></i>
                         <span class="nav-main-link-name">Fleet</span>
                     </a>
                     <ul class="nav-main-submenu">
+                        @role($fleetRoles)
                         <li><a class="nav-main-link" href="{{ url('/fleet') }}"><span class="nav-main-link-name">Fleet</span></a></li>
+                        @endrole
+                        @role(['superAdmin', 'Super-Admin', 'admin'])
                         <li><a class="nav-main-link" href="{{ url('/track-fleet') }}"><span class="nav-main-link-name">Track fleet</span></a></li>
+                        @endrole
                     </ul>
                 </li>
-            @endrole
+        @endrole
 
             {{-- Expenses --}}
+        @role(array_values(array_unique(array_merge(['superAdmin', 'Super-Admin', 'admin', 'financeAdmin'], $expenseTypeRoles, $expensePaymentRoles, $expensePaymentEntryRoles))))
             <li class="nav-main-item">
                 <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
                     <i class="nav-main-link-icon fa fa-file-invoice-dollar"></i>
                     <span class="nav-main-link-name">Expenses</span>
                 </a>
                 <ul class="nav-main-submenu">
+                    @role(['superAdmin', 'Super-Admin', 'admin', 'financeAdmin'])
                     <li><a class="nav-main-link" href="{{ route('expenses.index') }}"><span class="nav-main-link-name">All expenses</span></a></li>
-                    @role(['superAdmin', 'admin'])
+                    @can('manage administration')
                         <li><a class="nav-main-link" href="{{ route('expenses.create') }}"><span class="nav-main-link-name">Add expense</span></a></li>
+                    @endcan
                     @endrole
-                    @role(['superAdmin', 'financeAdmin'])
+                    @role($expensePaymentEntryRoles)
+                    @can('record expense payments')
                         <li><a class="nav-main-link" href="{{ url('/scan-to-pay') }}"><span class="nav-main-link-name">Scan to pay</span></a></li>
+                    @endcan
+                    @endrole
+                    @role($expensePaymentRoles)
                         <li><a class="nav-main-link" href="{{ url('/expense-payments') }}"><span class="nav-main-link-name">Expense payments</span></a></li>
                     @endrole
-                    @role(['superAdmin', 'admin'])
+                    @role($expenseTypeRoles)
                         <li><a class="nav-main-link" href="{{ url('/expense-types') }}"><span class="nav-main-link-name">Expense types</span></a></li>
                     @endrole
 
                 </ul>
             </li>
-            @role(['superAdmin', 'admin'])
-                {{-- Instructors --}}
-                <li class="nav-main-item">
-                    <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
-                        <i class="nav-main-link-icon fa fa-users"></i>
-                        <span class="nav-main-link-name">Instructors</span>
-                    </a>
-                    <ul class="nav-main-submenu">
-                        <li><a class="nav-main-link" href="{{ url('/instructors') }}"><span class="nav-main-link-name">All instructors</span></a></li>
-                        <li><a class="nav-main-link" href="{{ route('instructors.create') }}"><span class="nav-main-link-name">Add instructor</span></a></li>
-                        <li><a class="nav-main-link" href="{{ url('/instructor-payments') }}"><span class="nav-main-link-name">Bonus payments</span></a></li>
-                    </ul>
-                </li>
-            @endrole
         @endrole
 
-        {{-- Administrators --}}
-        @role('superAdmin')
+        @php
+            $roleManagementRoles = auth()->user()->roles
+                ->filter(fn ($role) => in_array($role->name, ['superAdmin', 'Super-Admin'], true)
+                    || $role->permissions->contains('name', 'view roles'))
+                ->pluck('name')->all();
+        @endphp
+        {{-- Users --}}
+        @role(array_values(array_unique(array_merge(['superAdmin', 'Super-Admin', 'admin'], $roleManagementRoles))))
             <li class="nav-main-item">
                 <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
                     <i class="nav-main-link-icon fa fa-users"></i>
-                    <span class="nav-main-link-name">Administrators</span>
+                    <span class="nav-main-link-name">Users</span>
                 </a>
                 <ul class="nav-main-submenu">
-                    <li><a class="nav-main-link" href="{{ url('/administrators') }}"><span class="nav-main-link-name">All administrators</span></a></li>
-                    <li><a class="nav-main-link" href="{{ route('administrators.create') }}"><span class="nav-main-link-name">Add administrator</span></a></li>
+                    @role(['superAdmin', 'Super-Admin'])
+                        <li><a class="nav-main-link" href="{{ route('administrators.index') }}"><span class="nav-main-link-name">Administrators</span></a></li>
+                    @endrole
+                    @role(['superAdmin', 'Super-Admin', 'admin'])
+                        <li><a class="nav-main-link" href="{{ route('instructors.index') }}"><span class="nav-main-link-name">Instructors</span></a></li>
+                    @endrole
+                    @role($roleManagementRoles)
+                        <li><a class="nav-main-link" href="{{ route('roles.index') }}"><span class="nav-main-link-name">Roles &amp; permissions</span></a></li>
+                    @endrole
+                </ul>
+            </li>
+        @endrole
+
+        {{-- HRM --}}
+        @role(['superAdmin', 'Super-Admin', 'admin'])
+            <li class="nav-main-item">
+                <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
+                    <i class="nav-main-link-icon fa fa-user-tie"></i>
+                    <span class="nav-main-link-name">HRM</span>
+                </a>
+                <ul class="nav-main-submenu">
+                    <li><a class="nav-main-link" href="{{ url('/instructor-payments') }}"><span class="nav-main-link-name">Bonus Payments</span></a></li>
                 </ul>
             </li>
         @endrole
 
         {{-- Announcements --}}
-        @role(['superAdmin', 'admin'])
+        @php
+            $announcementRoles = auth()->user()->roles
+                ->filter(fn ($role) => in_array($role->name, ['superAdmin', 'Super-Admin'], true)
+                    || $role->permissions->contains('name', 'view announcements'))
+                ->pluck('name')->all();
+        @endphp
+        @role(array_values(array_unique(array_merge(['superAdmin', 'Super-Admin', 'admin'], $announcementRoles))))
             <li class="nav-main-item">
                 <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false">
                     <i class="nav-main-link-icon fa fa-envelope"></i>
                     <span class="nav-main-link-name">Announcements</span>
                 </a>
                 <ul class="nav-main-submenu">
+                    @role($announcementRoles)
+                    @can('send announcements')
                     <li>
                         <a class="nav-main-link"
                         href=""
@@ -182,44 +260,56 @@
                             </span>
                         </a>
                     </li>
+                    @endcan
+                    @endrole
+                    @role(['superAdmin', 'Super-Admin', 'admin'])
                     <li><a class="nav-main-link" href="{{ url('/sms-templates') }}"><span class="nav-main-link-name">Templates</span></a></li>
                     <li><a class="nav-main-link" href="{{ url('#') }}"><span class="nav-main-link-name">Configuration</span></a></li>
+                    @endrole
                 </ul>
             </li>
         @endrole
 
         {{-- Settings --}}
-        @role('superAdmin')
+        @php
+            $settingsRoles = auth()->user()->roles
+                ->filter(fn ($role) => in_array($role->name, ['superAdmin', 'Super-Admin'], true)
+                    || $role->permissions->contains('name', 'view settings'))
+                ->pluck('name')->all();
+        @endphp
+        @role($settingsRoles)
             <li>
                 <a class="nav-main-link" href="{{ url('/settings') }}">
                     <i class="nav-main-link-icon fa fa-cogs"></i>
                     <span class="nav-main-link-name">Settings</span>
                 </a>
             </li>
+        @endrole
+
+        @php
+            $scheduleRoles = auth()->user()->roles
+                ->filter(fn ($role) => in_array($role->name, ['superAdmin', 'Super-Admin'], true)
+                    || $role->permissions->contains('name', 'view schedules'))
+                ->pluck('name')->all();
+        @endphp
+        @role($scheduleRoles)
             <li>
-                <a class="nav-main-link" href="{{ url('#') }}">
-                    <i class="nav-main-link-icon fa fa-user-tag"></i>
-                    <span class="nav-main-link-name">Roles & permissions</span>
+                <a class="nav-main-link" href="{{ route('schedules.index') }}">
+                    <i class="nav-main-link-icon fa fa-calendar-alt"></i>
+                    <span class="nav-main-link-name">Schedules</span>
+                    <span class="badge bg-danger ms-1">New</span>
                 </a>
             </li>
         @endrole
 
         {{-- Instructor Quick Tools --}}
-        @role(['instructor'])
+        @role('instructor')
             <li>
                 <a class="nav-main-link" href="{{ url('/scanqrcode') }}">
                     <i class="nav-main-link-icon fa fa-qrcode"></i>
                     <span class="nav-main-link-name">Scan for attendance</span>
                 </a>
             </li>
-            <li>
-                <a class="nav-main-link" href="{{ route('schedules.index') }}">
-                    <i class="nav-main-link-icon fa fa-calendar-alt"></i>
-                    <span class="nav-main-link-name">Schedule lesson</span>
-                    <span class="badge bg-danger ms-1">New</span>
-                </a>
-            </li>
-
             @include('partials.location')
         @endrole
 

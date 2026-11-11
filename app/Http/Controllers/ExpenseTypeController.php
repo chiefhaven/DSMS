@@ -23,7 +23,11 @@ class ExpenseTypeController extends Controller
 
     public function __construct()
     {
-        $this->middleware(['role:superAdmin|admin|financeAdmin']);
+        $this->middleware('permission:view expense types')->only(['index', 'show']);
+        $this->middleware('permission:view expense types|record expense payments')->only('fetch');
+        $this->middleware('permission:create expense types')->only(['create', 'store']);
+        $this->middleware('permission:edit expense types')->only(['edit', 'update']);
+        $this->middleware('permission:delete expense types')->only('destroy');
     }
 
     /**
@@ -96,21 +100,18 @@ class ExpenseTypeController extends Controller
             ->addColumn('actions', function ($expenseType) {
                 $delete = $view = $edit = '';
 
-                if (auth()->user()->hasAnyRole(['superAdmin', 'admin', 'financeAdmin'])) {
-                    $view = '';
-
-                    if (auth()->user()->hasAnyRole(['superAdmin', 'admin'])) {
-                        $edit = '<a class="dropdown-item nav-main-link btn"
-                                    data-expense-type=\'' . htmlspecialchars(json_encode($expenseType), ENT_QUOTES, 'UTF-8') . '\'
-                                    onclick="openEditExpenseType(this)">
-                                    <i class="fa fa-pencil me-3"></i> Edit
-                                </a>';
-
-                        $delete = '<a href="#" class="dropdown-item nav-main-link btn"
-                                    onclick="openDeleteExpenseType(' . htmlspecialchars(json_encode(['id' => $expenseType->id]), ENT_QUOTES, 'UTF-8') . ')">
-                                    <i class="fa fa-trash me-3"></i> Delete
-                                </a>';
-                    }
+                if (auth()->user()->can('edit expense types')) {
+                    $edit = '<a class="dropdown-item nav-main-link btn"
+                                data-expense-type=\'' . htmlspecialchars(json_encode($expenseType), ENT_QUOTES, 'UTF-8') . '\'
+                                onclick="openEditExpenseType(this)">
+                                <i class="fa fa-pencil me-3"></i> Edit
+                            </a>';
+                }
+                if (auth()->user()->can('delete expense types')) {
+                    $delete = '<a href="#" class="dropdown-item nav-main-link btn"
+                                onclick="openDeleteExpenseType(' . htmlspecialchars(json_encode(['id' => $expenseType->id]), ENT_QUOTES, 'UTF-8') . ')">
+                                <i class="fa fa-trash me-3"></i> Delete
+                            </a>';
                 }
 
                 return '
@@ -147,10 +148,6 @@ class ExpenseTypeController extends Controller
 
     public function store(Request $request)
     {
-        if (!auth()->user()->hasAnyRole(['superAdmin', 'admin'])) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
         $validated = $request->validate([
             'name' => 'required|string|unique:expense_types,name',
             'description' => 'nullable|string',
@@ -231,11 +228,6 @@ class ExpenseTypeController extends Controller
     {
         $expenseType = ExpenseType::findOrFail($expenseTypeId);
 
-        // Permission check
-        if (!auth()->user()->hasAnyRole(['superAdmin', 'admin'])) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
         // Validate input
         $validated = $request->validate([
             'name' => [
@@ -310,11 +302,6 @@ class ExpenseTypeController extends Controller
 
         if (!$expenseType) {
             return response()->json(['message' => 'Expense Type not found.'], 404);
-        }
-
-        // Check if the user has permission to delete the expense type
-        if (!auth()->user()->hasAnyRole(['superAdmin'])) {
-            return response()->json(['message' => 'Unauthorized'], 403);
         }
 
         $expenseType->expenseTypeOptions()->delete();

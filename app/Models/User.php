@@ -48,8 +48,14 @@ class User extends Authenticatable
      * @var array<string, string>
      */
     protected $casts = [
+        'is_active' => 'boolean',
         'email_verified_at' => 'datetime',
     ];
+
+    public function getIsActiveAttribute($value): bool
+    {
+        return $value === null ? true : (bool) $value;
+    }
 
     public function Student()
     {

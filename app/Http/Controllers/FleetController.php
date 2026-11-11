@@ -20,7 +20,11 @@ class FleetController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['role:superAdmin|admin']);
+        $this->middleware('permission:view fleet')->only(['index', 'show']);
+        $this->middleware('permission:view fleet|assign students')->only('getFleet');
+        $this->middleware('permission:create fleet')->only(['create', 'store']);
+        $this->middleware('permission:edit fleet')->only(['edit', 'update']);
+        $this->middleware('permission:delete fleet')->only('destroy');
     }
 
     /**

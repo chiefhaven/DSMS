@@ -44,53 +44,70 @@
     <!-- Dashboard Content -->
     <div class="content content-full">
 
-        @if(auth()->user()->hasRole('superAdmin'))
+        @cannot('access management')
+            @role('instructor')
+                @include('dashboard_partials.instructor')
+            @else
+                @role('student')
+                    @include('dashboard_partials.student')
+                @endrole
+            @endrole
+        @endcannot
+
+        @can('access management')
+        @role(['superAdmin', 'Super-Admin'])
 
             {{-- Super Administrator Dashboard --}}
             @include('dashboard_partials.super_admin')
 
-        @elseif(auth()->user()->hasAnyRole(['admin', 'financeAdmin']))
-
-            {{-- Administrator / Finance Administrator Dashboard --}}
-            @include('dashboard_partials.admin')
-
-        @elseif(auth()->user()->hasRole('instructor'))
-
-            {{-- Instructor Dashboard --}}
-            @include('dashboard_partials.instructor')
-
-        @elseif(auth()->user()->hasRole('student'))
-
-            {{-- Student Dashboard --}}
-            @include('dashboard_partials.student')
-
         @else
+            @role(['admin', 'financeAdmin'])
 
-            {{-- No Dashboard Role Assigned --}}
-            <div class="block block-rounded">
+                {{-- Administrator / Finance Administrator Dashboard --}}
+                @include('dashboard_partials.admin')
 
-                <div class="block-content block-content-full">
+            @else
+                @role('instructor')
 
-                    <div class="text-center py-5">
+                    {{-- Instructor Dashboard --}}
+                    @include('dashboard_partials.instructor')
 
-                        <i class="fa fa-user-lock fa-3x text-muted mb-4"></i>
+                @else
+                    @role('student')
 
-                        <h3 class="fs-4 fw-semibold mb-2">
-                            Dashboard Access Unavailable
-                        </h3>
+                        {{-- Student Dashboard --}}
+                        @include('dashboard_partials.student')
 
-                        <p class="text-muted mb-0">
-                            Your account does not have a dashboard role assigned.
-                            Please contact the system administrator.
-                        </p>
+                    @else
 
-                    </div>
+                        {{-- No Dashboard Role Assigned --}}
+                        <div class="block block-rounded">
 
-                </div>
+                            <div class="block-content block-content-full">
 
-            </div>
+                                <div class="text-center py-5">
 
-        @endif
+                                    <i class="fa fa-user-lock fa-3x text-muted mb-4"></i>
+
+                                    <h3 class="fs-4 fw-semibold mb-2">
+                                        Dashboard Access Unavailable
+                                    </h3>
+
+                                    <p class="text-muted mb-0">
+                                        Your account does not have a dashboard role assigned.
+                                        Please contact the system administrator.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                    @endrole
+                    @endcan
+                @endrole
+            @endrole
+        @endrole
 
     </div>
     <!-- END Dashboard Content -->

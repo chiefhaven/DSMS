@@ -1,4 +1,4 @@
-@role(['superAdmin', 'admin'])
+@can('manage administration')
     <div class="tab-pane fade" id="expensesList" role="tabpanel" aria-labelledby="expensesList-tab">
         <div class="table-responsive">
             <table class="table table-bordered table-striped table-vcenter">
@@ -51,4 +51,4 @@
             </div>
         </div>
     </div>
-@endrole
+@endcan

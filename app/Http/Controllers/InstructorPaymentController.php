@@ -87,7 +87,7 @@ class InstructorPaymentController extends Controller
     public function store()
     {
         // Check permission
-        if (!Auth::user()->hasRole('superAdmin')) {
+        if (!Auth::user()->can('manage system')) {
             return response()->json([
                 'message' => 'You are not allowed to make payments to instructors.'
             ], 403);

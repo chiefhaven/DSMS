@@ -11,6 +11,11 @@ use RealRashid\SweetAlert\Facades\Alert;
 
 class InvoiceSettingController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:edit invoice settings')->only('update');
+    }
+
     /**
      * Display a listing of the resource.
      *

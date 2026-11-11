@@ -44,10 +44,6 @@
     #student .student-downloads {
         margin-bottom: 0;
     }
-    #student .student-downloads td:first-child,
-    #student .student-downloads th:first-child {
-        display: none;
-    }
     #student .student-downloads td:last-child {
         width: 1%;
         white-space: nowrap;
@@ -84,13 +80,15 @@
                         </button>
                         <div class="dropdown-menu dropdown-menu-end p-0">
                             <div class="p-2">
-                            @role(['superAdmin'])
+                            @can('edit students')
                                 <form method="GET" action="{{ route('students.edit', ['student' => $student->id]) }}">
                                     {{ csrf_field() }}
                                     <button class="dropdown-item nav-main-link" type="submit">
                                         <i class="nav-main-link-icon  fas fa-pencil"></i>Edit profile
                                     </button>
                                 </form>
+                            @endcan
+                            @can('manage system')
                                 @if (isset($student->invoice))
                                 <button type="button" class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#paymentModal">
                                     <i class="nav-main-link-icon  fas fa-file-invoice"></i>Add payment
@@ -100,10 +98,12 @@
                                         <i class="nav-main-link-icon fas fa-plus-circle"></i>Enroll
                                     </a>
                                 @endif
-                            @endrole
+                            @endcan
+                            @can('change student status')
                             <button class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#change-status">
                                 <i class="nav-main-link-icon  fas fa-toggle-on"></i>Change status
                             </button>
+                            @endcan
                             </div>
                         </div>
                     </div>
@@ -124,7 +124,7 @@
                 Overview
             </button>
             </li>
-            @role(['superAdmin', 'admin'])
+            @can('manage administration')
                 <li class="nav-item">
                 <button class="nav-link" id="invoices-tab" data-bs-toggle="tab" data-bs-target="#invoices" role="tab" aria-controls="invoices" aria-selected="false">
                     Invoices
@@ -140,7 +140,7 @@
                         Expenses
                     </button>
                 </li>
-            @endrole
+            @endcan
         </ul>
         <div class="block-content tab-content">
             <div class="tab-pane fade active show" id="student-details" role="tabpanel" aria-labelledby="student-details-tab">
@@ -197,7 +197,7 @@
                                 </div>
 
                                 <!-- Car Assignment Section (Admin Only) -->
-                                @role(['superAdmin','admin'])
+                                @can('assign students')
                                 <div class="mt-auto">
                                     <h5 class="fs-6 fw-semibold border-bottom pb-2 mb-3">Vehicle</h5>
 
@@ -259,7 +259,7 @@
                                     @endif
                                 </div>
 
-                                @endrole
+                                @endcan
                             </div>
                         </div>
                         <div class="col-lg-6">
@@ -270,7 +270,7 @@
                                 <div class="table-responsive">
                                     <table class="table table-borderless">
                                         <tbody>
-                                            @role(['superAdmin', 'admin'])
+                                            @can('manage administration')
                                             <tr>
                                                 <th width="40%" class="text-muted">Enrollment Date</th>
                                                 <td>
@@ -283,7 +283,7 @@
                                                     @endif
                                                 </td>
                                             </tr>
-                                            @endrole
+                                            @endcan
 
                                             <tr>
                                                 <th class="text-muted">Course</th>
@@ -301,7 +301,7 @@
                                                 </td>
                                             </tr>
 
-                                            @role(['superAdmin', 'admin'])
+                                            @can('assign students')
                                             <tr>
                                                 <th class="text-muted">Classroom</th>
                                                 <td>
@@ -330,8 +330,10 @@
                                                     @endif
                                                 </td>
                                             </tr>
+                                            @endcan
 
                                             <!-- Payment Information -->
+                                            @can('manage administration')
                                             <tr class="border-top">
                                                 <th class="text-muted">Fees</th>
                                                 <td>
@@ -364,7 +366,7 @@
                                                     @endif
                                                 </td>
                                             </tr>
-                                            @endrole
+                                            @endcan
                                         </tbody>
                                     </table>
                                 </div>
@@ -424,109 +426,50 @@
                                 </div>
                             </div>
                         </div>
+                        @canany(['generate student letters', 'generate student reports'])
                         <div class="col-12">
                             <div class="card student-profile-card bg-body-light p-4">
                                 <h3 class="border-bottom pb-2 mb-3">Downloads</h3>
+                                @php
+                                    $studentDownloads = [
+                                        ['Traffic Register Card-Reference', '/trafic-card-reference-letter'],
+                                        ['Highway code 1 Aptitude Reference Letter', '/aptitude-test-reference-letter'],
+                                        ['Highway code 2 Aptitude Reference Letter', '/second-aptitude-test-reference-letter'],
+                                        ['Road Test Reference Letter', '/final-test-reference-letter'],
+                                        ['G and D Aptitude Test Reference Letter', '/g-and-d-aptitude-test-reference-letter'],
+                                        ['G and D Road Test Reference Letter', '/g-and-d-road-test-reference-letter'],
+                                        ['Category P Aptitude Test Reference Letter', '/category-p-aptitude-test-reference-letter'],
+                                        ['Category P Road Test Reference Letter', '/category-p-road-test-reference-letter'],
+                                        ['Lesson Attendance Report', '/lesson-report'],
+                                    ];
+                                @endphp
                                 <table class="table student-downloads">
                                     <thead>
-                                        <th>Action</th>
-                                        <th>#</th>
-                                        <th style="width:90%">Description</th>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Description</th>
+                                            <th class="text-end">Action</th>
+                                        </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <td>
-                                                <form method="POST" action="{{ url('/trafic-card-reference-letter', $student->id) }}">
-                                                {{ csrf_field() }}
-                                                <button class="btn btn-primary rounded-pill px-4" type="submit">Download</button>
-                                                </form>
-                                            </td>
-                                            <td>1</td>
-                                            <td>Traffic Register Card-Reference</td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <form method="POST" action="{{ url('/aptitude-test-reference-letter', $student->id) }}">
-                                                {{ csrf_field() }}
-                                                <button class="btn btn-primary rounded-pill px-4" type="submit">Download</button>
-                                                </form>
-                                            </td>
-                                            <td>2</td>
-                                            <td>Highway code 1 Aptitude Reference Letter</td>
-                                        </tr>
-                                        <tr>
-                                        <td>
-                                                <form method="POST" action="{{ url('/second-aptitude-test-reference-letter', $student->id) }}">
-                                                {{ csrf_field() }}
-                                                <button class="btn btn-primary rounded-pill px-4" type="submit">Download</button>
-                                                </form>
-                                            </td>
-                                            <td>3</td>
-                                            <td>Highway code 2 Aptitude Reference Letter</td>
-                                        </tr>
-                                        <tr>
-                                        <td>
-                                                <form method="POST" action="{{ url('/final-test-reference-letter', $student->id) }}">
-                                                {{ csrf_field() }}
-                                                <button class="btn btn-primary rounded-pill px-4" type="submit">Download</button>
-                                                </form>
-                                            </td>
-                                            <td>4</td>
-                                            <td>Road Test Reference Letter</td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <form method="POST" action="{{ url('/g-and-d-aptitude-test-reference-letter', $student->id) }}">
-                                                {{ csrf_field() }}
-                                                <button class="btn btn-primary rounded-pill px-4" type="submit">Download</button>
-                                                </form>
-                                            </td>
-                                            <td>5</td>
-                                            <td>G and D Aptitude Test Reference Letter</td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <form method="POST" action="{{ url('/g-and-d-road-test-reference-letter', $student->id) }}">
-                                                {{ csrf_field() }}
-                                                <button class="btn btn-primary rounded-pill px-4" type="submit">Download</button>
-                                                </form>
-                                            </td>
-                                            <td>6</td>
-                                            <td>G and D Road Test Reference Letter</td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <form method="POST" action="{{ url('/category-p-aptitude-test-reference-letter', $student->id) }}">
-                                                {{ csrf_field() }}
-                                                <button class="btn btn-primary rounded-pill px-4" type="submit">Download</button>
-                                                </form>
-                                            </td>
-                                            <td>7</td>
-                                            <td>Category P Aptitude Test Reference Letter</td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <form method="POST" action="{{ url('/category-p-road-test-reference-letter', $student->id) }}">
-                                                {{ csrf_field() }}
-                                                <button class="btn btn-primary rounded-pill px-4" type="submit">Download</button>
-                                                </form>
-                                            </td>
-                                            <td>8</td>
-                                            <td>Category P Road Test Reference Letter</td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <form method="POST" action="{{ url('/lesson-report', $student->id) }}">
-                                                {{ csrf_field() }}
-                                                <button class="btn btn-primary rounded-pill px-4" type="submit">Download</button>
-                                                </form>
-                                            </td>
-                                            <td>9</td>
-                                            <td>Lesson Attendance Report</td>
-                                        </tr>
+                                        @foreach ($studentDownloads as $index => [$description, $path])
+                                            @if (($path === '/lesson-report' && auth()->user()->can('generate student reports')) || ($path !== '/lesson-report' && auth()->user()->can('generate student letters')))
+                                            <tr>
+                                                <td>{{ $index + 1 }}</td>
+                                                <td>{{ $description }}</td>
+                                                <td class="text-end">
+                                                    <form method="POST" action="{{ url($path, $student->id) }}">
+                                                        @csrf
+                                                        <button class="btn btn-primary rounded-pill px-4" type="submit">Download</button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                            @endif
+                                        @endforeach
                                     </tbody>
                                 </table>
                             </div>
+                            @endcanany
                         </div>
                     </div>
                 </div>
@@ -537,7 +480,7 @@
     </div>
     </div>
 
-    @role(['superAdmin', 'admin'])
+    @can('manage administration')
         @if (isset($student->invoice))
         <!-- Payment Modal -->
         <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" style="display: none;" aria-hidden="true">
@@ -642,14 +585,18 @@
             </div>
         </div>
         @endif
-    @endrole
+    @endcan
 
 
-    @include('students.partials.assignCarModal')
-    @include('students.partials.assignClassRoomModal')
+    @can('assign students')
+        @include('students.partials.assignCarModal')
+        @include('students.partials.assignClassRoomModal')
+    @endcan
 </div>
 
-@include('students.partials.changeStatus')
+@can('change student status')
+    @include('students.partials.changeStatus')
+@endcan
 
 <script setup>
 

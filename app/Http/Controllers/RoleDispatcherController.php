@@ -17,7 +17,7 @@ class RoleDispatcherController extends Controller
             return app(AttendanceController::class)->create($request, $token);
         }
 
-        if ($user->hasRole(['financeAdmin', 'superAdmin'])) {
+        if ($user->can('record expense payments')) {
             return app(ExpenseController::class)->studentExpenses($request, $token);
         }
 

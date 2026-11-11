@@ -30,6 +30,9 @@ Route::middleware('auth')->group(function () {
     Route::singleton('settings', SettingController::class)->only(['edit', 'update']);
     Route::singleton('invoice-settings', InvoiceSettingController::class)->only(['update']);
     Route::resource('announcements', AnnouncementController::class)->only(['create']);
-    Route::resource('roles', RoleController::class)->only(['index']);
     Route::resource('knowledge', knowledgeController::class)->only(['index']);
+});
+
+Route::middleware('auth')->group(function () {
+    Route::resource('roles', RoleController::class)->except('show');
 });

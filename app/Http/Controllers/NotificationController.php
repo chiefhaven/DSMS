@@ -16,7 +16,7 @@ class NotificationController extends Controller
 {
     // public function __construct()
     // {
-    //     $this->middleware(['role:superAdmin|admin|student']);
+    //     $this->middleware(['permission:access portal admin']);
     // }
 
     /**
@@ -85,9 +85,7 @@ class NotificationController extends Controller
      */
     public function sendSMS($sms_body, $destination)
     {
-        if (! $this->middleware(['role:superAdmin|admin'])) {
-            abort(403, 'Unauthorized action.');
-        }
+        abort_unless(auth()->user()?->can('manage administration'), 403, 'Unauthorized action.');
 
         try {
 

@@ -1,6 +1,7 @@
 <div class="tab-pane fade" id="search-photos" role="tabpanel" aria-labelledby="search-photos-tab">
     <div class="row">
       <form class="mb-5" id="invoiceSettings">
+        <fieldset @cannot('edit invoice settings') disabled @endcannot>
         <div class="row g-sm push">
           <div class="container">
             <div class="form-floating mb-4">
@@ -35,9 +36,12 @@
               <label class="form-label" for="example-textarea-floating">Footer text</label>
           </div>
         </div>
+        </fieldset>
+        @can('edit invoice settings')
         <x-form-actions :cancel-url="route('settings.edit')">
             <button type="submit" class="btn btn-primary rounded-pill px-4" id="invoicesettings-update">Save</button>
         </x-form-actions>
+        @endcan
       </form>
     </div>
   </div>

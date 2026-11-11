@@ -34,6 +34,10 @@ class HomeController extends Controller
 
         $user = Auth::user();
 
+        if ($user->hasRole('student') && !$user->hasRole('instructor') && !$user->can('access management')) {
+            return view('dashboard', ['title' => 'Dashboard']);
+        }
+
         $settings = Setting::findOrFail(1);
 
         $now = Carbon::now();
@@ -73,6 +77,14 @@ class HomeController extends Controller
                 $instructorEstimatedPay = $attendanceCount
                     * (float) $settings->bonus;
             }
+        }
+
+        if ($user->hasRole('instructor') && !$user->can('access management')) {
+            return view('dashboard', [
+                'title' => 'Dashboard',
+                'attendanceCount' => $attendanceCount,
+                'instructorEstimatedPay' => $instructorEstimatedPay,
+            ]);
         }
 
         /*

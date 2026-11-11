@@ -103,12 +103,14 @@
                         <button type="button" v-if="showActions" class="btn btn-alt-secondary rounded-pill px-4" @click="back">Cancel</button>
                         <button type="button" v-if="showCourseLessons" class="btn btn-alt-secondary rounded-pill px-4" @click="closeForm">Cancel</button>
                     </x-slot:cancel>
+                    @can('edit course lessons')
                     <button type="submit" v-if="showCourseLessons" class="btn btn-primary rounded-pill px-4" @click="updateCourseLessons">
                         Edit
                     </button>
                     <button type="submit" v-if="showActions" class="btn btn-primary rounded-pill px-4" @click="saveCourseLessons">
                         Save
                     </button>
+                    @endcan
                 </x-form-actions>
             </div>
         </div>

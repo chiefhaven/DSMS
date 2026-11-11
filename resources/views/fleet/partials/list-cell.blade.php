@@ -26,14 +26,18 @@
             <a class="dropdown-item" href="{{ route('fleet.show', $car->id) }}">
                 <i class="fa fa-eye me-2" aria-hidden="true"></i> View vehicle
             </a>
+            @can('edit fleet')
             <a class="dropdown-item" href="{{ route('fleet.edit', $car->id) }}">
                 <i class="fa fa-edit me-2" aria-hidden="true"></i> Edit
             </a>
+            @endcan
+            @can('delete fleet')
             <button class="dropdown-item text-danger delete-confirm" type="button"
                     data-car="{{ $car->car_brand_model }} - {{ $car->car_registration_number }}"
                     data-url="{{ route('fleet.destroy', $car->id) }}">
                 <i class="fa fa-trash me-2" aria-hidden="true"></i> Delete
             </button>
+            @endcan
         </div>
     </div>
 @else

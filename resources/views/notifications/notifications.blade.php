@@ -14,7 +14,7 @@
             </div>
             @endif
 
-            @role(['superAdmin', 'admin'])
+            @can('manage administration')
                 <div class="dropdown d-inline-block">
 
                 </div>

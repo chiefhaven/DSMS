@@ -25,7 +25,7 @@
                             <select class="form-select"
                                     v-model="state.group"
                                     @change="getBalanceTemplate">
-                                <option value="">All students</option>
+                                <option value="All students">All students</option>
                                 <option value="Students with balance">Students with balance</option>
                             </select>
                             <label>Student Group</label>
@@ -95,7 +95,7 @@
                 isLoading: false,
                 buttonText: 'Send Announcement',
                 body: '',
-                group: '',
+                group: 'All students',
                 instructors: [],
                 selectedInstructor: ''
             });

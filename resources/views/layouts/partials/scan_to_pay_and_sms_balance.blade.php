@@ -1,4 +1,4 @@
-@role(['superAdmin', 'financeAdmin'])
+@can('record expense payments')
         <button type="button"
             class="btn btn-alt-secondary position-relative"
             title="Scan to Pay"
@@ -15,8 +15,10 @@
             <!-- QR Icon -->
             <i class="fa fa-fw fa-qrcode"></i>
         </button>
+@endcan
 
-        @role('superAdmin')
+@can('manage finance')
+        @can('manage system')
             <button type="button"
                     class="btn btn-alt-secondary position-relative"
                     title="SMS Balance"
@@ -49,8 +51,8 @@
                 <!-- SMS Icon -->
                 <i class="fa fa-fw fa-sms"></i>
             </button>
-        @endrole
-@endrole
+        @endcan
+@endcan
 
     <script>
         const smsBalance = createApp({

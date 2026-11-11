@@ -1,4 +1,4 @@
-@role(['superAdmin', 'admin'])
+@can('manage administration')
     <div class="tab-pane fade" id="invoices" role="tabpanel" aria-labelledby="invoices-tab">
         <div class="table-responsive">
             <table class="table table-bordered table-striped table-vcenter">
@@ -27,17 +27,17 @@
                                             @csrf
                                             <button class="dropdown-item" type="submit">Edit</button>
                                         </form>
-                                        @role('superAdmin')
+                                        @can('manage system')
                                         <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#paymentModal">Add payment</button>
-                                        @endrole
+                                        @endcan
                                         <a class="dropdown-item" href="{{ url('/invoice-pdf', $student->invoice->id) }}">Print Invoice</a>
-                                        @role('superAdmin')
+                                        @can('manage system')
                                         <form method="POST" action="{{ url('/invoice-delete', $student->invoice->id) }}">
                                             @csrf
                                             @method('DELETE')
                                             <button class="dropdown-item delete-invoice" data-invoice-id="{{ $student->invoice->invoice_number }}" type="submit">Delete</button>
                                         </form>
-                                        @endrole
+                                        @endcan
                                         <form method="POST" action="{{ url('send-balance-sms', [$student->id,'Balance']) }}">
                                             @csrf
                                             <button class="dropdown-item" type="submit">Send balance reminder</button>
@@ -84,7 +84,7 @@
                                 <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     Action
                                 </button>
-                                @role('superAdmin')
+                                @can('manage system')
                                 <div class="dropdown-menu dropdown-menu-end p-0">
                                     <div class="p-2">
                                         <form method="POST" action="{{ url('delete-payment', $payment->id) }}">
@@ -96,7 +96,7 @@
                                         </form>
                                     </div>
                                 </div>
-                                @endrole
+                                @endcan
                             </div>
                         </td>
                         <td class="font-w600">{{ $payment->created_at->format('j F, Y') }}</td>
@@ -140,4 +140,4 @@
             </table>
         </div>
     </div>
-@endrole
+@endcan

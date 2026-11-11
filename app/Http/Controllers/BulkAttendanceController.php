@@ -16,6 +16,12 @@ use Auth;
 
 class BulkAttendanceController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:access operations');
+        $this->middleware('permission:manage operations')->except('index');
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -64,7 +70,7 @@ class BulkAttendanceController extends Controller
             ->addColumn('actions', function ($bulk) {
                 $actions = '';
 
-                if (auth()->user()->hasAnyRole(['superAdmin', 'admin', 'financeAdmin'])) {
+                if (auth()->user()->can('access management')) {
                     $view = '<a class="dropdown-item nav-main-link btn" href="' . url("/view-bulk-attendance/{$bulk->id}") . '">
                                 <i class="fa fa-eye me-2"></i>View
                             </a>';

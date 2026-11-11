@@ -14,14 +14,14 @@
             </div>
             @endif
 
-            @role(['superAdmin', 'admin'])
+            @can('manage administration')
                 <div class="dropdown d-inline-block">
                     <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <i class="fa fa-angle-down me-1" aria-hidden="true"></i><span>Actions</span>
                     </button>
                     <div class="dropdown-menu dropdown-menu-end p-0">
                         <div class="p-2">
-                        @role(['superAdmin', 'admin'])
+                        @can('manage administration')
                             <a href="{{ url('/addstudent') }}" class="dropdown-item nav-main-link">
                                 <i class="fa fa-fw fa-user-plus mr-1"></i>&nbsp; Add student
                             </a>
@@ -80,14 +80,14 @@
                                                         <th class="text-center" style="width: 100px;">Actions</th>
                                                         <th>Name</th>
                                                         <th style="min-width: 15rem;">Course Enrolled</th>
-                                                        @role('superAdmin|admin')
+                                                        @can('manage administration')
                                                             <th>Fees</th>
                                                             <th>Balance</th>
-                                                        @endrole
+                                                        @endcan
                                                         <th style="min-width: 10rem;">Registered on</th>
-                                                        @role('superAdmin|admin')
+                                                        @can('manage administration')
                                                             <th style="min-width: 10rem;">Car assigned</th>
-                                                        @endrole
+                                                        @endcan
                                                         <th>Attendance</th>
                                                         <th style="min-width: 10rem;">Course Status</th>
                                                         <th>Phone</th>
@@ -111,7 +111,7 @@
                                                                         <a class="dropdown-item" href="{{ url('/viewstudent', $students->id) }}">
                                                                             <i class="fa fa-user"></i> Profile
                                                                         </a>
-                                                                        @role('superAdmin')
+                                                                        @can('manage system')
                                                                             <a class="dropdown-item" href="{{ url('/edit-student', $students->id) }}">
                                                                                 <i class="fa fa-pencil"></i> Edit
                                                                             </a>
@@ -122,13 +122,13 @@
                                                                                     <i class="fa fa-trash"></i> Delete
                                                                                 </button>
                                                                             </form>
-                                                                        @endrole
+                                                                        @endcan
                                                                     </div>
                                                                 </div>
                                                             </td>
                                                             <td>{{ $students->fname }} {{ $students->mname }} {{ $students->sname }}</td>
                                                             <td>{{ optional($students->course)->name ?? 'Not enrolled yet.' }}</td>
-                                                            @role('superAdmin|admin')
+                                                            @can('manage administration')
                                                                 <td>K{{ number_format($students->invoice->invoice_total ?? 0, 2) }}</td>
                                                                 <td>
                                                                     <strong>
@@ -137,11 +137,11 @@
                                                                         </span>
                                                                     </strong>
                                                                 </td>
-                                                            @endrole
+                                                            @endcan
                                                             <td>{{ $students->created_at->format('j F, Y') }}</td>
-                                                            @role('superAdmin|admin')
+                                                            @can('manage administration')
                                                                 <td>{{ optional($students->fleet)->car_registration_number ?? 'Not assigned yet' }}</td>
-                                                            @endrole
+                                                            @endcan
                                                             <td class="text-center">
                                                                 @if ($attendancePercentage >= 100)
                                                                     <span class="badge bg-success">Completed</span>
@@ -180,7 +180,7 @@
     </div>
 
 
-    @role(['superAdmin', 'admin'])
+    @can('manage administration')
         <!-- Payment Modal -->
             <div class="modal" id="modal-block-vcenter" tabindex="-1" aria-labelledby="modal-block-vcenter" style="display: none;" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered" role="document">
@@ -269,13 +269,13 @@
                 { data: 'actions', className: 'text-center', orderable: false }, // Actions
                 { data: 'name' }, // Name
                 { data: 'course_enrolled', className: 'text-wrap' }, // Course Enrolled
-                @role('superAdmin|admin')
+                @can('manage administration')
                 { data: 'balance', className: 'text-right' }, // Balance
-                @endrole
+                @endcan
                 { data: 'registered_on', className: 'text-center' }, // Registered On
-                @role(['superAdmin','admin'])
+                @can('manage administration')
                 { data: 'car_assigned', className: 'text-center' }, // Car Assigned
-                @endrole
+                @endcan
                 { data: 'attendance', className: 'text-center' }, // Attendance
                 { data: 'course_status', className: 'text-wrap' }, // Course Status
                 { data: 'phone' }, // Phone

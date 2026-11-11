@@ -56,6 +56,7 @@
                                 <label class="px-4" for="invoice_discount">Body</label>
                             </div>
                         </div>
+                        @can('send announcements')
                         <x-form-actions :cancel-url="route('students.index')">
                             <button type="submit" class="btn btn-primary rounded-pill px-4" :disabled="state.isSubmitButtonDisabled">
                                 <template v-if="state.isLoading">
@@ -66,6 +67,7 @@
                                 </template>
                             </button>
                         </x-form-actions>
+                        @endcan
                     </form>
                 </div>
             </div>
@@ -83,7 +85,7 @@
           buttonText: 'Send',
           announcementForm: null,
           body: 'Body here',
-          group: ''
+          group: 'All students'
         });
 
         onMounted(() => {
@@ -97,7 +99,7 @@
 
             if (state.value.announcementForm) {
               try {
-                const response = await axios.post('/sendAnnouncement', {
+                const response = await axios.post(@json(route('sendAnnouncement')), {
                     body: state.value.body,
                     group: state.value.group
                 });

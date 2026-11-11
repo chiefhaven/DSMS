@@ -8,6 +8,7 @@
         <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">
             Schedule lessons <span class="badge bg-danger ms-2">New</span>
         </h1>
+        @can('create schedules')
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
 
             <button type="button" class="btn btn-primary" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -21,6 +22,7 @@
                 </div>
             </div>
         </nav>
+        @endcan
       </div>
     </div>
   </div>
@@ -221,12 +223,16 @@
                     </div>
                 </div>
                 <div class="modal-footer">
+                    @can('edit schedules')
                     <button class="btn btn-light" @click="editSchedule(eventItems)">
                         Edit schedule
                     </button>
+                    @endcan
+                    @can('delete schedules')
                     <button class="btn btn-sm text-danger" @click="deleteEvent(eventItems)">
                         <i class="fas fa-trash"></i> Delete Schedule
                       </button>
+                    @endcan
                 </div>
             </div>
         </div>
@@ -412,6 +418,9 @@
 
             // Only proceed if no events exist
             if (!hasEvents) {
+                @cannot('create schedules')
+                    return;
+                @endcannot
                 // Validate date is today or in future
                 if (clickedMoment.isBefore(today)) {
                     showError("Can't select date", "Please select today's date or a future date");

@@ -38,7 +38,7 @@ class InvoiceController extends Controller
      */
     public function index()
     {
-        if(Auth::user()->hasRole('superAdmin')){
+        if(Auth::user()->can('manage system')){
             return view('invoices.invoices');
         }
 
@@ -140,7 +140,7 @@ class InvoiceController extends Controller
                 $edit = '';
                 $delete = '';
 
-                if (auth()->user()->hasRole('superAdmin')) {
+                if (auth()->user()->can('manage system')) {
                     $edit = '<a class="dropdown-item" href="' . route('invoices.edit', $invoice->id) . '">
                                 <i class="fa fa-pencil"></i> Edit
                             </a>';
@@ -181,7 +181,7 @@ class InvoiceController extends Controller
             $id = $request->validate(['student' => 'required|uuid|exists:students,id'])['student'];
         }
 
-        if (Auth::user()->hasRole('superAdmin')) {
+        if (Auth::user()->can('manage finance')) {
             $course = Course::all();
             $classrooms = Classroom::all();
             $fleets = Fleet::all();
@@ -218,7 +218,7 @@ class InvoiceController extends Controller
             'paid_amount'   =>'numeric|min:0'
         ], $messages);
 
-        if(!Auth::user()->hasRole('superAdmin')){
+        if(!Auth::user()->can('manage finance')){
             Alert::toast('You do not have permission to enroll a student. Please contact the administrator for assistance.', 'warning');
             return back();
         }
@@ -379,7 +379,7 @@ class InvoiceController extends Controller
      */
     public function edit($id)
     {
-        if (!Auth::user()->hasRole('superAdmin')) {
+        if (!Auth::user()->can('manage system')) {
             Alert::toast('You do not have permission to edit invoice or student enrollment. Please contact the administrator for assistance.', 'warning');
             return back();
         }
@@ -437,7 +437,7 @@ class InvoiceController extends Controller
             'classroom' => 'nullable|exists:classrooms,id', // Optional but must exist in classrooms table
         ], $messages);
 
-        if(!Auth::user()->hasRole('superAdmin')){
+        if(!Auth::user()->can('manage system')){
             Alert::toast('You do not have permission to enroll a student. Please contact the administrator for assistance.', 'warning');
             return back();
         }
@@ -496,7 +496,7 @@ class InvoiceController extends Controller
     public function destroy(Invoice $invoice)
     {
         $Invoice = $invoice;
-        if (!Auth::user()->hasRole('superAdmin')) {
+        if (!Auth::user()->can('manage system')) {
             Alert::toast('You do not have permission to delete invoice or student enrollment. Please contact the administrator for assistance.', 'warning');
             return back();
         }

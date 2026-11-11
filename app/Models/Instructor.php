@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -63,6 +64,14 @@ class Instructor extends Model
     public function department()
     {
        return $this->belongsTo(Department::class);
+    }
+
+    public function assignedStudents(): Builder
+    {
+        return Student::query()->where(function (Builder $query) {
+            $query->whereHas('fleet', fn (Builder $fleet) => $fleet->where('instructor_id', $this->getKey()))
+                ->orWhereHas('classroom.instructors', fn (Builder $instructors) => $instructors->whereKey($this->getKey()));
+        });
     }
 
     public function payments()

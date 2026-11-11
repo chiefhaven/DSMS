@@ -9,7 +9,7 @@
             <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Expense payments</h1>
             <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
 
-                @role(['superAdmin', 'admin'])
+                @can('report expense payments')
                     <div class="">
                         <div class="col-md-12 block-rounded block-bordered p-4 dropdown d-inline-block">
                             @include('expenses.partials.reportModal')

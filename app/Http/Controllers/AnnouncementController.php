@@ -17,7 +17,9 @@ class AnnouncementController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['role:superAdmin']);
+        $this->middleware('permission:view announcements')->only('create');
+        $this->middleware('permission:view announcements|send announcements')->only('getBalanceTempplate');
+        $this->middleware('permission:send announcements')->only('send');
     }
     /**
      * Display a listing of the resource.
@@ -36,10 +38,6 @@ class AnnouncementController extends Controller
      */
     public function create()
     {
-        if (! $this->middleware(['role:superAdmin|admin'])) {
-            abort(403, 'Unauthorized action.');
-        }
-
         return view('announcements.sendAnnouncement');
     }
 
@@ -128,6 +126,9 @@ class AnnouncementController extends Controller
 
             if (!$instructor) {
                 return response()->json(['message' => 'Instructor not found'], 404);
+            }
+            if (!$instructor->fleet && $instructor->classrooms->isEmpty()) {
+                return response()->json(['message' => 'No students found'], 404);
             }
 
             $studentsQuery->where(function ($q) use ($instructor) {

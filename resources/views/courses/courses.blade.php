@@ -8,9 +8,11 @@
         <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Courses</h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
           <ol class="breadcrumb">
+            @can('create courses')
             <a href="{{ route('courses.create') }}" class="btn btn-primary">
                     <i class="fa fa-fw fa-plus mr-1"></i> Add Course
             </a>
+            @endcan
           </ol>
         </nav>
       </div>
@@ -87,10 +89,13 @@
                                 <i class="fa fa-eye me-2 text-info"></i> View
                             </a>
 
+                            @can('edit courses')
                             <a class="dropdown-item" href="{{ route('courses.edit', $course->id) }}">
                                 <i class="fa fa-edit me-2 text-warning"></i> Edit
                             </a>
+                            @endcan
 
+                            @can('delete courses')
                             <div class="dropdown-divider"></div>
 
                             <form method="POST" action="{{ route('courses.destroy', $course->id) }}">
@@ -101,6 +106,7 @@
                                     <i class="fa fa-trash me-2"></i> Delete
                                 </button>
                             </form>
+                            @endcan
                         </div>
                     </div>
                 </div>

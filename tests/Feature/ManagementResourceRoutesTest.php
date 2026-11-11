@@ -110,6 +110,83 @@ class ManagementResourceRoutesTest extends TestCase
         }
     }
 
+    public function test_administrators_index_returns_a_view_without_loading_profiles(): void
+    {
+        $view = app(AdministratorController::class)->index(Request::create('/administrators'));
+
+        $this->assertSame('administrators.administrators', $view->name());
+        $this->assertArrayNotHasKey('administrator', $view->getData());
+    }
+
+    public function test_administrators_datatable_pages_searches_and_escapes_profiles(): void
+    {
+        Schema::table('administrators', function (Blueprint $table) {
+            $table->string('fname');
+            $table->string('sname');
+            $table->string('phone')->nullable();
+        });
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('email');
+        });
+        Schema::create('roles', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('guard_name');
+        });
+        Schema::create('model_has_roles', function (Blueprint $table) {
+            $table->unsignedBigInteger('role_id');
+            $table->string('model_type');
+            $table->string('model_id');
+        });
+        DB::table('administrators')->insert([
+            ['id' => '1', 'fname' => '<script>alert(1)</script>', 'sname' => 'Alpha', 'phone' => '123'],
+            ['id' => '2', 'fname' => 'Zed', 'sname' => 'Beta', 'phone' => null],
+        ]);
+        DB::table('users')->insert(['id' => 1, 'administrator_id' => 1, 'email' => 'finance@example.test']);
+        DB::table('roles')->insert(['id' => 1, 'name' => 'financeAdmin', 'guard_name' => 'web']);
+        DB::table('model_has_roles')->insert(['role_id' => 1, 'model_type' => User::class, 'model_id' => '1']);
+
+        $fetch = function (string $search = '', int $start = 0) {
+            $request = Request::create('/administrators', 'GET', [
+                'draw' => 3,
+                'start' => $start,
+                'length' => 1,
+                'search' => ['value' => $search],
+                'columns' => [['data' => 'administrator', 'name' => 'fname', 'orderable' => 'true']],
+                'order' => [['column' => 0, 'dir' => 'asc']],
+            ], [], [], ['HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest']);
+            app()->instance('request', $request);
+            app()->forgetInstance('datatables.request');
+
+            return app(AdministratorController::class)->index($request)->getData(true);
+        };
+
+        $data = $fetch();
+        $this->assertSame(3, $data['draw']);
+        $this->assertSame(2, $data['recordsTotal']);
+        $this->assertCount(1, $data['data']);
+        $row = $data['data'][0];
+        $this->assertEqualsCanonicalizing(['actions', 'administrator', 'roles', 'email', 'phone'], array_keys($row));
+        $this->assertStringContainsString('&lt;script&gt;', $row['administrator']);
+        $this->assertStringContainsString('Finance Admin', $row['roles']);
+        $this->assertStringContainsString(route('administrators.edit', 1), $row['actions']);
+        $this->assertStringContainsString(route('administrators.show', 1), $row['actions']);
+        $this->assertStringContainsString('name="_method" value="DELETE"', $row['actions']);
+
+        foreach (['finance@example.test', 'financeAdmin', '123', 'Alpha'] as $search) {
+            $filtered = $fetch($search);
+            $this->assertSame(2, $filtered['recordsTotal']);
+            $this->assertSame(1, $filtered['recordsFiltered']);
+            $this->assertSame('finance@example.test', $filtered['data'][0]['email']);
+        }
+
+        $secondPage = $fetch('', 1);
+        $this->assertSame('Zed Beta', $secondPage['data'][0]['administrator']);
+        $this->assertSame('N/A', $secondPage['data'][0]['email']);
+        $this->assertStringContainsString('Staff', $secondPage['data'][0]['roles']);
+        $this->assertSame(0, $fetch('missing')['recordsFiltered']);
+    }
+
     public function test_access_middleware_is_preserved(): void
     {
         $routes = app('router')->getRoutes();
@@ -122,11 +199,11 @@ class ManagementResourceRoutesTest extends TestCase
             }
         }
         foreach (['invoices.index', 'invoices.show'] as $name) {
-            $this->assertContains('role:superAdmin|Super-Admin|admin|financeAdmin', $routes->getByName($name)->middleware());
+            $this->assertContains('permission:access management', $routes->getByName($name)->middleware());
         }
-        $this->assertContains('role:superAdmin|admin', $routes->getByName('instructors.show')->gatherMiddleware());
-        $this->assertContains('role:superAdmin|admin', $routes->getByName('administrators.update')->gatherMiddleware());
-        $this->assertContains('role:superAdmin|admin|financeAdmin', $routes->getByName('expenses.show')->gatherMiddleware());
+        $this->assertContains('permission:manage administration', $routes->getByName('instructors.show')->gatherMiddleware());
+        $this->assertContains('permission:manage administration', $routes->getByName('administrators.update')->gatherMiddleware());
+        $this->assertContains('permission:access management', $routes->getByName('expenses.show')->gatherMiddleware());
     }
 
     public function test_guests_cannot_write_canonical_resources(): void
@@ -179,7 +256,7 @@ class ManagementResourceRoutesTest extends TestCase
         $id = 'f2638868-b1d0-4c92-b71d-59a1f01e6e22';
         DB::table('students')->insert(['id' => $id]);
         $user = Mockery::mock(User::class)->makePartial();
-        $user->shouldReceive('hasRole')->with('superAdmin')->andReturnTrue();
+        $user->shouldReceive('can')->with('manage finance')->andReturnTrue();
         Auth::shouldReceive('user')->andReturn($user);
 
         $controller = app(InvoiceController::class);

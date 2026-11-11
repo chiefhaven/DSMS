@@ -23,6 +23,11 @@ class LoginController extends Controller
 
     protected $maxAttempts = 4;
 
+    protected function credentials(\Illuminate\Http\Request $request)
+    {
+        return [...$request->only($this->username(), 'password'), 'is_active' => true];
+    }
+
     /**
      * Where to redirect users after login.
      *

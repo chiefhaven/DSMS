@@ -42,6 +42,82 @@ Vehicle, Engine & drive, and Insurance & service cards with aligned labels and v
 Apply migration `2026_11_11_004500_add_vehicle_details_to_fleets` before using the forms.
 Engine capacity also requires `2026_11_11_005700_add_engine_capacity_to_fleets`.
 
+## Staff accounts
+
+Instructor and administrator details have Profile and Account management tabs. Users with
+`manage administration` can edit the linked account's username/email, set a
+confirmed password (minimum eight characters), and enable/disable login.
+Leaving the password blank preserves it. Disabling login retains the staff
+profile and any assignments, revokes API tokens/remember-me access, and blocks existing
+web sessions and authenticated API requests. Changing a password also revokes API
+tokens and remember-me access. Managers cannot deactivate their own account.
+Apply `2026_11_11_163500_add_is_active_to_users_table` before using this feature;
+existing users default to enabled. Profile employment status remains separate
+from login status.
+
+Instructors with `access portal` can open their dashboard after login. Their
+dashboard and attendance summary show their own information; management
+summaries still require `access management`. Students with `access portal` can
+also open the student dashboard. Apply
+`2026_11_11_120000_seed_access_permissions` to grant the default role permissions.
+
+Schedule access uses separate view, view-all, create, edit, delete, and restore
+permissions. Viewing all schedules requires both view and view-all permissions.
+Instructors without view-all access see only their own schedules;
+editing and deleting also require an instructor profile and ownership. Apply
+`2026_11_12_000000_seed_schedule_permissions` for the default role grants.
+
+Role management separately controls viewing, creating, editing, and deleting
+roles. Apply `2026_11_12_000100_seed_role_action_permissions`; existing
+`manage system` grants retain these actions.
+
+Student access separates viewing, viewing all, creation, editing, deletion,
+assignment, status changes, reports, and letters. Users without `view all
+students` need an instructor profile and can access only students assigned to
+their vehicles or classrooms, including when performing permitted actions.
+Apply `2026_11_12_000200_seed_student_permissions` for the default grants.
+Existing `manage system` grants are carried over when the same role or direct
+user grant also had `access operations`.
+
+Course permissions separately control viewing, creation, editing, deletion, and
+editing course lessons. Apply `2026_11_12_000300_seed_course_permissions`;
+existing `manage administration` grants retain these actions.
+
+Announcement form access and sending are separate permissions. Apply
+`2026_11_12_000800_seed_announcement_permissions`; existing `manage system`
+grants retain sending, while form access preserves the prior requirement for
+both `manage system` and `manage administration` on the same role or direct
+grant.
+
+Lesson viewing, creation, editing, and deletion use separate permissions.
+Apply `2026_11_12_000400_seed_lesson_permissions`; existing `manage operations`
+grants retain lesson viewing, while lesson mutations require explicit grants.
+Student lesson and attendance APIs remain available to the student concerned;
+staff access to another student's data requires student viewing and assignment
+scope.
+
+Classroom and fleet viewing, creation, editing, and deletion use separate
+permissions. Apply `2026_11_12_000500_seed_classroom_fleet_permissions`;
+existing `manage administration` grants retain these actions. Classroom edits
+that unassign an instructor from a vehicle also require `edit fleet`.
+Student and instructor API access to classroom and fleet details is limited to
+their assignments unless they have the corresponding viewing permission.
+
+Expense type viewing, creation, editing, and deletion use separate permissions.
+Apply `2026_11_12_000600_seed_expense_type_permissions`. Legacy grants are
+carried over when the same role or direct grant held all permissions previously
+required for the action.
+
+Expense payments use separate permissions for viewing, recording, deleting,
+downloading receipts, and generating summary reports. Apply
+`2026_11_12_000900_seed_expense_payment_permissions`; existing grants are
+preserved when the same role or direct grant held the previously required
+permissions.
+
+Settings permissions distinguish viewing from editing school, attendance, and
+invoice settings. Apply `2026_11_12_000700_seed_settings_permissions`;
+existing `manage administration` grants retain these actions.
+
 ## Form actions
 
 Dashboard page and modal forms use the shared `<x-form-actions>` footer:

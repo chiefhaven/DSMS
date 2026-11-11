@@ -2,85 +2,88 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Role;
 use App\Http\Requests\StoreRoleRequest;
 use App\Http\Requests\UpdateRoleRequest;
+use Illuminate\Http\RedirectResponse;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    private const PROTECTED_ROLES = ['superAdmin', 'Super-Admin'];
+
+    public function __construct()
+    {
+        $this->middleware('permission:view roles')->only('index');
+        $this->middleware('permission:create roles')->only(['create', 'store']);
+        $this->middleware('permission:edit roles')->only(['edit', 'update']);
+        $this->middleware('permission:delete roles')->only('destroy');
+    }
+
     public function index()
     {
-        //
+        $roles = Role::withCount(['users', 'permissions'])->orderBy('name')->get();
+
+        return view('roles.roles', compact('roles'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function create()
     {
-        //
+        return view('roles.form', [
+            'role' => new Role(),
+            'permissionGroups' => $this->permissionGroups(),
+            'selected' => [],
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \App\Http\Requests\StoreRoleRequest  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(StoreRoleRequest $request)
+    public function store(StoreRoleRequest $request): RedirectResponse
     {
-        //
+        $role = Role::create(['name' => $request->validated('name'), 'guard_name' => 'web']);
+        $role->syncPermissions($request->validated('permissions') ?? []);
+
+        return redirect()->route('roles.index')->with('message', "Role {$role->name} created.");
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Role  $role
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Role $role)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Role  $role
-     * @return \Illuminate\Http\Response
-     */
     public function edit(Role $role)
     {
-        //
+        return view('roles.form', [
+            'role' => $role,
+            'permissionGroups' => $this->permissionGroups(),
+            'selected' => $role->permissions->pluck('name')->all(),
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \App\Http\Requests\UpdateRoleRequest  $request
-     * @param  \App\Models\Role  $role
-     * @return \Illuminate\Http\Response
-     */
-    public function update(UpdateRoleRequest $request, Role $role)
+    public function update(UpdateRoleRequest $request, Role $role): RedirectResponse
     {
-        //
+        if (in_array($role->name, self::PROTECTED_ROLES, true)) {
+            return back()->with('message', 'Protected roles cannot be modified.');
+        }
+
+        $role->update(['name' => $request->validated('name')]);
+        $role->syncPermissions($request->validated('permissions') ?? []);
+
+        return redirect()->route('roles.index')->with('message', "Role {$role->name} updated.");
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Role  $role
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Role $role)
+    public function destroy(Role $role): RedirectResponse
     {
-        //
+        if (in_array($role->name, self::PROTECTED_ROLES, true)) {
+            return back()->with('message', 'Protected roles cannot be deleted.');
+        }
+
+        if ($role->users()->exists()) {
+            return back()->with('message', 'Reassign the users of this role before deleting it.');
+        }
+
+        $role->delete();
+
+        return redirect()->route('roles.index')->with('message', 'Role deleted.');
+    }
+
+    private function permissionGroups()
+    {
+        return Permission::orderBy('name')->pluck('name')->groupBy(
+            fn ($name) => ucfirst(trim(substr($name, (int) strpos($name, ' '))))
+        );
     }
 }

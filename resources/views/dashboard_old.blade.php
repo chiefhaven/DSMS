@@ -20,19 +20,19 @@
     <div class="block-content">
       @role('superAdmin')
         @include('dashboard_partials.super_admin')
-      @endcan
-      @role('admin')
-        @include('dashboard_partials.admin')
-      @endcan
-      @role('financeAdmin')
-        @include('dashboard_partials.admin')
-      @endcan
-      @role('instructor')
-        @include('dashboard_partials.instructor')
-      @endcan
-      @role('student')
-        @include('dashboard_partials.student')
-      @endcan
+      @else
+        @role(['admin', 'financeAdmin'])
+          @include('dashboard_partials.admin')
+        @else
+          @role('instructor')
+            @include('dashboard_partials.instructor')
+          @else
+            @role('student')
+              @include('dashboard_partials.student')
+            @endrole
+          @endrole
+        @endrole
+      @endrole
     </div>
   </div>
   <!-- END Hero -->

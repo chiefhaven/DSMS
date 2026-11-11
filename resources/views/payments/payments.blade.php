@@ -14,7 +14,7 @@
             </div>
           @endif
 
-          @role(['superAdmin', 'admin'])
+          @can('manage administration')
             <div class="">
                 {{--  <a class="btn btn-primary" href="/addpayment" data-bs-target="#modal-block-vcenter">
                     <i class="fa fa-file-invoice-dollar"></i>&nbsp; Add payment

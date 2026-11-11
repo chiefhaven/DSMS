@@ -45,6 +45,7 @@
             <form class="mb-5" action="{{ route('settings.update') }}" method="post" enctype="multipart/form-data">
                 @method('PUT')
                 @csrf
+                <fieldset @cannot('edit school settings') disabled @endcannot>
                 <div class="form-floating mb-4">
                 <input type="text" class="form-control @error('school_name') is-invalid @enderror" id="school_name" name="school_name" value="{{$setting->school_name}}">
                 <label class="form-label" for="example-school-name-input-floating">School name</label>
@@ -112,7 +113,10 @@
                         <option selected value="1">Africal/Blantyre</option>
                     </select>
                 </div>
-                <x-form-actions :cancel-url="route('settings.edit')" />
+                </fieldset>
+                @can('edit school settings')
+                    <x-form-actions :cancel-url="route('settings.edit')" />
+                @endcan
             </form>
             </div>
         </div>

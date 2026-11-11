@@ -1,4 +1,4 @@
-@role(['superAdmin', 'admin', 'instructor', 'financeAdmin'])
+@can('access operations')
 <div class="modal fade" id="change-status" tabindex="-1" aria-labelledby="statusModalLabel" style="display: none;" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">
@@ -24,14 +24,14 @@
                                 id="status"
                                 name="status"
                                 style="background-image: none; padding-right: 2.5rem;">
-                            @role(['superAdmin'])
+                            @can('manage system')
                             <option value="Pending" {{ $student->status == 'Pending' ? 'selected' : '' }}>
                                 <i class="fas fa-clock me-2"></i>Pending
                             </option>
                             <option value="In progress" {{ $student->status == 'In progress' ? 'selected' : '' }}>
                                 <i class="fas fa-spinner me-2"></i>In Progress
                             </option>
-                            @endrole
+                            @endcan
                             <option value="Finished" {{ $student->status == 'Finished' ? 'selected' : '' }}>
                                 <i class="fas fa-check-circle me-2"></i>Finished
                             </option>
@@ -46,4 +46,4 @@
         </div>
     </div>
 </div>
-@endrole
+@endcan

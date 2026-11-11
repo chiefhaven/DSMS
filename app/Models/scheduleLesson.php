@@ -30,7 +30,10 @@ class ScheduleLesson extends Model
         'student_id',
     ];
 
-    protected $dates = ['start_time', 'finish_time'];
+    protected $casts = [
+        'start_time' => 'datetime',
+        'finish_time' => 'datetime',
+    ];
 
     /**
      * Get the student associated with the schedule lesson.

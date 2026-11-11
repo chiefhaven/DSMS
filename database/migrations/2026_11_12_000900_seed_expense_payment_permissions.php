@@ -1,0 +1,61 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $table = config('permission.table_names.model_has_permissions');
+        $teamKey = config('permission.teams') ? config('permission.column_names.team_foreign_key') : null;
+        $actions = [
+            'view expense payments' => [['access management'], ['superAdmin', 'Super-Admin', 'admin', 'financeAdmin']],
+            'record expense payments' => [['access management', 'manage finance'], ['superAdmin', 'Super-Admin', 'financeAdmin']],
+            'delete expense payments' => [['access management', 'manage system'], ['superAdmin', 'Super-Admin']],
+            'download expense payment receipts' => [['access management', 'manage finance'], ['superAdmin', 'Super-Admin', 'financeAdmin']],
+            'report expense payments' => [['access management'], ['superAdmin', 'Super-Admin', 'admin', 'financeAdmin']],
+        ];
+
+        foreach ($actions as $name => [$sources, $defaults]) {
+            $permission = Permission::findOrCreate($name, 'web');
+            $existing = Permission::whereIn('name', $sources)->where('guard_name', 'web')->get();
+            $roles = Role::whereIn('name', $defaults)->where('guard_name', 'web')->get();
+            if ($existing->count() === count($sources)) {
+                $query = Role::where('guard_name', 'web');
+                foreach ($existing as $source) {
+                    $query->whereHas('permissions', fn ($permissions) => $permissions->whereKey($source->id));
+                }
+                $roles = $roles->merge($query->get());
+                $grants = DB::table($table)->whereIn('permission_id', $existing->pluck('id'))->get();
+                foreach ($grants->where('permission_id', $existing->first()->id) as $grant) {
+                    $allSources = $existing->every(fn ($source) => $grants->contains(fn ($other) =>
+                        (string) $other->permission_id === (string) $source->id
+                        && $other->model_type === $grant->model_type
+                        && $other->model_id === $grant->model_id
+                        && (!$teamKey || $other->{$teamKey} === $grant->{$teamKey})
+                    ));
+                    if ($allSources) {
+                        $row = (array) $grant;
+                        $row['permission_id'] = $permission->id;
+                        DB::table($table)->insertOrIgnore($row);
+                    }
+                }
+            }
+            foreach ($roles as $role) {
+                $role->givePermissionTo($permission);
+            }
+        }
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+    }
+
+    public function down(): void
+    {
+        // Retain permissions and any later role assignments when rolling back.
+    }
+};

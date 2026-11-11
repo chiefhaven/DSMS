@@ -444,12 +444,12 @@ class havenUtils extends Controller
         $studentId = $request->input('studentId');
 
         // Validate the student ID
-        if (!$studentId) {
+        if (!is_string($studentId) || $studentId === '') {
             return response()->json(['error' => 'Something went wrong'], 400);
         }
 
         // Retrieve the lessons for the student
-        $student = Student::find($studentId);
+        $student = $this->studentForSelfOrStaff($studentId);
 
         if ($student && $student->course) {
             // Group attendance records by lesson_id and count occurrences
@@ -492,7 +492,7 @@ class havenUtils extends Controller
             'lessonId' => $lessonId,
         ]);
 
-        if (!$studentId || !$lessonId) {
+        if (!is_string($studentId) || $studentId === '' || !is_string($lessonId) || $lessonId === '') {
             Log::warning('Missing parameters in StudentLessonAttendancesCount', [
                 'studentId' => $studentId,
                 'lessonId' => $lessonId,
@@ -500,6 +500,7 @@ class havenUtils extends Controller
             return response()->json(['message' => 'Missing parameters.'], 400);
         }
 
+        $this->studentForSelfOrStaff($studentId);
         $count = Attendance::where('student_id', $studentId)
                     ->where('lesson_id', $lessonId)
                     ->count();
@@ -511,6 +512,17 @@ class havenUtils extends Controller
         ]);
 
         return response()->json(['count' => $count]);
+    }
+
+    private function studentForSelfOrStaff(string $studentId): Student
+    {
+        $user = Auth::user();
+        if ($user->student_id === $studentId) {
+            return Student::findOrFail($studentId);
+        }
+
+        abort_unless($user->can('view students'), 403);
+        return Student::readableBy($user)->findOrFail($studentId);
     }
 
     public static function attendanceByDepartment($student_id, $department_name)

@@ -20,6 +20,13 @@ use RealRashid\SweetAlert\Facades\Alert;
 
 class ExpensePaymentController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view expense payments')->only('index');
+        $this->middleware('permission:record expense payments')->only('store');
+        $this->middleware('permission:delete expense payments')->only('destroy');
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -102,18 +109,23 @@ class ExpensePaymentController extends Controller
                 $receipt = '';
                 $delete = '';
 
-                if (auth()->user()->hasAnyRole(['superAdmin', 'financeAdmin'])) {
+                if (auth()->user()->can('download expense payment receipts')) {
                     $receipt = '<form method="GET" action="' . url('expense-payment-receipt', $payment->id) . '">
                         <button class="dropdown-item nav-main-link btn download-confirm" type="submit">
                             <i class="fa fa-download me-3"></i> Receipt
                         </button>
                     </form>';
 
-                    if (auth()->user()->hasRole('superAdmin')) {
-                        $delete = '<a href="javascript:void(0);" class="dropdown-item nav-main-link btn" onclick="deletePayment(\'' . $payment->id . '\')">
-                                        <i class="fa fa-trash me-3"></i> Delete
-                                    </a>';
-                    }
+                }
+
+                if (auth()->user()->can('delete expense payments')) {
+                    $delete = '<a href="javascript:void(0);" class="dropdown-item nav-main-link btn" onclick="deletePayment(\'' . $payment->id . '\')">
+                                    <i class="fa fa-trash me-3"></i> Delete
+                                </a>';
+                }
+
+                if ($receipt === '' && $delete === '') {
+                    return '';
                 }
 
                 return '
@@ -147,13 +159,6 @@ class ExpensePaymentController extends Controller
      */
     public function store(StoreexpensePaymentRequest $request, $studentId, $expenseId)
     {
-        if (!Auth::user()->hasRole(['superAdmin', 'financeAdmin'])) {
-            Log::warning('Unauthorized payment attempt by user ID: ' . Auth::id());
-            return response()->json([
-                'message' => 'You do not have permission to make a payment.'
-            ], 403);
-        }
-
         $request->validate([
             'amount' => ['required', 'numeric', 'min:1'],
             'payment_method' => ['required', 'string', 'in:Cash,Bank Transfer,Mobile Money'],
@@ -273,10 +278,6 @@ class ExpensePaymentController extends Controller
      */
     public function destroy($expensePayment)
     {
-        if (!auth()->user()->hasAnyRole(['superAdmin'])) {
-            abort(403, 'Unauthorized.');
-        }
-
         try {
             DB::beginTransaction();
 
@@ -325,7 +326,7 @@ class ExpensePaymentController extends Controller
 
     // public function deleteExpensePayment($id)
     // {
-    //     if (!auth()->user()->hasAnyRole(['superAdmin', 'admin', 'instructor', 'student'])) {
+    //     if (!auth()->user()->can('access portal')) {
     //         abort(403, 'Unauthorized.');
     //     }
 

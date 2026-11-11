@@ -33,7 +33,7 @@ class StudentControllerOld extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['role:superAdmin|admin|instructor']);
+        $this->middleware(['permission:manage operations']);
     }
     /**
      * Display a listing of the resource.
@@ -135,7 +135,7 @@ class StudentControllerOld extends Controller
                     <i class="nav-main-link-icon  fas fa-toggle-on"></i>Change status
                 </button>';
 
-                if (auth()->user()->hasRole('superAdmin')) {
+                if (auth()->user()->can('manage system')) {
                     $edit = '<a class="dropdown-item" href="' . url('/edit-student', $student->id) . '">
                                 <i class="fa fa-pencil"></i> Edit
                             </a>';
@@ -370,7 +370,7 @@ class StudentControllerOld extends Controller
     {
         $student = Student::with('User')->find($id);
 
-        if(!isset($student) || !Auth::user()->hasRole('superAdmin')){
+        if(!isset($student) || !Auth::user()->can('manage system')){
             abort(404);
         }
 

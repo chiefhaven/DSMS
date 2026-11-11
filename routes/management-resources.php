@@ -4,6 +4,7 @@ use App\Http\Controllers\AdministratorController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ExpenseResourceController;
 use App\Http\Controllers\InstructorController;
+use App\Http\Controllers\StaffAccountController;
 use App\Http\Controllers\InstructorPaymentController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
@@ -14,7 +15,7 @@ Route::resource('invoices', InvoiceController::class)
     ->middleware('auth');
 Route::resource('invoices', InvoiceController::class)
     ->only(['index', 'show'])
-    ->middleware(['auth', 'role:superAdmin|Super-Admin|admin|financeAdmin']);
+    ->middleware(['auth', 'permission:access management']);
 
 Route::resource('payments', PaymentController::class)
     ->only(['index', 'store', 'destroy'])
@@ -25,6 +26,12 @@ Route::resource('instructors', InstructorController::class)
     ->middleware('auth');
 Route::resource('instructors', InstructorController::class)
     ->only('show');
+Route::put('instructors/{instructor}/account', [StaffAccountController::class, 'updateInstructor'])
+    ->middleware(['auth', 'permission:manage administration'])
+    ->name('instructors.account.update');
+Route::put('administrators/{administrator}/account', [StaffAccountController::class, 'updateAdministrator'])
+    ->middleware(['auth', 'permission:manage administration'])
+    ->name('administrators.account.update');
 
 Route::resource('administrators', AdministratorController::class)
     ->middleware('auth');

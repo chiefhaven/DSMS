@@ -9,9 +9,11 @@
         <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Lessons</h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
           <ol class="breadcrumb">
+            @can('create lessons')
             <a href="#" class="btn btn-primary" @click.prevent="openAddLessonModal('null')">
                 <i class="fa fa-fw fa-plus mr-1"></i> Add Lesson
             </a>
+            @endcan
           </ol>
         </nav>
       </div>
@@ -41,6 +43,7 @@
                                 </p>
                             </p>
                         </div>
+                        @canany(['edit lessons', 'delete lessons'])
                         <div class="col-md-12">
                             <div class="dropdown d-inline-block">
                                 <button type="button" class="btn btn-sm btn-primary" id="" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -48,14 +51,19 @@
                                 </button>
                                 <div class="dropdown-menu dropdown-menu-end p-0">
                                 <div class="p-2">
+                                    @can('edit lessons')
                                     <button class="dropdown-item" @click="openAddLessonModal(lesson.id)">
                                         Edit
                                     </button>
+                                    @endcan
 
+                                    @can('delete lessons')
                                     <button class="dropdown-item" @click="confirmDeleteLesson(lesson.id)">
                                         Delete
                                     </button>
+                                    @endcan
                                 </div>
+                                @endcanany
                                 </div>
                             </div>
                         </div>
@@ -64,7 +72,9 @@
             </div>
         </div>
       </div>
-      @include('lessons/includes/addLessonModal')
+      @canany(['create lessons', 'edit lessons'])
+        @include('lessons/includes/addLessonModal')
+      @endcanany
       </div>
   </div>
 </div>

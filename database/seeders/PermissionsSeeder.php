@@ -70,6 +70,8 @@ class PermissionsSeeder extends Seeder
         $role3 = Role::create(['name' => 'Super-Admin']);
         // gets all permissions via Gate::before rule; see AuthServiceProvider
 
+        $this->call(AccessPermissionsSeeder::class);
+
         // create demo users
         $user = \App\Models\User::factory()->create([
             'name' => 'Example User',

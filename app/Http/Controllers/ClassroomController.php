@@ -14,7 +14,11 @@ class ClassroomController extends Controller
     public function __construct()
     {
 
-        $this->middleware(['role:superAdmin|admin']);
+        $this->middleware('permission:view classrooms')->only(['index', 'show']);
+        $this->middleware('permission:view classrooms|assign students')->only('getClassrooms');
+        $this->middleware('permission:create classrooms')->only(['create', 'store']);
+        $this->middleware('permission:edit classrooms')->only(['edit', 'update']);
+        $this->middleware('permission:delete classrooms')->only('destroy');
 
     }
 
@@ -112,6 +116,10 @@ class ClassroomController extends Controller
         $data = $request->validated();
 
         $classroom = $this->resolveClassroom($request, $classroom);
+        $fleet = Fleet::where('instructor_id', $data['instructor'])->first();
+        if ($fleet) {
+            abort_unless(auth()->user()->can('edit fleet'), 403);
+        }
 
         // Update the existing classroom
         $classroom->update([
@@ -121,8 +129,6 @@ class ClassroomController extends Controller
         ]);
 
         // Find the fleet assigned to the instructor
-        $fleet = Fleet::where('instructor_id', $data['instructor'])->first();
-
         if ($fleet) {
             // Unassign the instructor if the fleet is found
             $fleet->instructor_id = null;

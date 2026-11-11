@@ -15,7 +15,9 @@ class SettingController extends Controller
 
     public function __construct()
     {
-        $this->middleware(['role:superAdmin|admin']);
+        $this->middleware('permission:view settings')->only('edit');
+        $this->middleware('permission:edit school settings')->only('update');
+        $this->middleware('permission:edit attendance settings')->only('attendanceTimeUpdate');
         $this->setting = Setting::find(1);
     }
 

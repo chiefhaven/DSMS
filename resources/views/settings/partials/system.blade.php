@@ -5,6 +5,7 @@
       <div class="row">
         <form class="mb-5 form-inline" action="{{url('/attendance-time-update')}}" method="post" enctype="multipart/form-data">
           @csrf
+          <fieldset @cannot('edit attendance settings') disabled @endcannot>
           <div class="row haven-floating">
             <div class="mb-4 col-md-4 form-floating">
                 <input type="time" class="form-control @error('timestart') is-invalid @enderror" id="timestart" name="timestart" value="{{$setting->attendance_time_start->format('H:i')}}">
@@ -61,7 +62,10 @@
                 <p class="muted small"><em>Instructor's bonus per attendance</em></p>
             </div>
           </div>
-          <x-form-actions :cancel-url="route('settings.edit')" />
+          </fieldset>
+          @can('edit attendance settings')
+            <x-form-actions :cancel-url="route('settings.edit')" />
+          @endcan
         </form>
       </div>
   </div>

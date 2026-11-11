@@ -9,6 +9,7 @@ use App\Models\Lesson;
 use App\Models\ScheduleLesson as ModelsScheduleLesson;
 use App\Notifications\LessonScheduled;
 use Auth;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -17,7 +18,13 @@ class ScheduleLessonController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('role:admin|instructor')->only(['destroy', 'restore']);
+        $this->middleware('auth');
+        $this->middleware('permission:view schedules')->only(['index', 'schedules', 'getLessonSchedules']);
+        $this->middleware('permission:create schedules')->only('store');
+        $this->middleware('permission:edit schedules')->only('update');
+        $this->middleware('permission:delete schedules')->only('destroy');
+        $this->middleware('permission:restore schedules')->only('restore');
+        $this->middleware('permission:create schedules|edit schedules')->only('checkStudent');
     }
 
     /**
@@ -27,9 +34,10 @@ class ScheduleLessonController extends Controller
      */
     public function index()
     {
-        if (!Auth::user()->hasRole('instructor')) {
+        if (Auth::user()->can('view all schedules')) {
             return $this->schedules();
         }
+        abort_unless(Auth::user()->instructor_id, 403, 'An instructor profile is required.');
         return view('schedules.scheduleLesson');
 
     }
@@ -52,7 +60,7 @@ class ScheduleLessonController extends Controller
      */
     public function store(StorescheduleLessonRequest $request)
     {
-        if (!Auth::user()->hasRole('instructor')) {
+        if (!Auth::user()->instructor_id) {
             return response()->json([
                 'message' => 'You are not eligible to edit or add a schedule',
             ], 409);
@@ -152,16 +160,19 @@ class ScheduleLessonController extends Controller
 
     public function schedules()
     {
-        if (Auth::user()->hasRole('instructor')) {
-            return redirect()->route('dashboard')->with('error', 'Access denied');
-        }
+        abort_unless(Auth::user()->can('view all schedules'), 403);
         return view('schedules.adminSchedules');
 
     }
 
     public function restore($id)
     {
-        $schedule = ScheduleLesson::onlyTrashed()->findOrFail($id);
+        $query = ScheduleLesson::onlyTrashed();
+        if (!Auth::user()->can('view all schedules')) {
+            abort_unless(Auth::user()->instructor_id, 403, 'An instructor profile is required.');
+            $query->where('instructor_id', Auth::user()->instructor_id);
+        }
+        $schedule = $query->findOrFail($id);
         $schedule->restore();
 
         return response()->json(['message' => 'Lesson restored successfully']);
@@ -171,8 +182,12 @@ class ScheduleLessonController extends Controller
     {
         $post = $request->all();
 
-        $scheduleId = $post['scheduleId'];
+        $scheduleId = $post['scheduleId'] ?? null;
         $studentId = $post['studentId'];
+        if ($scheduleId && !Auth::user()->can('view all schedules')) {
+            abort_unless(Auth::user()->instructor_id, 403, 'An instructor profile is required.');
+            ScheduleLesson::where('instructor_id', Auth::user()->instructor_id)->findOrFail($scheduleId);
+        }
 
         // Check if student is already in the schedule
         $scheduleSet = DB::table('schedule_lesson_students')
@@ -184,7 +199,7 @@ class ScheduleLessonController extends Controller
             // Return error message if already scheduled
             return response()->json([
                 'feedback' => 'error',
-                'message' => "{$post['student']} is already scheduled."
+                'message' => 'The student is already scheduled.'
             ], 200);
         }
 
@@ -227,11 +242,13 @@ class ScheduleLessonController extends Controller
      */
     public function update(UpdatescheduleLessonRequest $request, $id)
     {
-        if (!Auth::user()->hasRole('instructor')) {
+        if (!Auth::user()->instructor_id) {
             return response()->json([
                 'message' => 'You are not eligible to edit or add a schedule',
             ], 409);
         }
+
+        $schedule = ScheduleLesson::where('instructor_id', Auth::user()->instructor_id)->findOrFail($id);
 
         // 1. Validate the request data
         $validator = Validator::make($request->all(), [
@@ -271,7 +288,6 @@ class ScheduleLessonController extends Controller
 
         try {
             // 3. Update schedule
-            $schedule = ScheduleLesson::findOrFail($id);
             $schedule->update([
                 'instructor_id' => Auth::user()->instructor_id,
                 'start_time'    => $request->start_time,
@@ -335,17 +351,13 @@ class ScheduleLessonController extends Controller
      */
     public function destroy($id)
     {
-        if (!Auth::user()->hasRole('instructor')) {
+        if (!Auth::user()->instructor_id) {
             return response()->json([
                 'message' => 'You are not eligible to delete the schedule',
             ], 409);
         }
 
-        $scheduleLesson = ScheduleLesson::find($id);
-
-        if (!$scheduleLesson) {
-            return response()->json(['error' => 'Schedule not found'], 404);
-        }
+        $scheduleLesson = ScheduleLesson::where('instructor_id', Auth::user()->instructor_id)->findOrFail($id);
 
         if (Carbon::parse($scheduleLesson->start_time)->isBefore(Carbon::today())) {
             return response()->json([
@@ -374,7 +386,8 @@ class ScheduleLessonController extends Controller
         $events = [];
 
         // Fetch lesson schedules depending on user role
-        if (Auth::user()->hasRole('instructor')) {
+        if (!Auth::user()->can('view all schedules')) {
+            abort_unless(Auth::user()->instructor_id, 403, 'An instructor profile is required.');
             $lessonSchedules = ScheduleLesson::with(['students', 'instructor', 'lesson'])
                 ->where('instructor_id', Auth::user()->instructor_id)
                 ->get();

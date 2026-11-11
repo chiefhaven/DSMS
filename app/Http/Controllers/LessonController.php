@@ -9,6 +9,7 @@ use App\Models\Attendance;
 use App\Models\Department;
 use App\Models\Student;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class LessonController extends Controller
@@ -16,7 +17,10 @@ class LessonController extends Controller
     public function __construct()
     {
 
-        $this->middleware(['role:superAdmin|admin|instructor']);
+        $this->middleware('permission:view lessons')->only(['index', 'getLessons', 'studentLessons', 'show']);
+        $this->middleware('permission:create lessons')->only(['create', 'store']);
+        $this->middleware('permission:edit lessons')->only(['edit', 'update']);
+        $this->middleware('permission:delete lessons')->only('destroy');
 
     }
 
@@ -57,7 +61,7 @@ class LessonController extends Controller
 
     public function studentLessons($id)
     {
-        $student = Student::with('course.lessons')->find($id);
+        $student = Student::readableBy(Auth::user())->with('course.lessons')->find($id);
 
         if (!$student) {
             return response()->json(['message' => 'Student not found'], 404);

@@ -18,7 +18,11 @@ class CourseController extends Controller
     public function __construct()
     {
 
-        $this->middleware(['role:superAdmin|admin'])->except('showPage');
+        $this->middleware('permission:view courses')->only(['index', 'show', 'showPage']);
+        $this->middleware('permission:create courses')->only(['create', 'store']);
+        $this->middleware('permission:edit courses')->only(['edit', 'update']);
+        $this->middleware('permission:delete courses')->only('destroy');
+        $this->middleware('permission:edit course lessons')->only('updateCourseLessons');
 
     }
 

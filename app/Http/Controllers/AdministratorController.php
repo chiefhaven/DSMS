@@ -21,22 +21,77 @@ use Illuminate\Support\Facades\Validator;
 use RealRashid\SweetAlert\Facades\Alert;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\havenUtils;
+use Yajra\DataTables\Facades\DataTables;
 
 class AdministratorController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['role:superAdmin|admin']);
+        $this->middleware(['permission:manage administration']);
     }
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $administrator = Administrator::with('User')->get();
-        return view('administrators.administrators', compact('administrator'));
+        if ($request->ajax()) {
+            $search = trim((string) $request->input('search.value', ''));
+
+            return DataTables::of(Administrator::query()->with('User.roles')->select('administrators.*'))
+                ->filter(function ($query) use ($search) {
+                    if ($search !== '') {
+                        $query->where(function ($query) use ($search) {
+                            $query->where('fname', 'like', "%{$search}%")
+                                ->orWhere('sname', 'like', "%{$search}%")
+                                ->orWhere('phone', 'like', "%{$search}%")
+                                ->orWhereHas('User', fn ($user) => $user->where('email', 'like', "%{$search}%"))
+                                ->orWhereHas('User.roles', fn ($roles) => $roles->where('name', 'like', "%{$search}%"));
+                        });
+                    }
+                })
+                ->addColumn('administrator', fn (Administrator $administrator) =>
+                    trim($administrator->fname . ' ' . $administrator->sname)
+                )
+                ->addColumn('email', fn (Administrator $administrator) => $administrator->User?->email ?? 'N/A')
+                ->addColumn('roles', function (Administrator $administrator) {
+                    $roles = $administrator->User?->roles;
+                    if (!$roles || $roles->isEmpty()) {
+                        return '<span class="badge bg-secondary">Staff</span>';
+                    }
+
+                    return $roles->map(function ($role) {
+                        $name = match ($role->name) {
+                            'admin' => 'Admin',
+                            'superAdmin' => 'Super Admin',
+                            'financeAdmin' => 'Finance Admin',
+                            default => ucfirst($role->name),
+                        };
+
+                        return '<span class="badge bg-primary me-1">' . e($name) . '</span>';
+                    })->implode(' ');
+                })
+                ->addColumn('actions', function (Administrator $administrator) {
+                    return '<div class="dropdown">'
+                        . '<button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Actions</button>'
+                        . '<ul class="dropdown-menu dropdown-menu-end">'
+                        . '<li><a class="dropdown-item" href="' . route('administrators.show', $administrator) . '"><i class="fas fa-eye me-2"></i>View Profile</a></li>'
+                        . '<li><a class="dropdown-item" href="' . route('administrators.edit', $administrator) . '"><i class="fas fa-edit me-2"></i>Edit Profile</a></li>'
+                        . '<li><hr class="dropdown-divider"></li>'
+                        . '<li><form method="POST" action="' . route('administrators.destroy', $administrator) . '">'
+                        . csrf_field() . method_field('DELETE')
+                        . '<button class="dropdown-item text-danger delete-confirm" type="submit" data-name="'
+                        . e(trim($administrator->fname . ' ' . $administrator->sname))
+                        . '"><i class="fas fa-trash-alt me-2"></i>Delete</button>'
+                        . '</form></li></ul></div>';
+                })
+                ->only(['actions', 'administrator', 'roles', 'email', 'phone'])
+                ->rawColumns(['roles', 'actions'])
+                ->toJson();
+        }
+
+        return view('administrators.administrators');
     }
 
     /**
@@ -120,10 +175,12 @@ class AdministratorController extends Controller
      */
     public function show(Administrator $administrator)
     {
-        $userAdmin = $administrator->exists
-            ? User::with('Administrator')->where('administrator_id', $administrator->id)->firstOrFail()
-            : User::with('Administrator')->findOrFail(Auth::user()->id);
-        return view('administrators.viewadministrator', [ 'userAdmin' => $userAdmin ], compact('userAdmin'));
+        if (!$administrator->exists) {
+            $administrator = Administrator::findOrFail(Auth::user()->administrator_id);
+        }
+        $administrator->load('User.roles');
+
+        return view('administrators.viewadministrator', compact('administrator'));
     }
 
     /**
@@ -134,8 +191,7 @@ class AdministratorController extends Controller
      */
     public function showProfile()
     {
-        $Administrator = Administrator::find(Auth::user()->Administrator_id);
-        return view('administrators.viewadministrator', compact('administrator'));
+        return $this->show(Administrator::findOrFail(Auth::user()->administrator_id));
     }
 
     /**

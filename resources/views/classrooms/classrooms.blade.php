@@ -9,9 +9,11 @@
         <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Classes</h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
           <ol class="breadcrumb">
+            @can('create classrooms')
             <a href="#" class="btn btn-primary" @click.prevent="openAddclassroomModal('null')">
                 <i class="fa fa-fw fa-plus mr-1"></i> Add class
             </a>
+            @endcan
           </ol>
         </nav>
       </div>
@@ -53,6 +55,7 @@
                                 </p>
                             </p>
                         </div>
+                        @canany(['edit classrooms', 'delete classrooms'])
                         <div class="col-md-12">
                             <div class="dropdown d-inline-block">
                                 <button type="button" class="btn btn-sm btn-primary" id="" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -60,14 +63,19 @@
                                 </button>
                                 <div class="dropdown-menu dropdown-menu-end p-0">
                                 <div class="p-2">
+                                    @can('edit classrooms')
                                     <button class="dropdown-item" @click="openAddclassroomModal(classroom.id)">
                                         Edit
                                     </button>
+                                    @endcan
 
+                                    @can('delete classrooms')
                                     <button class="dropdown-item" @click="confirmDeleteClassRoom(classroom.id)">
                                         Delete
                                     </button>
+                                    @endcan
                                 </div>
+                                @endcanany
                                 </div>
                             </div>
                         </div>
@@ -76,7 +84,9 @@
             </div>
         </div>
       </div>
-      @include('classrooms/includes/addclassroomModal')
+      @canany(['create classrooms', 'edit classrooms'])
+        @include('classrooms/includes/addclassroomModal')
+      @endcanany
       </div>
   </div>
 </div>

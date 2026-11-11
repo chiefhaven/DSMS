@@ -14,7 +14,7 @@
         </div>
         @endif
 
-        @role(['superAdmin', 'admin'])
+        @can('create expense types')
         <div>
           <button
             type="button"
@@ -24,7 +24,7 @@
             <i class="fa fa-file-plus me-3"></i> Add expense type
           </button>
         </div>
-        @endrole
+        @endcan
 
       </nav>
     </div>
@@ -65,6 +65,7 @@
     </div>
   </div>
 
+  @canany(['create expense types', 'edit expense types'])
   <!-- ONE Modal for Create & Edit -->
   <div class="modal fade" id="expenseTypeModal" tabindex="-1" aria-labelledby="expenseTypeModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -161,6 +162,7 @@
       </div>
     </div>
   </div>
+  @endcanany
 </div>
 </div>
 <!-- END Main Content -->

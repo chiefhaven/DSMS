@@ -285,7 +285,9 @@
         </div>
       </div>
       <div>
+            @can('send announcements')
             @include('/layouts/partials/announcementModal')
+            @endcan
       </div>
     </footer>
     <!-- END Footer -->

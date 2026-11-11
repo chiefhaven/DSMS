@@ -48,7 +48,7 @@ Route::post('/otp', [AuthController::class, 'otp'])->name('otp.api'); // Request
 Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->name('verifyOtp.api'); // Verify OTP and login
 Route::post('login', [AuthController::class, 'login'])->name('login.api'); // Login
 
-Route::middleware(['auth:sanctum', 'role:superAdmin|Super-Admin|admin|financeAdmin'])->group(function () {
+Route::middleware(['auth:sanctum', 'permission:access management'])->group(function () {
     Route::get('invoicesHome', [HomeController::class, 'index']);
     Route::get('/invoices', [ApiInvoiceController::class, 'index']);
     Route::get('/fetchInvoices', [InvoiceController::class, 'fetchInvoices']);
@@ -107,7 +107,7 @@ Route::get('/payments', [PaymentController::class, 'fetchPayments'])->name('api.
 
 Route::get('/expense-payments', [ExpensePaymentController::class, 'index'])->name('expense.expensePayments')->middleware('auth:sanctum');
 
-Route::middleware('auth:sanctum')->post('/reverse-payment/{id}', [ExpensePaymentController::class, 'reverseExpensePayment'])->name('reverseExpensePayments');
+Route::middleware(['auth:sanctum', 'permission:delete expense payments'])->post('/reverse-payment/{id}', [ExpensePaymentController::class, 'reverseExpensePayment'])->name('reverseExpensePayments');
 Route::middleware('auth:sanctum')->post('/delete-payment/{id}', [ExpensePaymentController::class, 'destroy'])->name('deleteExpensePayments');
 
 Route::apiResource('expense-types', ExpenseTypeController::class)
@@ -123,7 +123,7 @@ Route::get('/getPaymentMethods', [PaymentMethodController::class, 'fetchPaymentM
 
 Route::post('/save-vehicle-location', [VehicleTrackerController::class, 'store'])->name('save-vehicle-location')->middleware('auth:sanctum');
 
-Route::middleware(['auth:sanctum', 'role:superAdmin|Super-Admin|admin'])->group(function () {
+Route::middleware(['auth:sanctum', 'permission:manage administration'])->group(function () {
     Route::get('/get-all-vehicle-locations', [VehicleTrackerController::class, 'show'])->name('api.vehicle-locations');
     Route::get('/show-vehicle-geo-data/{vehicleId}', [VehicleTrackerController::class, 'showVehicleGeoData'])->name('api.vehicle-location');
 });
@@ -140,7 +140,7 @@ Route::get('/licence-classes', [havenUtils::class, 'getLicenceClasses'])->name('
 
 Route::post('/sendAnnouncement', [AnnouncementController::class,'send'])->middleware('auth:sanctum')->name('sendAnnouncement');
 
-Route::prefix('mbirasync')->middleware(['auth:sanctum', 'role:superAdmin|Super-Admin|admin'])->group(function () {
+Route::prefix('mbirasync')->middleware(['auth:sanctum', 'permission:manage administration'])->group(function () {
     Route::get('/positions',                    [FleetTrackerController::class, 'index']);
     Route::get('/positions/live',               [FleetTrackerController::class, 'live']);
     Route::get('/positions/{deviceId}/history', [FleetTrackerController::class, 'history']);

@@ -14,7 +14,7 @@
             </div>
           @endif
 
-          @role(['superAdmin', 'admin'])
+          @can('manage administration')
             <div class="">
                 <a class="btn btn-primary" href="{{ route('expenses.create') }}" data-bs-target="#modal-block-vcenter">
                     <i class="fa fa-file-invoice-dollar"></i>&nbsp; Add expense
@@ -43,7 +43,7 @@
                                     <th style="min-width: 10rem;">Status</th>
                                     <th style="min-width: 7rem;">Type</th>
                                     <th style="min-width: 10rem;">Description</th>
-                                    @role(['superAdmin'])
+                                    @can('manage system')
                                         <th style="min-width: 10rem;">Posted by</th>
                                     @endcan
                                     <th style="min-width: 10rem;">Amount per student</th>
@@ -64,7 +64,7 @@
                                                 </button>
                                                 <div class="dropdown-menu dropdown-menu-end p-0">
                                                     <div class="p-2">
-                                                        @role(['superAdmin|admin'])
+                                                        @can('manage administration')
                                                             @if($expense->group_type != 'TRN')
                                                                 @if($expense->approved == true)
                                                                     <form class="dropdown-item nav-main-link" method="get" action="{{ url('expensedownload', $expense) }}">
@@ -85,7 +85,7 @@
                                                                     <div class="btn">Edit</div>
                                                                 </a>
                                                             @endcan
-                                                            @role(['superAdmin'])
+                                                            @can('manage system')
                                                                 <a class="dropdown-item nav-main-link" href="{{ url('review-expense', $expense) }}">
                                                                     {{ csrf_field() }}
                                                                     <i class="nav-main-link-icon fa fa-magnifying-glass"></i>
@@ -139,7 +139,7 @@
                                         </td>
                                         <td>{{ $expense->group_type }}</td>
                                         <td>{{ $expense->description }}</td>
-                                        @role(['superAdmin'])
+                                        @can('manage system')
                                             <td>
                                                 @if ($expense->administrator)
                                                     {{ $expense->administrator->fname }} {{ $expense->administrator->sname }}

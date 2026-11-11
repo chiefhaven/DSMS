@@ -29,6 +29,14 @@ class TeachingResourceRoutesTest extends TestCase
             'session.driver' => 'array',
         ]);
 
+        (require base_path('vendor/spatie/laravel-permission/database/migrations/create_permission_tables.php.stub'))->up();
+        foreach (['superAdmin', 'Super-Admin', 'admin', 'financeAdmin', 'instructor', 'student'] as $name) {
+            Role::create(['name' => $name, 'guard_name' => 'web']);
+        }
+        (require base_path('database/migrations/2026_11_11_120000_seed_access_permissions.php'))->up();
+        (require base_path('database/migrations/2026_11_12_000300_seed_course_permissions.php'))->up();
+        (require base_path('database/migrations/2026_11_12_000400_seed_lesson_permissions.php'))->up();
+        (require base_path('database/migrations/2026_11_12_000500_seed_classroom_fleet_permissions.php'))->up();
     }
 
     public function test_only_implemented_actions_are_registered_with_authentication(): void
@@ -57,7 +65,7 @@ class TeachingResourceRoutesTest extends TestCase
         }
         $this->assertSame(CourseController::class.'@showPage', Route::getRoutes()->getByName('courses.show')->getActionName());
         $this->assertSame(CourseController::class.'@show', $this->match('/course-details/course-id')->getActionName());
-        $this->assertNotContains('role:superAdmin|admin', Route::getRoutes()->getByName('courses.show')->gatherMiddleware());
+        $this->assertNotContains('permission:manage administration', Route::getRoutes()->getByName('courses.show')->gatherMiddleware());
     }
 
     public function test_static_create_paths_are_not_intercepted_by_show_routes(): void
@@ -118,6 +126,178 @@ class TeachingResourceRoutesTest extends TestCase
         $action['uses'] = static fn () => response()->noContent();
         $route->setAction($action);
         $this->getJson('/lessons')->assertNoContent();
+    }
+
+    public function test_course_reader_can_open_the_legacy_page_but_cannot_change_courses(): void
+    {
+        $role = Role::create(['name' => 'course-reader', 'guard_name' => 'web']);
+        $role->givePermissionTo('view courses');
+        $this->authenticate('course-reader');
+        auth()->user()->setRelation('notifications', collect());
+        auth()->user()->setRelation('unreadNotifications', collect());
+
+        $this->get('/view-course/example')
+            ->assertOk()
+            ->assertDontSee('@click="updateCourseLessons"', false);
+        $this->getJson('/addcourse')->assertForbidden();
+        $this->postJson('/storecourse', [])->assertForbidden();
+        $this->putJson('/updatecourse', [])->assertForbidden();
+        $this->deleteJson('/delete-course/example')->assertForbidden();
+        $this->putJson('/update-course-lesson', [])->assertForbidden();
+
+        $this->authenticate('student');
+        $this->getJson('/view-course/example')->assertForbidden();
+    }
+
+    public function test_course_permissions_preserve_custom_and_direct_administration_grants(): void
+    {
+        $role = Role::create(['name' => 'course-manager', 'guard_name' => 'web']);
+        $role->givePermissionTo('manage administration');
+        $systemOnly = Role::create(['name' => 'system-only', 'guard_name' => 'web']);
+        $systemOnly->givePermissionTo('manage system');
+        $user = new User();
+        $user->id = 'direct-user';
+        DB::table(config('permission.table_names.model_has_permissions'))->insert([
+            'permission_id' => \Spatie\Permission\Models\Permission::findByName('manage administration')->id,
+            'model_type' => $user->getMorphClass(),
+            'model_id' => $user->id,
+        ]);
+
+        (require base_path('database/migrations/2026_11_12_000300_seed_course_permissions.php'))->up();
+
+        $this->assertTrue($role->fresh()->hasPermissionTo('edit course lessons'));
+        $this->assertFalse($systemOnly->fresh()->hasPermissionTo('edit course lessons'));
+        $this->assertDatabaseHas(config('permission.table_names.model_has_permissions'), [
+            'permission_id' => \Spatie\Permission\Models\Permission::findByName('delete courses')->id,
+            'model_type' => $user->getMorphClass(),
+            'model_id' => $user->id,
+        ]);
+    }
+
+    public function test_course_lesson_editor_cannot_change_course_details(): void
+    {
+        $role = Role::create(['name' => 'course-lesson-editor', 'guard_name' => 'web']);
+        $role->givePermissionTo('edit course lessons');
+        $this->authenticate('course-lesson-editor');
+
+        $this->putJson('/update-course-lesson', [])->assertUnprocessable();
+        $this->getJson('/lesson-search')->assertOk()->assertExactJson([]);
+        $this->putJson('/updatecourse', [])->assertForbidden();
+    }
+
+    public function test_lesson_reader_cannot_change_lessons_or_see_action_controls(): void
+    {
+        $role = Role::create(['name' => 'lesson-reader', 'guard_name' => 'web']);
+        $role->givePermissionTo('view lessons');
+        $this->createTables();
+        $this->authenticate('lesson-reader');
+        auth()->user()->setRelation('notifications', collect());
+        auth()->user()->setRelation('unreadNotifications', collect());
+
+        $this->get('/lessons')->assertOk()
+            ->assertDontSee('@click.prevent="openAddLessonModal(\'null\')"', false)
+            ->assertDontSee('@click="openAddLessonModal(lesson.id)"', false)
+            ->assertDontSee('@click="confirmDeleteLesson(lesson.id)"', false);
+        $this->postJson('/storelesson', [])->assertForbidden();
+        $this->putJson('/updatelesson/example', [])->assertForbidden();
+        $this->deleteJson('/delete-lesson/example')->assertForbidden();
+        $this->getJson('/lesson-search')->assertOk()->assertExactJson([]);
+        $this->authenticate('student');
+        $this->getJson('/lesson-search')->assertForbidden();
+    }
+
+    public function test_lesson_migration_preserves_operational_read_access_without_granting_mutations(): void
+    {
+        $role = Role::create(['name' => 'operations-reader', 'guard_name' => 'web']);
+        $role->givePermissionTo('manage operations');
+        $user = new User();
+        $user->id = 'direct-reader';
+        DB::table(config('permission.table_names.model_has_permissions'))->insert([
+            'permission_id' => \Spatie\Permission\Models\Permission::findByName('manage operations')->id,
+            'model_type' => $user->getMorphClass(),
+            'model_id' => $user->id,
+        ]);
+
+        (require base_path('database/migrations/2026_11_12_000400_seed_lesson_permissions.php'))->up();
+
+        $this->assertTrue($role->fresh()->hasPermissionTo('view lessons'));
+        $this->assertFalse($role->fresh()->hasPermissionTo('delete lessons'));
+        $this->assertDatabaseHas(config('permission.table_names.model_has_permissions'), [
+            'permission_id' => \Spatie\Permission\Models\Permission::findByName('view lessons')->id,
+            'model_type' => $user->getMorphClass(),
+            'model_id' => $user->id,
+        ]);
+    }
+
+    public function test_classroom_and_fleet_readers_cannot_perform_mutations(): void
+    {
+        $role = Role::create(['name' => 'resource-reader', 'guard_name' => 'web']);
+        $role->givePermissionTo(['view classrooms', 'view fleet']);
+        $this->createTables();
+        $this->authenticate('resource-reader');
+        auth()->user()->setRelation('notifications', collect());
+        auth()->user()->setRelation('unreadNotifications', collect());
+
+        $this->get('/classrooms')->assertOk()
+            ->assertDontSee('@click.prevent="openAddclassroomModal(\'null\')"', false)
+            ->assertDontSee('@click="openAddclassroomModal(classroom.id)"', false)
+            ->assertDontSee('@click="confirmDeleteClassRoom(classroom.id)"', false);
+        $this->postJson('/storeclassroom', [])->assertForbidden();
+        $this->putJson('/updateclassroom/example', [])->assertForbidden();
+        $this->deleteJson('/delete-classroom/example')->assertForbidden();
+        $this->postJson('/storefleet', [])->assertForbidden();
+        $this->postJson('/updatefleet', [])->assertForbidden();
+        $this->deleteJson('/deletefleet/example')->assertForbidden();
+
+        $car = new \App\Models\Fleet();
+        $car->id = 'car';
+        $html = view('fleet.partials.list-cell', ['car' => $car, 'field' => 'actions'])->render();
+        $this->assertStringContainsString('View vehicle', $html);
+        $this->assertStringNotContainsString('delete-confirm', $html);
+        $this->assertStringNotContainsString(route('fleet.edit', 'car'), $html);
+    }
+
+    public function test_classroom_edit_cannot_unassign_a_vehicle_without_fleet_permission(): void
+    {
+        $role = Role::create(['name' => 'classroom-editor', 'guard_name' => 'web']);
+        $role->givePermissionTo('edit classrooms');
+        $this->createTables();
+        DB::table('classrooms')->insert(['id' => 'classroom', 'name' => 'Before']);
+        DB::table('fleets')->insert(['id' => 'vehicle', 'instructor_id' => 'instructor']);
+        $payload = ['name' => 'After', 'instructor' => 'instructor'];
+        $this->authenticate('classroom-editor');
+
+        $this->putJson('/updateclassroom/classroom', $payload)->assertForbidden();
+        $this->assertSame('Before', DB::table('classrooms')->where('id', 'classroom')->value('name'));
+        $this->assertSame('instructor', DB::table('fleets')->where('id', 'vehicle')->value('instructor_id'));
+
+        $role->givePermissionTo('edit fleet');
+        $this->authenticate('classroom-editor');
+        EloquentModel::withoutEvents(fn () => $this->putJson('/updateclassroom/classroom', $payload))->assertOk();
+        $this->assertSame('After', DB::table('classrooms')->where('id', 'classroom')->value('name'));
+        $this->assertNull(DB::table('fleets')->where('id', 'vehicle')->value('instructor_id'));
+    }
+
+    public function test_classroom_fleet_migration_preserves_existing_administration_grants(): void
+    {
+        $role = Role::create(['name' => 'resource-manager', 'guard_name' => 'web']);
+        $role->givePermissionTo('manage administration');
+        $user = new User();
+        $user->id = 'direct-manager';
+        DB::table(config('permission.table_names.model_has_permissions'))->insert([
+            'permission_id' => \Spatie\Permission\Models\Permission::findByName('manage administration')->id,
+            'model_type' => $user->getMorphClass(),
+            'model_id' => $user->id,
+        ]);
+
+        (require base_path('database/migrations/2026_11_12_000500_seed_classroom_fleet_permissions.php'))->up();
+
+        $this->assertTrue($role->fresh()->hasPermissionTo('delete classrooms'));
+        $this->assertDatabaseHas(config('permission.table_names.model_has_permissions'), [
+            'permission_id' => \Spatie\Permission\Models\Permission::findByName('edit fleet')->id,
+            'model_type' => $user->getMorphClass(),
+            'model_id' => $user->id,
+        ]);
     }
 
     public function test_updates_use_route_models_instead_of_conflicting_payload_ids(): void
@@ -278,7 +458,7 @@ class TeachingResourceRoutesTest extends TestCase
     {
         $user = new User(['name' => 'Teaching routes test']);
         $user->id = 'test-user';
-        $user->setRelation('roles', collect([new Role(['name' => $role, 'guard_name' => 'web'])]));
+        $user->setRelation('roles', collect([Role::findByName($role, 'web')]));
         $this->actingAs($user);
     }
 

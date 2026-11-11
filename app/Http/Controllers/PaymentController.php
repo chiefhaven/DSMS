@@ -26,6 +26,11 @@ use Illuminate\Support\Facades\Validator;
 
 class PaymentController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['permission:access management']);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -67,8 +72,8 @@ class PaymentController extends Controller
             $delete = '';
             $review = '';
 
-            if (auth()->user()->hasAnyRole(['superAdmin', 'admin'])) {
-                if (auth()->user()->hasRole('superAdmin')) {
+            if (auth()->user()->can('manage administration')) {
+                if (auth()->user()->can('manage system')) {
                     $delete = '<form method="POST" action="' . route('payments.destroy', $payment->id) . '" style="display:inline;">
                                     ' . csrf_field() . method_field('DELETE') . '
                                     <button type="submit" class="btn dropdown-item nav-main-link delete-confirm text-danger">
@@ -162,6 +167,8 @@ class PaymentController extends Controller
      */
     public function store(Request $request)
     {
+        abort_unless(Auth::user()->can('manage finance'), 403, 'Unauthorized.');
+
         $cashId = DB::table('payment_methods')->where('name', 'Cash')->value('id');
 
         $validator = Validator::make($request->all(), [
@@ -303,7 +310,7 @@ class PaymentController extends Controller
     {
         try {
             // Authorization check
-            if (!Auth::user()->hasRole('superAdmin')) {
+            if (!Auth::user()->can('manage system')) {
                 throw new \Exception('You do not have permission to delete payments.');
             }
 
