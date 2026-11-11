@@ -199,7 +199,7 @@ class ManagementResourceRoutesTest extends TestCase
             }
         }
         foreach (['invoices.index', 'invoices.show'] as $name) {
-            $this->assertContains('permission:access management', $routes->getByName($name)->middleware());
+            $this->assertContains('permission:view invoices', $routes->getByName($name)->gatherMiddleware());
         }
         $this->assertContains('permission:manage administration', $routes->getByName('instructors.show')->gatherMiddleware());
         $this->assertContains('permission:manage administration', $routes->getByName('administrators.update')->gatherMiddleware());
@@ -255,10 +255,6 @@ class ManagementResourceRoutesTest extends TestCase
     {
         $id = 'f2638868-b1d0-4c92-b71d-59a1f01e6e22';
         DB::table('students')->insert(['id' => $id]);
-        $user = Mockery::mock(User::class)->makePartial();
-        $user->shouldReceive('can')->with('manage finance')->andReturnTrue();
-        Auth::shouldReceive('user')->andReturn($user);
-
         $controller = app(InvoiceController::class);
         $canonical = $controller->create(Request::create('/invoices/create', 'GET', ['student' => $id]));
         $legacy = $controller->create(Request::create("/addinvoice/$id", 'GET', ['student' => 'ignored']), $id);

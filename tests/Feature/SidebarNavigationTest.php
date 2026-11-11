@@ -49,6 +49,7 @@ class SidebarNavigationTest extends TestCase
         (require base_path('database/migrations/2026_11_12_000800_seed_announcement_permissions.php'))->up();
         (require base_path('database/migrations/2026_11_12_000900_seed_expense_payment_permissions.php'))->up();
         (require base_path('database/migrations/2026_11_12_001000_seed_expense_permissions.php'))->up();
+        (require base_path('database/migrations/2026_11_12_001100_seed_invoice_permissions.php'))->up();
         Role::create(['name' => 'hrm-clerk', 'guard_name' => 'web'])->givePermissionTo('manage administration');
         Role::create(['name' => 'system-operator', 'guard_name' => 'web'])->givePermissionTo('manage system');
     }

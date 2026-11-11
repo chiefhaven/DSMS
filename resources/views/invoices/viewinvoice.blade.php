@@ -7,9 +7,11 @@
       <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
         <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Invoice No. {{$invoice->invoice_number}}</h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
+            @can('download invoices')
             <a class="btn btn-primary" href="{{ url('/invoice-pdf', $invoice->id) }}">
               <i class="si si-printer me-1"></i> Print Invoice
             </a>
+            @endcan
         </nav>
       </div>
     </div>

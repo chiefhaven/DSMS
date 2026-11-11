@@ -30,6 +30,14 @@ use App\Services\StudentNumber;
 
 class InvoiceController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view invoices')->only(['index', 'fetchInvoices', 'show', 'search']);
+        $this->middleware('permission:create invoices')->only(['create', 'store']);
+        $this->middleware('permission:edit invoices')->only(['edit', 'update']);
+        $this->middleware('permission:delete invoices')->only('destroy');
+        $this->middleware('permission:download invoices')->only('invoicePDF');
+    }
 
 /**
      * Display a listing of the resource.
@@ -38,14 +46,7 @@ class InvoiceController extends Controller
      */
     public function index()
     {
-        if(Auth::user()->can('manage system')){
-            return view('invoices.invoices');
-        }
-
-        else{
-            Alert::toast('You don\'t have permission to access this page', 'warning');
-            return redirect('/');
-        }
+        return view('invoices.invoices');
     }
 
     public function fetchInvoices(Request $request): JsonResponse
@@ -108,7 +109,7 @@ class InvoiceController extends Controller
                         </strong>';
             })
             ->addColumn('balance', function ($invoice) {
-                $invoiceBalance = $invoice->invoice->invoice_balance ?? 0;
+                $invoiceBalance = $invoice->invoice_balance ?? 0;
                 $balanceClass = $invoiceBalance > 0 ? 'text-danger' : 'text-success';
 
                 return '<strong>
@@ -139,16 +140,21 @@ class InvoiceController extends Controller
 
                 $edit = '';
                 $delete = '';
+                $print = '';
 
-                if (auth()->user()->can('manage system')) {
+                if (auth()->user()->can('edit invoices')) {
                     $edit = '<a class="dropdown-item" href="' . route('invoices.edit', $invoice->id) . '">
                                 <i class="fa fa-pencil"></i> Edit
                             </a>';
+                }
 
+                if (auth()->user()->can('download invoices')) {
                     $print = '<a class="dropdown-item" href="' . url('/invoice-pdf', $invoice->id) . '">
                         <i class="si si-printer me-1"></i> Print Invoice
                     </a>';
+                }
 
+                if (auth()->user()->can('delete invoices')) {
                     $delete = '<form method="POST" action="' . route('invoices.destroy', $invoice->id) . '" style="display:inline;">
                                     ' . csrf_field() . method_field('DELETE') . '
                                     <button type="submit" class="dropdown-item delete-confirm">
@@ -181,17 +187,12 @@ class InvoiceController extends Controller
             $id = $request->validate(['student' => 'required|uuid|exists:students,id'])['student'];
         }
 
-        if (Auth::user()->can('manage finance')) {
-            $course = Course::all();
-            $classrooms = Classroom::all();
-            $fleets = Fleet::all();
-            $student = Student::findOrFail($id); // Ensures proper error handling if student is not found.
+        $course = Course::all();
+        $classrooms = Classroom::all();
+        $fleets = Fleet::all();
+        $student = Student::findOrFail($id);
 
-            return view('invoices.addinvoice', compact('course', 'student', 'fleets', 'classrooms'));
-        } else {
-            Alert::toast('You do not have permission to enroll a student. Please contact the administrator for assistance.', 'warning');
-            return back();
-        }
+        return view('invoices.addinvoice', compact('course', 'student', 'fleets', 'classrooms'));
     }
 
     /**
@@ -217,11 +218,6 @@ class InvoiceController extends Controller
             'discount'   =>'numeric|min:0',
             'paid_amount'   =>'numeric|min:0'
         ], $messages);
-
-        if(!Auth::user()->can('manage finance')){
-            Alert::toast('You do not have permission to enroll a student. Please contact the administrator for assistance.', 'warning');
-            return back();
-        }
 
         $post = $request->All();
 
@@ -379,27 +375,12 @@ class InvoiceController extends Controller
      */
     public function edit($id)
     {
-        if (!Auth::user()->can('manage system')) {
-            Alert::toast('You do not have permission to edit invoice or student enrollment. Please contact the administrator for assistance.', 'warning');
-            return back();
-        }
+        $courses = Course::all();
+        $classrooms = Classroom::all();
+        $fleets = Fleet::all();
+        $invoice = Invoice::with(['user', 'course', 'student'])->findOrFail($id);
 
-        try {
-            $courses = Course::all();
-            $classrooms = Classroom::all();
-            $fleets = Fleet::all();
-
-            $invoice = Invoice::with(['user', 'course', 'student'])
-                ->find($id);
-
-            return view('invoices.editinvoice', compact('invoice', 'courses', 'fleets', 'classrooms'));
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            Alert::toast('Invoice not found. Please check the invoice number and try again.', 'error');
-            return back();
-        } catch (\Exception $e) {
-            Alert::toast('An error occurred while trying to edit the invoice. Please try again later.', 'error');
-            return back();
-        }
+        return view('invoices.editinvoice', compact('invoice', 'courses', 'fleets', 'classrooms'));
     }
 
     /**
@@ -436,11 +417,6 @@ class InvoiceController extends Controller
             'discount'  => 'numeric|min:0',
             'classroom' => 'nullable|exists:classrooms,id', // Optional but must exist in classrooms table
         ], $messages);
-
-        if(!Auth::user()->can('manage system')){
-            Alert::toast('You do not have permission to enroll a student. Please contact the administrator for assistance.', 'warning');
-            return back();
-        }
 
         // Get all request data
         $post = $request->all();
@@ -495,30 +471,16 @@ class InvoiceController extends Controller
      */
     public function destroy(Invoice $invoice)
     {
-        $Invoice = $invoice;
-        if (!Auth::user()->can('manage system')) {
-            Alert::toast('You do not have permission to delete invoice or student enrollment. Please contact the administrator for assistance.', 'warning');
-            return back();
-        }
-
-        $student_id = $Invoice->student_id;
-        $student = Student::where('id', $student_id)->firstOrFail();
-
-        if (Payment::where('student_id', $student_id)->exists()) {
+        DB::transaction(function () use ($invoice) {
+            $student_id = $invoice->student_id;
+            $student = Student::whereKey($student_id)->lockForUpdate()->firstOrFail();
             Payment::where('student_id', $student_id)->delete();
-        }
-
-        try{
             $student->course_id = Null;
             $student->fleet_id = Null;
-            $Invoice->delete();
+            $invoice->delete();
             $student->save();
-            Alert::toast('Invoice deleted, student unenrolled!', 'success');
-        }
-
-        catch(Exception $e){
-            Alert::toast('Invoice not deleted, something went wrong', 'danger');
-        }
+        });
+        Alert::toast('Invoice deleted, student unenrolled!', 'success');
         return back();
     }
 
@@ -527,7 +489,7 @@ class InvoiceController extends Controller
         $setting= Setting::with('District')->find(1);
         $date = date('j F, Y');
         $setting = Setting::find(1);
-        $invoice = Invoice::with('User', 'Course', 'Student')->find($id);
+        $invoice = Invoice::with('User', 'Course', 'Student')->findOrFail($id);
 
         $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/e8704ed2-d90e-41ca-9143/'.$id);
 

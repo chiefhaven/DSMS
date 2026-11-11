@@ -188,11 +188,13 @@ class HomeController extends Controller
         }
 
         // 6️⃣ === Recent invoices with outstanding balance ===
-        $invoice = Invoice::with(['student', 'user'])
-            ->where('invoice_balance', '>', 0)
-            ->orderBy('date_created', 'DESC')
-            ->take(13)
-            ->get();
+        $invoice = $request->user()->can('view invoices')
+            ? Invoice::with(['student', 'user'])
+                ->where('invoice_balance', '>', 0)
+                ->orderBy('date_created', 'DESC')
+                ->take(13)
+                ->get()
+            : collect();
 
         // 7️⃣ === Return all ===
         return response()->json([

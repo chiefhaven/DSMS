@@ -120,6 +120,12 @@ downloading receipts, and generating summary reports. Apply
 preserved when the same role or direct grant held the previously required
 permissions.
 
+Invoice viewing, creation, editing, deletion, and PDF downloads use separate
+permissions. Apply `2026_11_12_001100_seed_invoice_permissions`. Creating an
+invoice also enrolls the student and can record an initial payment; editing
+changes enrollment details, while deleting unenrolls the student and deletes
+their fee payments. The invoice permissions authorize those existing effects.
+
 Settings permissions distinguish viewing from editing school, attendance, and
 invoice settings. Apply `2026_11_12_000700_seed_settings_permissions`;
 existing `manage administration` grants retain these actions.

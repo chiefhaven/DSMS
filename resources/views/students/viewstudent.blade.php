@@ -88,17 +88,19 @@
                                     </button>
                                 </form>
                             @endcan
-                            @can('manage system')
-                                @if (isset($student->invoice))
+                            @if (isset($student->invoice))
+                                @can('manage system')
                                 <button type="button" class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#paymentModal">
                                     <i class="nav-main-link-icon  fas fa-file-invoice"></i>Add payment
                                 </button>
-                                @else
+                                @endcan
+                            @else
+                                @can('create invoices')
                                     <a class="dropdown-item nav-main-link" href="{{ url('/addinvoice', $student->id) }}">
                                         <i class="nav-main-link-icon fas fa-plus-circle"></i>Enroll
                                     </a>
-                                @endif
-                            @endcan
+                                @endcan
+                            @endif
                             @can('change student status')
                             <button class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#change-status">
                                 <i class="nav-main-link-icon  fas fa-toggle-on"></i>Change status
@@ -124,12 +126,20 @@
                 Overview
             </button>
             </li>
-            @can('manage administration')
+            @php
+                $profileInvoiceRoles = auth()->user()->roles
+                    ->filter(fn ($role) => in_array($role->name, ['superAdmin', 'Super-Admin'], true)
+                        || $role->permissions->contains('name', 'view invoices'))
+                    ->pluck('name')->all();
+            @endphp
+            @role($profileInvoiceRoles)
                 <li class="nav-item">
                 <button class="nav-link" id="invoices-tab" data-bs-toggle="tab" data-bs-target="#invoices" role="tab" aria-controls="invoices" aria-selected="false">
                     Invoices
                 </button>
                 </li>
+            @endrole
+            @can('manage administration')
                 <li class="nav-item">
                     <button class="nav-link" id="payments-tab" data-bs-toggle="tab" data-bs-target="#payments" role="tab" aria-controls="payments" aria-selected="false">
                         Payments
@@ -277,9 +287,11 @@
                                                     @if(isset($student->invoice->created_at))
                                                         {{ $student->invoice->created_at->format('j F, Y') }}
                                                     @else
+                                                        @can('create invoices')
                                                         <a href="{{ url('/addinvoice', $student->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-4">
                                                             <i class="fas fa-plus-circle me-1"></i> Enroll
                                                         </a>
+                                                        @endcan
                                                     @endif
                                                 </td>
                                             </tr>

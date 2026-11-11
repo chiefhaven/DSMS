@@ -154,15 +154,15 @@ Route::post('/edit-classroom/{id}', [ClassroomController::class, 'edit'])->middl
 Route::delete('/delete-classroom/{id}', [ClassroomController::class, 'destroy'])->middleware('auth')->name('delete_classrooms');
 Route::put('/updateclassroom/{id}', [ClassroomController::class, 'update'])->middleware('auth')->name('update_classrooms');
 
-Route::get('/invoices', [InvoiceController::class, 'index'])->middleware(['auth', 'permission:access management'])->name('invoices');
-Route::get('/view-invoice/{id}', [InvoiceController::class, 'show'])->middleware(['auth', 'permission:access management'])->name('view-invoice');
-Route::get('/invoice-pdf/{id}', [InvoiceController::class, 'invoicePDF'])->middleware(['auth', 'permission:access management'])->name('invoice-pdf');
+Route::get('/invoices', [InvoiceController::class, 'index'])->middleware('auth')->name('invoices');
+Route::get('/view-invoice/{id}', [InvoiceController::class, 'show'])->middleware('auth')->name('view-invoice');
+Route::get('/invoice-pdf/{id}', [InvoiceController::class, 'invoicePDF'])->middleware('auth')->name('invoice-pdf');
 Route::get('/addinvoice/{id}', [InvoiceController::class, 'create'])->middleware('auth')->name('addinvoices');
 Route::post('/store-invoice', [InvoiceController::class, 'store'])->middleware('auth')->name('store-invoice');
 Route::get('/edit-invoice/{id}', [InvoiceController::class, 'edit'])->middleware('auth')->name('edit-invoices');
 Route::delete('/invoice-delete/{invoice}', [InvoiceController::class, 'destroy'])->middleware('auth')->name('invoice-delete');
 Route::post('/invoice-update', [InvoiceController::class, 'update'])->middleware('auth')->name('invoice-update');
-Route::get('/search-invoice', [InvoiceController::class, 'search'])->middleware(['auth', 'permission:access management'])->name('searchInvoice');
+Route::get('/search-invoice', [InvoiceController::class, 'search'])->middleware('auth')->name('searchInvoice');
 
 Route::get('/payments', [PaymentController::class, 'index'])->middleware('auth')->name('payments');
 Route::post('/add-payment', [PaymentController::class, 'store'])->middleware('auth')->name('add-payment');

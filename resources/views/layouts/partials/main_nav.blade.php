@@ -18,8 +18,13 @@
                 ->filter(fn ($role) => in_array($role->name, ['superAdmin', 'Super-Admin'], true)
                     || $role->permissions->contains('name', 'view students'))
                 ->pluck('name')->all();
+            $invoiceRoles = auth()->user()->roles
+                ->filter(fn ($role) => in_array($role->name, ['superAdmin', 'Super-Admin'], true)
+                    || $role->permissions->contains('name', 'view invoices'))
+                ->pluck('name')->all();
         @endphp
-        @role($studentRoles)
+        @role(array_values(array_unique(array_merge($studentRoles, $invoiceRoles))))
+            @role($studentRoles)
             <li class="nav-main-item">
                 <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="false" href="#">
                     <i class="nav-main-link-icon fa fa-user-graduate"></i>
@@ -38,12 +43,15 @@
                             </a>
                         </li>
                     @endcan
-                    @role(['superAdmin', 'Super-Admin', 'admin', 'financeAdmin'])
+                    @endrole
+                    @role($invoiceRoles)
                         <li>
                             <a class="nav-main-link" href="{{ url('/invoices') }}">
                                 <span class="nav-main-link-name">Invoices</span>
                             </a>
                         </li>
+                    @endrole
+                    @role(['superAdmin', 'Super-Admin', 'admin', 'financeAdmin'])
                         <li>
                             <a class="nav-main-link" href="{{ url('/payments') }}">
                                 <span class="nav-main-link-name">Fees payments</span>

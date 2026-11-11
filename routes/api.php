@@ -48,13 +48,14 @@ Route::post('/otp', [AuthController::class, 'otp'])->name('otp.api'); // Request
 Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->name('verifyOtp.api'); // Verify OTP and login
 Route::post('login', [AuthController::class, 'login'])->name('login.api'); // Login
 
-Route::middleware(['auth:sanctum', 'permission:access management'])->group(function () {
+Route::middleware(['auth:sanctum', 'permission:view invoices'])->group(function () {
     Route::get('invoicesHome', [HomeController::class, 'index']);
     Route::get('/invoices', [ApiInvoiceController::class, 'index']);
     Route::get('/fetchInvoices', [InvoiceController::class, 'fetchInvoices']);
     Route::get('invoice-view/{id}', [ApiInvoiceController::class, 'show']);
-    Route::get('/dashboardSummary', [ApiHomeController::class, 'dashboardSummary'])->name('dashboardSummary');
 });
+Route::get('/dashboardSummary', [ApiHomeController::class, 'dashboardSummary'])
+    ->middleware(['auth:sanctum', 'permission:access management'])->name('dashboardSummary');
 
 
 Route::get('/studentProfile', [studentProfileController::class, 'show'])->middleware('auth:sanctum')->name('studentProfile');

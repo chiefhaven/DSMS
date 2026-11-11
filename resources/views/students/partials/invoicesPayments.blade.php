@@ -1,4 +1,4 @@
-@can('manage administration')
+@role($profileInvoiceRoles)
     <div class="tab-pane fade" id="invoices" role="tabpanel" aria-labelledby="invoices-tab">
         <div class="table-responsive">
             <table class="table table-bordered table-striped table-vcenter">
@@ -23,25 +23,33 @@
                                 <div class="dropdown-menu dropdown-menu-end p-0">
                                     <div class="p-2">
                                         <a class="dropdown-item" href="{{ url('/view-invoice', $student->invoice->id) }}">View</a>
+                                        @can('edit invoices')
                                         <form method="get" action="{{ url('/edit-invoice', $student->invoice->id) }}">
                                             @csrf
                                             <button class="dropdown-item" type="submit">Edit</button>
                                         </form>
+                                        @endcan
                                         @can('manage system')
+                                        @can('manage administration')
                                         <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#paymentModal">Add payment</button>
                                         @endcan
+                                        @endcan
+                                        @can('download invoices')
                                         <a class="dropdown-item" href="{{ url('/invoice-pdf', $student->invoice->id) }}">Print Invoice</a>
-                                        @can('manage system')
+                                        @endcan
+                                        @can('delete invoices')
                                         <form method="POST" action="{{ url('/invoice-delete', $student->invoice->id) }}">
                                             @csrf
                                             @method('DELETE')
                                             <button class="dropdown-item delete-invoice" data-invoice-id="{{ $student->invoice->invoice_number }}" type="submit">Delete</button>
                                         </form>
                                         @endcan
+                                        @can('manage administration')
                                         <form method="POST" action="{{ url('send-balance-sms', [$student->id,'Balance']) }}">
                                             @csrf
                                             <button class="dropdown-item" type="submit">Send balance reminder</button>
                                         </form>
+                                        @endcan
                                     </div>
                                 </div>
                             </div>
@@ -61,7 +69,9 @@
             </table>
         </div>
     </div>
+@endrole
 
+@can('manage administration')
     <div class="tab-pane fade" id="payments" role="tabpanel" aria-labelledby="payments-tab">
         <div class="table-responsive">
             <table class="table table-bordered table-striped table-vcenter">

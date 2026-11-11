@@ -106,6 +106,13 @@
         </div>
     </div>
 
+    @php
+        $dashboardInvoiceRoles = auth()->user()->roles
+            ->filter(fn ($role) => in_array($role->name, ['superAdmin', 'Super-Admin'], true)
+                || $role->permissions->contains('name', 'view invoices'))
+            ->pluck('name')->all();
+    @endphp
+    @role($dashboardInvoiceRoles)
     <!-- Invoices Block -->
     <div class="col-xl-6">
         <div class="card border-0 shadow-sm rounded-3 overflow-hidden h-100" id="invoicesBlock">
@@ -235,6 +242,7 @@
             </div>
         </div>
     </div>
+    @endrole
 
 </div>
 
@@ -243,6 +251,7 @@
      VUE APPLICATION — Invoices
 ============================================================ --}}
 
+@role($dashboardInvoiceRoles)
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const { createApp, ref, onMounted } = Vue;
@@ -321,6 +330,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 </script>
+@endrole
 
 
 {{-- ============================================================

@@ -11,11 +11,7 @@ use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Route;
 
 Route::resource('invoices', InvoiceController::class)
-    ->only(['create', 'store', 'edit', 'update', 'destroy'])
     ->middleware('auth');
-Route::resource('invoices', InvoiceController::class)
-    ->only(['index', 'show'])
-    ->middleware(['auth', 'permission:access management']);
 
 Route::resource('payments', PaymentController::class)
     ->only(['index', 'store', 'destroy'])

@@ -29,6 +29,7 @@ class SensitiveReadAuthorizationTest extends TestCase
             Role::create(['name' => $name, 'guard_name' => 'web']);
         }
         (require base_path('database/migrations/2026_11_11_120000_seed_access_permissions.php'))->up();
+        (require base_path('database/migrations/2026_11_12_001100_seed_invoice_permissions.php'))->up();
     }
 
     /** @dataProvider sensitiveRoutes */
