@@ -104,6 +104,8 @@ exception handling and HTTP status codes are unchanged.
 Inline SVG artwork depicts a lost learner car on 404 and a car under repair on
 500. Illustrations scale to the content width and are decorative for screen readers.
 Error content sits directly on the page background without cards or shadows.
+Compact spacing and viewport-scaled artwork keep standard desktop and mobile
+error pages within the screen without hiding overflow or recovery links.
 
 Bulk model-based engine capacities carry an `engine_capacity_reference` source
 for provenance. They

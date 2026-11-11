@@ -8,7 +8,7 @@
     <style>
         * { box-sizing: border-box; }
         body {
-            margin: 0;
+            margin: 0 !important;
             color: #243247;
             background: #f4f6fa;
             font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
@@ -21,28 +21,27 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 1.5rem;
-            padding: 2rem 1rem;
+            gap: 1rem;
+            padding: 1rem;
         }
         .error-content {
             width: 100%;
             max-width: 32rem;
-            padding: clamp(1.5rem, 5vw, 3rem);
             text-align: center;
         }
-        .brand { margin: 0 0 1.5rem; font-size: .875rem; font-weight: 600; letter-spacing: .12em; }
-        .error-artwork { display: block; width: 100%; max-width: 22rem; height: auto; margin: 0 auto 1rem; }
+        .brand { margin: 0 0 .75rem; font-size: .875rem; font-weight: 600; letter-spacing: .12em; }
+        .error-artwork { display: block; width: min(100%, 18rem); height: auto; max-height: 25svh; margin: 0 auto .5rem; }
         .error-code {
             margin: 0;
             color: #0d6efd;
-            font-size: clamp(3rem, 12vw, 4rem);
+            font-size: clamp(2.5rem, 8vw, 3rem);
             font-weight: 700;
             line-height: 1.1;
             letter-spacing: -.05em;
         }
-        h1 { margin: 1rem 0 .75rem; font-size: 1.5rem; font-weight: 600; }
+        h1 { margin: .5rem 0; font-size: 1.375rem; font-weight: 600; }
         .message { margin: 0; color: #526175; }
-        .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; margin-top: 2rem; }
+        .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; margin-top: 1rem; }
         .button {
             display: inline-flex;
             align-items: center;
@@ -63,7 +62,14 @@
         a:focus-visible { outline: 3px solid #0d6efd; outline-offset: 4px; }
         footer { color: #526175; text-align: center; font-size: .8125rem; }
         footer a { color: #40516a; text-underline-offset: .2em; }
-        @media (max-width: 360px) { .actions { flex-direction: column; } }
+        @media (max-height: 500px) {
+            .error-page { gap: .5rem; padding: .5rem 1rem; }
+            .brand { margin-bottom: .25rem; }
+            .error-artwork { max-height: 18svh; margin-bottom: .25rem; }
+            .error-code { font-size: 2rem; }
+            h1 { margin: .25rem 0; }
+            .actions { margin-top: .5rem; }
+        }
     </style>
 </head>
 <body>
