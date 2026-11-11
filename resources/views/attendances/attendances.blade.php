@@ -295,6 +295,7 @@
                                 hideSkeleton();
                             }
                         },
+                        order: [[1, 'desc']],
                         columns: [
                             { data: 'actions', className: 'text-wrap', name: 'actions', orderable: false, searchable: false },
                             { data: 'attendance_date', className: 'text-wrap', name: 'attendance_date' },

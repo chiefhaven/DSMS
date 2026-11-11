@@ -56,10 +56,10 @@ class AttendanceController extends Controller
     public function fetchAttendances(Request $request)
     {
         $query = $this->attendanceQuery()
-            ->with(['student.invoice', 'lesson', 'administrator', 'instructor']);
+            ->with(['student.invoice', 'lesson', 'administrator', 'instructor'])
+            ->orderByDesc('attendance_date');
 
-        return DataTables::eloquent($query)
-            ->addColumn('student', function (Attendance $attendance) {
+        return DataTables::eloquent($query)            ->addColumn('student', function (Attendance $attendance) {
                 $student = $attendance->student;
                 if (!$student) {
                     return '-';
