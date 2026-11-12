@@ -7,6 +7,8 @@ day of year + daily sequence (minimum three digits). For example, `2026314001`
 is the first enrollment on 10 November 2026. Dates use the school's runtime timezone
 (Africa/Blantyre, configured in `AppServiceProvider`).
 Numbers stay unchanged on re-enrollment; UUIDs remain the internal record IDs.
+Middle names are optional when creating or editing students. Instructor and
+administrator forms currently do not have a middle-name field.
 
 After applying the student-number migration, run `php artisan students:backfill-numbers`
 to number existing enrolled students by their earliest active invoice creation

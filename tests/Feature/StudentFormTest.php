@@ -18,6 +18,8 @@ class StudentFormTest extends TestCase
             $this->assertSame(1, $xpath->query('//*[@name="'.$field.'"]')->length, $field);
         }
         $this->assertSame(0, $xpath->query('//input[@name="trn"]/@required')->length);
+        $this->assertSame(0, $xpath->query('//input[@name="mname"]/@required')->length);
+        $this->assertStringContainsString('(optional)', $xpath->query('//label[@for="mname"]')->item(0)->textContent);
         $this->assertSame(1, $xpath->query('//input[@name="signature"]/@required')->length);
         $this->assertSame('', $xpath->query('//input[@name="date_of_birth"]')->item(0)->getAttribute('value'));
         $this->assertStringContainsString('(optional)', $xpath->query('//label[@for="trn"]')->item(0)->textContent);
@@ -42,6 +44,8 @@ class StudentFormTest extends TestCase
         $this->assertSame('male', $xpath->query('//select[@name="gender"]/option[@selected]')->item(0)->getAttribute('value'));
         $this->assertSame('Blantyre', $xpath->query('//select[@name="district"]/option[@selected]')->item(0)->getAttribute('value'));
         $this->assertSame(0, $xpath->query('//input[@name="signature"]/@required')->length);
+        $this->assertSame(0, $xpath->query('//input[@name="mname"]/@required')->length);
+        $this->assertStringContainsString('(optional)', $xpath->query('//label[@for="mname"]')->item(0)->textContent);
         $this->assertSame(0, $xpath->query('//input[@name="password" or @name="username"]')->length);
         $this->assertSame('student-example', $xpath->query('//input[@name="student_id"]')->item(0)->getAttribute('value'));
         $this->assertSame('PUT', $xpath->query('//input[@name="_method"]')->item(0)->getAttribute('value'));

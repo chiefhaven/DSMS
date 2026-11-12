@@ -3,7 +3,7 @@
     $cancelUrl = $editing ? route('students.show', ['student' => $student->id]) : route('students.index');
     $fields = [
         'fname' => ['label' => 'First name', 'required' => true, 'autocomplete' => 'given-name'],
-        'mname' => ['label' => 'Middle name', 'required' => true, 'autocomplete' => 'additional-name'],
+        'mname' => ['label' => 'Middle name', 'required' => false, 'autocomplete' => 'additional-name'],
         'sname' => ['label' => 'Last name', 'required' => true, 'autocomplete' => 'family-name'],
     ];
 @endphp

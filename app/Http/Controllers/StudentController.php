@@ -496,6 +496,7 @@ class StudentController extends Controller
         $rules = [
             'username' => 'required|unique:users,name',
             'fname' => 'required',
+            'mname' => 'nullable|string',
             'sname' => 'required',
             'email' => 'required|unique:users',
             'address' => 'required',
@@ -532,7 +533,7 @@ class StudentController extends Controller
         $trainingLevel = havenUtils::trainingLevelID('registered');
 
         $student->fname = $post['fname'];
-        $student->mname = $post['mname'];
+        $student->mname = $request->input('mname');
         $student->sname = $post['sname'];
         $student->gender = $post['gender'];
         $student->trn = $request->input('trn');
@@ -655,6 +656,7 @@ class StudentController extends Controller
         // Validate the request
         $this->validate($request, [
             'fname'  =>'required',
+            'mname' =>'nullable|string',
             'sname' =>'required',
             'email'   =>'required',
             'address' =>'required',
@@ -677,7 +679,7 @@ class StudentController extends Controller
         }
 
         $student->fname = $post['fname'];
-        $student->mname = $post['mname'];
+        $student->mname = $request->input('mname', $student->mname);
         $student->sname = $post['sname'];
         $student->gender = $post['gender'];
         $student->trn = $request->input('trn');
