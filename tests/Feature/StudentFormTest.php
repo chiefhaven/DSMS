@@ -14,9 +14,11 @@ class StudentFormTest extends TestCase
         $xpath = $this->xpath($html);
 
         $this->assertSame(1, $xpath->query('//form[@method="POST" and @enctype="multipart/form-data"]')->length);
-        foreach (['fname', 'mname', 'sname', 'gender', 'date_of_birth', 'trn', 'signature', 'phone', 'email', 'address', 'district', 'username', 'password'] as $field) {
+        foreach (['fname', 'mname', 'sname', 'gender', 'date_of_birth', 'trn', 'signature', 'phone', 'email', 'address', 'district'] as $field) {
             $this->assertSame(1, $xpath->query('//*[@name="'.$field.'"]')->length, $field);
         }
+        $this->assertSame(0, $xpath->query('//input[@name="password" or @name="username"]')->length);
+        $this->assertStringContainsString('when the student is enrolled', $html);
         $this->assertSame(0, $xpath->query('//input[@name="trn"]/@required')->length);
         $this->assertSame(0, $xpath->query('//input[@name="mname"]/@required')->length);
         $this->assertStringContainsString('(optional)', $xpath->query('//label[@for="mname"]')->item(0)->textContent);

@@ -9,6 +9,12 @@ is the first enrollment on 10 November 2026. Dates use the school's runtime time
 Numbers stay unchanged on re-enrollment; UUIDs remain the internal record IDs.
 Middle names are optional when creating or editing students. Instructor and
 administrator forms currently do not have a middle-name field.
+Student accounts use the supplied email address to sign in. On first enrollment,
+an expiring password-setup link is sent by email and SMS; existing passwords are
+not changed unless the link is used. Configure an HTTPS application URL, mailer,
+and SMS service for delivery. The setup email requires a direct delivery mail
+transport; log, array, and failover mailers are not used for these links. If a
+link expires, use the sign-in page's password reset option.
 
 After applying the student-number migration, run `php artisan students:backfill-numbers`
 to number existing enrolled students by their earliest active invoice creation

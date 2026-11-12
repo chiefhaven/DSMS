@@ -26,6 +26,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use App\Services\StudentNumber;
+use App\Services\StudentAccountSetupDelivery;
 
 
 class InvoiceController extends Controller
@@ -296,8 +297,9 @@ class InvoiceController extends Controller
         }
 
         else{
-            DB::transaction(function () use ($invoice, $student, $student_id) {
-                Student::whereKey($student_id)->lockForUpdate()->firstOrFail();
+            $firstEnrollment = DB::transaction(function () use ($invoice, $student, $student_id) {
+                $lockedStudent = Student::whereKey($student_id)->lockForUpdate()->firstOrFail();
+                $firstEnrollment = $lockedStudent->student_number === null;
                 if (Invoice::where('student_id', $student_id)->exists()) {
                     throw ValidationException::withMessages([
                         'student' => 'Student is already enrolled.',
@@ -317,7 +319,9 @@ class InvoiceController extends Controller
                     $payment->recorded_by_user_id = Auth::id();
                     $payment->save();
                 }
+                return $firstEnrollment;
             });
+            $setupFailures = $firstEnrollment ? app(StudentAccountSetupDelivery::class)->send($student) : [];
             if ($invoice->invoice_amount_paid > 0) {
                 $sms->balanceSMS($student->id, 'Payment');
             }
@@ -348,6 +352,9 @@ class InvoiceController extends Controller
             }
 
             $sms->balanceSMS($student->id, 'enrollment');
+            if ($setupFailures) {
+                Alert::warning('Enrollment completed', 'Student login setup could not be sent by '.implode(' and ', $setupFailures).'. Check delivery settings and confirm the student received a link. If email is available, the student can also request a password reset from the sign-in page.')->persistent();
+            }
         }
 
         $student = Student::with('User', 'Course', 'Enrollment', 'Invoice', 'Payment')->find($student_id);

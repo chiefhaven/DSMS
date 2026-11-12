@@ -96,12 +96,13 @@ class StudentMiddleNameTest extends TestCase
             $signature = Mockery::mock(UploadedFile::fake()->image('signature.png'))->makePartial();
             $signature->shouldReceive('move')->once();
             $data = array_merge($this->studentData(), [
-                'username' => $case, 'email' => $case.'@example.test', 'phone' => $case,
+                'email' => $case.'@example.test', 'phone' => $case,
                 'signature' => $signature,
             ], $middle);
             $this->post($case === 'blank' ? '/storestudent' : '/students', $data)->assertRedirect();
             $studentId = DB::table('users')->where('email', $data['email'])->value('student_id');
             $this->assertNotNull($studentId);
+            $this->assertDatabaseHas('users', ['student_id' => $studentId, 'name' => 'First Last']);
             $this->assertDatabaseHas('students', [
                 'id' => $studentId, 'fname' => 'First', 'sname' => 'Last',
                 'mname' => $case === 'supplied' ? 'Middle' : null,

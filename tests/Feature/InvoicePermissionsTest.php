@@ -3,8 +3,17 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Models\Administrator;
+use App\Models\Student;
+use App\Notifications\StudentAccountSetup;
+use App\Services\StudentAccountSetupDelivery;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -131,6 +140,137 @@ class InvoicePermissionsTest extends TestCase
         $this->getJson('/api/invoices')->assertForbidden();
         $this->get('/edit-invoice/1')->assertForbidden();
         $this->deleteJson('/invoices/1')->assertForbidden();
+    }
+
+    public function test_first_enrollment_sends_a_working_setup_link_without_resetting_existing_password(): void
+    {
+        $this->prepareEnrollment();
+        $data = ['student' => self::STUDENT, 'course' => 'Driving', 'discount' => 0, 'paid_amount' => 0];
+        $this->post('/store-invoice', $data)->assertRedirect(route('students.show', self::STUDENT));
+
+        $user = User::where('student_id', self::STUDENT)->firstOrFail();
+        $this->assertTrue(Hash::check('existing-password', $user->password));
+        $this->assertNotNull(Student::findOrFail(self::STUDENT)->student_number);
+        $url = null;
+        Notification::assertSentTo($user, StudentAccountSetup::class, function ($notification) use ($user, &$url) {
+            $mail = $notification->toMail($user);
+            $url = $mail->actionUrl;
+            return str_contains(implode(' ', $mail->introLines), $user->email);
+        });
+        $this->assertStringStartsWith('https://school.example/reset-password/', $url);
+        Http::assertSent(function ($request) use ($url, $user) {
+            return $request->url() === 'https://sms.example/sms/send'
+                && $request['recipient'] === '265991234567'
+                && str_contains($request['message'], $user->email)
+                && str_contains($request['message'], $url);
+        });
+        $token = basename(parse_url($url, PHP_URL_PATH));
+        $this->assertTrue(Password::broker()->tokenExists($user, $token));
+
+        DB::table('invoices')->where('student_id', self::STUDENT)->delete();
+        $this->post('/store-invoice', $data)->assertRedirect();
+        Notification::assertSentToTimes($user, StudentAccountSetup::class, 1);
+        Http::assertSentCount(1);
+        $this->assertTrue(Password::broker()->tokenExists($user, $token));
+
+        auth()->logout();
+        $this->get($url)->assertOk()->assertSee('student@example.test');
+        $this->post('/password/reset', [
+            'token' => $token, 'email' => $user->email,
+            'password' => 'new-password-123', 'password_confirmation' => 'new-password-123',
+        ])->assertRedirect();
+        $this->assertTrue(Hash::check('new-password-123', $user->fresh()->password));
+        $this->assertFalse(Password::broker()->tokenExists($user, $token));
+
+        auth()->logout();
+        $this->get(route('password.request'))->assertOk();
+        $this->post(route('password.email'), ['email' => $user->email])->assertRedirect();
+        Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
+            $this->get($notification->toMail($user)->actionUrl)->assertOk();
+            return true;
+        });
+    }
+
+    public function test_enrollment_warns_when_text_fails_but_still_sends_email(): void
+    {
+        $this->prepareEnrollment(500);
+        $response = $this->post('/store-invoice', [
+            'student' => self::STUDENT, 'course' => 'Driving', 'discount' => 0, 'paid_amount' => 0,
+        ])->assertRedirect();
+        $alert = json_decode($response->getSession()->get('alert.config'), true);
+        $this->assertSame('warning', $alert['icon']);
+        $this->assertStringContainsString('could not be sent by text', $alert['text']);
+        $student = Student::findOrFail(self::STUDENT);
+        Notification::assertSentTo($student->user, StudentAccountSetup::class);
+        $this->assertTrue(Hash::check('existing-password', $student->user->password));
+    }
+
+    public function test_setup_delivery_does_not_log_setup_links_when_mail_uses_log_transport(): void
+    {
+        $this->prepareEnrollment();
+        config(['mail.default' => 'log']);
+        $student = Student::findOrFail(self::STUDENT);
+        $this->assertSame(['email'], app(StudentAccountSetupDelivery::class)->send($student));
+        Notification::assertNotSentTo($student->user, StudentAccountSetup::class);
+        Http::assertSentCount(1);
+    }
+
+    private function prepareEnrollment(int $smsStatus = 200): void
+    {
+        config([
+            'app.url' => 'https://school.example',
+            'services.smsApi.url' => 'https://sms.example',
+            'services.smsApi.token' => 'test-token',
+            'services.smsApi.from' => 'school',
+            'mail.default' => 'smtp',
+        ]);
+        Notification::fake();
+        Http::fake(['*' => Http::response([], $smsStatus)]);
+        Schema::table('courses', fn (Blueprint $table) => $table->decimal('price')->default(0));
+        Schema::table('students', function (Blueprint $table) {
+            $table->string('student_number')->nullable();
+            $table->string('phone')->nullable();
+            $table->unsignedBigInteger('added_by')->nullable();
+        });
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('name')->nullable();
+            $table->string('email')->nullable();
+            $table->string('password')->nullable();
+            $table->rememberToken();
+            $table->timestamps();
+        });
+        Schema::table('invoices', function (Blueprint $table) {
+            $table->decimal('course_price')->default(0);
+            $table->string('invoice_payment_method')->nullable();
+            $table->string('invoice_terms')->nullable();
+        });
+        Schema::create('invoice_settings', fn (Blueprint $table) => $table->id());
+        Schema::create('student_number_sequences', function (Blueprint $table) {
+            $table->date('date')->primary();
+            $table->unsignedInteger('last_number');
+        });
+        Schema::create('administrators', function (Blueprint $table) {
+            $table->id();
+            $table->softDeletes();
+        });
+        Schema::create('enrollments', function (Blueprint $table) {
+            $table->id();
+            $table->string('student_id');
+        });
+        (require base_path('database/migrations/2014_10_12_100000_create_password_reset_tokens_table.php'))->up();
+        DB::table('invoices')->delete();
+        DB::table('students')->where('id', self::STUDENT)->update(['phone' => '0991234567', 'course_id' => null]);
+        DB::table('users')->insert([
+            'id' => 1, 'student_id' => self::STUDENT, 'name' => 'Test Student',
+            'email' => 'student@example.test', 'password' => Hash::make('existing-password'),
+        ]);
+        $role = Role::create(['name' => 'enrollment-clerk', 'guard_name' => 'web']);
+        $role->givePermissionTo('create invoices');
+        $this->authenticate($role);
+        $administrator = new Administrator;
+        $administrator->fname = 'Test';
+        $administrator->sname = 'Admin';
+        auth()->user()->setRelation('Administrator', $administrator);
     }
 
     public function test_dashboard_hides_invoice_details_without_view_access(): void

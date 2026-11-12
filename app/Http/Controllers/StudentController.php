@@ -479,8 +479,6 @@ class StudentController extends Controller
     {
         // Custom error messages
         $messages = [
-            'username.required' => 'Username is required!',
-            'username.unique' => 'Username already taken!',
             'fname.required' => 'Firstname is required!',
             'sname.required' => 'Sirname is required!',
             'email.required' => 'Email address is required!',
@@ -494,11 +492,10 @@ class StudentController extends Controller
 
         // Validation rules
         $rules = [
-            'username' => 'required|unique:users,name',
             'fname' => 'required',
             'mname' => 'nullable|string',
             'sname' => 'required',
-            'email' => 'required|unique:users',
+            'email' => 'required|email|unique:users',
             'address' => 'required',
             'gender' => 'required',
             'date_of_birth' => 'required',
@@ -550,10 +547,10 @@ class StudentController extends Controller
 
         // Create new user
         $user = new User;
-        $user->name = $post['username']; //Str::random(10);
+        $user->name = mb_substr(trim($student->fname.' '.$student->sname), 0, 255);
         $user->student_id = $student->id;
         $user->email = $post['email'];
-        $user->password = bcrypt(Str::random(10)); // Encrypt the password
+        $user->password = bcrypt(Str::random(40));
 
         $user->save();
 

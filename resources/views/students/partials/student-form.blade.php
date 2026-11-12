@@ -23,7 +23,7 @@
                     @endif
                 </h1>
                 @if (!$editing)
-                    <p class="text-muted mb-0">Student details and account.</p>
+                    <p class="text-muted mb-0">Login setup details will be sent by email and text when the student is enrolled.</p>
                 @endif
             </div>
         </div>
@@ -52,7 +52,7 @@
             <input type="hidden" name="student_id" value="{{ $student->id }}">
         @endif
         <div class="row g-4">
-            <div class="{{ $editing ? 'col-12' : 'col-xl-8' }}">
+            <div class="col-12">
                 <div class="block block-rounded">
                     <div class="block-header block-header-default">
                         <h2 class="block-title"><i class="fa fa-user text-muted me-2" aria-hidden="true"></i>Personal information</h2>
@@ -172,32 +172,6 @@
                 </div>
             </div>
 
-            <div class="{{ $editing ? 'col-12' : 'col-xl-4' }}">
-                @if (!$editing)
-                    <div class="block block-rounded">
-                        <div class="block-header block-header-default">
-                            <h2 class="block-title"><i class="fa fa-lock text-muted me-2" aria-hidden="true"></i>Login details</h2>
-                        </div>
-                        <div class="block-content block-content-full">
-                            <div class="mb-4">
-                                <label class="form-label" for="username">Username <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('username') is-invalid @enderror" id="username" name="username" value="{{ old('username') }}" autocomplete="off" required @error('username') aria-invalid="true" aria-describedby="username-error" @enderror>
-                                @error('username')
-                                    <div id="username-error" class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div>
-                                <label class="form-label" for="password">Password <span class="text-danger">*</span></label>
-                                <input type="password" class="form-control @error('password') is-invalid @enderror" id="password" name="password" autocomplete="new-password" required @error('password') aria-invalid="true" aria-describedby="password-error" @enderror>
-                                @error('password')
-                                    <div id="password-error" class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
-                @endif
-
-            </div>
         </div>
         <x-form-actions :cancel-url="$cancelUrl" />
     </form>
