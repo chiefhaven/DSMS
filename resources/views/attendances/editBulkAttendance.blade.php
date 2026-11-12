@@ -79,7 +79,9 @@
                 </div>
                 <div class="block-content block-content-full text-end">
                   <x-form-actions :cancel-url="url('/bulk-attendances')">
+                    @can('edit bulk attendances')
                     <button type="submit" @click="addStudentToGroup()" class="btn btn-primary rounded-pill px-4">Add to list</button>
+                    @endcan
                   </x-form-actions>
                 </div>
                 <h2 class="flex-grow-1 fs-5 fw-semibold my-2 my-sm-3 border-lg mb-5">Select students</h2>
@@ -96,9 +98,11 @@
                         <tbody>
                           <tr v-for="(student, index) in state.selectedStudents" :key="index">
                             <td class="text-end">
+                              @can('edit bulk attendances')
                               <button class="btn btn-danger btn-sm" @click="removeStudentFromGroup(index)">
                                 Remove
                               </button>
+                              @endcan
                             </td>
                             <td>
                               @{{ student.studentName }}
@@ -118,6 +122,7 @@
             </div>
     </div>
     <div class="block-content block-content-full text-end">
+        @can('edit bulk attendances')
         <button type="submit" :disabled="state.isSubmitButtonDisabled" @click="saveBulkAttendances()" class="btn btn-primary rounded-pill px-4">
             <template v-if="state.isLoading">
                 Processing...
@@ -126,6 +131,7 @@
                 Save
               </template>
         </button>
+        @endcan
     </div>
 </div>
 </div>

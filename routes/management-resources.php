@@ -23,10 +23,10 @@ Route::resource('instructors', InstructorController::class)
 Route::resource('instructors', InstructorController::class)
     ->only('show');
 Route::put('instructors/{instructor}/account', [StaffAccountController::class, 'updateInstructor'])
-    ->middleware(['auth', 'permission:manage administration'])
+    ->middleware(['auth', 'permission:manage instructor accounts'])
     ->name('instructors.account.update');
 Route::put('administrators/{administrator}/account', [StaffAccountController::class, 'updateAdministrator'])
-    ->middleware(['auth', 'permission:manage administration'])
+    ->middleware(['auth', 'permission:manage administrator accounts'])
     ->name('administrators.account.update');
 
 Route::resource('administrators', AdministratorController::class)

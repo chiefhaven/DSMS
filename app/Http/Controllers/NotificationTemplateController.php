@@ -8,6 +8,12 @@ use App\Http\Requests\Updatenotification_templateRequest;
 
 class NotificationTemplateController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view notification templates')->only('create');
+        $this->middleware('permission:edit notification templates')->only('update');
+    }
+
     /**
      * Display a listing of the resource.
      */

@@ -132,7 +132,7 @@
                     status: 'active',
                 };
 
-                const response = await axios.get(`/instructors-json`, { params: payload });
+                const response = await axios.get(`/instructor-options`, { params: payload });
 
                 if (response.status === 200) {
                     instructors.value = response.data;

@@ -27,7 +27,12 @@ class AdministratorController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['permission:manage administration']);
+        $this->middleware('auth');
+        $this->middleware('permission:view administrators')->only(['index', 'show', 'showProfile']);
+        $this->middleware('permission:create administrators')->only(['create', 'store']);
+        $this->middleware('permission:assign administrator roles')->only(['create', 'store']);
+        $this->middleware('permission:edit administrators')->only(['edit', 'update']);
+        $this->middleware('permission:delete administrators')->only('destroy');
     }
     /**
      * Display a listing of the resource.
@@ -73,18 +78,23 @@ class AdministratorController extends Controller
                     })->implode(' ');
                 })
                 ->addColumn('actions', function (Administrator $administrator) {
+                    $actions = '<li><a class="dropdown-item" href="' . route('administrators.show', $administrator) . '"><i class="fas fa-eye me-2"></i>View Profile</a></li>';
+                    if (auth()->user()->can('edit administrators')) {
+                        $actions .= '<li><a class="dropdown-item" href="' . route('administrators.edit', $administrator) . '"><i class="fas fa-edit me-2"></i>Edit Profile</a></li>';
+                    }
+                    if (auth()->user()->can('delete administrators')) {
+                        $actions .= '<li><hr class="dropdown-divider"></li>'
+                            . '<li><form method="POST" action="' . route('administrators.destroy', $administrator) . '">'
+                            . csrf_field() . method_field('DELETE')
+                            . '<button class="dropdown-item text-danger delete-confirm" type="submit" data-name="'
+                            . e(trim($administrator->fname . ' ' . $administrator->sname))
+                            . '"><i class="fas fa-trash-alt me-2"></i>Delete</button>'
+                            . '</form></li>';
+                    }
                     return '<div class="dropdown">'
                         . '<button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Actions</button>'
                         . '<ul class="dropdown-menu dropdown-menu-end">'
-                        . '<li><a class="dropdown-item" href="' . route('administrators.show', $administrator) . '"><i class="fas fa-eye me-2"></i>View Profile</a></li>'
-                        . '<li><a class="dropdown-item" href="' . route('administrators.edit', $administrator) . '"><i class="fas fa-edit me-2"></i>Edit Profile</a></li>'
-                        . '<li><hr class="dropdown-divider"></li>'
-                        . '<li><form method="POST" action="' . route('administrators.destroy', $administrator) . '">'
-                        . csrf_field() . method_field('DELETE')
-                        . '<button class="dropdown-item text-danger delete-confirm" type="submit" data-name="'
-                        . e(trim($administrator->fname . ' ' . $administrator->sname))
-                        . '"><i class="fas fa-trash-alt me-2"></i>Delete</button>'
-                        . '</form></li></ul></div>';
+                        . $actions . '</ul></div>';
                 })
                 ->only(['actions', 'administrator', 'roles', 'email', 'phone'])
                 ->rawColumns(['roles', 'actions'])
@@ -102,7 +112,7 @@ class AdministratorController extends Controller
     public function create()
     {
         $district = District::get();
-        $role = Role::get();
+        $role = Role::where('guard_name', 'web')->whereIn('name', ['admin', 'financeAdmin', 'superAdmin'])->get();
         return view('administrators.addadministrator', compact('district', 'role'));
     }
 
@@ -150,13 +160,7 @@ class AdministratorController extends Controller
             $user->password = Hash::make($post['password']);
             $user->save();
 
-            $user->assignRole(
-                match ($post['role']) {
-                    'superAdmin' => 'superAdmin',
-                    'financeAdmin' => 'financeAdmin',
-                    default => 'admin'
-                }
-            );
+            $user->assignRole($post['role']);
 
             Alert::toast(
                 'Administrator ' . $administrator->fname . ' added successfully',
@@ -204,7 +208,7 @@ class AdministratorController extends Controller
     {
         $administrator = Administrator::with('User')->findOrFail($id);
         $district = District::get();
-        $role = Role::get();
+        $role = Role::where('guard_name', 'web')->whereIn('name', ['admin', 'financeAdmin', 'superAdmin'])->get();
         $genders = ['female' => 'Female', 'male' => 'Male', 'other' => 'Other'];
         return view('administrators.editadministrator', [ 'administrator' => $administrator ], compact('administrator', 'district', 'role', 'genders'));
     }
@@ -239,16 +243,29 @@ class AdministratorController extends Controller
         $this->validate($request, [
             'first_name' => 'required',
             'sir_name' => 'required',
-            'email' => 'required|email|unique:users,email,' . optional($user)->id,
+            'email' => ($user ? 'required' : 'nullable') . '|email|unique:users,email,' . optional($user)->id,
             'address' => 'required',
             'gender' => 'required',
             'date_of_birth' => 'required',
             'district' => 'required',
-            'role' => 'required',
+            'role' => 'nullable|in:admin,financeAdmin,superAdmin',
             'phone' => 'required'
         ], $messages);
 
         $post = $request->all();
+        $roleName = $request->input('role');
+        $createAccount = !$user && ($request->filled('email') || $request->filled('role') || $request->filled('password'));
+        if ($createAccount) {
+            abort_unless($request->user()->can('manage administrator accounts'), 403);
+            abort_unless($request->user()->can('assign administrator roles'), 403);
+            $this->validate($request, ['email' => 'required|email', 'role' => 'required|in:admin,financeAdmin,superAdmin']);
+        } elseif ($user && ($post['email'] !== $user->email || $request->filled('password'))) {
+            abort_unless($request->user()->can('manage administrator accounts'), 403);
+        }
+        $changeRole = $roleName && (!$user || $user->getRoleNames()->all() !== [$roleName]);
+        if ($changeRole) {
+            abort_unless($request->user()->can('assign administrator roles'), 403);
+        }
 
         $district = havenUtils::selectDistrict($post['district']);
 
@@ -263,29 +280,26 @@ class AdministratorController extends Controller
         $Administrator->save();
 
         // Update or Create User
-        if (!$user) {
+        if ($createAccount) {
             $user = new User();
             $user->administrator_id = $post['administrator_id'];
             $user->name = $post['sir_name'];
             $user->password = Hash::make(Str::random(10));
         }
 
-        $user->email = $post['email'];
+        if ($user) {
+            $user->email = $post['email'];
 
-        if (!empty($post['password'])) {
-            $user->password = Hash::make($post['password']);
-        }
-
-        $user->save();
-
-        // Sync Roles
-        $user->syncRoles([
-            match ($post['role']) {
-                'superAdmin' => 'superAdmin',
-                'financeAdmin' => 'financeAdmin',
-                default => 'admin'
+            if (!empty($post['password'])) {
+                $user->password = Hash::make($post['password']);
             }
-        ]);
+
+            $user->save();
+
+            if ($changeRole) {
+                $user->syncRoles([$roleName]);
+            }
+        }
 
         return redirect()->route('administrators.index')->with('message', 'Administrator updated!');
     }

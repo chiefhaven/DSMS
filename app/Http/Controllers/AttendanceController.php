@@ -23,6 +23,18 @@ use PDF;
 
 class AttendanceController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view attendances')->only(['index', 'fetchAttendances']);
+        $this->middleware('permission:record attendances')->only(['create', 'store']);
+        $this->middleware('permission:edit attendances')->only(['edit', 'update']);
+        $this->middleware('permission:delete attendances')->only('destroy');
+        $this->middleware('permission:download attendance reports')->only('attendanceSummary');
+        $this->middleware('permission:view students')->only('autocompletestudentSearch');
+        $this->middleware('permission:record attendances|edit attendances|create schedules|edit schedules')
+            ->only('autocompletestudentSearch');
+    }
+
     protected function settings(): Setting
     {
         return Setting::findOrFail(1);
@@ -35,9 +47,12 @@ class AttendanceController extends Controller
 
     protected function attendanceQuery()
     {
-        return Attendance::query()->when($this->isInstructor(), function ($query) {
-            $query->where('instructor_id', Auth::user()->instructor_id);
-        });
+        if (Auth::user()->can('view all attendances')) {
+            return Attendance::query();
+        }
+
+        abort_unless(Auth::user()->instructor_id, 403, 'An instructor profile is required.');
+        return Attendance::query()->where('instructor_id', Auth::user()->instructor_id);
     }
 
     public function index()
@@ -59,7 +74,9 @@ class AttendanceController extends Controller
             ->with(['student.invoice', 'lesson', 'administrator', 'instructor'])
             ->orderByDesc('attendance_date');
 
-        return DataTables::eloquent($query)            ->addColumn('student', function (Attendance $attendance) {
+        return DataTables::eloquent($query)
+            ->makeHidden(['student', 'lesson', 'instructor', 'administrator'])
+            ->addColumn('student', function (Attendance $attendance) {
                 $student = $attendance->student;
                 if (!$student) {
                     return '-';
@@ -85,18 +102,21 @@ class AttendanceController extends Controller
             })
             ->editColumn('attendance_date', fn (Attendance $a) => $a->attendance_date?->format('j F, Y, H:i:s') ?? '-')
             ->addColumn('actions', function (Attendance $a) {
-                $buttons = '<a href="' . e(url("/viewattendance/{$a->id}")) . '" class="dropdown-item">View</a>';
-                if (Auth::user()->can('manage system')) {
-                    $buttons .= '<form method="POST" action="' . e(url("/editattendance/{$a->id}")) . '">'
-                        . csrf_field() . '<button class="dropdown-item" type="submit">Edit</button></form>';
+                $buttons = '';
+                if (Auth::user()->can('delete attendances')
+                    && (!$a->bulk_attendance_id || Auth::user()->can('view all students'))) {
                     $buttons .= '<form method="POST" action="' . e(route('attendances.destroy', $a->id)) . '">'
                         . csrf_field() . method_field('DELETE')
                         . '<button class="dropdown-item text-danger" type="submit" onclick="return confirm(\'Are you sure?\')">Delete</button></form>';
+                }
+                if ($buttons === '') {
+                    return '';
                 }
                 return '<div class="dropdown"><button class="btn btn-sm btn-primary rounded-pill px-3 text-nowrap" data-bs-toggle="dropdown"><i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions</button>'
                     . '<div class="dropdown-menu dropdown-menu-end">' . $buttons . '</div></div>';
             })
             ->rawColumns(['student', 'instructor', 'actions'])
+            ->only(['id', 'student_id', 'lesson_id', 'instructor_id', 'created_at', 'attendance_date', 'student', 'lesson', 'instructor', 'actions'])
             ->orderColumn('attendance_date', 'attendance_date $1')
             ->make(true);
     }
@@ -356,19 +376,21 @@ class AttendanceController extends Controller
 
     public function update(UpdateAttendanceRequest $request, Attendance $attendance)
     {
-        abort_unless(Auth::user()->can('manage system'), 403);
+        abort_unless(Auth::user()->can('view students'), 403);
         $data = $request->validate([
             'date' => ['required', 'date'],
             'student' => ['required', 'string'],
             'lesson' => ['required', 'string'],
             'attendance_id' => [$attendance->exists ? 'nullable' : 'required'],
         ]);
+        $record = $this->attendanceQuery()->findOrFail($attendance->exists ? $attendance->id : $data['attendance_id']);
+        $this->ensureIndividualMutationAllowed($record);
         $student = havenUtils::student($data['student']);
         if (!$student) {
             Alert::error('Student not found', 'Please select a valid student.');
             return back();
         }
-        $record = $attendance->exists ? $attendance : Attendance::findOrFail($data['attendance_id']);
+        Student::readableBy(Auth::user())->whereKey($student->id)->firstOrFail();
         $record->student_id = $student->id;
         $record->lesson_id = havenUtils::lessonID($data['lesson']);
         $record->attendance_date = Carbon::parse($data['date'], 'Africa/Blantyre');
@@ -379,8 +401,9 @@ class AttendanceController extends Controller
 
     public function destroy($id)
     {
-        abort_unless(Auth::user()->can('manage system'), 403);
-        Attendance::findOrFail($id)->delete();
+        $record = $this->attendanceQuery()->findOrFail($id);
+        $this->ensureIndividualMutationAllowed($record);
+        $record->delete();
         Alert::toast('Attendance deleted!', 'success');
         return back();
     }
@@ -388,12 +411,11 @@ class AttendanceController extends Controller
     public function autocompletestudentSearch(Request $request)
     {
         $data = $request->validate(['search' => ['required', 'string', 'max:50']]);
+        $query = Student::readableBy(Auth::user())->with('user')
+            ->where('status', '!=', 'Finished');
         try {
             $term = '%' . addcslashes($data['search'], '%_\\') . '%';
-            $query = Student::query()->with('user')
-                ->where('status', '!=', 'Finished');
-
-            if ($this->isInstructor()) {
+            if ($this->isInstructor() && !Auth::user()->can('view all students')) {
                 $id = Auth::user()->instructor_id;
                 $department = strtolower(Auth::user()->instructor?->department?->name ?? '');
                 if ($department === 'practical') {
@@ -452,15 +474,13 @@ class AttendanceController extends Controller
 
     public function attendanceSummary(Request $request, $id)
     {
+        abort_unless(Auth::user()->can('view all attendances')
+            || (Auth::user()->instructor_id && (string) Auth::user()->instructor_id === (string) $id), 403);
         $instructor = Instructor::find($id);
         if (!$instructor) {
             Alert::error('Error', 'Instructor not found.');
             return back();
         }
-        if ($this->isInstructor() && (string) Auth::user()->instructor_id !== (string) $id) {
-            abort(403);
-        }
-
         $data = $request->validate([
             'period' => ['required', 'in:today,yesterday,thisweek,lastweek,thismonth,lastmonth,thisyear,lastyear,custom'],
             'start_date' => ['required_if:period,custom', 'nullable', 'date'],
@@ -495,5 +515,11 @@ class AttendanceController extends Controller
         $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/e8704ed2-d90e-41ca/' . $instructor->id);
         $pdf = PDF::loadView('pdf_templates.attendanceSummary', compact('instructor', 'setting', 'qrCode', 'attendances'));
         return $pdf->download('Daron Driving School-' . $instructor->fname . ' ' . $instructor->sname . ' Attendance Summary.pdf');
+    }
+
+    private function ensureIndividualMutationAllowed(Attendance $attendance): void
+    {
+        abort_if($attendance->bulk_attendance_id && !Auth::user()->can('view all students'), 403,
+            'Bulk attendance records must be changed through their group.');
     }
 }

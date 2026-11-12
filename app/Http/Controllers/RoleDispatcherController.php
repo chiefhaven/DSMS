@@ -14,6 +14,7 @@ class RoleDispatcherController extends Controller
         $user = Auth::user();
 
         if ($user->hasRole('instructor')) {
+            abort_unless($user->can('record attendances'), 403);
             return app(AttendanceController::class)->create($request, $token);
         }
 

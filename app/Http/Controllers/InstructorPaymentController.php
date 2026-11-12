@@ -14,10 +14,11 @@ use Auth;
 
 class InstructorPaymentController extends Controller
 {
-    protected $bonus;
-
     public function __construct() {
-        $this->bonus = Setting::find(1) ? Setting::find(1)->bonus : null;
+        $this->middleware('auth');
+        $this->middleware('permission:view instructor payments')->only(['index', 'fetchPayments']);
+        $this->middleware('permission:process instructor payments')->only('store');
+        $this->middleware('permission:access management')->only(['show', 'edit', 'update', 'destroy']);
     }
     /**
      * Display a listing of the resource.
@@ -31,7 +32,7 @@ class InstructorPaymentController extends Controller
 
     public function fetchPayments()
     {
-        $payments = InstructorPayment::with('instructor')
+        $payments = InstructorPayment::with(['instructor', 'user.administrator'])
             ->orderByDesc('payment_date')
             ->get();
 
@@ -40,7 +41,8 @@ class InstructorPaymentController extends Controller
                 return '-';
             })
             ->addColumn('instructor', function ($payment) {
-                return $payment->instructor->fname . ' ' . $payment->instructor->sname;
+                return $payment->instructor
+                    ? trim($payment->instructor->fname . ' ' . $payment->instructor->sname) : '-';
             })
             ->addColumn('payment_month', function ($payment) {
                 return \Carbon\Carbon::createFromFormat('Y-m', $payment->payment_month)->format('F Y');
@@ -63,7 +65,7 @@ class InstructorPaymentController extends Controller
             ->addColumn('processed_by', function ($payment) {
                 return $payment->user->Administrator->fname ?? 'System';
             })
-            ->rawColumns(['actions', 'instructor', 'payment_month', 'total', 'payment_date', 'status'])
+            ->only(['actions', 'instructor', 'payment_month', 'attendances', 'per_attendance', 'total', 'payment_date', 'status', 'processed_by'])
             ->make(true);
 
     }
@@ -87,11 +89,12 @@ class InstructorPaymentController extends Controller
     public function store()
     {
         // Check permission
-        if (!Auth::user()->can('manage system')) {
+        if (!Auth::user()?->can('process instructor payments')) {
             return response()->json([
                 'message' => 'You are not allowed to make payments to instructors.'
             ], 403);
         }
+        $bonus = Setting::findOrFail(1)->bonus;
 
         $todaysDate = Carbon::now();
 
@@ -129,9 +132,9 @@ class InstructorPaymentController extends Controller
             $instructorPayment = new InstructorPayment;
             $instructorPayment->instructor_id = $instructor->id;
             $instructorPayment->attendances_count = $bonusThisPeriod;
-            $instructorPayment->pay_per_attendance = $this->bonus;
+            $instructorPayment->pay_per_attendance = $bonus;
             $instructorPayment->status = 'Paid';
-            $instructorPayment->total_payment = $bonusThisPeriod * $this->bonus;
+            $instructorPayment->total_payment = $bonusThisPeriod * $bonus;
             $instructorPayment->created_by = Auth::id() ?? 'system';
             try {
                 $paymentDate = Carbon::now()->format('d-m-Y');

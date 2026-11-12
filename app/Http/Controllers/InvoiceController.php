@@ -314,6 +314,7 @@ class InvoiceController extends Controller
                     $payment->transaction_id = Str::random(14);
                     $payment->student_id = $student_id;
                     $payment->entered_by = Auth::user()->name;
+                    $payment->recorded_by_user_id = Auth::id();
                     $payment->save();
                 }
             });

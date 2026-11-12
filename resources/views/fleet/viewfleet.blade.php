@@ -48,9 +48,9 @@
                     <span>Assign Instructor</span>
                   </a>
                 </div>
-                @endcan
             </div>
       </div>
+      @endcan
     </div>
   </div>
 </div>
@@ -103,6 +103,7 @@
                     </div>
                 </div>
 
+                @can('view vehicle locations')
                 <!-- Right Column -->
                 <div class="col-lg-8">
                   <div class="block block-rounded h-100 mb-0">
@@ -202,6 +203,7 @@
                     </div>
                     </div>
                   </div>
+                  @endcan
                 </div>
             </div>
 </div>
@@ -281,6 +283,7 @@
   </script>
 @endif
 
+@can('view vehicle locations')
 <script setup>
 
     const vehicleRouteApp = createApp({
@@ -603,4 +606,5 @@
         }
       }); vehicleRouteApp.mount('#vehicleRouteApp');
 </script>
+@endcan
 @endsection

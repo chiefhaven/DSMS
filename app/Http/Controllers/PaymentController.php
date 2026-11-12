@@ -28,7 +28,10 @@ class PaymentController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['permission:access management']);
+        $this->middleware('permission:access management')->except(['index', 'fetchPayments', 'store', 'destroy']);
+        $this->middleware('permission:view fee payments')->only(['index', 'fetchPayments']);
+        $this->middleware('permission:record fee payments')->only('store');
+        $this->middleware('permission:delete fee payments')->only('destroy');
     }
 
     /**
@@ -46,18 +49,16 @@ class PaymentController extends Controller
         // Capture the search keyword from the request if provided
         $search = $request->input('search.value'); // This is the global search input
 
-        $payments = Payment::with('Student')
-        ->when(Auth::user()->hasRole('admin'), function ($query) {
-            $query->where('added_by', Auth::user()->administrator_id);
-        })
-        ->orderBy('created_at', 'DESC');
+        $payments = Payment::readableBy(Auth::user())->with(['student', 'paymentMethod'])
+            ->orderBy('created_at', 'DESC');
 
         if ($search) {
             $payments->where(function($query) use ($search) {
                 $query->where('transaction_id', 'like', "%$search%")
-                    ->orWhere('type', 'like', "%$search%")
-                    ->orWhereHas('students', function($q) use ($search) {
-                         $q->where('fname', 'like', "%$search%");
+                    ->orWhereHas('student', function($q) use ($search) {
+                         $q->where('fname', 'like', "%$search%")
+                            ->orWhere('mname', 'like', "%$search%")
+                            ->orWhere('sname', 'like', "%$search%");
                     });
             });
         }
@@ -67,27 +68,22 @@ class PaymentController extends Controller
             // Search already applied above
         })
         ->addColumn('actions', function ($payment) {
-            $download = '';
-            $edit = '';
-            $delete = '';
-            $review = '';
+            if (!auth()->user()->can('delete fee payments')) {
+                return '';
+            }
 
-            if (auth()->user()->can('manage administration')) {
-                if (auth()->user()->can('manage system')) {
-                    $delete = '<form method="POST" action="' . route('payments.destroy', $payment->id) . '" style="display:inline;">
+            $delete = '<form method="POST" action="' . route('payments.destroy', $payment->id) . '" style="display:inline;">
                                     ' . csrf_field() . method_field('DELETE') . '
                                     <button type="submit" class="btn dropdown-item nav-main-link delete-confirm text-danger">
                                         <i class="fa fa-trash me-3"></i> Delete
                                     </button>
                                </form>';
-                }
-            }
 
             return '
                 <div class="dropdown d-inline-block">
                     <button class="btn btn-sm btn-primary rounded-pill px-3 text-nowrap" data-bs-toggle="dropdown"><i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions</button>
                     <div class="dropdown-menu dropdown-menu-end">
-                        ' . $download . $review . $edit . $delete . '
+                        ' . $delete . '
                     </div>
                 </div>
             ';
@@ -111,10 +107,10 @@ class PaymentController extends Controller
             // Filter out empty parts and join with spaces
             $fullName = implode(' ', array_filter($nameParts));
 
-            return '<span class="text-title">' . ($fullName ?: '-') . '</span>';
+            return '<span class="text-title">' . e($fullName ?: '-') . '</span>';
         })
         ->addColumn('payment_method', function ($payment) {
-            return $payment->payment_method ?? 'Cash'; // Default to 'Cash' if not specified
+            return $payment->paymentMethod->name ?? '-';
         })
         ->addColumn('amount', function ($payment) {
             return '<div class="text-end">
@@ -167,8 +163,6 @@ class PaymentController extends Controller
      */
     public function store(Request $request)
     {
-        abort_unless(Auth::user()->can('manage finance'), 403, 'Unauthorized.');
-
         $cashId = DB::table('payment_methods')->where('name', 'Cash')->value('id');
 
         $validator = Validator::make($request->all(), [
@@ -207,58 +201,44 @@ class PaymentController extends Controller
             ], 422);
         }
 
-        $post = $request->all();
-        $invoice = Invoice::find($post['invoice_id']);
+        $uploadedPath = null;
+        try {
+            [$payment, $studentId] = DB::transaction(function () use ($request, &$uploadedPath) {
+                $invoice = Invoice::with('student')->whereKey($request->input('invoice_id'))->lockForUpdate()->firstOrFail();
+                abort_if(!$invoice->student, 404, 'Student not found for this invoice.');
+                abort_if($request->input('paid_amount') > $invoice->invoice_balance, 422, 'Payment amount cannot be more than the remaining balance.');
 
-        if (!$invoice) {
-            return response()->json([
-                'message' => 'Invoice not found.',
-            ], 404);
+                $payment = new Payment;
+                if ($request->hasFile('payment_proof')) {
+                    $filename = Str::uuid() . '.' . $request->file('payment_proof')->extension();
+                    $request->file('payment_proof')->move(public_path('media/paymentProof'), $filename);
+                    $uploadedPath = public_path('media/paymentProof/' . $filename);
+                    $payment->payment_proof = $filename;
+                }
+
+                $payment->amount_paid = $request->input('paid_amount');
+                $payment->payment_method_id = $request->input('payment_method');
+                $payment->transaction_id = Str::random(14);
+                $payment->student_id = $invoice->student->id;
+                $payment->entered_by = Auth::user()->name;
+                $payment->recorded_by_user_id = Auth::id();
+                $invoice->invoice_amount_paid += $request->input('paid_amount');
+                $invoice->invoice_balance = $invoice->invoice_total - $invoice->invoice_amount_paid;
+                $payment->save();
+                $invoice->save();
+
+                return [$payment, $invoice->student->id];
+            });
+        } catch (\Throwable $e) {
+            if ($uploadedPath && File::exists($uploadedPath) && !File::delete($uploadedPath)) {
+                Log::error('Failed to remove payment proof after payment rollback.', ['path' => $uploadedPath]);
+            }
+            throw $e;
         }
-
-        if ($post['paid_amount'] > $invoice->invoice_balance) {
-            return response()->json([
-                'message' => 'Payment amount cannot be more than the remaining balance.',
-            ], 422);
-        }
-
-        // Resolve invoice again if needed by invoice_number
-        $invoice = Invoice::find($post['invoice_id']);
-
-        if (!$invoice || !$invoice->student) {
-            return response()->json([
-                'message' => 'Invalid invoice number. Student not found.',
-            ], 404);
-        }
-
-        $invoice_amount_paid = havenUtils::invoicePaid($post['invoice_id'], $post['paid_amount']);
-        $invoice_balance = $invoice->invoice_total - $invoice_amount_paid;
-
-        $payment = new Payment;
-
-        // Handle file upload
-        if ($request->hasFile('payment_proof')) {
-            $filename = time() . '_' . $request->file('payment_proof')->getClientOriginalName();
-            $request->file('payment_proof')->move(public_path('media/paymentProof'), $filename);
-            $payment->payment_proof = $filename;
-        }
-
-        $payment->amount_paid = $post['paid_amount'];
-        $payment->payment_method_id = $post['payment_method'];
-        $payment->transaction_id = Str::random(14);
-        $payment->student_id = $invoice->student->id;
-        $payment->entered_by = Auth::user()->name;
-
-        // Update invoice amounts
-        $invoice->invoice_amount_paid = $invoice_amount_paid;
-        $invoice->invoice_balance = $invoice_balance;
-
-        $payment->save();
-        $invoice->save();
 
         // Send SMS notification
         $sms = new NotificationController;
-        $sms->balanceSMS($invoice->student->id, 'Payment');
+        $sms->balanceSMS($studentId, 'Payment');
 
         return response()->json([
             'message' => 'Payment added successfully.',
@@ -308,61 +288,28 @@ class PaymentController extends Controller
      */
     public function destroy($id)
     {
-        try {
-            // Authorization check
-            if (!Auth::user()->can('manage system')) {
-                throw new \Exception('You do not have permission to delete payments.');
-            }
-
-            // Find payment with proper exception handling
-            $payment = Payment::findOrFail($id);
-
-            // Begin database transaction
-            DB::beginTransaction();
-
-            // Update invoice balance if exists
-            if ($invoice = Invoice::where('student_id', $payment->student_id)->first()) {
+        $payment = DB::transaction(function () use ($id) {
+            $payment = Payment::readableBy(Auth::user())->whereKey($id)->lockForUpdate()->firstOrFail();
+            if ($invoice = Invoice::where('student_id', $payment->student_id)->lockForUpdate()->first()) {
                 $invoice->invoice_balance += $payment->amount_paid;
                 $invoice->invoice_amount_paid -= $payment->amount_paid;
-
-                if (!$invoice->save()) {
-                    throw new \Exception('Failed to update invoice balance.');
-                }
+                $invoice->save();
             }
+            $payment->delete();
+            return $payment;
+        });
 
-            // Delete payment proof file if exists
-            if ($payment->payment_proof) {
-                $filePath = public_path('media/paymentProof/' . $payment->payment_proof);
-
-                if (File::exists($filePath)) {
-                    if (!File::delete($filePath)) {
-                        throw new \Exception('Failed to delete payment proof file.');
-                    }
-                }
+        if ($payment->payment_proof) {
+            $filePath = public_path('media/paymentProof/' . $payment->payment_proof);
+            if (File::exists($filePath) && !File::delete($filePath)) {
+                Log::error('Payment deleted but proof file could not be removed.', ['payment_id' => $payment->id, 'path' => $filePath]);
+                Alert::toast('Payment deleted, but its proof file could not be removed.', 'warning');
+                return back();
             }
-
-            // Delete payment record
-            if (!$payment->delete()) {
-                throw new \Exception('Failed to delete payment record.');
-            }
-
-            // Commit transaction if all operations succeeded
-            DB::commit();
-
-            Alert::toast('Payment deleted successfully.', 'success');
-            return back();
-
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            DB::rollBack();
-            Alert::toast('Payment not found.', 'error');
-            return back();
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Payment deletion failed: ' . $e->getMessage());
-            Alert::toast($e->getMessage() ?: 'An error occurred while deleting the payment.', 'error');
-            return back();
         }
+
+        Alert::toast('Payment deleted successfully.', 'success');
+        return back();
     }
 
 }

@@ -25,6 +25,11 @@ class bulkAttendance extends Model
         return $this->belongsToMany(Student::class, 'attendances', 'bulk_attendance_id', 'student_id')->withPivot('lesson_id');
     }
 
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class, 'bulk_attendance_id');
+    }
+
     public function Administrator()
     {
        return $this->belongsTo(Administrator::class);

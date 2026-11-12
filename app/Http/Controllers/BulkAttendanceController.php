@@ -18,8 +18,12 @@ class BulkAttendanceController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:access operations');
-        $this->middleware('permission:manage operations')->except('index');
+        $this->middleware('permission:view students');
+        $this->middleware('permission:view bulk attendances')->only('index');
+        $this->middleware('permission:create bulk attendances')->only(['create', 'store']);
+        $this->middleware('permission:edit bulk attendances')->only(['edit', 'update']);
+        $this->middleware('permission:delete bulk attendances')->only('destroy');
+        $this->middleware('permission:access operations')->only('show');
     }
 
     /**
@@ -31,23 +35,36 @@ class BulkAttendanceController extends Controller
     {
         $search = $request->input('search.value');
 
-        $bulkAttendances = bulkAttendance::with('administrator', 'students')
-            ->orderBy('created_at', 'DESC');
-
-        if ($search) {
-            $bulkAttendances = BulkAttendance::with(['administrator', 'students'])
-            ->when($search, function ($query) use ($search) {
-                $query->where(function($q) use ($search) {
-                    $q->where('description', 'like', "%$search%")
-                    ->orWhereHas('students', fn($s) =>
-                        $s->where('fname', 'like', "%$search%")
-                            ->orWhere('mname', 'like', "%$search%")
-                            ->orWhere('sname', 'like', "%$search%")
-                    );
-                });
+        $restricted = !Auth::user()->can('view all students');
+        $studentIds = $restricted ? Student::readableBy(Auth::user())->select('students.id') : null;
+        $visibleStudents = function ($query) use ($studentIds) {
+            $query->whereNull('attendances.deleted_at');
+            if ($studentIds) {
+                $query->whereIn('students.id', clone $studentIds);
+            }
+        };
+        $bulkAttendances = BulkAttendance::with(['administrator', 'students' => $visibleStudents])
+            ->when($restricted, function ($query) use ($visibleStudents, $studentIds) {
+                $query->whereHas('students', $visibleStudents)
+                    ->withCount(['attendances as inaccessible_attendances_count' => function ($attendance) use ($studentIds) {
+                        $attendance->withTrashed()->where(function ($query) use ($studentIds) {
+                            $query->whereNull('student_id')->orWhereNotIn('student_id', clone $studentIds);
+                        });
+                    }]);
             })
-            ->orderByDesc('created_at');
-        }
+            ->when($search, function ($query) use ($search, $visibleStudents) {
+                $query->where(function ($query) use ($search, $visibleStudents) {
+                    $query->where('description', 'like', "%$search%")
+                        ->orWhereHas('students', function ($students) use ($search, $visibleStudents) {
+                            $visibleStudents($students);
+                            $students->where(function ($students) use ($search) {
+                                $students->where('fname', 'like', "%$search%")
+                                    ->orWhere('mname', 'like', "%$search%")
+                                    ->orWhere('sname', 'like', "%$search%");
+                            });
+                        });
+                });
+            })->orderByDesc('created_at');
 
         return DataTables::of($bulkAttendances)
             ->filter(function () {
@@ -57,11 +74,12 @@ class BulkAttendanceController extends Controller
 
             ->addColumn('students', function ($bulk) {
                 return $bulk->students
-                    ->map(fn($student) => trim("{$student->fname} {$student->mname} {$student->sname}"))
+                    ->map(fn($student) => implode(' ', array_filter([$student->fname, $student->mname, $student->sname])))
                     ->implode(', ') ?: 'None';
             })
 
-            ->addColumn('entered_by', fn($bulk) => "{$bulk->administrator->fname} {$bulk->administrator->sname}")
+            ->addColumn('entered_by', fn($bulk) => $bulk->administrator
+                ? trim("{$bulk->administrator->fname} {$bulk->administrator->sname}") : '-')
 
             ->addColumn('created_at', fn($bulk) => $bulk->created_at->format('d F, Y H:i:s'))
 
@@ -70,20 +88,20 @@ class BulkAttendanceController extends Controller
             ->addColumn('actions', function ($bulk) {
                 $actions = '';
 
-                if (auth()->user()->can('access management')) {
-                    $view = '<a class="dropdown-item nav-main-link btn" href="' . url("/view-bulk-attendance/{$bulk->id}") . '">
-                                <i class="fa fa-eye me-2"></i>View
-                            </a>';
-
-                    $edit = '<a class="dropdown-item nav-main-link btn" href="' . route('bulk-attendances.edit', $bulk->id) . '">
+                if (!$bulk->inaccessible_attendances_count && auth()->user()->can('edit bulk attendances')) {
+                    $actions .= '<a class="dropdown-item nav-main-link btn" href="' . route('bulk-attendances.edit', $bulk->id) . '">
                                 <i class="fa fa-edit me-2"></i>Edit
                             </a>';
-
-                    $delete = '<a class="dropdown-item nav-main-link btn text-danger" href="javascript:void(0);" onclick="openDeletebulkAttendance(\'' . $bulk->id . '\')">
+                }
+                if (!$bulk->inaccessible_attendances_count && auth()->user()->can('delete bulk attendances')) {
+                    $argument = e(json_encode(['id' => $bulk->id]));
+                    $actions .= '<a class="dropdown-item nav-main-link btn text-danger" href="javascript:void(0);" onclick="openDeleteBulkAttendance(' . $argument . ')">
                                 <i class="fa fa-trash me-2"></i>Delete
                             </a>';
+                }
 
-                    $actions = $view . $edit . $delete;
+                if ($actions === '') {
+                    return '';
                 }
 
                 return <<<HTML
@@ -96,6 +114,7 @@ class BulkAttendanceController extends Controller
                 HTML;
     })
 
+    ->only(['id', 'description', 'students', 'entered_by', 'created_at', 'updated_at', 'actions'])
     ->rawColumns(['actions'])
     ->make(true);
 
@@ -129,6 +148,7 @@ class BulkAttendanceController extends Controller
                 'message' => 'Student list must not be empty.'
             ], 422);
         }
+        $this->ensureStudentsAccessible($studentsData);
 
         try {
             \DB::beginTransaction();
@@ -186,7 +206,8 @@ class BulkAttendanceController extends Controller
      */
     public function edit($id)
     {
-        $bulkAttendance = BulkAttendance::with('students')->findOrFail($id);
+        $bulkAttendance = BulkAttendance::with(['students' => fn ($query) => $query->whereNull('attendances.deleted_at')])->findOrFail($id);
+        $this->ensureGroupAccessible($bulkAttendance);
         return view('attendances.editBulkAttendance', compact('bulkAttendance'));
     }
 
@@ -202,41 +223,43 @@ class BulkAttendanceController extends Controller
         $request->validate([
             'students' => 'required|array|min:1',
             'students.*.studentId' => 'required|uuid|exists:students,id',
-            'students.*.lessonId' => 'required|integer|exists:lessons,id',
+            'students.*.lessonId' => 'required|exists:lessons,id',
             'bulkAttendanceDescription' => 'nullable|string|max:255',
         ]);
 
-        DB::beginTransaction();
-
-        try {
-            // Find the bulkAttendance record
-            $bulkAttendance = BulkAttendance::findOrFail($request->route('bulk_attendance') ?? $request->input('students')[0]['bulkAttendanceId'] ?? $request->input('bulkAttendanceId'));
-
-            // Update description
+        $id = $request->route('bulk_attendance') ?? $request->input('students')[0]['bulkAttendanceId'] ?? $request->input('bulkAttendanceId');
+        $this->ensureStudentsAccessible($request->students);
+        DB::transaction(function () use ($id, $request) {
+            $bulkAttendance = BulkAttendance::whereKey($id)->lockForUpdate()->firstOrFail();
+            $this->ensureGroupAccessible($bulkAttendance);
             $bulkAttendance->description = $request->bulkAttendanceDescription;
             $bulkAttendance->save();
 
-            // Remove old student pivot entries
-            $bulkAttendance->students()->detach();
-
-            // Re-attach students with lesson_id on pivot
+            $existing = $bulkAttendance->attendances()->lockForUpdate()->get()
+                ->groupBy(fn ($attendance) => json_encode([$attendance->student_id, (string) $attendance->lesson_id]));
             foreach ($request->students as $student) {
-                $bulkAttendance->students()->attach($student['studentId'], [
-                    'lesson_id' => $student['lessonId'],
-                    //'lesson_quantity' => $student['lessonQuantity'] ?? null,
-                ]);
+                $key = json_encode([$student['studentId'], (string) $student['lessonId']]);
+                $matching = $existing->get($key);
+                if ($matching && $matching->isNotEmpty()) {
+                    $matching->shift();
+                } else {
+                    Attendance::create([
+                        'student_id' => $student['studentId'],
+                        'bulk_attendance_id' => $bulkAttendance->id,
+                        'administrator_id' => $bulkAttendance->administrator_id,
+                        'attendance_date' => now(),
+                        'lesson_id' => $student['lessonId'],
+                    ]);
+                }
             }
+            foreach ($existing as $remaining) {
+                foreach ($remaining as $attendance) {
+                    $attendance->delete();
+                }
+            }
+        });
 
-            DB::commit();
-
-            return response()->json(['message' => 'Bulk attendance updated successfully']);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'message' => 'Failed to update bulk attendance.',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return response()->json(['message' => 'Bulk attendance updated successfully']);
     }
 
     /**
@@ -247,7 +270,9 @@ class BulkAttendanceController extends Controller
      */
     public function destroy(BulkAttendance $bulkAttendance)
     {
-        try {
+        DB::transaction(function () use ($bulkAttendance) {
+            $bulkAttendance = BulkAttendance::whereKey($bulkAttendance->getKey())->lockForUpdate()->firstOrFail();
+            $this->ensureGroupAccessible($bulkAttendance);
             // Detach all related students from pivot
             $bulkAttendance->students()->detach();
 
@@ -256,14 +281,28 @@ class BulkAttendanceController extends Controller
             // Delete the bulk attendance record
             $bulkAttendance->delete();
 
-            return response()->json([
-                'message' => 'Bulk attendance deleted successfully.'
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to delete bulk attendance.',
-                'error' => $e->getMessage()
-            ], 500);
+        });
+
+        return response()->json(['message' => 'Bulk attendance deleted successfully.'], 200);
+    }
+
+    private function ensureStudentsAccessible(array $students): void
+    {
+        $ids = collect($students)->pluck('studentId')->unique()->values();
+        abort_unless(Student::readableBy(Auth::user())->whereKey($ids->all())->count() === $ids->count(), 404);
+    }
+
+    private function ensureGroupAccessible(BulkAttendance $bulkAttendance): void
+    {
+        if (Auth::user()->can('view all students')) {
+            return;
         }
+
+        $studentIds = Student::readableBy(Auth::user())->select('students.id');
+        $attendances = $bulkAttendance->attendances();
+        abort_unless((clone $attendances)->whereIn('student_id', clone $studentIds)->exists(), 404);
+        abort_if((clone $attendances)->withTrashed()->where(function ($query) use ($studentIds) {
+            $query->whereNull('student_id')->orWhereNotIn('student_id', clone $studentIds);
+        })->exists(), 404);
     }
 }

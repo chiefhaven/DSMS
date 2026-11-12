@@ -789,14 +789,23 @@ class ExpenseController extends Controller
     public function autocompletestudentSearch(Request $request)
     {
         $user = $request->user();
+        $expenseAccess = $user->can('create expenses') || $user->can('edit expenses');
+        $bulkAccess = $user->can('create bulk attendances') || $user->can('edit bulk attendances');
         abort_unless(
-            $user->can('create expenses') || $user->can('edit expenses')
+            $expenseAccess || $bulkAccess
                 || ($user->can('access management') && $user->can('manage operations')),
             403
         );
         $search = $request->get('student');
 
-        $students = \DB::table('students')
+        if ($bulkAccess && !$expenseAccess) {
+            abort_unless($user->can('view students'), 403);
+            $query = Student::readableBy($user);
+        } else {
+            $query = \DB::table('students');
+        }
+
+        $students = $query
             ->whereNotNull('course_id')
             ->where('course_id', '!=', '')
             ->where(function ($query) use ($search) {

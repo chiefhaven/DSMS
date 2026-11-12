@@ -8,21 +8,29 @@
                     <a href="{{ route('instructors.index') }}" class="fs-sm text-muted"><i class="fa fa-arrow-left me-1"></i> Instructors</a>
                     <h1 class="fs-3 fw-semibold my-2">{{ $instructor->fname }} {{ $instructor->sname }}</h1>
                 </div>
+                @canany(['edit instructors', 'delete instructors', 'send announcements'])
                 <div class="dropdown">
                     <button class="btn btn-primary rounded-pill px-4 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Actions</button>
                     <div class="dropdown-menu dropdown-menu-end">
+                        @can('edit instructors')
                         <a class="dropdown-item" href="{{ route('instructors.edit', $instructor->id) }}"><i class="fa fa-edit me-2"></i>Edit Profile</a>
+                        @endcan
+                        @can('send announcements')
                         <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#announcement-modal" data-instructor-id="{{ $instructor->id }}">
                             <i class="fa fa-bullhorn me-2"></i>Make Announcement
                         </a>
+                        @endcan
+                        @can('delete instructors')
                         <div class="dropdown-divider"></div>
                         <form method="POST" action="{{ route('instructors.destroy', $instructor->id) }}" id="delete-instructor-form">
                             @csrf
                             @method('DELETE')
                             <button class="dropdown-item text-danger" type="submit"><i class="fa fa-trash me-2"></i>Delete</button>
                         </form>
+                        @endcan
                     </div>
                 </div>
+                @endcanany
             </div>
         </div>
     </div>
@@ -33,7 +41,7 @@
                 <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-panel"
                         type="button" role="tab" aria-controls="profile-panel" aria-selected="true">Profile</button>
             </li>
-            @can('manage administration')
+            @can('manage instructor accounts')
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="account-tab" data-bs-toggle="tab" data-bs-target="#account-panel"
                             type="button" role="tab" aria-controls="account-panel" aria-selected="false">Account</button>
@@ -88,6 +96,12 @@
                                 </div>
                             </div>
                         </div>
+                        @php
+                            $isOwnInstructor = auth()->user()->instructor_id && (string) auth()->user()->instructor_id === (string) $instructor->id;
+                            $canViewInstructorStudents = auth()->user()->can('view students')
+                                && (auth()->user()->can('view all students') || $isOwnInstructor);
+                        @endphp
+                        @if($canViewInstructorStudents)
                         <div class="row g-3">
                             <div class="col-6">
                                 <button type="button" class="btn btn-light w-100 text-start p-3 rounded-3" @click="reloadTable('active')" :aria-pressed="status === 'active'">
@@ -101,12 +115,21 @@
                                     <span class="fs-sm text-muted">Finished students</span>
                                 </button>
                             </div>
+                            @endif
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
+        @php
+            $canViewInstructorAttendance = auth()->user()->can('view attendances')
+                && (auth()->user()->can('view all attendances')
+                    || $isOwnInstructor);
+            $canViewInstructorChart = $canViewInstructorAttendance && auth()->user()->can('view schedules')
+                && (auth()->user()->can('view all schedules') || $isOwnInstructor);
+        @endphp
+        @if($canViewInstructorChart)
         <div class="card border-0 shadow-sm rounded-3 mb-4">
             <div class="card-header bg-white border-bottom py-3 px-4 d-flex flex-wrap gap-3 align-items-center justify-content-between">
                 <h2 class="fs-6 fw-semibold mb-0">Attendance &amp; schedules</h2>
@@ -122,11 +145,13 @@
                 <div v-show="!chartLoading && !chartError" class="position-relative" style="height: 260px;"><canvas id="attendancesChart"></canvas></div>
             </div>
         </div>
+        @endif
 
         @foreach ([
             'students' => ['title' => 'Assigned students', 'headers' => ['Actions', 'Name', 'Course Enrolled', 'Fees', 'Balance', 'Registered on', 'Attendance', 'Course Status', 'Phone', 'Email', 'TRN']],
             'attendances' => ['title' => 'Attendances', 'headers' => ['Date', 'Student', 'Lesson']],
         ] as $table => $config)
+            @if(($table === 'students' && $canViewInstructorStudents) || ($table === 'attendances' && $canViewInstructorAttendance))
             <div class="card border-0 shadow-sm rounded-3 overflow-hidden mb-4">
                 <div class="card-header bg-white border-bottom py-3 px-4 d-flex flex-wrap gap-3 align-items-center justify-content-between">
                     <h2 class="fs-6 fw-semibold mb-0">{{ $config['title'] }}</h2>
@@ -180,10 +205,11 @@
                     </div>
                 </div>
             </div>
+            @endif
         @endforeach
 
         </div>
-        @can('manage administration')
+        @can('manage instructor accounts')
             <div class="tab-pane fade" id="account-panel" role="tabpanel" aria-labelledby="account-tab">
                 <div class="card border-0 shadow-sm rounded-3">
                     <div class="card-header bg-white border-bottom py-3 px-4">
@@ -236,16 +262,18 @@
                 const completionNotes = ref('');
                 const isUpdating = ref(false);
                 const tables = {};
+                @can('manage instructor accounts')
                 @include('components.staff-account-state', [
                     'accountUser' => $instructor->user,
                     'accountUpdateUrl' => route('instructors.account.update', $instructor->id),
                 ])
+                @endcan
 
                 const notifyError = (text) => Swal.fire({ icon: 'error', title: 'Unable to complete request', text });
                 const refreshTable = (name) => tables[name].ajax.reload(null, false);
                 const reloadTable = (value = status.value) => {
                     status.value = value;
-                    tables.students.ajax.reload();
+                    tables.students?.ajax.reload();
                 };
                 const closeStatusChangeModal = () => { showStatusChangeModal.value = false; };
 
@@ -380,6 +408,7 @@
                         Object.values(tables).forEach(table => table.columns.adjust());
                         attendanceChart?.resize();
                     });
+                    @if($canViewInstructorStudents)
                     tables.students = $('#studentsTable').DataTable({
                         ...tableOptions('students', @json(route('InstructorStudents')), () => ({ status: status.value, instructorId })),
                         order: [[5, 'desc']],
@@ -397,6 +426,8 @@
                             { data: 'trn', name: 'trn' }
                         ]
                     });
+                    @endif
+                    @if($canViewInstructorAttendance)
                     tables.attendances = $('#attendancesTable').DataTable({
                         ...tableOptions('attendances', profileUrl, () => ({ section: 'attendances' })),
                         order: [[0, 'desc']],
@@ -411,6 +442,7 @@
                             { data: 'lesson_name', name: 'lesson.name' }
                         ]
                     });
+                    @endif
                     $('#studentsTable').on('click', '.change-status-btn, .status-span', function () {
                         const data = $(this).data();
                         studentId.value = data.id;
@@ -434,11 +466,15 @@
                             icon: 'warning', showCancelButton: true, confirmButtonText: 'Delete'
                         }).then(result => { if (result.isConfirmed) form.submit(); });
                     });
+                    @if($canViewInstructorChart)
                     loadChart();
+                    @endif
                 });
 
                 return {
+                    @can('manage instructor accounts')
                     account, accountSaving, accountErrors, accountMessage, accountError, saveAccount, resetAccount,
+                    @endcan
                     status, reloadTable, refreshTable, chartLoading, chartError, chartMonth, loadChart,
                     period, startDate, endDate, handlePeriodChange, downloadSummary,
                     showStatusChangeModal, studentId, studentName, studentStatus,

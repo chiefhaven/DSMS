@@ -30,6 +30,12 @@ class SensitiveReadAuthorizationTest extends TestCase
         }
         (require base_path('database/migrations/2026_11_11_120000_seed_access_permissions.php'))->up();
         (require base_path('database/migrations/2026_11_12_001100_seed_invoice_permissions.php'))->up();
+        Schema::create('users', function ($table) {
+            $table->string('id')->primary();
+            $table->string('instructor_id')->nullable();
+            $table->softDeletes();
+        });
+        (require base_path('database/migrations/2026_11_12_001800_seed_vehicle_location_permissions.php'))->up();
     }
 
     /** @dataProvider sensitiveRoutes */

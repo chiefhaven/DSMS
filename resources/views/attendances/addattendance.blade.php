@@ -100,6 +100,7 @@
 
                             <!-- Submit Button -->
                             <x-form-actions :cancel-url="route('attendances.index')">
+                                @can('record attendances')
                                 <button
                                     type="submit"
                                     :disabled="state.isSubmitButtonDisabled"
@@ -113,6 +114,7 @@
                                         Save
                                     </template>
                                 </button>
+                                @endcan
                             </x-form-actions>
                         @endif
                     </form>

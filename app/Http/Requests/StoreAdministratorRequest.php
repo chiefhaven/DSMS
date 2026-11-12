@@ -31,7 +31,7 @@ class StoreAdministratorRequest extends FormRequest
             'gender' => 'required',
             'date_of_birth' => 'required',
             'district' => 'required',
-            'role' => 'required',
+            'role' => 'required|in:admin,financeAdmin,superAdmin',
             'phone' => 'required',
             'password' => 'required|min:8',
             'username' => 'required'

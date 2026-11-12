@@ -78,7 +78,7 @@
                     <div class="form-floating mb-4">
                       <select class="form-select" id="role" name="role">
                         @foreach ($role as $role)
-                           <option value="{{$role->name}}" @if($role == 'instructor') disabled  @endif >{{$role->name}}</option>
+                           <option value="{{$role->name}}">{{$role->name}}</option>
                         @endforeach
                       </select>
                       <label for="district">Role</label>

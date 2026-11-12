@@ -102,16 +102,22 @@ class RoleManagementTest extends TestCase
         $routes = app('router')->getRoutes();
 
         foreach ([
-            'payments.index' => 'permission:access management',
-            'payments.store' => 'permission:access management',
-            'api.payments.index' => 'permission:access management',
-            'expense.expensePayments' => 'permission:access management',
-            'api.bulk-attendances.index' => 'permission:access operations',
-            'api.bulk-attendances.store' => 'permission:manage operations',
-            'api.bulk-attendances.update' => 'permission:manage operations',
-            'api.bulk-attendances.destroy' => 'permission:manage operations',
-            'bulk-attendances.create' => 'permission:manage operations',
-            'bulk-attendances.edit' => 'permission:manage operations',
+            'payments.index' => 'permission:view fee payments',
+            'payments.store' => 'permission:record fee payments',
+            'api.payments.index' => 'permission:view fee payments',
+            'expense.expensePayments' => 'permission:view expense payments',
+            'api.bulk-attendances.index' => 'permission:view bulk attendances',
+            'api.bulk-attendances.store' => 'permission:create bulk attendances',
+            'api.bulk-attendances.update' => 'permission:edit bulk attendances',
+            'api.bulk-attendances.destroy' => 'permission:delete bulk attendances',
+            'bulk-attendances.create' => 'permission:create bulk attendances',
+            'bulk-attendances.edit' => 'permission:edit bulk attendances',
+            'attendances.index' => 'permission:view attendances',
+            'fetch-attendances' => 'permission:view attendances',
+            'attendances.store' => 'permission:record attendances',
+            'attendances.update' => 'permission:edit attendances',
+            'attendances.destroy' => 'permission:delete attendances',
+            'attendanceSummary' => 'permission:download attendance reports',
             'invoice-settings.update' => 'permission:edit invoice settings',
             'invoicesettings-update' => 'permission:edit invoice settings',
         ] as $name => $permission) {
@@ -119,8 +125,8 @@ class RoleManagementTest extends TestCase
         }
 
         foreach ([
-            '/bulk-attendances' => 'permission:access operations',
-            '/add-bulk-attendance' => 'permission:manage operations',
+            '/bulk-attendances' => 'permission:view bulk attendances',
+            '/add-bulk-attendance' => 'permission:create bulk attendances',
         ] as $path => $permission) {
             $route = $routes->match(Request::create($path, 'GET'));
             $this->assertContains($permission, $route->gatherMiddleware(), $path);
@@ -189,8 +195,7 @@ class RoleManagementTest extends TestCase
         $user->setRelation('roles', collect());
         $this->actingAs($user);
 
-        $this->expectException(HttpException::class);
-        app(PaymentController::class)->store(new Request());
+        $this->postJson('/payments', [])->assertForbidden();
     }
 
     public function test_unused_role_can_be_deleted(): void

@@ -1,3 +1,4 @@
+@can('download attendance reports')
 <form @submit.prevent>
     Report &nbsp;
     <select v-model="period" class="btn btn-light" id="period" name="period" @change="handlePeriodChange">
@@ -38,3 +39,4 @@
         </div>
     </div>
 </div>
+@endcan

@@ -72,7 +72,9 @@
                         <label class="form-label" for="example-email-input-floating">Phone</label>
                     </div>
                     <div class="mb-4 form-floating">
-                      <input type="text" class="form-control" id="email_address" name="email" placeholder="administrator's email address" value="{{$administrator->user?->email}}" required>
+                      <input type="text" class="form-control" id="email_address" name="email" placeholder="administrator's email address" value="{{ old('email', $administrator->user?->email) }}"
+                          @if(!auth()->user()->can('manage administrator accounts') || (!$administrator->user && !auth()->user()->can('assign administrator roles'))) readonly @endif
+                          @if($administrator->user) required @endif>
                         <label class="form-label" for="example-email-input-floating">Email address</label>
                     </div>
                     <div class="mb-4 form-floating">
@@ -87,31 +89,30 @@
                       </select>
                       <label for="district">Distirct</label>
                     </div>
+                    @can('assign administrator roles')
+                    @if($administrator->user || auth()->user()->can('manage administrator accounts'))
                     <div class="form-floating mb-4">
                         <select class="form-select" id="role" name="role">
+                            @php
+                                $currentRoles = $administrator->user?->roles->pluck('name') ?? collect();
+                                $currentRole = $currentRoles->count() === 1 && $role->contains('name', $currentRoles->first())
+                                    ? $currentRoles->first() : '';
+                            @endphp
+                            <option value="" {{ old('role', $currentRole) === '' ? 'selected' : '' }}>Keep current roles</option>
                             @foreach ($role as $role)
-                                    <option value="{{ $role->name }}"
-                                        {{ $administrator->user?->roles?->contains('name', $role->name) ? 'selected' : '' }}>
-                                        {{ ucfirst($role->name) }}
-                                    </option>
-                                    @switch($role->name)
-                                        @case('admin')
-                                            Admin
-                                            @break
-                                        @case('financeAdmin')
-                                            Finance Admin
-                                            @break
-                                        @case('superAdmin')
-                                            Super Admin
-                                            @break
-                                        @default
-                                            {{ ucfirst($role->name) }}
-                                    @endswitch
+                                <option value="{{ $role->name }}" {{ old('role', $currentRole) === $role->name ? 'selected' : '' }}>
+                                    {{ match ($role->name) {
+                                        'admin' => 'Admin',
+                                        'financeAdmin' => 'Finance Admin',
+                                        'superAdmin' => 'Super Admin',
+                                    } }}
                                 </option>
                             @endforeach
                         </select>
-                      <label for="district">Role</label>
+                        <label for="role">Role</label>
                     </div>
+                    @endif
+                    @endcan
                   </div>
                   <div class=" content-heading"><p>&nbsp;</p></div>
                     {{--  <div class="col-lg-4">

@@ -61,12 +61,19 @@ class InstructorAccountTest extends TestCase
         (require base_path('vendor/spatie/laravel-permission/database/migrations/create_permission_tables.php.stub'))->up();
         app(PermissionRegistrar::class)->forgetCachedPermissions();
         Permission::create(['name' => 'manage administration']);
+        Permission::create(['name' => 'manage instructor accounts']);
+        Permission::create(['name' => 'manage administrator accounts']);
 
         DB::table($this->resource)->insert(['id' => $this->instructor]);
         $this->manager = User::withoutEvents(fn () => User::create([
             'name' => 'Manager', 'email' => 'manager@example.test', 'password' => Hash::make('Password123!'),
         ]));
         $this->manager->givePermissionTo('manage administration');
+        if ($this->resource === 'instructors') {
+            $this->manager->givePermissionTo('manage instructor accounts');
+        } else {
+            $this->manager->givePermissionTo('manage administrator accounts');
+        }
         $this->target = User::withoutEvents(function () {
             $user = new User;
             $user->name = 'Instructor';
@@ -167,6 +174,11 @@ class InstructorAccountTest extends TestCase
     public function test_cannot_deactivate_own_account(): void
     {
         $this->target->givePermissionTo('manage administration');
+        if ($this->resource === 'instructors') {
+            $this->target->givePermissionTo('manage instructor accounts');
+        } else {
+            $this->target->givePermissionTo('manage administrator accounts');
+        }
         $this->actingAs($this->target)->putJson($this->url(), $this->data(['is_active' => false]))
             ->assertUnprocessable()->assertJsonValidationErrors('is_active');
         $this->assertTrue($this->target->fresh()->is_active);

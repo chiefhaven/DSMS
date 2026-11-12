@@ -97,11 +97,11 @@ Route::post('/addattendance/{token}', [AttendanceController::class, 'create'])->
 
 Route::get("/add-bulk-attendance", function(){
     return view("attendances.addBulkAttendance");
- })->middleware(['auth', 'permission:manage operations']);
+ })->middleware(['auth', 'permission:view students', 'permission:create bulk attendances']);
 
 Route::get("/bulk-attendances", function(){
     return view("attendances.bulkAttendances");
-})->middleware(['auth', 'permission:access operations']);
+})->middleware(['auth', 'permission:view students', 'permission:view bulk attendances']);
 
 Route::get('/edit-bulk-attendance/{id}', [BulkAttendanceController::class, 'edit'])
     ->middleware('auth')
@@ -174,6 +174,7 @@ Route::post('/update-payment', [PaymentController::class, 'update'])->middleware
 Route::middleware('auth')->group(function () {
     Route::get('/instructors', [InstructorController::class, 'index'])->name('instructors');
     Route::get('/instructors-json', [InstructorController::class, 'indexInstructors'])->name('instructors-json');
+    Route::get('/instructor-options', [InstructorController::class, 'instructorOptions'])->name('instructor-options');
     Route::get('/addinstructor', [InstructorController::class, 'create'])->name('addinstructor');
     Route::post('/storeinstructor', [InstructorController::class, 'store'])->name('storeinstructor');
     Route::get('/editinstructor/{id}', [InstructorController::class, 'edit'])->name('editinstructor');
@@ -214,7 +215,7 @@ Route::delete('/deletefleet/{id}', [FleetController::class, 'destroy'])->middlew
 
 Route::get("/track-fleet", function(){
     return view("fleet.track-fleet");
- })->middleware('auth');
+ })->middleware(['auth', 'permission:view vehicle locations']);
 
 
 Route::get('/settings', [SettingController::class, 'edit'])->middleware('auth')->name('settings');
@@ -300,9 +301,9 @@ Route::get('/lesson-search', [havenUtils::class, 'autocompleteLessonSearch'])
     ->middleware(['auth', 'permission:view lessons|edit course lessons'])->name('lesson-search');
 Route::post('/check-class-fleet-assignment', [havenUtils::class, 'checkInstructorClassFleetAssignment'])->middleware('auth')->name('check-class-fleet-assignment');
 
-Route::get('/get-all-vehicle-locations', [VehicleTrackerController::class, 'show'])->name('vehicle-locations')->middleware(['auth', 'permission:manage administration']);
+Route::get('/get-all-vehicle-locations', [VehicleTrackerController::class, 'show'])->name('vehicle-locations')->middleware(['auth', 'permission:view vehicle locations']);
 
-Route::get('/show-vehicle-geo-data/{vehicleId}', [VehicleTrackerController::class, 'showVehicleGeoData'])->name('vehicle-location')->middleware(['auth', 'permission:manage administration']);
+Route::get('/show-vehicle-geo-data/{vehicleId}', [VehicleTrackerController::class, 'showVehicleGeoData'])->name('vehicle-location')->middleware(['auth', 'permission:view vehicle locations']);
 
 
 Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index')->middleware('auth');

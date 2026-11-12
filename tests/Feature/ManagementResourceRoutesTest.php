@@ -146,6 +146,9 @@ class ManagementResourceRoutesTest extends TestCase
         DB::table('roles')->insert(['id' => 1, 'name' => 'financeAdmin', 'guard_name' => 'web']);
         DB::table('model_has_roles')->insert(['role_id' => 1, 'model_type' => User::class, 'model_id' => '1']);
 
+        $viewer = Mockery::mock(User::class)->makePartial();
+        $viewer->shouldReceive('can')->andReturn(true);
+        $this->actingAs($viewer);
         $fetch = function (string $search = '', int $start = 0) {
             $request = Request::create('/administrators', 'GET', [
                 'draw' => 3,
@@ -201,8 +204,8 @@ class ManagementResourceRoutesTest extends TestCase
         foreach (['invoices.index', 'invoices.show'] as $name) {
             $this->assertContains('permission:view invoices', $routes->getByName($name)->gatherMiddleware());
         }
-        $this->assertContains('permission:manage administration', $routes->getByName('instructors.show')->gatherMiddleware());
-        $this->assertContains('permission:manage administration', $routes->getByName('administrators.update')->gatherMiddleware());
+        $this->assertContains('permission:view instructors', $routes->getByName('instructors.show')->gatherMiddleware());
+        $this->assertContains('permission:edit administrators', $routes->getByName('administrators.update')->gatherMiddleware());
         $this->assertContains('permission:view expenses', $routes->getByName('expenses.show')->gatherMiddleware());
     }
 

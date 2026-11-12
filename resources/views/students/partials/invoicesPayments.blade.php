@@ -29,10 +29,8 @@
                                             <button class="dropdown-item" type="submit">Edit</button>
                                         </form>
                                         @endcan
-                                        @can('manage system')
-                                        @can('manage administration')
+                                        @can('record fee payments')
                                         <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#paymentModal">Add payment</button>
-                                        @endcan
                                         @endcan
                                         @can('download invoices')
                                         <a class="dropdown-item" href="{{ url('/invoice-pdf', $student->invoice->id) }}">Print Invoice</a>
@@ -71,7 +69,7 @@
     </div>
 @endrole
 
-@can('manage administration')
+@role($profilePaymentRoles)
     <div class="tab-pane fade" id="payments" role="tabpanel" aria-labelledby="payments-tab">
         <div class="table-responsive">
             <table class="table table-bordered table-striped table-vcenter">
@@ -90,11 +88,11 @@
                     @foreach($student->payment as $payment)
                     <tr>
                         <td class="text-center">
+                            @can('delete fee payments')
                             <div class="dropdown d-inline-block">
                                 <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     Action
                                 </button>
-                                @can('manage system')
                                 <div class="dropdown-menu dropdown-menu-end p-0">
                                     <div class="p-2">
                                         <form method="POST" action="{{ url('delete-payment', $payment->id) }}">
@@ -106,8 +104,8 @@
                                         </form>
                                     </div>
                                 </div>
-                                @endcan
                             </div>
+                            @endcan
                         </td>
                         <td class="font-w600">{{ $payment->created_at->format('j F, Y') }}</td>
                         <td class="font-w600">{{ $payment->transaction_id }}</td>
@@ -150,4 +148,4 @@
             </table>
         </div>
     </div>
-@endcan
+@endrole

@@ -105,6 +105,7 @@
                     name="email"
                     value="{{ old('email', $instructor?->user->email) }}"
                     placeholder="Instructor's email address"
+                    @if($instructor && !auth()->user()->can('manage instructor accounts')) readonly @endif
                     required>
                 <label for="email_address">Email address</label>
             </div>
@@ -185,6 +186,7 @@
         </div>
 
         <!-- Password -->
+        @if(!$instructor || auth()->user()->can('manage instructor accounts'))
         <div class="form-floating mb-4 position-relative">
             <input type="password"
                     class="form-control"
@@ -198,6 +200,7 @@
                 Show
             </button>
         </div>
+        @endif
 
         <script>
             function togglePasswordVisibility() {

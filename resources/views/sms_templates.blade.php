@@ -28,42 +28,42 @@
         <div class="row">
             <div class="form-floating mb-4">
                 <p><label class="form-label" for="example-school-name-input-floating">New registration</label></p>
-                <button class="btn content content-full shadow-sm p-3 mb-5 bg-white rounded small" data-bs-toggle="modal" data-bs-target="#New-registration">
+                <button class="btn content content-full shadow-sm p-3 mb-5 bg-white rounded small" @can('edit notification templates') data-bs-toggle="modal" data-bs-target="#New-registration" @else disabled @endcan>
                     <small>{{ $templates[0]->body }}</small>
                 </button>
             </div>
 
             <div class="form-floating mb-4">
                 <p><label class="form-label" for="example-school-name-input-floating">Enrollment</label></p>
-                <button class="btn content content-full shadow-sm p-3 mb-5 bg-white rounded small" data-bs-toggle="modal" data-bs-target="#Enrollment">
+                <button class="btn content content-full shadow-sm p-3 mb-5 bg-white rounded small" @can('edit notification templates') data-bs-toggle="modal" data-bs-target="#Enrollment" @else disabled @endcan>
                     <small>{{ $templates[1]->body }}</small>
                 </button>
             </div>
 
             <div class="form-floating mb-4">
                 <p><label class="form-label" for="example-school-name-input-floating">Balance</label></p>
-                <button class="btn content content-full shadow-sm p-3 mb-5 bg-white rounded small" data-bs-toggle="modal" data-bs-target="#Balance">
+                <button class="btn content content-full shadow-sm p-3 mb-5 bg-white rounded small" @can('edit notification templates') data-bs-toggle="modal" data-bs-target="#Balance" @else disabled @endcan>
                     <small>{{ $templates[2]->body }}</small>
                 </button>
             </div>
 
             <div class="form-floating mb-4">
                 <p><label class="form-label" for="example-school-name-input-floating">Payment recieved</label></p>
-                <button class="btn content content-full shadow-sm p-3 mb-5 bg-white rounded small" data-bs-toggle="modal" data-bs-target="#Payment">
+                <button class="btn content content-full shadow-sm p-3 mb-5 bg-white rounded small" @can('edit notification templates') data-bs-toggle="modal" data-bs-target="#Payment" @else disabled @endcan>
                     <small>{{ $templates[4]->body }}</small>
                 </button>
             </div>
 
             <div class="form-floating mb-4">
                 <p><label class="form-label" for="example-school-name-input-floating font-weight-bold">Attendance</label></p>
-                <button class="btn content content-full shadow-sm p-3 mb-5 bg-white rounded small" data-bs-toggle="modal" data-bs-target="#Attendance">
+                <button class="btn content content-full shadow-sm p-3 mb-5 bg-white rounded small" @can('edit notification templates') data-bs-toggle="modal" data-bs-target="#Attendance" @else disabled @endcan>
                     <small>{{ $templates[3]->body }}</small>
                 </button>
             </div>
 
             <div class="form-floating mb-4">
                 <p><label class="form-label" for="example-school-name-input-floating font-weight-bold">Car assignment</label></p>
-                <button class="btn content content-full shadow-sm p-3 mb-5 bg-white rounded small" data-bs-toggle="modal" data-bs-target="#Carassignment">
+                <button class="btn content content-full shadow-sm p-3 mb-5 bg-white rounded small" @can('edit notification templates') data-bs-toggle="modal" data-bs-target="#Carassignment" @else disabled @endcan>
                     <small>{{ $templates[5]->body }}</small>
                 </button>
             </div>
@@ -73,6 +73,7 @@
   </div>
   </div>
   <!-- END Hero -->
+  @can('edit notification templates')
   @foreach ($templates as $template)
     <div class="modal" id="{{ $template->type }}" tabindex="-1" aria-labelledby="new-registration" style="display: none;" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
@@ -102,6 +103,7 @@
         </div>
     </div>
   @endforeach
+  @endcan
 {{--  <div class="modal" id="new-registration" tabindex="-1" aria-labelledby="new-registration" style="display: none;" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">

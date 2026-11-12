@@ -30,7 +30,33 @@ class InstructorController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['permission:manage administration']);
+        $this->middleware('auth');
+        $this->middleware('permission:view instructors')->only(['index', 'indexInstructors', 'show', 'showProfile', 'instructorSearch', 'instructorData']);
+        $this->middleware('permission:view instructors|create classrooms|edit classrooms')->only('instructorOptions');
+        foreach (['view fleet', 'view lessons', 'manage instructor accounts'] as $permission) {
+            $this->middleware('permission:'.$permission)->only('indexInstructors');
+        }
+        $this->middleware('permission:create instructors')->only(['create', 'store']);
+        $this->middleware('permission:edit instructors')->only(['edit', 'update']);
+        $this->middleware('permission:delete instructors')->only('destroy');
+        $this->middleware('permission:manage administration')->only('fetchStudents');
+        foreach (['view students', 'view all students', 'view invoices', 'view attendances', 'view all attendances', 'view schedules', 'view all schedules', 'view fleet', 'view classrooms'] as $permission) {
+            $this->middleware('permission:'.$permission)->only('instructorData');
+        }
+        $this->middleware(function ($request, $next) {
+            if ($request->ajax() && in_array($request->input('section'), ['attendances', 'chart'], true)) {
+                $user = $request->user();
+                abort_unless($user->can('view attendances'), 403);
+                abort_unless($user->can('view all attendances')
+                    || ($user->instructor_id && (string) $user->instructor_id === (string) $request->route('instructor')), 403);
+                if ($request->input('section') === 'chart') {
+                    abort_unless($user->can('view schedules'), 403);
+                    abort_unless($user->can('view all schedules')
+                        || ($user->instructor_id && (string) $user->instructor_id === (string) $request->route('instructor')), 403);
+                }
+            }
+            return $next($request);
+        })->only('show');
     }
     /**
      * Display a listing of the resource.
@@ -89,17 +115,23 @@ class InstructorController extends Controller
                     $id = e($instructor->getKey());
                     $name = e(trim($instructor->fname . ' ' . $instructor->sname));
 
+                    $actions = '<li><a class="dropdown-item" href="' . route('instructors.show', $id) . '"><i class="fas fa-eye me-2"></i>View Profile</a></li>';
+                    if (auth()->user()->can('edit instructors')) {
+                        $actions .= '<li><a class="dropdown-item" href="' . route('instructors.edit', $id) . '"><i class="fas fa-edit me-2"></i>Edit Profile</a></li>';
+                    }
+                    if (auth()->user()->can('delete instructors')) {
+                        $actions .= '<li><hr class="dropdown-divider"></li>'
+                            . '<li><form method="POST" action="' . route('instructors.destroy', $id) . '">'
+                            . csrf_field() . method_field('DELETE')
+                            . '<button class="dropdown-item text-danger delete-confirm" type="submit" data-name="' . $name . '"><i class="fas fa-trash-alt me-2"></i>Delete</button>'
+                            . '</form></li>';
+                    }
                     return '<div class="dropdown">'
                         . '<button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Actions</button>'
                         . '<ul class="dropdown-menu dropdown-menu-end">'
-                        . '<li><a class="dropdown-item" href="' . route('instructors.show', $id) . '"><i class="fas fa-eye me-2"></i>View Profile</a></li>'
-                        . '<li><a class="dropdown-item" href="' . route('instructors.edit', $id) . '"><i class="fas fa-edit me-2"></i>Edit Profile</a></li>'
-                        . '<li><hr class="dropdown-divider"></li>'
-                        . '<li><form method="POST" action="' . route('instructors.destroy', $id) . '">'
-                        . csrf_field() . method_field('DELETE')
-                        . '<button class="dropdown-item text-danger delete-confirm" type="submit" data-name="' . $name . '"><i class="fas fa-trash-alt me-2"></i>Delete</button>'
-                        . '</form></li></ul></div>';
+                        . $actions . '</ul></div>';
                 })
+                ->only(['actions', 'instructor', 'department_name', 'assignment', 'email', 'phone', 'status_badge'])
                 ->rawColumns(['assignment', 'status_badge', 'actions'])
                 ->toJson();
         }
@@ -318,6 +350,20 @@ class InstructorController extends Controller
         return response()->json($instructors);
     }
 
+    public function instructorOptions(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'status' => 'nullable|string|in:active,inactive',
+            'department' => 'nullable|string',
+        ]);
+        $instructors = Instructor::query()
+            ->whereHas('department', fn ($query) => $query->where('name', 'Theory'))
+            ->when(!empty($validated['status']), fn ($query) => $query->where('status', $validated['status']))
+            ->get(['id', 'fname', 'sname']);
+
+        return response()->json($instructors);
+    }
+
     /**
      * Show the form for creating a new resource.
      *
@@ -375,6 +421,7 @@ class InstructorController extends Controller
 
         $district = havenUtils::selectDistrict($post['district']);
 
+        $filename = null;
         if ($request->hasFile('signature')) {
             $filename = time() . '.' . $request->signature->extension();
             $request->signature->move(public_path('media/signatures'), $filename);
@@ -561,6 +608,18 @@ class InstructorController extends Controller
         ], $messages);
 
         $post = $request->all();
+        $user = $instructor->user;
+        if ($post['email'] !== $user->email || !empty($post['password'])) {
+            abort_unless($request->user()->can('manage instructor accounts'), 403);
+        }
+        if ($instructor->department_id != $post['department']) {
+            if ($instructor->fleet()->exists()) {
+                abort_unless($request->user()->can('edit fleet'), 403);
+            }
+            if ($instructor->classrooms()->exists()) {
+                abort_unless($request->user()->can('edit classrooms'), 403);
+            }
+        }
 
         $district = havenUtils::selectDistrict($post['district']);
 
@@ -603,8 +662,6 @@ class InstructorController extends Controller
         $instructor->save();
 
         // Update associated user
-        $user = $instructor->User;
-
         $user->email = $post['email'];
         if (!empty($post['password'])) {
             $user->password = Hash::make($post['password']);

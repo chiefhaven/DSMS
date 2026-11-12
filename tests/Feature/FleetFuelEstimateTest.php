@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Fleet;
+use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +18,14 @@ class FleetFuelEstimateTest extends TestCase
             'driver' => 'sqlite', 'database' => ':memory:', 'prefix' => '',
         ]]);
         DB::setDefaultConnection('fuel_estimate_test');
+        config(['cache.default' => 'array']);
+        (require base_path('vendor/spatie/laravel-permission/database/migrations/create_permission_tables.php.stub'))->up();
+        $role = \Spatie\Permission\Models\Role::create(['name' => 'tracking-viewer', 'guard_name' => 'web']);
+        $role->givePermissionTo(\Spatie\Permission\Models\Permission::create(['name' => 'view vehicle locations', 'guard_name' => 'web']));
+        $user = new User();
+        $user->setRelation('roles', collect([$role]));
+        $user->setRelation('permissions', collect());
+        $this->actingAs($user);
         Schema::create('students', function (Blueprint $table) {
             $table->integer('fleet_id');
             $table->string('status');

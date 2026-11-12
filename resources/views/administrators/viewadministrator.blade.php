@@ -8,12 +8,14 @@
                     <a href="{{ route('administrators.index') }}" class="fs-sm text-muted"><i class="fa fa-arrow-left me-1"></i> Administrators</a>
                     <h1 class="fs-3 fw-semibold my-2">{{ $administrator->fname }} {{ $administrator->sname }}</h1>
                 </div>
+                @can('edit administrators')
                 <div class="dropdown">
                     <button class="btn btn-primary rounded-pill px-4 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Actions</button>
                     <div class="dropdown-menu dropdown-menu-end">
                         <a class="dropdown-item" href="{{ route('administrators.edit', $administrator->id) }}"><i class="fa fa-edit me-2"></i>Edit Profile</a>
                     </div>
                 </div>
+                @endcan
             </div>
         </div>
     </div>
@@ -24,7 +26,7 @@
                 <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-panel"
                         type="button" role="tab" aria-controls="profile-panel" aria-selected="true">Profile</button>
             </li>
-            @can('manage administration')
+            @can('manage administrator accounts')
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="account-tab" data-bs-toggle="tab" data-bs-target="#account-panel"
                             type="button" role="tab" aria-controls="account-panel" aria-selected="false">Account management</button>
@@ -79,7 +81,7 @@
                     </div>
                 </div>
             </div>
-            @can('manage administration')
+            @can('manage administrator accounts')
                 <div class="tab-pane fade" id="account-panel" role="tabpanel" aria-labelledby="account-tab">
                     <div class="card border-0 shadow-sm rounded-3">
                         <div class="card-header bg-white border-bottom py-3 px-4">
@@ -93,6 +95,7 @@
             @endcan
         </div>
     </div>
+    @can('manage administrator accounts')
     <script>
         createApp({
             setup() {
@@ -104,4 +107,5 @@
             }
         }).mount('#administrator');
     </script>
+    @endcan
 @endsection

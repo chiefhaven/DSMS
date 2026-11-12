@@ -122,9 +122,9 @@ Route::post('/studentExpensePayment/{student}/{expense}', [ExpensePaymentControl
 
 Route::get('/getPaymentMethods', [PaymentMethodController::class, 'fetchPaymentMethods'])->name('paymentMethods')->middleware('auth:sanctum');
 
-Route::post('/save-vehicle-location', [VehicleTrackerController::class, 'store'])->name('save-vehicle-location')->middleware('auth:sanctum');
+Route::post('/save-vehicle-location', [VehicleTrackerController::class, 'store'])->name('save-vehicle-location')->middleware(['auth:sanctum', 'permission:record vehicle locations']);
 
-Route::middleware(['auth:sanctum', 'permission:manage administration'])->group(function () {
+Route::middleware(['auth:sanctum', 'permission:view vehicle locations'])->group(function () {
     Route::get('/get-all-vehicle-locations', [VehicleTrackerController::class, 'show'])->name('api.vehicle-locations');
     Route::get('/show-vehicle-geo-data/{vehicleId}', [VehicleTrackerController::class, 'showVehicleGeoData'])->name('api.vehicle-location');
 });
@@ -141,7 +141,7 @@ Route::get('/licence-classes', [havenUtils::class, 'getLicenceClasses'])->name('
 
 Route::post('/sendAnnouncement', [AnnouncementController::class,'send'])->middleware('auth:sanctum')->name('sendAnnouncement');
 
-Route::prefix('mbirasync')->middleware(['auth:sanctum', 'permission:manage administration'])->group(function () {
+Route::prefix('mbirasync')->middleware(['auth:sanctum', 'permission:view vehicle locations'])->group(function () {
     Route::get('/positions',                    [FleetTrackerController::class, 'index']);
     Route::get('/positions/live',               [FleetTrackerController::class, 'live']);
     Route::get('/positions/{deviceId}/history', [FleetTrackerController::class, 'history']);

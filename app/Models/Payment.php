@@ -5,6 +5,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -14,6 +15,13 @@ class Payment extends Model
     use HasFactory, LogsActivity, SoftDeletes;
 
     protected $fillable = ['amount_paid'];
+
+    public function scopeReadableBy(Builder $query, User $user): Builder
+    {
+        return $user->can('view all fee payments')
+            ? $query
+            : $query->where('recorded_by_user_id', $user->getKey());
+    }
 
     protected static function boot()
     {

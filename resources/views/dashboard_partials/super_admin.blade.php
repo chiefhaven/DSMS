@@ -511,6 +511,7 @@
                         Bonuses are scheduled for the 28th.
                     </p>
 
+                    @can('process instructor payments')
                     {{-- Early Bonus Payment with Skeleton --}}
                     <div id="bonuses" v-cloak>
                         <button
@@ -528,6 +529,7 @@
                             </template>
                         </button>
                     </div>
+                    @endcan
                 </div>
             </div>
 
@@ -558,6 +560,7 @@ document.addEventListener('DOMContentLoaded', function () {
     |--------------------------------------------------------------------------
     */
 
+    @can('process instructor payments')
     createApp({
         setup() {
             const paymentLoading = ref(false);
@@ -613,6 +616,7 @@ document.addEventListener('DOMContentLoaded', function () {
             };
         }
     }).mount('#bonuses');
+    @endcan
 
 
     /*

@@ -26,6 +26,8 @@ class StorebulkAttendanceRequest extends FormRequest
         return [
             'bulkAttendanceDescription' => 'nullable|string|max:255',
             'students' => 'required|array|min:1',
+            'students.*.studentId' => 'required|uuid|exists:students,id',
+            'students.*.lessonId' => 'required|exists:lessons,id',
             'students.*.lessonDate' => 'nullable|date',
             'students.*.instructorId' => 'nullable|uuid',
         ];

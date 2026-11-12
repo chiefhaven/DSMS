@@ -89,7 +89,7 @@
                                 </form>
                             @endcan
                             @if (isset($student->invoice))
-                                @can('manage system')
+                                @can('manage administration')
                                 <button type="button" class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#paymentModal">
                                     <i class="nav-main-link-icon  fas fa-file-invoice"></i>Add payment
                                 </button>
@@ -131,6 +131,10 @@
                     ->filter(fn ($role) => in_array($role->name, ['superAdmin', 'Super-Admin'], true)
                         || $role->permissions->contains('name', 'view invoices'))
                     ->pluck('name')->all();
+                $profilePaymentRoles = auth()->user()->roles
+                    ->filter(fn ($role) => in_array($role->name, ['superAdmin', 'Super-Admin'], true)
+                        || $role->permissions->contains('name', 'view fee payments'))
+                    ->pluck('name')->all();
             @endphp
             @role($profileInvoiceRoles)
                 <li class="nav-item">
@@ -139,12 +143,14 @@
                 </button>
                 </li>
             @endrole
-            @can('manage administration')
+            @role($profilePaymentRoles)
                 <li class="nav-item">
                     <button class="nav-link" id="payments-tab" data-bs-toggle="tab" data-bs-target="#payments" role="tab" aria-controls="payments" aria-selected="false">
                         Payments
                     </button>
                 </li>
+            @endrole
+            @can('manage administration')
                 <li class="nav-item">
                     <button class="nav-link" id="expensesList-tab" data-bs-toggle="tab" data-bs-target="#expensesList" role="tab" aria-controls="expensesList" aria-selected="false">
                         Expenses
@@ -280,7 +286,7 @@
                                 <div class="table-responsive">
                                     <table class="table table-borderless">
                                         <tbody>
-                                            @can('manage administration')
+                                            @can('record fee payments')
                                             <tr>
                                                 <th width="40%" class="text-muted">Enrollment Date</th>
                                                 <td>
@@ -492,7 +498,7 @@
     </div>
     </div>
 
-    @can('manage administration')
+    @can('record fee payments')
         @if (isset($student->invoice))
         <!-- Payment Modal -->
         <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" style="display: none;" aria-hidden="true">
@@ -633,7 +639,9 @@
         });
 
         onMounted(() => {
+            @can('record fee payments')
             getPaymentMethods()
+            @endcan
         })
 
         // Fetch fleet vehicles

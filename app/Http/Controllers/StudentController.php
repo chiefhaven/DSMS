@@ -583,7 +583,10 @@ class StudentController extends Controller
      */
     public function show($id)
     {
-        $student = $this->readableStudents()->with('User', 'Course', 'Enrollment', 'Invoice', 'Payment', 'Classroom')->findOrFail($id);
+        $student = $this->readableStudents()->with('User', 'Course', 'Enrollment', 'Invoice', 'Classroom')->findOrFail($id);
+        if (Auth::user()->can('view fee payments')) {
+            $student->load(['payment' => fn ($query) => $query->readableBy(Auth::user())]);
+        }
 
         $courseId = optional($student->course)->id;
         $courseDuration = $courseId ? havenUtils::courseDuration($courseId) : 0;

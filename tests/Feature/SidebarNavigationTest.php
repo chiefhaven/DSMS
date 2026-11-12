@@ -8,6 +8,8 @@ use DOMDocument;
 use DOMElement;
 use DOMXPath;
 use Illuminate\Http\Request;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -50,6 +52,19 @@ class SidebarNavigationTest extends TestCase
         (require base_path('database/migrations/2026_11_12_000900_seed_expense_payment_permissions.php'))->up();
         (require base_path('database/migrations/2026_11_12_001000_seed_expense_permissions.php'))->up();
         (require base_path('database/migrations/2026_11_12_001100_seed_invoice_permissions.php'))->up();
+        (require base_path('database/migrations/2026_11_12_001300_seed_fee_payment_permissions.php'))->up();
+        (require base_path('database/migrations/2026_11_12_001400_seed_notification_template_permissions.php'))->up();
+        (require base_path('database/migrations/2026_11_12_001500_seed_bulk_attendance_permissions.php'))->up();
+        (require base_path('database/migrations/2026_11_12_001600_seed_attendance_permissions.php'))->up();
+        (require base_path('database/migrations/2026_11_12_001700_seed_instructor_payment_permissions.php'))->up();
+        Schema::create('users', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('instructor_id')->nullable();
+            $table->softDeletes();
+        });
+        (require base_path('database/migrations/2026_11_12_001800_seed_vehicle_location_permissions.php'))->up();
+        (require base_path('database/migrations/2026_11_12_001900_seed_instructor_permissions.php'))->up();
+        (require base_path('database/migrations/2026_11_12_002000_seed_administrator_permissions.php'))->up();
         Role::create(['name' => 'hrm-clerk', 'guard_name' => 'web'])->givePermissionTo('manage administration');
         Role::create(['name' => 'system-operator', 'guard_name' => 'web'])->givePermissionTo('manage system');
     }
@@ -156,6 +171,22 @@ class SidebarNavigationTest extends TestCase
         $html = view('layouts.partials.main_nav')->render();
 
         $this->assertStringContainsString(route('schedules.index'), $html);
+    }
+
+    public function test_bulk_only_role_has_a_complete_attendance_menu(): void
+    {
+        $role = Role::create(['name' => 'bulk-reader', 'guard_name' => 'web']);
+        $role->givePermissionTo(['view bulk attendances', 'view students']);
+        $user = new User(['name' => 'Navigation test']);
+        $user->id = '00000000-0000-4000-8000-000000000001';
+        $user->setRelation('roles', collect([$role]));
+        $this->actingAs($user);
+
+        $document = new DOMDocument();
+        $this->assertTrue($document->loadHTML(view('layouts.partials.main_nav')->render(), LIBXML_NOERROR | LIBXML_NOWARNING));
+        $xpath = new DOMXPath($document);
+        $this->assertSame(1, $xpath->query("//li[a/span[normalize-space(.)='Attendances']]/ul/li/a[span[normalize-space(.)='Bulk attendances']]")->length);
+        $this->assertSame(0, $xpath->query("//a[span[normalize-space(.)='All attendances']]")->length);
     }
 
     public function test_custom_role_with_student_access_sees_the_student_link(): void

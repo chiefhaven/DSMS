@@ -45,7 +45,8 @@ Engine capacity also requires `2026_11_11_005700_add_engine_capacity_to_fleets`.
 ## Staff accounts
 
 Instructor and administrator details have Profile and Account management tabs. Users with
-`manage administration` can edit the linked account's username/email, set a
+`manage instructor accounts` for instructors, or `manage administrator accounts` for
+administrators, can edit the linked account's username/email, set a
 confirmed password (minimum eight characters), and enable/disable login.
 Leaving the password blank preserves it. Disabling login retains the staff
 profile and any assignments, revokes API tokens/remember-me access, and blocks existing
@@ -89,6 +90,54 @@ grants retain sending, while form access preserves the prior requirement for
 both `manage system` and `manage administration` on the same role or direct
 grant.
 
+Notification template viewing and editing use separate permissions. Apply
+`2026_11_12_001400_seed_notification_template_permissions`; roles and direct
+users with `manage administration` receive both permissions. Other users must
+be granted access explicitly; previously either route accepted any
+authenticated user.
+
+Bulk attendance viewing, creation, editing, and deletion use separate
+permissions and also require `view students`. Apply
+`2026_11_12_001500_seed_bulk_attendance_permissions`. Users without
+`view all students` see only assigned students, and mixed-assignment groups are read-only.
+The form's student and lesson lookups use the same student access scope.
+
+Individual attendance permissions distinguish viewing, viewing all, recording,
+editing, deleting, and downloading reports. Apply
+`2026_11_12_001600_seed_attendance_permissions`. Without `view all attendances`,
+staff can access only their own instructor records and reports; recording still
+requires an instructor role and assignment. Student search also requires
+`view students`. Without `view all students`, bulk records must be changed
+through their bulk group so mixed groups remain read-only.
+Student self-service remains available; student profiles retain their existing
+aggregate attendance progress under `view students`.
+
+Instructor bonus payment viewing and processing require separate permissions.
+Apply `2026_11_12_001700_seed_instructor_payment_permissions`. Previous
+`manage administration` grants receive viewing and `manage system` grants
+receive processing. Payment listing previously accepted any authenticated
+user; other roles now require an explicit viewing grant. The scheduled bonus
+command continues using its super-admin account.
+
+Instructor viewing, creation, editing, deletion, and account management use
+separate permissions. Apply `2026_11_12_001900_seed_instructor_permissions`;
+existing `manage administration` grants retain these actions. Editing an
+instructor's login credentials also requires `manage instructor accounts`.
+Changing department requires `edit fleet` or `edit classrooms` when the change
+would remove the respective assignments. Student, attendance, and schedule
+data on instructor profiles retain their own permissions and ownership scopes.
+The legacy full instructor-data endpoint requires all relevant view permissions.
+The detailed instructor JSON list also requires fleet, lesson, and account
+access; classroom assignment uses a separate minimal instructor-options list.
+
+Administrator viewing, creation, editing, deletion, account management, and
+role assignment have separate permissions. Apply
+`2026_11_12_002000_seed_administrator_permissions`; existing `manage administration`
+grants retain these actions. Creating an administrator also requires role
+assignment. Editing credentials requires account management, and changing roles
+requires role assignment; both permissions can affect privileged accounts.
+Profile edits preserve existing roles unless a role change is submitted.
+
 Lesson viewing, creation, editing, and deletion use separate permissions.
 Apply `2026_11_12_000400_seed_lesson_permissions`; existing `manage operations`
 grants retain lesson viewing, while lesson mutations require explicit grants.
@@ -102,6 +151,12 @@ existing `manage administration` grants retain these actions. Classroom edits
 that unassign an instructor from a vehicle also require `edit fleet`.
 Student and instructor API access to classroom and fleet details is limited to
 their assignments unless they have the corresponding viewing permission.
+
+Vehicle location viewing and recording use separate permissions. Apply
+`2026_11_12_001800_seed_vehicle_location_permissions`: existing `manage administration`
+grants retain viewing, while instructors retain recording. Existing instructor
+profiles without the instructor role receive a direct recording grant. Recording
+still requires an instructor profile and an assigned vehicle.
 
 Expense type viewing, creation, editing, and deletion use separate permissions.
 Apply `2026_11_12_000600_seed_expense_type_permissions`. Legacy grants are
@@ -125,6 +180,12 @@ permissions. Apply `2026_11_12_001100_seed_invoice_permissions`. Creating an
 invoice also enrolls the student and can record an initial payment; editing
 changes enrollment details, while deleting unenrolls the student and deletes
 their fee payments. The invoice permissions authorize those existing effects.
+
+Fee payments use separate view, view-all, record, and delete permissions. Apply
+`2026_11_12_001200_add_payment_recorder` and
+`2026_11_12_001300_seed_fee_payment_permissions`. Without view-all, users see
+and may delete only payments recorded by their account. Historical payments
+without a reliably recorded user remain visible only to view-all users.
 
 Settings permissions distinguish viewing from editing school, attendance, and
 invoice settings. Apply `2026_11_12_000700_seed_settings_permissions`;

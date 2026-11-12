@@ -69,8 +69,7 @@
               });
             });
 
-            const reloadTable = (val) => {
-              status.value = val;
+            const reloadTable = () => {
               if ($.fn.DataTable.isDataTable('#paymentsTable')) {
                 $('#paymentsTable').DataTable().ajax.reload();
               }
@@ -96,7 +95,7 @@
                     axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
 
                     const response = await axios.get('/api/payments', {
-                      params: { ...data, status: status.value },
+                      params: data,
                       withCredentials: true,
                       headers: {
                         'X-CSRF-TOKEN': csrfToken,

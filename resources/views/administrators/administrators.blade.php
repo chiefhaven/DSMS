@@ -6,9 +6,13 @@
             <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
                 <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Administrators</h1>
                 <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
+                    @can('create administrators')
+                    @can('assign administrator roles')
                     <a href="{{ route('administrators.create') }}" class="btn btn-primary">
                         <i class="fa fa-fw fa-user-plus me-1"></i> Add Administrator
                     </a>
+                    @endcan
+                    @endcan
                 </nav>
             </div>
         </div>

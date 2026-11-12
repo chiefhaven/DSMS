@@ -8,9 +8,11 @@
         <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Instructors</h1>
         <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
           <ol class="breadcrumb">
+            @can('create instructors')
             <a href="{{ route('instructors.create') }}" class="btn btn-primary">
                     <i class="fa fa-fw fa-user-plus mr-1"></i> Add Instructor
             </a>
+            @endcan
           </ol>
         </nav>
       </div>
