@@ -43,6 +43,35 @@ class AnnouncementPermissionsTest extends TestCase
         $this->postJson('/api/sendAnnouncement', ['group' => 'All students', 'body' => 'Hello'])->assertForbidden();
     }
 
+    public function test_fetching_announcement_instructors_requires_send_permission(): void
+    {
+        Schema::create('instructors', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('fname');
+            $table->string('sname');
+            $table->string('status');
+            $table->softDeletes();
+        });
+        DB::table('instructors')->insert([
+            'id' => 'instructor-1',
+            'fname' => 'Pat',
+            'sname' => 'Example',
+            'status' => 'Active',
+        ]);
+
+        Role::create(['name' => 'announcement-reader', 'guard_name' => 'web'])
+            ->givePermissionTo('view announcements');
+        $this->authenticate('announcement-reader');
+        $this->getJson('/api/fetch-instructors')->assertForbidden();
+
+        Role::create(['name' => 'announcer', 'guard_name' => 'web'])
+            ->givePermissionTo('send announcements');
+        $this->authenticate('announcer');
+        $this->getJson('/api/fetch-instructors')
+            ->assertOk()
+            ->assertExactJson([['id' => 'instructor-1', 'name' => 'Pat Example']]);
+    }
+
     public function test_unassigned_instructor_never_broadcasts_to_all_students(): void
     {
         $role = Role::create(['name' => 'announcer', 'guard_name' => 'web']);

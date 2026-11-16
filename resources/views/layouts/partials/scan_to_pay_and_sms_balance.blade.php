@@ -17,8 +17,7 @@
         </button>
 @endcan
 
-@can('manage finance')
-        @can('manage system')
+@can('view sms balance')
             <button type="button"
                     class="btn btn-alt-secondary position-relative"
                     title="SMS Balance"
@@ -51,7 +50,6 @@
                 <!-- SMS Icon -->
                 <i class="fa fa-fw fa-sms"></i>
             </button>
-        @endcan
 @endcan
 
     <script>

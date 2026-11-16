@@ -1,16 +1,18 @@
 @extends('layouts.backend')
 
 @section('content')
+    <div id="instructor">
     <div class="bg-body-light">
         <div class="content content-full">
-            <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
                 <div>
                     <a href="{{ route('instructors.index') }}" class="fs-sm text-muted"><i class="fa fa-arrow-left me-1"></i> Instructors</a>
-                    <h1 class="fs-3 fw-semibold my-2">{{ $instructor->fname }} {{ $instructor->sname }}</h1>
+                    <h1 class="fs-4 fw-semibold mt-2 mb-1">{{ $instructor->fname }} {{ $instructor->sname }}</h1>
+                    <p class="text-muted fs-sm mb-0">Instructor profile</p>
                 </div>
                 @canany(['edit instructors', 'delete instructors', 'send announcements'])
                 <div class="dropdown">
-                    <button class="btn btn-primary rounded-pill px-4 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Actions</button>
+                    <button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Actions</button>
                     <div class="dropdown-menu dropdown-menu-end">
                         @can('edit instructors')
                         <a class="dropdown-item" href="{{ route('instructors.edit', $instructor->id) }}"><i class="fa fa-edit me-2"></i>Edit Profile</a>
@@ -35,8 +37,9 @@
         </div>
     </div>
 
-    <div class="content content-full" id="instructor">
-        <ul class="nav nav-tabs mb-4" role="tablist">
+    <div class="content content-full">
+        <div class="block block-rounded">
+        <ul class="nav nav-tabs nav-tabs-block" role="tablist" aria-label="Instructor details">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-panel"
                         type="button" role="tab" aria-controls="profile-panel" aria-selected="true">Profile</button>
@@ -48,16 +51,16 @@
                 </li>
             @endcan
         </ul>
-        <div class="tab-content">
+        <div class="block-content tab-content">
         <div class="tab-pane fade show active" id="profile-panel" role="tabpanel" aria-labelledby="profile-tab">
-        <div class="row g-3 mb-4">
+        <div class="row g-3 mb-3">
             <div class="col-lg-5">
                 <div class="card border-0 shadow-sm rounded-3 h-100">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-center gap-3 mb-4">
-                            <img class="img-avatar img-avatar96 img-avatar-thumb" src="{{ asset('media/avatars/avatar2.jpg') }}" alt="Instructor avatar">
-                            <div>
-                                <h2 class="fs-4 fw-semibold mb-2">{{ $instructor->fname }} {{ $instructor->sname }}</h2>
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <img class="img-avatar img-avatar-thumb instructor-avatar" src="{{ asset('media/avatars/avatar2.jpg') }}" alt="Instructor avatar">
+                            <div class="flex-grow-1">
+                                <h2 class="fs-5 fw-semibold mb-2">{{ $instructor->fname }} {{ $instructor->sname }}</h2>
                                 <span class="badge bg-{{ strcasecmp($instructor->status ?? '', 'active') === 0 ? 'success' : 'secondary' }}">{{ $instructor->status ?? 'Not set' }}</span>
                                 <span class="badge bg-primary ms-1">{{ ucfirst($instructor->department?->name ?? 'No department') }}</span>
                             </div>
@@ -72,11 +75,11 @@
             </div>
             <div class="col-lg-7">
                 <div class="card border-0 shadow-sm rounded-3 h-100">
-                    <div class="card-body p-4">
-                        <h2 class="fs-6 fw-semibold text-uppercase text-muted tracking-wide mb-3">Assignments</h2>
-                        <div class="row g-3 mb-4">
+                    <div class="card-body p-3">
+                        <h2 class="fs-6 fw-semibold mb-3">Assignments</h2>
+                        <div class="row g-2 mb-3">
                             <div class="col-sm-6">
-                                <div class="bg-light rounded-3 p-3 h-100">
+                                <div class="bg-body-light rounded-3 p-2 h-100">
                                     <div class="text-muted fs-sm mb-1"><i class="fa fa-car me-2"></i>Vehicle</div>
                                     <div class="fw-semibold">{{ $instructor->fleet?->car_registration_number ?? 'Not assigned' }}</div>
                                     @if ($instructor->fleet)
@@ -85,7 +88,7 @@
                                 </div>
                             </div>
                             <div class="col-sm-6">
-                                <div class="bg-light rounded-3 p-3 h-100">
+                                <div class="bg-body-light rounded-3 p-2 h-100">
                                     <div class="text-muted fs-sm mb-1"><i class="fa fa-chalkboard me-2"></i>Classrooms</div>
                                     @forelse ($instructor->classrooms as $classroom)
                                         <div class="fw-semibold">{{ $classroom->name }}</div>
@@ -102,21 +105,21 @@
                                 && (auth()->user()->can('view all students') || $isOwnInstructor);
                         @endphp
                         @if($canViewInstructorStudents)
-                        <div class="row g-3">
+                        <div class="row g-2">
                             <div class="col-6">
-                                <button type="button" class="btn btn-light w-100 text-start p-3 rounded-3" @click="reloadTable('active')" :aria-pressed="status === 'active'">
-                                    <span class="d-block fw-bold fs-4 text-primary">{{ $activeStudents }}</span>
+                                <button type="button" class="btn btn-light w-100 text-start p-2 rounded-3" @click="reloadTable('active')" :aria-pressed="status === 'active'">
+                                    <span class="d-block fw-semibold fs-5 text-primary">{{ $activeStudents }}</span>
                                     <span class="fs-sm text-muted">Active students</span>
                                 </button>
                             </div>
                             <div class="col-6">
-                                <button type="button" class="btn btn-light w-100 text-start p-3 rounded-3" @click="reloadTable('finished')" :aria-pressed="status === 'finished'">
-                                    <span class="d-block fw-bold fs-4 text-success">{{ $completedStudents }}</span>
+                                <button type="button" class="btn btn-light w-100 text-start p-2 rounded-3" @click="reloadTable('finished')" :aria-pressed="status === 'finished'">
+                                    <span class="d-block fw-semibold fs-5 text-success">{{ $completedStudents }}</span>
                                     <span class="fs-sm text-muted">Finished students</span>
                                 </button>
                             </div>
-                            @endif
                         </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -130,8 +133,8 @@
                 && (auth()->user()->can('view all schedules') || $isOwnInstructor);
         @endphp
         @if($canViewInstructorChart)
-        <div class="card border-0 shadow-sm rounded-3 mb-4">
-            <div class="card-header bg-white border-bottom py-3 px-4 d-flex flex-wrap gap-3 align-items-center justify-content-between">
+        <div class="card border-0 shadow-sm rounded-3 mb-3">
+            <div class="card-header bg-body-light border-bottom p-3 d-flex flex-wrap gap-2 align-items-center justify-content-between">
                 <h2 class="fs-6 fw-semibold mb-0">Attendance &amp; schedules</h2>
                 <div class="d-flex align-items-center gap-2">
                     <label for="chart-month" class="fs-sm text-muted mb-0">Month</label>
@@ -139,7 +142,7 @@
                            v-model="chartMonth" @change="loadChart" :disabled="chartLoading" required>
                 </div>
             </div>
-            <div class="card-body p-4">
+            <div class="card-body p-3">
                 <div v-if="chartLoading" class="text-center text-muted" role="status"><span class="spinner-border spinner-border-sm me-2"></span>Loading chart...</div>
                 <div v-if="chartError" class="alert alert-danger" role="alert">@{{ chartError }}</div>
                 <div v-show="!chartLoading && !chartError" class="position-relative" style="height: 260px;"><canvas id="attendancesChart"></canvas></div>
@@ -152,8 +155,8 @@
             'attendances' => ['title' => 'Attendances', 'headers' => ['Date', 'Student', 'Lesson']],
         ] as $table => $config)
             @if(($table === 'students' && $canViewInstructorStudents) || ($table === 'attendances' && $canViewInstructorAttendance))
-            <div class="card border-0 shadow-sm rounded-3 overflow-hidden mb-4">
-                <div class="card-header bg-white border-bottom py-3 px-4 d-flex flex-wrap gap-3 align-items-center justify-content-between">
+            <div class="card border-0 shadow-sm rounded-3 overflow-hidden mb-3">
+                <div class="card-header bg-body-light border-bottom p-3 d-flex flex-wrap gap-2 align-items-center justify-content-between">
                     <h2 class="fs-6 fw-semibold mb-0">{{ $config['title'] }}</h2>
                     <div class="d-flex flex-wrap align-items-center gap-2">
                         @if ($table === 'students')
@@ -211,24 +214,91 @@
         </div>
         @can('manage instructor accounts')
             <div class="tab-pane fade" id="account-panel" role="tabpanel" aria-labelledby="account-tab">
-                <div class="card border-0 shadow-sm rounded-3">
-                    <div class="card-header bg-white border-bottom py-3 px-4">
-                        <h2 class="fs-6 fw-semibold mb-0">User account</h2>
-                    </div>
-                    <div class="card-body p-4">
-                        <x-staff-account-form :user="$instructor->user" profile-label="instructor" />
+                <div class="row g-3">
+                    <div class="col-lg-7">
+                        <div class="card border-0 shadow-sm rounded-3">
+                            <div class="card-body p-3">
+                                <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+                                    <div>
+                                        <h2 class="fs-6 fw-semibold mb-1">Instructor account</h2>
+                                        <p class="text-muted small mb-0">Login details and account status.</p>
+                                    </div>
+                                    @if ($instructor->user)
+                                        <span class="badge {{ $instructor->user->is_active ? 'bg-success' : 'bg-secondary' }}">
+                                            {{ $instructor->user->is_active ? 'Active' : 'Inactive' }}
+                                        </span>
+                                    @endif
+                                </div>
+
+                                @if ($instructor->user)
+                                    <dl class="row g-2 mb-0">
+                                        <dt class="col-sm-4 text-muted fw-normal">Login email</dt>
+                                        <dd class="col-sm-8 mb-1">{{ $instructor->user->email ?? 'Not set' }}</dd>
+
+                                        <dt class="col-sm-4 text-muted fw-normal">Email verification</dt>
+                                        <dd class="col-sm-8 mb-0">
+                                            {{ $instructor->user->email_verified_at ? 'Verified' : 'Not verified' }}
+                                        </dd>
+                                    </dl>
+
+                                    <hr class="my-3">
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <form method="POST" action="{{ route('instructors.account.password-reset-link', $instructor) }}" @submit.prevent="submitInstructorAccountAction($event, 'reset-link')">
+                                            @csrf
+                                            <button class="btn btn-sm btn-outline-primary" type="submit" :disabled="instructorAccountAction.loading">
+                                                <span v-if="instructorAccountAction.loading && instructorAccountAction.action === 'reset-link'">Sending...</span>
+                                                <span v-else>Send password reset link</span>
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="{{ route('instructors.account.temporary-password', $instructor) }}" @submit.prevent="submitInstructorAccountAction($event, 'temporary-password')">
+                                            @csrf
+                                            <button class="btn btn-sm btn-outline-warning" type="submit" :disabled="instructorAccountAction.loading">
+                                                <span v-if="instructorAccountAction.loading && instructorAccountAction.action === 'temporary-password'">Generating...</span>
+                                                <span v-else>Generate temporary password</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                @else
+                                    <p class="text-muted small mb-0">No instructor account is linked.</p>
+                                @endif
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         @endcan
         </div>
+        </div>
         @include('students.partials.changeStatusVue')
+    </div>
     </div>
 
     <style>
+        #instructor .content.content-full { padding-top: .75rem; padding-bottom: .75rem; }
+        #instructor .block { margin-bottom: .75rem; }
+        #instructor .nav-tabs-block .nav-link { padding: .55rem .85rem; }
+        #instructor .block-content.tab-content { padding: .75rem; }
+        #instructor .instructor-avatar { width: 56px; height: 56px; flex-shrink: 0; }
+        #instructor dl dd { overflow-wrap: anywhere; }
         #instructor .tracking-wide { letter-spacing: .05em; }
         #instructor .fs-xs { font-size: .75rem; }
         #instructor .fs-sm { font-size: .875rem; }
+        .swal2-popup.instructor-account-dialog {
+            font-family: inherit;
+            font-size: 1rem;
+        }
+        .swal2-popup.instructor-account-dialog .swal2-title {
+            font-family: inherit;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        .swal2-popup.instructor-account-dialog .swal2-html-container,
+        .swal2-popup.instructor-account-dialog .swal2-styled,
+        .swal2-popup.instructor-account-dialog code {
+            font-family: inherit;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
         .profile-skeleton {
             display: inline-block;
             height: 14px;
@@ -263,10 +333,75 @@
                 const isUpdating = ref(false);
                 const tables = {};
                 @can('manage instructor accounts')
-                @include('components.staff-account-state', [
-                    'accountUser' => $instructor->user,
-                    'accountUpdateUrl' => route('instructors.account.update', $instructor->id),
-                ])
+                const instructorAccountAction = ref({ loading: false, action: null });
+                const submitInstructorAccountAction = async (event, action) => {
+                    const form = event.currentTarget;
+                    instructorAccountAction.value.loading = true;
+                    instructorAccountAction.value.action = action;
+
+                    try {
+                        const response = await axios.post(form.action, new FormData(form), {
+                            headers: { Accept: 'application/json' },
+                        });
+
+                        if (response.data.temporary_password) {
+                            const passwordDialog = document.createElement('div');
+                            passwordDialog.className = 'text-start';
+
+                            const passwordLabel = document.createElement('p');
+                            passwordLabel.className = 'mb-2';
+                            passwordLabel.textContent = 'Temporary password (shown once):';
+
+                            const passwordValue = document.createElement('code');
+                            passwordValue.className = 'd-block p-2 bg-light rounded text-break';
+                            passwordValue.textContent = response.data.temporary_password;
+
+                            const instructions = document.createElement('p');
+                            instructions.className = 'small mt-3 mb-0';
+                            instructions.textContent = response.data.message;
+
+                            passwordDialog.append(passwordLabel, passwordValue, instructions);
+                            await Swal.fire({
+                                icon: 'warning',
+                                title: 'Temporary password generated',
+                                html: passwordDialog,
+                                confirmButtonText: 'Close',
+                                customClass: { popup: 'instructor-account-dialog' },
+                            });
+                        } else {
+                            await Swal.fire({
+                                icon: 'success',
+                                title: 'Password reset link sent',
+                                text: response.data.message,
+                                confirmButtonText: 'OK',
+                                customClass: { popup: 'instructor-account-dialog' },
+                            });
+                        }
+                    } catch (error) {
+                        const response = error.response;
+                        const status = response ? response.status : 0;
+                        let message = 'The request could not be completed. Please try again.';
+
+                        if ((status === 422 || status === 429 || status === 502) && response.data && response.data.message) {
+                            message = response.data.message;
+                        } else if (status === 403) {
+                            message = 'You are not authorized to manage this instructor account.';
+                        } else if (status === 0) {
+                            message = 'Network error. Check your connection and try again.';
+                        }
+
+                        await Swal.fire({
+                            icon: 'error',
+                            title: 'Unable to complete request',
+                            text: message,
+                            confirmButtonText: 'Close',
+                            customClass: { popup: 'instructor-account-dialog' },
+                        });
+                    } finally {
+                        instructorAccountAction.value.loading = false;
+                        instructorAccountAction.value.action = null;
+                    }
+                };
                 @endcan
 
                 const notifyError = (text) => Swal.fire({ icon: 'error', title: 'Unable to complete request', text });
@@ -473,7 +608,7 @@
 
                 return {
                     @can('manage instructor accounts')
-                    account, accountSaving, accountErrors, accountMessage, accountError, saveAccount, resetAccount,
+                    instructorAccountAction, submitInstructorAccountAction,
                     @endcan
                     status, reloadTable, refreshTable, chartLoading, chartError, chartMonth, loadChart,
                     period, startDate, endDate, handlePeriodChange, downloadSummary,

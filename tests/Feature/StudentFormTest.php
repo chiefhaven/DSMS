@@ -21,6 +21,7 @@ class StudentFormTest extends TestCase
         $this->assertStringContainsString('when the student is enrolled', $html);
         $this->assertSame(0, $xpath->query('//input[@name="trn"]/@required')->length);
         $this->assertSame(0, $xpath->query('//input[@name="mname"]/@required')->length);
+        $this->assertSame(0, $xpath->query('//input[@name="email" and @readonly]')->length);
         $this->assertStringContainsString('(optional)', $xpath->query('//label[@for="mname"]')->item(0)->textContent);
         $this->assertSame(1, $xpath->query('//input[@name="signature"]/@required')->length);
         $this->assertSame('', $xpath->query('//input[@name="date_of_birth"]')->item(0)->getAttribute('value'));
@@ -51,6 +52,7 @@ class StudentFormTest extends TestCase
         $this->assertSame(0, $xpath->query('//input[@name="password" or @name="username"]')->length);
         $this->assertSame('student-example', $xpath->query('//input[@name="student_id"]')->item(0)->getAttribute('value'));
         $this->assertSame('PUT', $xpath->query('//input[@name="_method"]')->item(0)->getAttribute('value'));
+        $this->assertSame(1, $xpath->query('//input[@name="email" and @readonly]')->length);
         $this->assertSame(route('students.update', 'student-example'), $xpath->query('//form')->item(0)->getAttribute('action'));
         $this->assertStringContainsString('Please enter a first name.', $html);
         $this->assertStringContainsString('Current file: signature.png', $html);

@@ -34,6 +34,14 @@ class ExpenseTypePermissionsTest extends TestCase
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
+        Schema::create('expense_type_options', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+        });
+        Schema::create('licence_classes', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('class');
+        });
     }
 
     public function test_reader_can_access_web_and_api_but_cannot_change_types(): void
@@ -64,6 +72,24 @@ class ExpenseTypePermissionsTest extends TestCase
         $role->givePermissionTo('delete expense types');
         $this->authenticate('expense-type-creator');
         $this->deleteJson('/api/expense-types/39d3f058-4f04-11f0-aa86-52540066f921')->assertStatus(400);
+    }
+
+    public function test_expense_type_lookup_helpers_require_related_permissions(): void
+    {
+        DB::table('expense_type_options')->insert(['id' => 1, 'name' => 'Exam fee']);
+        DB::table('licence_classes')->insert(['id' => 'A', 'class' => 'Class A']);
+
+        $this->authenticate('student');
+        foreach (['/api/getExpenseTypeOptions', '/api/getExpenceTypeOption/1', '/api/licence-classes'] as $url) {
+            $this->getJson($url)->assertForbidden();
+        }
+
+        $role = Role::create(['name' => 'expense-type-reader', 'guard_name' => 'web']);
+        $role->givePermissionTo('view expense types');
+        $this->authenticate('expense-type-reader');
+        $this->getJson('/api/getExpenseTypeOptions')->assertOk()->assertJsonFragment(['id' => 1, 'name' => 'Exam fee']);
+        $this->getJson('/api/getExpenceTypeOption/1')->assertOk()->assertSee('Exam fee');
+        $this->getJson('/api/licence-classes')->assertOk()->assertJsonFragment(['id' => 'A', 'class' => 'Class A']);
     }
 
     public function test_migration_preserves_only_existing_qualified_role_and_direct_grants(): void

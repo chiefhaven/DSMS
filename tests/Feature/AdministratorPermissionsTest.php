@@ -109,12 +109,19 @@ class AdministratorPermissionsTest extends TestCase
         $this->authenticate($role);
         $this->get('/administrators/1/edit')->assertOk()
             ->assertSee('<option value="" selected>Keep current roles</option>', false)
-            ->assertDontSee('value="instructor"', false);
+            ->assertDontSee('value="instructor"', false)
+            ->assertDontSee('value="superAdmin"', false);
         $this->put('/administrators/1', array_merge($this->profileData(), ['role' => '']))
             ->assertRedirect(route('administrators.index'));
         $this->assertEqualsCanonicalizing(['admin', 'instructor'], $this->target()->getRoleNames()->all());
         $this->putJson('/administrators/1', array_merge($this->profileData(), ['role' => 'instructor']))
             ->assertUnprocessable()->assertJsonValidationErrors('role');
+        $this->put('/administrators/1', array_merge($this->profileData(), ['role' => 'superAdmin']))
+            ->assertForbidden();
+        $this->assertEqualsCanonicalizing(['admin', 'instructor'], $this->target()->getRoleNames()->all());
+        $role->givePermissionTo('manage system');
+        $this->authenticate($role);
+        $this->get('/administrators/1/edit')->assertOk()->assertSee('value="superAdmin"', false);
         $this->put('/administrators/1', array_merge($this->profileData(), ['role' => 'superAdmin']))
             ->assertRedirect(route('administrators.index'));
         $this->assertSame(['superAdmin'], $this->target()->getRoleNames()->all());
@@ -174,16 +181,31 @@ class AdministratorPermissionsTest extends TestCase
         $role->givePermissionTo('assign administrator roles');
         $this->authenticate($role);
         $this->get('/administrators/create')->assertOk()
-            ->assertDontSee('value="instructor"', false);
+            ->assertDontSee('value="instructor"', false)
+            ->assertDontSee('value="superAdmin"', false);
         $data = array_merge($this->profileData(), [
             'email' => 'new@example.test', 'username' => 'new-admin',
             'password' => 'password123', 'role' => 'financeAdmin',
         ]);
         $this->postJson('/administrators', array_merge($data, ['role' => 'student']))
             ->assertUnprocessable()->assertJsonValidationErrors('role');
+        $this->postJson('/administrators', array_merge($data, ['role' => 'superAdmin']))
+            ->assertForbidden();
         $this->post('/administrators', $data)->assertRedirect(route('administrators.index'));
         $newUser = User::where('email', 'new@example.test')->firstOrFail();
         $this->assertTrue($newUser->hasRole('financeAdmin'));
+
+        $role->givePermissionTo('manage system');
+        $this->authenticate($role);
+        $this->get('/administrators/create')->assertOk()->assertSee('value="superAdmin"', false);
+        $systemAdminData = array_merge($data, [
+            'email' => 'system@example.test',
+            'username' => 'system-admin',
+            'role' => 'superAdmin',
+        ]);
+        $this->post('/administrators', $systemAdminData)->assertRedirect(route('administrators.index'));
+        $this->assertTrue(User::where('email', 'system@example.test')->firstOrFail()->hasRole('superAdmin'));
+
         $this->deleteJson('/administrators/'.$newUser->administrator_id)->assertForbidden();
         $role->givePermissionTo('delete administrators');
         $this->authenticate($role);

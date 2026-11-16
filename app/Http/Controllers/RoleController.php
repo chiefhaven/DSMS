@@ -22,7 +22,7 @@ class RoleController extends Controller
 
     public function index()
     {
-        $roles = Role::withCount(['users', 'permissions'])->orderBy('name')->get();
+        $roles = Role::where('guard_name', 'web')->withCount(['users', 'permissions'])->orderBy('name')->get();
 
         return view('roles.roles', compact('roles'));
     }
@@ -46,6 +46,8 @@ class RoleController extends Controller
 
     public function edit(Role $role)
     {
+        abort_unless($role->guard_name === 'web', 404);
+
         return view('roles.form', [
             'role' => $role,
             'permissionGroups' => $this->permissionGroups(),
@@ -55,6 +57,8 @@ class RoleController extends Controller
 
     public function update(UpdateRoleRequest $request, Role $role): RedirectResponse
     {
+        abort_unless($role->guard_name === 'web', 404);
+
         if (in_array($role->name, self::PROTECTED_ROLES, true)) {
             return back()->with('message', 'Protected roles cannot be modified.');
         }
@@ -67,6 +71,8 @@ class RoleController extends Controller
 
     public function destroy(Role $role): RedirectResponse
     {
+        abort_unless($role->guard_name === 'web', 404);
+
         if (in_array($role->name, self::PROTECTED_ROLES, true)) {
             return back()->with('message', 'Protected roles cannot be deleted.');
         }
@@ -82,7 +88,7 @@ class RoleController extends Controller
 
     private function permissionGroups()
     {
-        return Permission::orderBy('name')->pluck('name')->groupBy(
+        return Permission::where('guard_name', 'web')->orderBy('name')->pluck('name')->groupBy(
             fn ($name) => ucfirst(trim(substr($name, (int) strpos($name, ' '))))
         );
     }

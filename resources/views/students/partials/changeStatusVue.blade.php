@@ -1,4 +1,4 @@
-@can('access operations')
+@can('change student status')
     <!-- Modal Backdrop -->
     <div v-if="showStatusChangeModal" class="modal-backdrop fade show" style="background-color: rgba(0,0,0,0.5);"></div>
 
@@ -43,19 +43,14 @@
                                     class="form-select border-2 rounded-3 py-3"
                                     id="studentStatus"
                                     style="background-image: none; border-color: #dee2e6;">
-                                @can('manage administration')
                                 <option value="Pending" class="text-warning">
                                     <i class="fas fa-clock me-2"></i> Pending
                                 </option>
                                 <option value="In progress" class="text-primary">
                                     <i class="fas fa-spinner me-2"></i> In Progress
                                 </option>
-                                @endcan
                                 <option value="Finished" class="text-success">
                                     <i class="fas fa-check-circle me-2"></i> Finished
-                                </option>
-                                <option value="Cancelled" class="text-danger">
-                                    <i class="fas fa-ban me-2"></i> Cancelled
                                 </option>
                             </select>
                             <div class="form-text mt-2">This will immediately update student status</div>
@@ -71,7 +66,6 @@
                                         <li class="mb-2"><span class="badge bg-warning me-2">Pending</span> Registration complete, not started</li>
                                         <li class="mb-2"><span class="badge bg-primary me-2">In Progress</span> Currently active in program</li>
                                         <li class="mb-2"><span class="badge bg-success me-2">Finished</span> Completed all requirements</li>
-                                        <li><span class="badge bg-danger me-2">Cancelled</span> Withdrawn from program</li>
                                     </ul>
                                 </div>
                             </div>

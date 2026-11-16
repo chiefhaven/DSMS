@@ -13,7 +13,16 @@ class UpdateAdministratorRequest extends FormRequest
      */
     public function authorize()
     {
-        return true;
+        $requestedRole = $this->input('role');
+        if ($requestedRole !== 'superAdmin') {
+            return true;
+        }
+
+        $administrator = $this->route('administrator');
+        $currentRoles = $administrator?->user?->getRoleNames()->all() ?? [];
+
+        return in_array('superAdmin', $currentRoles, true)
+            || $this->user()?->can('manage system');
     }
 
     /**

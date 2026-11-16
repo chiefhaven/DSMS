@@ -128,6 +128,19 @@ class FeePaymentPermissionsTest extends TestCase
         $this->getJson('/students/'.self::STUDENT_ID)->assertOk()->assertJsonCount(3, 'student.payment');
     }
 
+    public function test_payment_method_lookup_requires_permission_to_record_fees(): void
+    {
+        $role = Role::create(['name' => 'payment-viewer', 'guard_name' => 'web']);
+        $role->givePermissionTo('view fee payments');
+        $this->authenticate($role);
+        $this->getJson('/api/getPaymentMethods')->assertForbidden();
+
+        $this->authenticate(Role::findByName('financeAdmin', 'web'));
+        $this->getJson('/api/getPaymentMethods')
+            ->assertOk()
+            ->assertJsonPath('0.name', 'Cash');
+    }
+
     public function test_payment_deletion_respects_owner_scope(): void
     {
         $role = Role::create(['name' => 'payment-deleter', 'guard_name' => 'web']);

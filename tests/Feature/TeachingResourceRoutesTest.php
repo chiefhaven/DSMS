@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
@@ -206,6 +207,32 @@ class TeachingResourceRoutesTest extends TestCase
         $this->getJson('/lesson-search')->assertForbidden();
     }
 
+    public function test_lesson_lookup_allows_lesson_readers_and_bulk_attendance_editors_only(): void
+    {
+        Schema::create('lessons', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('name');
+        });
+        Schema::create('rich_texts', function (Blueprint $table) {
+            $table->id();
+            $table->string('record_type');
+            $table->string('record_id');
+            $table->string('field');
+            $table->text('body')->nullable();
+            $table->timestamps();
+        });
+        DB::table('lessons')->insert(['id' => 'lesson', 'name' => 'First']);
+        Permission::findOrCreate('edit bulk attendances', 'web');
+
+        $this->authenticate('student');
+        $this->getJson('/api/lessons')->assertForbidden();
+
+        $role = Role::create(['name' => 'bulk-attendance-editor', 'guard_name' => 'web']);
+        $role->givePermissionTo('edit bulk attendances');
+        $this->authenticate('bulk-attendance-editor');
+        $this->getJson('/api/lessons')->assertOk()->assertJsonFragment(['id' => 'lesson', 'name' => 'First']);
+    }
+
     public function test_lesson_migration_preserves_operational_read_access_without_granting_mutations(): void
     {
         $role = Role::create(['name' => 'operations-reader', 'guard_name' => 'web']);
@@ -276,6 +303,22 @@ class TeachingResourceRoutesTest extends TestCase
         EloquentModel::withoutEvents(fn () => $this->putJson('/updateclassroom/classroom', $payload))->assertOk();
         $this->assertSame('After', DB::table('classrooms')->where('id', 'classroom')->value('name'));
         $this->assertNull(DB::table('fleets')->where('id', 'vehicle')->value('instructor_id'));
+    }
+
+    public function test_checking_classroom_instructor_assignment_requires_classroom_edit_access(): void
+    {
+        $this->createTables();
+        $reader = Role::create(['name' => 'classroom-reader', 'guard_name' => 'web']);
+        $reader->givePermissionTo('view classrooms');
+        $this->authenticate('classroom-reader');
+        $this->postJson('/check-class-fleet-assignment', ['instructor' => 'instructor'])->assertForbidden();
+
+        $creator = Role::create(['name' => 'classroom-creator', 'guard_name' => 'web']);
+        $creator->givePermissionTo('create classrooms');
+        $this->authenticate('classroom-creator');
+        $this->postJson('/check-class-fleet-assignment', ['instructor' => 'instructor'])
+            ->assertOk()
+            ->assertContent('false');
     }
 
     public function test_classroom_fleet_migration_preserves_existing_administration_grants(): void

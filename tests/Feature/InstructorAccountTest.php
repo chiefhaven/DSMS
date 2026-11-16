@@ -68,7 +68,6 @@ class InstructorAccountTest extends TestCase
         $this->manager = User::withoutEvents(fn () => User::create([
             'name' => 'Manager', 'email' => 'manager@example.test', 'password' => Hash::make('Password123!'),
         ]));
-        $this->manager->givePermissionTo('manage administration');
         if ($this->resource === 'instructors') {
             $this->manager->givePermissionTo('manage instructor accounts');
         } else {
@@ -100,18 +99,18 @@ class InstructorAccountTest extends TestCase
     private function data(array $overrides = []): array
     {
         return array_replace([
-            'name' => 'New username', 'email' => 'new@example.test', 'is_active' => true,
+            'name' => 'Instructor', 'email' => 'new@example.test', 'is_active' => true,
         ], $overrides);
     }
 
-    public function test_account_updates_require_authentication_and_administration_permission(): void
+    public function test_account_updates_require_authentication_and_the_specific_account_permission(): void
     {
         $this->putJson($this->url(), $this->data())->assertUnauthorized();
         $this->actingAs($this->target)->putJson($this->url(), $this->data())->assertForbidden();
         $this->assertSame('Instructor', $this->target->fresh()->name);
     }
 
-    public function test_username_email_and_password_are_updated_only_for_the_linked_user(): void
+    public function test_email_and_password_are_updated_only_for_the_linked_user_and_username_is_preserved(): void
     {
         $this->target->createToken('existing');
         $this->actingAs($this->manager)->putJson($this->url(), $this->data([
@@ -120,7 +119,7 @@ class InstructorAccountTest extends TestCase
         ]))->assertOk()->assertJson(['message' => 'Account updated successfully.']);
 
         $user = $this->target->fresh();
-        $this->assertSame('New username', $user->name);
+        $this->assertSame('Instructor', $user->name);
         $this->assertSame('new@example.test', $user->email);
         $this->assertNull($user->email_verified_at);
         $this->assertTrue(Hash::check('NewPassword123!', $user->password));
@@ -151,7 +150,7 @@ class InstructorAccountTest extends TestCase
     public static function invalidAccountData(): array
     {
         return [
-            [['name' => ''], 'name'],
+            [['name' => 'Changed username'], 'name'],
             [['email' => 'invalid'], 'email'],
             [['email' => 'manager@example.test'], 'email'],
             [['password' => 'short', 'password_confirmation' => 'short'], 'password'],

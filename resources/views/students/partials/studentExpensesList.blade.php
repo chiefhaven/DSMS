@@ -1,4 +1,4 @@
-@can('manage administration')
+@can('view expenses')
     <div class="tab-pane fade" id="expensesList" role="tabpanel" aria-labelledby="expensesList-tab">
         <div class="table-responsive">
             <table class="table table-bordered table-striped table-vcenter">

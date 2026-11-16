@@ -35,6 +35,24 @@ class Instructor extends Model
         return $this->hasOne(User::class, 'instructor_id');
     }
 
+    public function hrDepartment()
+    {
+        return $this->belongsTo(HrDepartment::class, 'hr_department_id');
+    }
+
+    public function designation()
+    {
+        return $this->belongsTo(Designation::class, 'designation_id');
+    }
+
+    /**
+     * Basic salary for payroll: the instructor's own salary, falling back to the designation default.
+     */
+    public function getEffectiveBasicSalaryAttribute()
+    {
+        return $this->basic_salary ?? $this->designation?->basic_salary;
+    }
+
     public function Attendances()
     {
         return $this->hasMany(Attendance::class, 'instructor_id');

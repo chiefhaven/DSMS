@@ -224,7 +224,7 @@ class StudentController extends Controller
                                     data-status=\"" . e($student->status) . "\">
                                         <i class='fas fa-toggle-on me-2'></i> Change status
                                 </button>" : '';
-                if (auth()->user()->can('manage administration') && ($student->invoice->invoice_balance ?? 0) > 0) {
+                if (auth()->user()->can('send balance reminders') && ($student->invoice->invoice_balance ?? 0) > 0) {
                     $paymentReminder = '
                         <form method="POST" action="' . url('send-balance-sms', [$student->id, 'Balance']) . '">
                             ' . csrf_field() . '
@@ -410,7 +410,7 @@ class StudentController extends Controller
                                 </form>';
                 }
 
-                if (auth()->user()->can('manage administration') && ($student->invoice->invoice_balance ?? 0) > 0) {
+                if (auth()->user()->can('send balance reminders') && ($student->invoice->invoice_balance ?? 0) > 0) {
                     $paymentReminder = '
                         <form method="POST" action="' . url('send-balance-sms', [$student->id, 'Balance']) . '">
                             ' . csrf_field() . '
@@ -641,31 +641,47 @@ class StudentController extends Controller
     public function update(UpdateStudentRequest $request, Student $student)
     {
         $post = $request->All();
+        $student = $student->exists ? $student : Student::findOrFail($request->input('student_id'));
+        $user = User::where('student_id', $student->id)->firstOrFail();
+        $requestedEmail = $request->input('email');
+        if (is_string($requestedEmail) && $requestedEmail !== $user->email) {
+            abort_unless($request->user()->can('manage student accounts'), 403);
+        }
 
         $messages = [
             'fname.required' => 'First name is required!',
             'sname.required'   => 'Sir name is required!',
             'email.required' => 'Email address is required!',
+            'email.email' => 'Email address must be valid!',
+            'email.unique' => 'Email address is already in use',
+            'name.in' => 'Usernames are read-only.',
+            'username.in' => 'Usernames are read-only.',
             'gender.required'   => 'Gender is required!',
             'phone.required'   => 'Gender is required!',
         ];
 
         // Validate the request
         $this->validate($request, [
-            'fname'  =>'required',
-            'mname' =>'nullable|string',
-            'sname' =>'required',
-            'email'   =>'required',
-            'address' =>'required',
-            'gender'  =>'required',
-            'date_of_birth' =>'required',
-            'district' =>'required',
-            'phone' =>'required',
-            'trn' =>'nullable'
-
+            'fname' => 'required',
+            'mname' => 'nullable|string',
+            'sname' => 'required',
+            'name' => ['sometimes', 'string', Rule::in([$user->name])],
+            'username' => ['sometimes', 'string', Rule::in([$user->name])],
+            'email' => [
+                'bail',
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($user->getKey()),
+            ],
+            'address' => 'required',
+            'gender' => 'required',
+            'date_of_birth' => 'required',
+            'district' => 'required',
+            'phone' => 'required',
+            'trn' => 'nullable',
         ], $messages);
 
-        $student = $student->exists ? $student : Student::findOrFail($request->input('student_id'));
         $district = havenUtils::selectDistrict($post['district']);
 
         //signature processing
@@ -684,8 +700,6 @@ class StudentController extends Controller
         $student->address = $post['address'];
         $student->date_of_birth = $post['date_of_birth'];
         $student->district_id = $district;
-
-        $user = User::where('student_id', $student->id)->firstOrFail();
 
         $user->email = $post['email'];
 

@@ -1,4 +1,4 @@
-@role($profileInvoiceRoles)
+@can('view invoices')
     <div class="tab-pane fade" id="invoices" role="tabpanel" aria-labelledby="invoices-tab">
         <div class="table-responsive">
             <table class="table table-bordered table-striped table-vcenter">
@@ -42,7 +42,7 @@
                                             <button class="dropdown-item delete-invoice" data-invoice-id="{{ $student->invoice->invoice_number }}" type="submit">Delete</button>
                                         </form>
                                         @endcan
-                                        @can('manage administration')
+                                        @can('send balance reminders')
                                         <form method="POST" action="{{ url('send-balance-sms', [$student->id,'Balance']) }}">
                                             @csrf
                                             <button class="dropdown-item" type="submit">Send balance reminder</button>
@@ -67,9 +67,9 @@
             </table>
         </div>
     </div>
-@endrole
+@endcan
 
-@role($profilePaymentRoles)
+@can('view fee payments')
     <div class="tab-pane fade" id="payments" role="tabpanel" aria-labelledby="payments-tab">
         <div class="table-responsive">
             <table class="table table-bordered table-striped table-vcenter">
@@ -148,4 +148,4 @@
             </table>
         </div>
     </div>
-@endrole
+@endcan

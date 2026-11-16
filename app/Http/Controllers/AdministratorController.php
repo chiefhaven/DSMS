@@ -112,7 +112,11 @@ class AdministratorController extends Controller
     public function create()
     {
         $district = District::get();
-        $role = Role::where('guard_name', 'web')->whereIn('name', ['admin', 'financeAdmin', 'superAdmin'])->get();
+        $roleNames = ['admin', 'financeAdmin'];
+        if (Auth::user()->can('manage system')) {
+            $roleNames[] = 'superAdmin';
+        }
+        $role = Role::where('guard_name', 'web')->whereIn('name', $roleNames)->get();
         return view('administrators.addadministrator', compact('district', 'role'));
     }
 
@@ -208,9 +212,19 @@ class AdministratorController extends Controller
     {
         $administrator = Administrator::with('User')->findOrFail($id);
         $district = District::get();
-        $role = Role::where('guard_name', 'web')->whereIn('name', ['admin', 'financeAdmin', 'superAdmin'])->get();
+        $roleNames = ['admin', 'financeAdmin'];
+        if (Auth::user()->can('manage system')) {
+            $roleNames[] = 'superAdmin';
+        }
+        $role = Role::where('guard_name', 'web')->whereIn('name', $roleNames)->get();
         $genders = ['female' => 'Female', 'male' => 'Male', 'other' => 'Other'];
-        return view('administrators.editadministrator', [ 'administrator' => $administrator ], compact('administrator', 'district', 'role', 'genders'));
+        $hrDepartments = Auth::user()->can('process payroll')
+            ? \App\Models\HrDepartment::orderBy('name')->get()
+            : collect();
+        $designations = Auth::user()->can('process payroll')
+            ? \App\Models\Designation::orderBy('name')->get()
+            : collect();
+        return view('administrators.editadministrator', [ 'administrator' => $administrator ], compact('administrator', 'district', 'role', 'genders', 'hrDepartments', 'designations'));
     }
 
     /**
@@ -265,6 +279,9 @@ class AdministratorController extends Controller
         $changeRole = $roleName && (!$user || $user->getRoleNames()->all() !== [$roleName]);
         if ($changeRole) {
             abort_unless($request->user()->can('assign administrator roles'), 403);
+            if ($roleName === 'superAdmin') {
+                abort_unless($request->user()->can('manage system'), 403);
+            }
         }
 
         $district = havenUtils::selectDistrict($post['district']);
@@ -277,6 +294,19 @@ class AdministratorController extends Controller
         $Administrator->address = $post['address'];
         $Administrator->date_of_birth = $post['date_of_birth'];
         $Administrator->district_id = $district;
+
+        if ($request->user()->can('process payroll')
+            && ($request->exists('hr_department_id') || $request->exists('basic_salary') || $request->exists('designation_id'))) {
+            $hrm = $request->validate([
+                'hr_department_id' => 'nullable|exists:hr_departments,id',
+                'designation_id' => 'nullable|exists:designations,id',
+                'basic_salary' => 'nullable|numeric|min:0',
+            ]);
+            $Administrator->hr_department_id = $hrm['hr_department_id'] ?? null;
+            $Administrator->designation_id = $hrm['designation_id'] ?? null;
+            $Administrator->basic_salary = $hrm['basic_salary'] ?? null;
+        }
+
         $Administrator->save();
 
         // Update or Create User

@@ -13,7 +13,7 @@ class StoreAdministratorRequest extends FormRequest
      */
     public function authorize()
     {
-        return true;
+        return $this->input('role') !== 'superAdmin' || $this->user()?->can('manage system');
     }
 
     /**

@@ -7,6 +7,7 @@ use App\Models\Administrator;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 
 class AdministratorAccountTest extends InstructorAccountTest
 {
@@ -45,6 +46,13 @@ class AdministratorAccountTest extends InstructorAccountTest
         ] as $view) {
             $this->assertSame($user->administrator_id, (string) $view->getData()['administrator']->id);
         }
+    }
+
+    public function test_super_admin_profile_route_uses_the_own_administrator_profile_action(): void
+    {
+        $route = Route::getRoutes()->getByName('super-admin-profile');
+
+        $this->assertSame(AdministratorController::class.'@showProfile', $route->getActionName());
     }
 
     public function test_own_profile_without_an_administrator_is_not_found(): void

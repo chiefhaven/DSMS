@@ -40,6 +40,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'must_change_password',
     ];
 
     /**
@@ -50,6 +51,7 @@ class User extends Authenticatable
     protected $casts = [
         'is_active' => 'boolean',
         'email_verified_at' => 'datetime',
+        'must_change_password' => 'boolean',
     ];
 
     public function getIsActiveAttribute($value): bool

@@ -20,6 +20,24 @@ class Administrator extends Model
        return $this->hasOne(User::class);
     }
 
+    public function hrDepartment()
+    {
+       return $this->belongsTo(HrDepartment::class, 'hr_department_id');
+    }
+
+    public function designation()
+    {
+       return $this->belongsTo(Designation::class, 'designation_id');
+    }
+
+    /**
+     * Basic salary for payroll: the administrator's own salary, falling back to the designation default.
+     */
+    public function getEffectiveBasicSalaryAttribute()
+    {
+        return $this->basic_salary ?? $this->designation?->basic_salary;
+    }
+
     public function Expense()
     {
        return $this->hasMany(Expense::class);

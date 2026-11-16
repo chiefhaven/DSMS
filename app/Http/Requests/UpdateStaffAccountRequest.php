@@ -10,7 +10,11 @@ class UpdateStaffAccountRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('manage administration') ?? false;
+        $permission = $this->routeIs('instructors.account.update')
+            ? 'manage instructor accounts'
+            : 'manage administrator accounts';
+
+        return $this->user()?->can($permission) ?? false;
     }
 
     public function rules(): array
@@ -19,10 +23,17 @@ class UpdateStaffAccountRequest extends FormRequest
         $user = $profile->user()->firstOrFail();
 
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['sometimes', 'string', Rule::in([$user->name])],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user)],
             'password' => ['nullable', 'confirmed', Password::min(8)],
             'is_active' => ['required', 'boolean'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'name.in' => 'Usernames are read-only.',
         ];
     }
 }

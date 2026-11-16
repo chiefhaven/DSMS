@@ -2,10 +2,55 @@
 
 @section('css_after')
 <style>
+    #student .content.content-full {
+        padding-top: .75rem;
+        padding-bottom: .75rem;
+    }
+    #student .bg-body-light .content.content-full {
+        padding-top: .6rem;
+        padding-bottom: .6rem;
+    }
+    #student .bg-body-light h1 {
+        font-size: 1.4rem !important;
+    }
+    #student .bg-body-light p {
+        font-size: .875rem;
+    }
+    #student .block {
+        margin-bottom: .75rem;
+    }
+    #student .nav-tabs-block .nav-link {
+        padding: .55rem .85rem;
+    }
+    #student .block-content.tab-content {
+        padding: .75rem;
+    }
+    #student .tab-content .row.g-4 {
+        --bs-gutter-x: 1rem;
+        --bs-gutter-y: 1rem;
+    }
     #student .student-profile-card {
         border: 0;
         border-radius: .5rem;
         background: var(--bs-body-bg, #fff);
+        padding: 1rem !important;
+    }
+    #student .student-profile-card .img-avatar96 {
+        width: 56px;
+        height: 56px;
+    }
+    #student .student-profile-card h2 {
+        font-size: 1.15rem;
+    }
+    #student .student-profile-card h5,
+    #student .student-profile-card h3 {
+        font-size: .95rem;
+    }
+    #student .student-profile-card .mb-4 {
+        margin-bottom: .75rem !important;
+    }
+    #student .student-profile-card .mt-4 {
+        margin-top: .75rem !important;
     }
     #student .student-profile-card > h5,
     #student .student-profile-card > h3 {
@@ -14,7 +59,7 @@
     }
     #student .student-profile-card .table th,
     #student .student-profile-card .table td {
-        padding: .75rem .5rem;
+        padding: .45rem .35rem;
         vertical-align: middle;
     }
     #student .student-profile-card .table th {
@@ -26,17 +71,20 @@
         overflow-wrap: anywhere;
     }
     #student .student-profile-card .rounded-pill {
-        padding-left: .75rem !important;
-        padding-right: .75rem !important;
+        padding-left: .6rem !important;
+        padding-right: .6rem !important;
+    }
+    #student .student-profile-card .badge {
+        font-size: .75rem;
     }
     #student .student-profile-card .alert .row {
-        row-gap: .75rem;
+        row-gap: .5rem;
     }
     #student .student-profile-card .alert .text-end {
         display: flex;
         flex-wrap: wrap;
         justify-content: flex-end;
-        gap: .5rem;
+        gap: .35rem;
     }
     #student .student-profile-card .alert .text-end .btn {
         margin: 0 !important;
@@ -44,9 +92,28 @@
     #student .student-downloads {
         margin-bottom: 0;
     }
+    #student .student-downloads .btn {
+        padding: .35rem .75rem;
+    }
     #student .student-downloads td:last-child {
         width: 1%;
         white-space: nowrap;
+    }
+    .swal2-popup.student-account-dialog {
+        font-family: inherit;
+        font-size: 1rem;
+    }
+    .swal2-popup.student-account-dialog .swal2-title {
+        font-family: inherit;
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+    .swal2-popup.student-account-dialog .swal2-html-container,
+    .swal2-popup.student-account-dialog .swal2-styled,
+    .swal2-popup.student-account-dialog code {
+        font-family: inherit;
+        font-size: 1rem;
+        line-height: 1.5;
     }
     @media (max-width: 767.98px) {
         #student .student-profile-card .alert .text-end {
@@ -70,12 +137,12 @@
             <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
             <div>
                 <a class="fs-sm text-muted" href="{{ url('/students') }}"><i class="fa fa-arrow-left me-1" aria-hidden="true"></i>Back to students</a>
-                <h1 class="fs-3 fw-semibold mt-2 mb-1">{{$student->fname}} {{$student->mname}} {{$student->sname}}</h1>
+                <h1 class="fs-4 fw-semibold mt-2 mb-1">{{$student->fname}} {{$student->mname}} {{$student->sname}}</h1>
                 <p class="text-muted mb-0">Student profile</p>
             </div>
             <div class="flex-shrink-0">
                     <div class="dropdown d-inline-block">
-                        <button type="button" class="btn btn-primary" id="student-actions-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <button type="button" class="btn btn-sm btn-primary" id="student-actions-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <i class="fa fa-angle-down me-1" aria-hidden="true"></i><span>Actions</span>
                         </button>
                         <div class="dropdown-menu dropdown-menu-end p-0">
@@ -89,7 +156,7 @@
                                 </form>
                             @endcan
                             @if (isset($student->invoice))
-                                @can('manage administration')
+                                @can('record fee payments')
                                 <button type="button" class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#paymentModal">
                                     <i class="nav-main-link-icon  fas fa-file-invoice"></i>Add payment
                                 </button>
@@ -126,37 +193,32 @@
                 Overview
             </button>
             </li>
-            @php
-                $profileInvoiceRoles = auth()->user()->roles
-                    ->filter(fn ($role) => in_array($role->name, ['superAdmin', 'Super-Admin'], true)
-                        || $role->permissions->contains('name', 'view invoices'))
-                    ->pluck('name')->all();
-                $profilePaymentRoles = auth()->user()->roles
-                    ->filter(fn ($role) => in_array($role->name, ['superAdmin', 'Super-Admin'], true)
-                        || $role->permissions->contains('name', 'view fee payments'))
-                    ->pluck('name')->all();
-            @endphp
-            @role($profileInvoiceRoles)
+            @can('view invoices')
                 <li class="nav-item">
                 <button class="nav-link" id="invoices-tab" data-bs-toggle="tab" data-bs-target="#invoices" role="tab" aria-controls="invoices" aria-selected="false">
                     Invoices
                 </button>
                 </li>
-            @endrole
-            @role($profilePaymentRoles)
+            @endcan
+            @can('view fee payments')
                 <li class="nav-item">
                     <button class="nav-link" id="payments-tab" data-bs-toggle="tab" data-bs-target="#payments" role="tab" aria-controls="payments" aria-selected="false">
                         Payments
                     </button>
                 </li>
-            @endrole
-            @can('manage administration')
+            @endcan
+            @can('view expenses')
                 <li class="nav-item">
                     <button class="nav-link" id="expensesList-tab" data-bs-toggle="tab" data-bs-target="#expensesList" role="tab" aria-controls="expensesList" aria-selected="false">
                         Expenses
                     </button>
                 </li>
             @endcan
+            <li class="nav-item">
+                <button class="nav-link" id="account-tab" data-bs-toggle="tab" data-bs-target="#account" role="tab" aria-controls="account" aria-selected="false">
+                    Account
+                </button>
+            </li>
         </ul>
         <div class="block-content tab-content">
             <div class="tab-pane fade active show" id="student-details" role="tabpanel" aria-labelledby="student-details-tab">
@@ -172,7 +234,7 @@
                                     <h2 class="fs-4 fw-semibold mb-2">
                                         {{ $student->fname }} {{ $student->mname }} {{ $student->sname }}
                                     </h2>
-                                    <span class="badge bg-primary">{{ $student->student_number ?? 'Not enrolled' }}</span>
+                                    <span class="badge bg-primary">{{ $student->student_number ?? 'Not assigned' }}</span>
                                 </div>
 
                                 <!-- Personal Details -->
@@ -351,7 +413,7 @@
                                             @endcan
 
                                             <!-- Payment Information -->
-                                            @can('manage administration')
+                                            @can('view invoices')
                                             <tr class="border-top">
                                                 <th class="text-muted">Fees</th>
                                                 <td>
@@ -494,6 +556,7 @@
             </div>
         @include('students.partials.invoicesPayments')
         @include('students.partials.studentExpensesList')
+            @include('students.partials.studentAccount')
     </div>
     </div>
     </div>
@@ -637,6 +700,79 @@
             payment_proof:"",
             wantsJson: true,
         });
+        const studentAccountAction = ref({
+            loading: false,
+            action: null,
+        });
+
+        const submitStudentAccountAction = async (event, action) => {
+            const form = event.currentTarget;
+            studentAccountAction.value.loading = true;
+            studentAccountAction.value.action = action;
+
+            try {
+                const response = await axios.post(form.action, new FormData(form), {
+                    headers: { Accept: 'application/json' },
+                });
+
+                if (response.data.temporary_password) {
+                    const passwordDialog = document.createElement('div');
+                    passwordDialog.className = 'text-start';
+
+                    const passwordLabel = document.createElement('p');
+                    passwordLabel.className = 'mb-2';
+                    passwordLabel.textContent = 'Temporary password (shown once):';
+
+                    const passwordValue = document.createElement('code');
+                    passwordValue.className = 'd-block p-2 bg-light rounded text-break';
+                    passwordValue.textContent = response.data.temporary_password;
+
+                    const instructions = document.createElement('p');
+                    instructions.className = 'small mt-3 mb-0';
+                    instructions.textContent = response.data.message;
+
+                    passwordDialog.append(passwordLabel, passwordValue, instructions);
+                    await Swal.fire({
+                        icon: 'warning',
+                        title: 'Temporary password generated',
+                        html: passwordDialog,
+                        confirmButtonText: 'Close',
+                        customClass: { popup: 'student-account-dialog' },
+                    });
+                } else {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Password reset link sent',
+                        text: response.data.message,
+                        confirmButtonText: 'OK',
+                        customClass: { popup: 'student-account-dialog' },
+                    });
+                }
+            } catch (error) {
+                const response = error.response;
+                const status = response ? response.status : 0;
+                let message = 'The request could not be completed. Please try again.';
+
+                if ((status === 422 || status === 429 || status === 502) && response.data && response.data.message) {
+                    message = response.data.message;
+                } else if (status === 403) {
+                    message = 'You are not authorized to manage this student account.';
+                } else if (status === 0) {
+                    message = 'Network error. Check your connection and try again.';
+                }
+
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'Unable to complete request',
+                    text: message,
+                    confirmButtonText: 'Close',
+                    customClass: { popup: 'student-account-dialog' },
+                });
+            } finally {
+                studentAccountAction.value.loading = false;
+                studentAccountAction.value.action = null;
+            }
+        };
 
         onMounted(() => {
             @can('record fee payments')
@@ -1001,6 +1137,8 @@
             submitPaymentForm,
             paymentMethods,
             cashPaymentId,
+            studentAccountAction,
+            submitStudentAccountAction,
         }
       }
     })

@@ -52,6 +52,7 @@
                             </div>
                         @endforeach
                     </div>
+
                 </div>
                 <div class="block-content block-content-full text-end bg-body-light">
                     <a href="{{ route('roles.index') }}" class="btn btn-alt-secondary rounded-pill px-4">Cancel</a>

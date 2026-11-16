@@ -1,5 +1,6 @@
 @php
     $currentStudent = $editing ? $student : null;
+    $canManageStudentAccount = !$editing || (auth()->user()?->can('manage student accounts') ?? false);
     $cancelUrl = $editing ? route('students.show', ['student' => $student->id]) : route('students.index');
     $fields = [
         'fname' => ['label' => 'First name', 'required' => true, 'autocomplete' => 'given-name'],
@@ -144,7 +145,10 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label" for="email">Email address <span class="text-danger">*</span></label>
-                                <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" value="{{ old('email', $currentStudent?->user?->email) }}" placeholder="student@example.com" autocomplete="email" required @error('email') aria-invalid="true" aria-describedby="email-error" @enderror>
+                                <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" value="{{ old('email', $currentStudent?->user?->email) }}" placeholder="student@example.com" autocomplete="email" required @readonly(!$canManageStudentAccount) @error('email') aria-invalid="true" aria-describedby="email-error" @enderror>
+                                @if (!$canManageStudentAccount)
+                                    <div class="form-text">Only users with student account management access can change this login email.</div>
+                                @endif
                                 @error('email')
                                     <div id="email-error" class="invalid-feedback">{{ $message }}</div>
                                 @enderror

@@ -13,6 +13,8 @@ use Tests\TestCase;
 
 class StudentPermissionsTest extends TestCase
 {
+    private const ACCOUNT_STUDENT = '00000000-0000-4000-8000-000000000022';
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -21,6 +23,7 @@ class StudentPermissionsTest extends TestCase
             'database.connections.sqlite.database' => ':memory:',
             'cache.default' => 'array',
             'session.driver' => 'array',
+            'activitylog.enabled' => false,
         ]);
         (require base_path('vendor/spatie/laravel-permission/database/migrations/create_permission_tables.php.stub'))->up();
         foreach (['superAdmin', 'Super-Admin', 'admin', 'financeAdmin', 'instructor', 'student'] as $name) {
@@ -29,6 +32,8 @@ class StudentPermissionsTest extends TestCase
         (require base_path('database/migrations/2026_11_12_000200_seed_student_permissions.php'))->up();
         (require base_path('database/migrations/2026_11_12_000400_seed_lesson_permissions.php'))->up();
         (require base_path('database/migrations/2026_11_12_000500_seed_classroom_fleet_permissions.php'))->up();
+        (require base_path('database/migrations/2026_11_12_001000_seed_expense_permissions.php'))->up();
+        (require base_path('database/migrations/2026_11_15_000300_seed_student_account_permissions.php'))->up();
 
         Schema::create('instructors', function (Blueprint $table) {
             $table->string('id')->primary();
@@ -54,6 +59,11 @@ class StudentPermissionsTest extends TestCase
             $table->string('sname')->nullable();
             $table->string('status')->nullable();
             $table->string('phone')->nullable();
+            $table->string('gender')->nullable();
+            $table->string('address')->nullable();
+            $table->string('date_of_birth')->nullable();
+            $table->string('district_id')->nullable();
+            $table->string('signature')->nullable();
             $table->string('trn')->nullable();
             $table->string('fleet_id')->nullable();
             $table->string('classroom_id')->nullable();
@@ -70,11 +80,17 @@ class StudentPermissionsTest extends TestCase
                     $table->string('lesson_id')->nullable();
                 }
                 if ($name === 'users') {
+                    $table->string('name')->nullable();
                     $table->string('email')->nullable();
                 }
+                $table->timestamps();
                 $table->softDeletes();
             });
         }
+        Schema::create('districts', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('name');
+        });
         Schema::create('training_levels', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->string('name');
@@ -100,11 +116,38 @@ class StudentPermissionsTest extends TestCase
     public function test_default_grants_and_seeder_are_idempotent(): void
     {
         (require base_path('database/migrations/2026_11_12_000200_seed_student_permissions.php'))->up();
+        (require base_path('database/migrations/2026_11_15_000300_seed_student_account_permissions.php'))->up();
         $this->assertTrue(Role::findByName('admin')->hasPermissionTo('create students'));
         $this->assertFalse(Role::findByName('admin')->hasPermissionTo('delete students'));
         $this->assertTrue(Role::findByName('financeAdmin')->hasPermissionTo('view all students'));
         $this->assertFalse(Role::findByName('instructor')->hasPermissionTo('view all students'));
         $this->assertFalse(Role::findByName('student')->hasPermissionTo('view students'));
+    }
+
+    public function test_student_account_permission_preserves_existing_edit_grants_idempotently(): void
+    {
+        $role = Role::create(['name' => 'legacy-student-editor', 'guard_name' => 'web']);
+        $role->givePermissionTo('edit students');
+        $unrelatedRole = Role::create(['name' => 'student-reader', 'guard_name' => 'web']);
+        $user = new User();
+        $user->id = 'direct-student-editor';
+        DB::table(config('permission.table_names.model_has_permissions'))->insert([
+            'permission_id' => Permission::findByName('edit students', 'web')->id,
+            'model_type' => $user->getMorphClass(),
+            'model_id' => $user->id,
+        ]);
+
+        $migration = require base_path('database/migrations/2026_11_15_000300_seed_student_account_permissions.php');
+        $migration->up();
+        $migration->up();
+
+        $this->assertTrue($role->fresh()->hasPermissionTo('manage student accounts'));
+        $this->assertFalse($unrelatedRole->fresh()->hasPermissionTo('manage student accounts'));
+        $this->assertDatabaseHas(config('permission.table_names.model_has_permissions'), [
+            'permission_id' => Permission::findByName('manage student accounts', 'web')->id,
+            'model_type' => $user->getMorphClass(),
+            'model_id' => $user->id,
+        ]);
     }
 
     public function test_instructor_web_and_api_lists_only_include_assigned_students(): void
@@ -149,6 +192,31 @@ class StudentPermissionsTest extends TestCase
         $this->get('/search-student?search=Car')->assertOk();
     }
 
+    public function test_student_account_tab_renders_linked_portal_account_state(): void
+    {
+        $linkedHtml = view('students.partials.studentAccount', [
+            'student' => (object) [
+                'user' => (object) [
+                    'name' => 'Student Username',
+                    'email' => 'portal@example.test',
+                    'is_active' => false,
+                    'email_verified_at' => null,
+                ],
+            ],
+        ])->render();
+
+        $this->assertStringContainsString('portal@example.test', $linkedHtml);
+        $this->assertStringContainsString('Student Username', $linkedHtml);
+        $this->assertStringContainsString('Inactive', $linkedHtml);
+        $this->assertStringContainsString('Not verified', $linkedHtml);
+
+        $unlinkedHtml = view('students.partials.studentAccount', [
+            'student' => (object) ['user' => null],
+        ])->render();
+
+        $this->assertStringContainsString('No student portal account is linked.', $unlinkedHtml);
+    }
+
     public function test_custom_role_needs_each_specific_action_permission(): void
     {
         $role = Role::create(['name' => 'reader', 'guard_name' => 'web']);
@@ -175,6 +243,140 @@ class StudentPermissionsTest extends TestCase
             ->assertDontSee('Add student')
             ->assertDontSee('Students report')
             ->assertDontSee('id="change-status"', false);
+    }
+
+    public function test_navigation_shows_links_for_direct_permission_grants(): void
+    {
+        $user = new User();
+        $user->id = '00000000-0000-4000-8000-000000000004';
+        $user->save();
+        $user->givePermissionTo(Permission::findOrCreate('view invoices', 'web'));
+        $this->actingAs($user);
+
+        $this->view('layouts.partials.main_nav')
+            ->assertSee('Students')
+            ->assertSee('/invoices')
+            ->assertDontSee('All students')
+            ->assertDontSee('/payments');
+    }
+
+    public function test_student_expense_panel_uses_view_expenses_permission(): void
+    {
+        $role = Role::create(['name' => 'student-expense-reader', 'guard_name' => 'web']);
+        $this->authenticate('student-expense-reader');
+        $student = (object) ['expenses' => collect()];
+
+        $this->view('students.partials.studentExpensesList', ['student' => $student])
+            ->assertDontSee('id="expensesList"', false);
+
+        $role->givePermissionTo('view expenses');
+        $this->authenticate('student-expense-reader');
+        $this->view('students.partials.studentExpensesList', ['student' => $student])
+            ->assertSee('id="expensesList"', false);
+    }
+
+    public function test_student_invoice_and_payment_tabs_recognize_direct_permission_grants(): void
+    {
+        $invoicePermission = Permission::findOrCreate('view invoices', 'web');
+        $paymentPermission = Permission::findOrCreate('view fee payments', 'web');
+        $user = new User();
+        $user->id = '00000000-0000-4000-8000-000000000003';
+        $user->save();
+        $user->givePermissionTo($invoicePermission);
+        $this->actingAs($user);
+        $this->assertTrue($user->can('view invoices'));
+        $student = (object) ['id' => self::ACCOUNT_STUDENT, 'invoice' => null, 'payment' => collect()];
+
+        $this->view('students.partials.invoicesPayments', ['student' => $student])
+            ->assertSee('id="invoices"', false)
+            ->assertDontSee('id="payments"', false);
+
+        $user->givePermissionTo($paymentPermission);
+        $this->actingAs($user);
+        $this->view('students.partials.invoicesPayments', ['student' => $student])
+            ->assertSee('id="invoices"', false)
+            ->assertSee('id="payments"', false);
+    }
+
+    public function test_student_login_email_requires_account_permission_but_profile_edits_do_not(): void
+    {
+        DB::table('districts')->insert(['id' => 'district-one', 'name' => 'Central']);
+        DB::table('students')->insert([
+            'id' => self::ACCOUNT_STUDENT, 'fname' => 'Test', 'sname' => 'Student',
+            'gender' => 'other', 'address' => 'Address', 'date_of_birth' => '2000-01-01',
+            'district_id' => 'district-one', 'phone' => '123', 'status' => 'In progress',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        DB::table('users')->insert([
+            'id' => 'account-user', 'student_id' => self::ACCOUNT_STUDENT,
+            'name' => 'Original Username',
+            'email' => 'student@example.test', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $role = Role::create(['name' => 'student-profile-editor', 'guard_name' => 'web']);
+        $role->givePermissionTo(['edit students', 'view all students']);
+        $this->authenticate('student-profile-editor');
+
+        $this->get('/students/'.self::ACCOUNT_STUDENT.'/edit')->assertOk()
+            ->assertSee('id="email"', false)->assertSee('readonly', false);
+        $data = [
+            'fname' => 'Updated', 'mname' => '', 'sname' => 'Student',
+            'gender' => 'other', 'address' => 'Address', 'date_of_birth' => '2000-01-01',
+            'district' => 'Central', 'phone' => '123', 'trn' => '',
+            'email' => 'student@example.test',
+        ];
+        DB::table('users')->insert([
+            'id' => 'other-user', 'email' => 'taken@example.test',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $this->put('/students/'.self::ACCOUNT_STUDENT, $data)->assertRedirect(route('students.show', self::ACCOUNT_STUDENT));
+        $this->putJson('/students/'.self::ACCOUNT_STUDENT, array_merge($data, ['email' => 'changed@example.test']))
+            ->assertForbidden();
+        $this->putJson('/students/'.self::ACCOUNT_STUDENT, array_merge($data, ['email' => 'taken@example.test']))
+            ->assertForbidden();
+        $this->assertDatabaseHas('users', ['id' => 'account-user', 'email' => 'student@example.test']);
+
+        $role->givePermissionTo('manage student accounts');
+        $this->authenticate('student-profile-editor');
+        foreach (['name', 'username'] as $field) {
+            $this->putJson('/students/'.self::ACCOUNT_STUDENT, array_merge($data, [$field => 'Changed Username']))
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors($field);
+        }
+        $this->assertDatabaseHas('users', ['id' => 'account-user', 'name' => 'Original Username']);
+        $this->get('/students/'.self::ACCOUNT_STUDENT.'/edit')->assertOk()
+            ->assertSee('id="email"', false)->assertDontSee('readonly', false);
+        $this->putJson('/students/'.self::ACCOUNT_STUDENT, array_merge($data, ['email' => 'not-an-email']))
+            ->assertUnprocessable()->assertJsonValidationErrors('email');
+        $this->putJson('/students/'.self::ACCOUNT_STUDENT, array_merge($data, ['email' => 'taken@example.test']))
+            ->assertUnprocessable()->assertJsonValidationErrors('email');
+        $this->assertDatabaseHas('users', ['id' => 'account-user', 'email' => 'student@example.test']);
+        $this->put('/students/'.self::ACCOUNT_STUDENT, array_merge($data, ['email' => 'changed@example.test']))
+            ->assertRedirect(route('students.show', self::ACCOUNT_STUDENT));
+        $this->assertDatabaseHas('users', [
+            'id' => 'account-user', 'email' => 'changed@example.test', 'name' => 'Original Username',
+        ]);
+    }
+
+    public function test_status_controls_use_the_specific_permission_and_supported_statuses(): void
+    {
+        $role = Role::create(['name' => 'status-editor', 'guard_name' => 'web']);
+        $role->givePermissionTo('change student status');
+        $this->authenticate('status-editor');
+
+        $this->view('students.partials.changeStatusVue')
+            ->assertSee('showStatusChangeModal', false)
+            ->assertSee('value="Pending"', false)
+            ->assertSee('value="In progress"', false)
+            ->assertSee('value="Finished"', false)
+            ->assertDontSee('value="Cancelled"', false);
+
+        $student = (object) ['id' => 'car', 'status' => 'In progress'];
+        $this->view('students.partials.changeStatus', ['student' => $student])
+            ->assertSee('id="change-status"', false)
+            ->assertSee('value="Pending"', false)
+            ->assertSee('value="In progress"', false)
+            ->assertSee('value="Finished"', false);
     }
 
     public function test_lesson_endpoints_enforce_student_self_access_and_instructor_assignments(): void
@@ -258,6 +460,7 @@ class StudentPermissionsTest extends TestCase
         $this->authenticate('student-editor', 'one');
 
         $this->getJson('/edit-student/other')->assertNotFound();
+        $this->putJson('/students/other', [])->assertNotFound();
         $this->postJson('/updateStudentStatus/other', ['status' => 'Finished'])->assertNotFound();
         $this->postJson('/assignCar', ['student' => 'other'])->assertNotFound();
     }
@@ -268,6 +471,8 @@ class StudentPermissionsTest extends TestCase
         $user->id = '00000000-0000-4000-8000-000000000001';
         $user->instructor_id = $instructorId;
         $user->setRelation('roles', collect([Role::findByName($role, 'web')]));
+        $user->setRelation('notifications', collect());
+        $user->setRelation('unreadNotifications', collect());
         $this->actingAs($user);
     }
 }

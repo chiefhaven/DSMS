@@ -54,8 +54,9 @@ Engine capacity also requires `2026_11_11_005700_add_engine_capacity_to_fleets`.
 
 Instructor and administrator details have Profile and Account management tabs. Users with
 `manage instructor accounts` for instructors, or `manage administrator accounts` for
-administrators, can edit the linked account's username/email, set a
+administrators, can edit the linked account's email, set a
 confirmed password (minimum eight characters), and enable/disable login.
+Usernames are read-only; account-update requests cannot change them.
 Leaving the password blank preserves it. Disabling login retains the staff
 profile and any assignments, revokes API tokens/remember-me access, and blocks existing
 web sessions and authenticated API requests. Changing a password also revokes API
@@ -104,6 +105,13 @@ users with `manage administration` receive both permissions. Other users must
 be granted access explicitly; previously either route accepted any
 authenticated user.
 
+Sending student balance reminders requires `send balance reminders`; apply
+`2026_11_15_000100_seed_balance_reminder_permissions`. Existing
+`manage administration` roles and direct grants retain this action.
+Viewing the SMS-provider balance requires `view sms balance`; apply
+`2026_11_15_000200_seed_sms_balance_permission`. Existing users retain it only
+when they had both `manage finance` and `manage system`.
+
 Bulk attendance viewing, creation, editing, and deletion use separate
 permissions and also require `view students`. Apply
 `2026_11_12_001500_seed_bulk_attendance_permissions`. Users without
@@ -119,6 +127,11 @@ requires an instructor role and assignment. Student search also requires
 through their bulk group so mixed groups remain read-only.
 Student self-service remains available; student profiles retain their existing
 aggregate attendance progress under `view students`.
+Student usernames are displayed read-only in the Account tab and cannot be changed through student updates.
+Changing a student's login email requires `manage student accounts`; apply
+`2026_11_15_000300_seed_student_account_permissions`. Existing `edit students`
+role and direct grants retain this capability. The email remains visible but
+read-only in the profile form without that permission.
 
 Instructor bonus payment viewing and processing require separate permissions.
 Apply `2026_11_12_001700_seed_instructor_payment_permissions`. Previous
@@ -145,6 +158,8 @@ grants retain these actions. Creating an administrator also requires role
 assignment. Editing credentials requires account management, and changing roles
 requires role assignment; both permissions can affect privileged accounts.
 Profile edits preserve existing roles unless a role change is submitted.
+Assigning the `superAdmin` role additionally requires `manage system`; other
+administrator roles remain assignable with `assign administrator roles`.
 
 Lesson viewing, creation, editing, and deletion use separate permissions.
 Apply `2026_11_12_000400_seed_lesson_permissions`; existing `manage operations`

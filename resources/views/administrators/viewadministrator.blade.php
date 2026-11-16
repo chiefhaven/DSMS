@@ -1,5 +1,35 @@
 @extends('layouts.backend')
 
+@section('css_after')
+    <style>
+        #administrator .block {
+            margin-bottom: .75rem;
+        }
+        #administrator .nav-tabs-block .nav-link {
+            padding: .55rem .85rem;
+        }
+        #administrator .block-content.tab-content {
+            padding: .75rem;
+        }
+        .swal2-popup.administrator-account-dialog {
+            font-family: inherit;
+            font-size: 1rem;
+        }
+        .swal2-popup.administrator-account-dialog .swal2-title {
+            font-family: inherit;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        .swal2-popup.administrator-account-dialog .swal2-html-container,
+        .swal2-popup.administrator-account-dialog .swal2-styled,
+        .swal2-popup.administrator-account-dialog code {
+            font-family: inherit;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+    </style>
+@endsection
+
 @section('content')
     <div class="bg-body-light">
         <div class="content content-full">
@@ -21,19 +51,24 @@
     </div>
 
     <div class="content content-full" id="administrator">
-        <ul class="nav nav-tabs mb-4" role="tablist">
+        <div class="block block-rounded">
+        <ul class="nav nav-tabs nav-tabs-block" role="tablist" aria-label="Administrator details">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-panel"
-                        type="button" role="tab" aria-controls="profile-panel" aria-selected="true">Profile</button>
+                        type="button" role="tab" aria-controls="profile-panel" aria-selected="true">
+                    Profile
+                </button>
             </li>
             @can('manage administrator accounts')
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="account-tab" data-bs-toggle="tab" data-bs-target="#account-panel"
-                            type="button" role="tab" aria-controls="account-panel" aria-selected="false">Account management</button>
+                            type="button" role="tab" aria-controls="account-panel" aria-selected="false">
+                        Account
+                    </button>
                 </li>
             @endcan
         </ul>
-        <div class="tab-content">
+        <div class="block-content tab-content">
             <div class="tab-pane fade show active" id="profile-panel" role="tabpanel" aria-labelledby="profile-tab">
                 <div class="row g-3">
                     <div class="col-lg-7">
@@ -83,27 +118,136 @@
             </div>
             @can('manage administrator accounts')
                 <div class="tab-pane fade" id="account-panel" role="tabpanel" aria-labelledby="account-tab">
-                    <div class="card border-0 shadow-sm rounded-3">
-                        <div class="card-header bg-white border-bottom py-3 px-4">
-                            <h2 class="fs-6 fw-semibold mb-0">User account</h2>
-                        </div>
-                        <div class="card-body p-4">
-                            <x-staff-account-form :user="$administrator->User" profile-label="administrator" />
+                    <div class="row g-3">
+                        <div class="col-lg-7">
+                            <div class="card border-0 shadow-sm rounded-3">
+                                <div class="card-body p-3">
+                                    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+                                        <div>
+                                            <h2 class="fs-6 fw-semibold mb-1">Administrator account</h2>
+                                            <p class="text-muted small mb-0">Login details and account status.</p>
+                                        </div>
+                                        @if ($administrator->User)
+                                            <span class="badge {{ $administrator->User->is_active ? 'bg-success' : 'bg-secondary' }}">
+                                                {{ $administrator->User->is_active ? 'Active' : 'Inactive' }}
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    @if ($administrator->User)
+                                        <dl class="row g-2 mb-0">
+                                            <dt class="col-sm-4 text-muted fw-normal">Login email</dt>
+                                            <dd class="col-sm-8 mb-1">{{ $administrator->User->email ?? 'Not set' }}</dd>
+
+                                            <dt class="col-sm-4 text-muted fw-normal">Email verification</dt>
+                                            <dd class="col-sm-8 mb-0">
+                                                {{ $administrator->User->email_verified_at ? 'Verified' : 'Not verified' }}
+                                            </dd>
+                                        </dl>
+
+                                        <hr class="my-3">
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <form method="POST" action="{{ route('administrators.account.password-reset-link', $administrator) }}" @submit.prevent="submitAdministratorAccountAction($event, 'reset-link')">
+                                                @csrf
+                                                <button class="btn btn-sm btn-outline-primary" type="submit" :disabled="administratorAccountAction.loading">
+                                                    <span v-if="administratorAccountAction.loading && administratorAccountAction.action === 'reset-link'">Sending...</span>
+                                                    <span v-else>Send password reset link</span>
+                                                </button>
+                                            </form>
+                                            <form method="POST" action="{{ route('administrators.account.temporary-password', $administrator) }}" @submit.prevent="submitAdministratorAccountAction($event, 'temporary-password')">
+                                                @csrf
+                                                <button class="btn btn-sm btn-outline-warning" type="submit" :disabled="administratorAccountAction.loading">
+                                                    <span v-if="administratorAccountAction.loading && administratorAccountAction.action === 'temporary-password'">Generating...</span>
+                                                    <span v-else>Generate temporary password</span>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    @else
+                                        <p class="text-muted small mb-0">No administrator account is linked.</p>
+                                    @endif
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             @endcan
+        </div>
         </div>
     </div>
     @can('manage administrator accounts')
     <script>
         createApp({
             setup() {
-                @include('components.staff-account-state', [
-                    'accountUser' => $administrator->User,
-                    'accountUpdateUrl' => route('administrators.account.update', $administrator->id),
-                ])
-                return { account, accountSaving, accountErrors, accountMessage, accountError, saveAccount, resetAccount };
+                const administratorAccountAction = ref({ loading: false, action: null });
+                const submitAdministratorAccountAction = async (event, action) => {
+                    const form = event.currentTarget;
+                    administratorAccountAction.value.loading = true;
+                    administratorAccountAction.value.action = action;
+
+                    try {
+                        const response = await axios.post(form.action, new FormData(form), {
+                            headers: { Accept: 'application/json' },
+                        });
+
+                        if (response.data.temporary_password) {
+                            const passwordDialog = document.createElement('div');
+                            passwordDialog.className = 'text-start';
+
+                            const passwordLabel = document.createElement('p');
+                            passwordLabel.className = 'mb-2';
+                            passwordLabel.textContent = 'Temporary password (shown once):';
+
+                            const passwordValue = document.createElement('code');
+                            passwordValue.className = 'd-block p-2 bg-light rounded text-break';
+                            passwordValue.textContent = response.data.temporary_password;
+
+                            const instructions = document.createElement('p');
+                            instructions.className = 'small mt-3 mb-0';
+                            instructions.textContent = response.data.message;
+
+                            passwordDialog.append(passwordLabel, passwordValue, instructions);
+                            await Swal.fire({
+                                icon: 'warning',
+                                title: 'Temporary password generated',
+                                html: passwordDialog,
+                                confirmButtonText: 'Close',
+                                customClass: { popup: 'administrator-account-dialog' },
+                            });
+                        } else {
+                            await Swal.fire({
+                                icon: 'success',
+                                title: 'Password reset link sent',
+                                text: response.data.message,
+                                confirmButtonText: 'OK',
+                                customClass: { popup: 'administrator-account-dialog' },
+                            });
+                        }
+                    } catch (error) {
+                        const response = error.response;
+                        const status = response ? response.status : 0;
+                        let message = 'The request could not be completed. Please try again.';
+
+                        if ((status === 422 || status === 429 || status === 502) && response.data && response.data.message) {
+                            message = response.data.message;
+                        } else if (status === 403) {
+                            message = 'You are not authorized to manage this administrator account.';
+                        } else if (status === 0) {
+                            message = 'Network error. Check your connection and try again.';
+                        }
+
+                        await Swal.fire({
+                            icon: 'error',
+                            title: 'Unable to complete request',
+                            text: message,
+                            confirmButtonText: 'Close',
+                            customClass: { popup: 'administrator-account-dialog' },
+                        });
+                    } finally {
+                        administratorAccountAction.value.loading = false;
+                        administratorAccountAction.value.action = null;
+                    }
+                };
+                return { administratorAccountAction, submitAdministratorAccountAction };
             }
         }).mount('#administrator');
     </script>

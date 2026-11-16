@@ -63,7 +63,7 @@ class AttendanceController extends Controller
             ->limit(5000)
             ->get();
 
-        $instructor = $this->isInstructor() ? Auth::user()->instructor : null;
+        $instructor = Auth::user()->instructor;
 
         return view('attendances.attendances', compact('attendance', 'instructor'));
     }

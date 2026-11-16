@@ -33,6 +33,7 @@
         <div class="row">
 
             {{-- Scan for attendance --}}
+            @can('record attendances')
             <div class="col-md-6 mb-3">
                 <a href="{{ url('/scanqrcode') }}"
                    class="text-decoration-none">
@@ -56,6 +57,7 @@
                     </div>
                 </a>
             </div>
+            @endcan
 
             {{-- Schedule lesson --}}
             <div class="col-md-6 mb-3">

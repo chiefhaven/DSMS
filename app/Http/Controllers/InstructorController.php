@@ -281,7 +281,7 @@ class InstructorController extends Controller
                 $delete = '';
                 $paymentReminder = '';
 
-                if (auth()->user()->can('manage administration') && ($student->invoice->invoice_balance ?? 0) > 0) {
+                if (auth()->user()->can('send balance reminders') && ($student->invoice->invoice_balance ?? 0) > 0) {
                     $paymentReminder = '
                         <form method="POST" action="' . url('send-balance-sms', [$student->id, 'Balance']) . '">
                             ' . csrf_field() . '
@@ -558,7 +558,13 @@ class InstructorController extends Controller
         $instructor = Instructor::with('User')->findOrFail($id);
         $district = district::get();
         $departments = Department::get();
-        return view('instructors.editinstructor', [ 'instructor' => $instructor ], compact('instructor', 'district', 'departments'));
+        $hrDepartments = auth()->user()->can('process payroll')
+            ? \App\Models\HrDepartment::orderBy('name')->get()
+            : collect();
+        $designations = auth()->user()->can('process payroll')
+            ? \App\Models\Designation::orderBy('name')->get()
+            : collect();
+        return view('instructors.editinstructor', [ 'instructor' => $instructor ], compact('instructor', 'district', 'departments', 'hrDepartments', 'designations'));
     }
 
     /**
@@ -653,6 +659,18 @@ class InstructorController extends Controller
         }
 
         $instructor->department_id = $post['department'];
+
+        if ($request->user()->can('process payroll')
+            && ($request->exists('hr_department_id') || $request->exists('basic_salary') || $request->exists('designation_id'))) {
+            $hrm = $request->validate([
+                'hr_department_id' => 'nullable|exists:hr_departments,id',
+                'designation_id' => 'nullable|exists:designations,id',
+                'basic_salary' => 'nullable|numeric|min:0',
+            ]);
+            $instructor->hr_department_id = $hrm['hr_department_id'] ?? null;
+            $instructor->designation_id = $hrm['designation_id'] ?? null;
+            $instructor->basic_salary = $hrm['basic_salary'] ?? null;
+        }
 
         if($filename ?? false){
             $instructor->signature = $filename;

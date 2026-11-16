@@ -10,11 +10,11 @@ use App\Http\Requests\UpdateRoleRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use Database\Seeders\AccessPermissionsSeeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
 class RoleManagementTest extends TestCase
@@ -150,6 +150,48 @@ class RoleManagementTest extends TestCase
         $this->assertTrue(validator(['name' => 'cashier', 'permissions' => ['view students']], $rules)->passes());
     }
 
+    public function test_role_forms_and_requests_accept_only_web_guard_permissions(): void
+    {
+        Permission::create(['name' => 'create roles', 'guard_name' => 'web']);
+        Permission::create(['name' => 'edit roles', 'guard_name' => 'web']);
+        Permission::create(['name' => 'api-only', 'guard_name' => 'api']);
+
+        $form = app(RoleController::class)->create();
+        $this->assertNotContains('api-only', $form->getData()['permissionGroups']->flatten()->all());
+
+        $target = Role::create(['name' => 'target', 'guard_name' => 'web']);
+        $editorRole = Role::create(['name' => 'role-editor', 'guard_name' => 'web']);
+        $editorRole->givePermissionTo(['create roles', 'edit roles']);
+        $user = new User;
+        $user->id = '00000000-0000-4000-8000-000000000001';
+        $user->setRelation('roles', collect([$editorRole]));
+
+        $this->actingAs($user)
+            ->postJson('/roles', ['name' => 'api-permission-role', 'permissions' => ['api-only']])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('permissions.0');
+
+        $this->putJson('/roles/'.$target->id, ['name' => 'target', 'permissions' => ['api-only']])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('permissions.0');
+    }
+
+    public function test_role_management_is_scoped_to_the_web_guard(): void
+    {
+        $apiRole = Role::create(['name' => 'api-role', 'guard_name' => 'api']);
+        Role::create(['name' => 'web-role', 'guard_name' => 'web']);
+
+        $roles = app(RoleController::class)->index()->getData()['roles'];
+        $this->assertSame(['web-role'], $roles->pluck('name')->all());
+        $this->assertTrue(validator(
+            ['name' => 'api-role'],
+            (new StoreRoleRequest())->rules()
+        )->passes());
+
+        $this->expectException(\Symfony\Component\HttpKernel\Exception\NotFoundHttpException::class);
+        app(RoleController::class)->edit($apiRole);
+    }
+
     public function test_access_permissions_are_granted_when_roles_are_seeded(): void
     {
         (new AccessPermissionsSeeder())->run();
@@ -179,14 +221,19 @@ class RoleManagementTest extends TestCase
         $this->assertNotNull(Role::where('name', 'Super-Admin')->first());
     }
 
-    public function test_unprivileged_user_cannot_send_sms(): void
+    public function test_sms_transport_helper_does_not_require_an_unrelated_admin_permission(): void
     {
-        $user = new User;
-        $user->setRelation('roles', collect());
-        $this->actingAs($user);
+        config([
+            'services.smsApi.url' => 'https://sms.example.test',
+            'services.smsApi.token' => 'test-token',
+            'services.smsApi.from' => 'Test',
+        ]);
+        Http::fake(['https://sms.example.test/*' => Http::response(['sent' => true], 200)]);
 
-        $this->expectException(HttpException::class);
-        app(NotificationController::class)->sendSMS('message', '123');
+        $response = app(NotificationController::class)->sendSMS('message', '123');
+
+        $this->assertSame(200, $response['statusCode']);
+        Http::assertSent(fn ($request) => $request->url() === 'https://sms.example.test/sms/send');
     }
 
     public function test_unprivileged_user_cannot_create_invoice_payment(): void

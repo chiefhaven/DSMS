@@ -223,7 +223,7 @@ Route::post('/settings-update', [SettingController::class, 'update'])->middlewar
 Route::post('/attendance-time-update', [SettingController::class, 'attendanceTimeUpdate'])->middleware('auth')->name('attendance-time-update');
 Route::post('/invoicesettings-update', [InvoiceSettingController::class, 'update'])->middleware('auth')->name('invoicesettings-update');
 
-Route::get('/super-admin-profile', [InstructorController::class, 'show-super-admin'])->middleware('auth')->name('super-admin-profile');
+Route::get('/super-admin-profile', [AdministratorController::class, 'showProfile'])->middleware('auth')->name('super-admin-profile');
 
 Route::get('/expensedownload/{expense}', [ExpenseController::class, 'download'])->middleware('auth')->name('downloadexpense');
 Route::get('/search-expense', [ExpenseController::class, 'searchExpense'])->middleware('auth')->name('searchExpense');
@@ -279,7 +279,7 @@ Route::get('/e8704ed2-d90e-41ca-9143/{token}', [InvoiceController::class, 'unaut
 
 Route::get("/scanqrcode", function(){
     return view("qrCodeScanner");
- })->middleware('auth');
+ })->middleware(['auth', 'permission:record attendances|record expense payments']);
 
  Route::get('/migrate', function () {
     // Check that the environment is not production before running the migration
@@ -299,7 +299,9 @@ Route::get("/scanqrcode", function(){
 
 Route::get('/lesson-search', [havenUtils::class, 'autocompleteLessonSearch'])
     ->middleware(['auth', 'permission:view lessons|edit course lessons'])->name('lesson-search');
-Route::post('/check-class-fleet-assignment', [havenUtils::class, 'checkInstructorClassFleetAssignment'])->middleware('auth')->name('check-class-fleet-assignment');
+Route::post('/check-class-fleet-assignment', [havenUtils::class, 'checkInstructorClassFleetAssignment'])
+    ->middleware(['auth', 'permission:create classrooms|edit classrooms'])
+    ->name('check-class-fleet-assignment');
 
 Route::get('/get-all-vehicle-locations', [VehicleTrackerController::class, 'show'])->name('vehicle-locations')->middleware(['auth', 'permission:view vehicle locations']);
 

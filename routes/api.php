@@ -65,7 +65,9 @@ Route::get('/attendance', [studentProfileController::class, 'showAttendance'])->
 Route::get('/students', [StudentController::class, 'fetchStudents'])->middleware('auth:sanctum')->name('api.students.index');
 Route::get('/instructor-students', [StudentController::class, 'fetchInstructorStudents'])->name('InstructorStudents')->middleware('auth:sanctum');
 
-Route::get('/fetch-instructors', [havenUtils::class, 'fetchInstructors'])->name('fetchInstructors')->middleware('auth:sanctum');
+Route::get('/fetch-instructors', [havenUtils::class, 'fetchInstructors'])
+    ->name('fetchInstructors')
+    ->middleware(['auth:sanctum', 'permission:send announcements']);
 
 
 Route::get('/courses', [studentProfileController::class, 'courses'])->middleware('auth:sanctum')->name('api.student.courses');
@@ -84,7 +86,7 @@ Route::get('/student-lessons', [havenUtils::class, 'getStudentLessons'])
     ->name('api.student-lessons');
 
 Route::get('/lessons', [havenUtils::class, 'getLessons'])
-    ->middleware('auth:sanctum')
+    ->middleware(['auth:sanctum', 'permission:view lessons|edit bulk attendances'])
     ->name('api.lessons');
 
 Route::get("/bulk-attendances", [BulkAttendanceController::class, 'index'])->middleware('auth')->name('api.bulk-attendances');
@@ -120,7 +122,9 @@ Route::post('/studentExpensePayment/{student}/{expense}', [ExpensePaymentControl
     ->name('makeExpensePayment')
     ->middleware('auth:sanctum');
 
-Route::get('/getPaymentMethods', [PaymentMethodController::class, 'fetchPaymentMethods'])->name('paymentMethods')->middleware('auth:sanctum');
+Route::get('/getPaymentMethods', [PaymentMethodController::class, 'fetchPaymentMethods'])
+    ->name('paymentMethods')
+    ->middleware(['auth:sanctum', 'permission:record fee payments']);
 
 Route::post('/save-vehicle-location', [VehicleTrackerController::class, 'store'])->name('save-vehicle-location')->middleware(['auth:sanctum', 'permission:record vehicle locations']);
 
@@ -129,15 +133,24 @@ Route::middleware(['auth:sanctum', 'permission:view vehicle locations'])->group(
     Route::get('/show-vehicle-geo-data/{vehicleId}', [VehicleTrackerController::class, 'showVehicleGeoData'])->name('api.vehicle-location');
 });
 
-Route::get('/getExpenceTypeOption/{id}', [havenUtils::class, 'getExpenceTypeOption'])->name('getExpenceTypeOption')->middleware('auth:sanctum');
+Route::middleware([
+    'auth:sanctum',
+    'permission:view expense types|record expense payments|view expenses|create expenses|edit expenses|review expenses',
+])->group(function () {
+    Route::get('/getExpenceTypeOption/{id}', [havenUtils::class, 'getExpenceTypeOption'])->name('getExpenceTypeOption');
 
-Route::get('/getExpenseTypeOptions', [havenUtils::class, 'getExpenseTypeOptions'])->name('getExpenseTypeOptions')->middleware('auth:sanctum');
+    Route::get('/getExpenseTypeOptions', [havenUtils::class, 'getExpenseTypeOptions'])->name('getExpenseTypeOptions');
+});
 
 Route::get('/student-lesson-attendances-count', [havenUtils::class, 'StudentLessonAttendancesCount'])->middleware('auth:sanctum')->name('StudentLessonAttendancesCount');
 
-Route::get('/sms-balance', [havenUtils::class, 'getSmsBalance'])->name('sms.balance')->middleware('auth:sanctum');
+Route::get('/sms-balance', [havenUtils::class, 'getSmsBalance'])
+    ->name('sms.balance')
+    ->middleware(['auth:sanctum', 'permission:view sms balance']);
 
-Route::get('/licence-classes', [havenUtils::class, 'getLicenceClasses'])->name('getLicenceClasses')->middleware('auth:sanctum');
+Route::get('/licence-classes', [havenUtils::class, 'getLicenceClasses'])
+    ->name('getLicenceClasses')
+    ->middleware(['auth:sanctum', 'permission:view expense types|create expense types|edit expense types']);
 
 Route::post('/sendAnnouncement', [AnnouncementController::class,'send'])->middleware('auth:sanctum')->name('sendAnnouncement');
 

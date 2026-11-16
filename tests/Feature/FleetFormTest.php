@@ -111,9 +111,8 @@ class FleetFormTest extends TestCase
         $this->assertStringContainsString('&lt;script&gt;invalid&lt;/script&gt;', $html);
         $html = view('fleet.partials.list-cell', ['car' => $car, 'field' => 'actions'])->render();
         $this->assertStringContainsString('btn-sm btn-primary rounded-pill px-3', $html);
-        foreach (['show', 'edit', 'destroy'] as $action) {
-            $this->assertStringContainsString(route('fleet.'.$action, 17), $html);
-        }
+        $this->assertStringContainsString(route('fleet.show', 17), $html);
+        $this->assertStringNotContainsString(route('fleet.edit', 17), $html);
         $this->assertStringContainsString('Not assigned', view('fleet.partials.list-cell', ['car' => $car, 'field' => 'instructor_name'])->render());
         foreach ([null => false, '2026-11-11' => true, '2026-11-30' => true, '2026-12-01' => true, '2026-12-02' => false] as $date => $warning) {
             $car->insurance_expiry = $date ?: null;

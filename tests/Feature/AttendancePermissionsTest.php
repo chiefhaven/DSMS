@@ -135,6 +135,15 @@ class AttendancePermissionsTest extends TestCase
         $this->getJson('/attendanceSummary/one?period=invalid')->assertUnprocessable();
     }
 
+    public function test_custom_attendance_reader_with_instructor_profile_sees_report_controls(): void
+    {
+        $role = Role::create(['name' => 'attendance-report-reader', 'guard_name' => 'web']);
+        $role->givePermissionTo(['view attendances', 'download attendance reports']);
+        $this->authenticate($role, 'one');
+
+        $this->get('/attendances')->assertOk()->assertSee('id="period"', false);
+    }
+
     public function test_edit_delete_and_report_permissions_respect_scope_and_bulk_boundary(): void
     {
         $role = Role::create(['name' => 'attendance-editor', 'guard_name' => 'web']);
@@ -175,9 +184,11 @@ class AttendancePermissionsTest extends TestCase
         $this->authenticate($role, 'one');
         $this->getJson('/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/own')->assertForbidden();
         $this->postJson('/addattendance/own')->assertForbidden();
+        $this->assertStringNotContainsString('Scan for attendance', view('layouts.partials.main_nav')->render());
 
         $role->givePermissionTo('record attendances');
         $this->authenticate($role, 'one');
+        $this->assertStringContainsString('Scan for attendance', view('layouts.partials.main_nav')->render());
         $controller = Mockery::mock(AttendanceController::class)->makePartial();
         $controller->shouldReceive('create')->once()->andReturn(response('QR allowed'));
         app()->instance(AttendanceController::class, $controller);
@@ -185,6 +196,20 @@ class AttendancePermissionsTest extends TestCase
 
         auth()->logout();
         $this->get('/e8704ed2-d90e-41ca-9143-ceb2bb517cc7/own')->assertRedirect(route('docsQrCode', ['token' => 'own']));
+    }
+
+    public function test_scan_page_requires_a_supported_action_permission(): void
+    {
+        $this->authenticate(Role::findByName('student', 'web'));
+        $this->get('/scanqrcode')->assertForbidden();
+
+        $this->authenticate(Role::findByName('instructor', 'web'));
+        $this->get('/scanqrcode')->assertOk();
+
+        $expenseScanner = Role::create(['name' => 'expense-scanner', 'guard_name' => 'web']);
+        $expenseScanner->givePermissionTo(Permission::findOrCreate('record expense payments', 'web'));
+        $this->authenticate($expenseScanner);
+        $this->get('/scanqrcode')->assertOk();
     }
 
     public function test_student_self_service_remains_available_and_scoped(): void

@@ -104,7 +104,7 @@ class FleetDataTableTest extends TestCase
         $this->assertStringContainsString('text-danger', $page['data'][0]['insurance_expiry']);
         $this->assertStringNotContainsString('text-danger', $page['data'][1]['insurance_expiry']);
         $this->assertStringContainsString('&lt;script&gt;', $page['data'][0]['vehicle']);
-        $this->assertStringContainsString(route('fleet.edit', 1), $page['data'][0]['actions']);
+        $this->assertStringNotContainsString(route('fleet.edit', 1), $page['data'][0]['actions']);
         $last = $this->fetch(['start' => 2]);
         $this->assertSame([3], array_column($last['data'], 'id'));
         $this->assertStringContainsString('Not assigned', $last['data'][0]['instructor_name']);

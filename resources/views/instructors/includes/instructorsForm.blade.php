@@ -166,6 +166,58 @@
 
     <div class="content-heading"><p>&nbsp;</p></div>
 
+    @if(($hrDepartments ?? null) !== null && auth()->user()->can('process payroll'))
+    <div class="col-lg-4">
+        <p class="text-muted">
+            HRM — HR department and basic salary used for payroll
+        </p>
+    </div>
+
+    <div class="col-lg-8 col-xl-5">
+        <div class="form-floating mb-4">
+            <select class="form-select" id="hr_department_id" name="hr_department_id">
+                <option value="" {{ old('hr_department_id', optional($instructor)->hr_department_id) ? '' : 'selected' }}>No department</option>
+                @foreach ($hrDepartments as $hrDepartment)
+                    <option value="{{ $hrDepartment->id }}"
+                            {{ old('hr_department_id', optional($instructor)->hr_department_id) == $hrDepartment->id ? 'selected' : '' }}>
+                        {{ $hrDepartment->name }}
+                    </option>
+                @endforeach
+            </select>
+            <label for="hr_department_id">HR department</label>
+        </div>
+        <div class="form-floating mb-4">
+            <select class="form-select" id="designation_id" name="designation_id" onchange="prefillDesignationSalary(this)">
+                <option value="" {{ old('designation_id', optional($instructor)->designation_id) ? '' : 'selected' }}>No designation</option>
+                @foreach ($designations ?? [] as $designation)
+                    <option value="{{ $designation->id }}" data-salary="{{ $designation->basic_salary }}"
+                            {{ old('designation_id', optional($instructor)->designation_id) == $designation->id ? 'selected' : '' }}>
+                        {{ $designation->name }}{{ $designation->basic_salary !== null ? ' — K' . number_format((float) $designation->basic_salary, 2) : '' }}
+                    </option>
+                @endforeach
+            </select>
+            <label for="designation_id">Designation</label>
+        </div>
+        <div class="form-floating mb-4">
+            <input type="number" step="0.01" min="0" class="form-control" id="basic_salary" name="basic_salary"
+                   placeholder="0.00" value="{{ old('basic_salary', optional($instructor)->basic_salary) }}">
+            <label class="form-label" for="basic_salary">Basic salary (K)</label>
+            <div class="form-text">Leave blank to use the designation's default salary in payroll.</div>
+        </div>
+        <script>
+            function prefillDesignationSalary(select) {
+                const salaryInput = document.getElementById('basic_salary');
+                const salary = select.options[select.selectedIndex]?.dataset.salary;
+                if (salaryInput && !salaryInput.value && salary) {
+                    salaryInput.value = salary;
+                }
+            }
+        </script>
+    </div>
+
+    <div class="content-heading"><p>&nbsp;</p></div>
+    @endif
+
     <div class="col-lg-4">
         <p class="text-muted">
             Login details

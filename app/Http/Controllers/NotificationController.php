@@ -14,10 +14,10 @@ use Illuminate\Support\Facades\Log;
 
 class NotificationController extends Controller
 {
-    // public function __construct()
-    // {
-    //     $this->middleware(['permission:access portal admin']);
-    // }
+    public function __construct()
+    {
+        $this->middleware('permission:send balance reminders')->only('balanceSMS');
+    }
 
     /**
      * Display a listing of the resource.
@@ -85,8 +85,6 @@ class NotificationController extends Controller
      */
     public function sendSMS($sms_body, $destination)
     {
-        abort_unless(auth()->user()?->can('manage administration'), 403, 'Unauthorized action.');
-
         try {
 
             $destination = preg_replace('/\D/', '', $destination); // Remove non-numeric characters
