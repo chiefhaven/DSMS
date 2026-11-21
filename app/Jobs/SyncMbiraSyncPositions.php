@@ -43,6 +43,6 @@ class SyncMbiraSyncPositions implements ShouldQueue
             );
         }
 
-        Log::info('MbiraSync: synced ' . count($positions) . ' positions.');
+        //Log::info('MbiraSync: synced ' . count($positions) . ' positions.');
     }
 }

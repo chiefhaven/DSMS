@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Log;
 
 class SmsChannel
 {
+    private const DEFAULT_COUNTRY_CODE = '265';
+
     public function send($notifiable, Notification $notification): void
     {
         if (!method_exists($notification, 'toSms')) {
@@ -16,12 +18,12 @@ class SmsChannel
         $message = $notification->toSms($notifiable);
 
         // Flexible phone resolution — works for User, Student, or any notifiable
-        $phoneNumber = $notifiable->phone
+        $phoneNumber = $this->normalizePhoneNumber($notifiable->phone
             ?? $notifiable->student?->phone
-            ?? null;
+            ?? null);
 
-        if (!$phoneNumber) {
-            Log::warning('SMS skipped: no phone number found.', [
+        if ($phoneNumber === null) {
+            Log::warning('SMS skipped: no valid phone number found.', [
                 'notifiable_type' => get_class($notifiable),
                 'notifiable_id'   => $notifiable->getKey(),
                 'notification'    => get_class($notification),
@@ -64,5 +66,36 @@ class SmsChannel
                 'error'         => $e->getMessage(),
             ]);
         }
+    }
+
+    private function normalizePhoneNumber(mixed $phoneNumber): ?string
+    {
+        if ($phoneNumber === null) {
+            return null;
+        }
+
+        $rawPhoneNumber = trim((string) $phoneNumber);
+        $digits = preg_replace('/\D+/', '', $rawPhoneNumber);
+        if ($digits === '') {
+            return null;
+        }
+
+        if (str_starts_with($rawPhoneNumber, '+')) {
+            return $digits;
+        }
+
+        if (str_starts_with($digits, '00')) {
+            $internationalNumber = substr($digits, 2);
+            return $internationalNumber !== '' ? $internationalNumber : null;
+        }
+
+        if (str_starts_with($digits, self::DEFAULT_COUNTRY_CODE)) {
+            return $digits;
+        }
+
+        $localNumber = ltrim($digits, '0');
+        return $localNumber !== ''
+            ? self::DEFAULT_COUNTRY_CODE . $localNumber
+            : null;
     }
 }
