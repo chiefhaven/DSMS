@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -18,6 +19,15 @@ class Expense extends Model
     protected $casts = [
         'date_approved' => 'datetime'
     ];
+
+    public static function readableBy(User $user): Builder
+    {
+        if ($user->hasRole('admin')) {
+            return static::query()->where('added_by', $user->administrator_id);
+        }
+
+        return static::query();
+    }
 
     public function Students()
     {

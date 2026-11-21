@@ -1,83 +1,115 @@
 @extends('layouts.backend')
 
 @section('content')
-    <!-- Hero -->
-    <div class="bg-body-light">
-    <div class="content content-full">
-        <div class="d-flex flex-sm-row justify-content-sm-between align-items-sm-center">
-        <h1 class="flex-grow-1 fs-3 fw-semibold my-2 my-sm-3">Notifications</h1>
-        <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3" aria-label="breadcrumb">
-
-            @if(Session::has('message'))
-            <div class="alert alert-info">
-                {{Session::get('message')}}
-            </div>
-            @endif
-
-            @can('manage administration')
-                <div class="dropdown d-inline-block">
-
-                </div>
-            @endcan
-        </nav>
+    <div class="content content-full notification-page">
+      <div class="notification-page-heading">
+        <div>
+          <span class="notification-page-eyebrow">Activity center</span>
+          <h1 class="fs-3 fw-semibold">Notifications</h1>
         </div>
-    </div>
-    </div>
+        <form action="{{ route('notifications.markAllRead', [], false) }}" method="POST">
+          @csrf
+          @method('PATCH')
+          <button type="submit" class="notification-page-mark-all">
+            <i class="fa fa-check-double me-2" aria-hidden="true"></i>
+            Mark all as read
+          </button>
+        </form>
+      </div>
 
-    <div class="content content-full" id="groupNotifications">
-        <div class="bg-light p-4">
-          <div v-if="isLoading" class="text-center py-7">
-            <span class="spinner-border text-primary" role="status"></span>
-            <p>Loading notifications</p>
+      <div class="notification-center" id="groupNotifications"
+           data-load-url="{{ route('notifications.loadNotications', [], false) }}"
+           data-read-url="{{ route('notifications.read', ['notificationId' => '__notification__'], false) }}">
+        <div class="notification-toolbar">
+          <button type="button"
+                  class="notification-filter"
+                  :class="{ active: activeFilter === 'all' }"
+                  @click="activeFilter = 'all'">
+            All <span>@{{ notifications.length }}</span>
+          </button>
+          <button type="button"
+                  class="notification-filter"
+                  :class="{ active: activeFilter === 'unread' }"
+                  @click="activeFilter = 'unread'">
+            Unread <span>@{{ unreadCount }}</span>
+          </button>
+        </div>
+
+        <div class="notification-list-wrap">
+          <div v-if="isLoading" class="notifications-list" aria-busy="true" aria-label="Loading notifications">
+            <article v-for="n in 5" :key="n" class="notification-card notification-skeleton-card" aria-hidden="true">
+              <div class="notification-skeleton notification-skeleton-icon"></div>
+              <div class="notification-card-copy">
+                <div class="notification-skeleton notification-skeleton-title"></div>
+                <div class="notification-skeleton notification-skeleton-body"></div>
+                <div class="notification-skeleton notification-skeleton-meta"></div>
+              </div>
+            </article>
           </div>
 
           <div v-else>
-            <div v-if="notifications.length > 0">
-              <!-- Scroll container -->
-              <div
-                class="notifications-list"
-                style="max-height: 1000px; overflow-y: auto;"
-                @scroll="loadMoreNotifications"
-              >
-                <div v-for="notification in notifications" :key="notification.id">
-                  <a href="#" class="text-reset" @click.prevent="markAsRead(notification)">
-                    <p
-                      class="p-3 m-2 rounded"
-                      :style="{
-                        backgroundColor: notification.read_at ? '#f8f9fa' : '#3de6ff',
-                        color: notification.read_at ? '#303030' : 'black',
-                        borderLeft: `5px solid ${notification.read_at ? '#ccc' : '#007bff'}`,
-                      }"
-                    >
-                      <strong>@{{ notification.data.title || 'No Title' }}</strong><br />
-                      @{{ notification.data.body || 'No Body' }}<br />
-                      <small>@{{ timeAgo(notification.created_at) }}</small>
-                    </p>
-                  </a>
-                </div>
+            <div v-if="filteredNotifications.length > 0">
+              <div class="notifications-list" @scroll="loadMoreNotifications">
+                <article v-for="notification in filteredNotifications" :key="notification.id"
+                         class="notification-card"
+                         :class="{ 'is-unread': !notification.read_at }"
+                         @click="markAsRead(notification)">
+                  <div class="notification-card-icon">
+                    <i class="fa fa-bell" aria-hidden="true"></i>
+                  </div>
+                  <div class="notification-card-copy">
+                    <div class="notification-card-title-row">
+                      <strong>@{{ notification.data.title || 'Notification' }}</strong>
+                      <span v-if="!notification.read_at" class="notification-card-new">New</span>
+                    </div>
+                    <p>@{{ notification.data.body || 'You have a new update.' }}</p>
+                    <small>@{{ timeAgo(notification.created_at) }}</small>
+                  </div>
+                  <button type="button" class="notification-card-open" aria-label="Open notification">
+                    <i class="fa fa-chevron-right" aria-hidden="true"></i>
+                  </button>
+                </article>
 
-                <div v-if="isLoadingMore" class="text-center p-2">
-                  <span class="spinner-border spinner-border-sm text-primary"></span> Loading more...
+                <article v-if="isLoadingMore" v-for="n in 2" :key="`loading-${n}`"
+                         class="notification-card notification-skeleton-card" aria-hidden="true">
+                  <div class="notification-skeleton notification-skeleton-icon"></div>
+                  <div class="notification-card-copy">
+                    <div class="notification-skeleton notification-skeleton-title"></div>
+                    <div class="notification-skeleton notification-skeleton-body"></div>
+                    <div class="notification-skeleton notification-skeleton-meta"></div>
+                  </div>
+                </article>
+                <div v-else-if="allLoaded && notifications.length > 0" class="notification-end">
+                  You are all caught up
                 </div>
               </div>
             </div>
 
-            <p v-else class="text-center p-3 text-muted">
-              <i class="fa fa-bell-slash"></i> No notifications available.
-            </p>
+            <div v-else class="notification-empty-state">
+              <div class="notification-empty-icon">
+                <i class="fa fa-bell-slash" aria-hidden="true"></i>
+              </div>
+              <h2>@{{ activeFilter === 'unread' ? 'No unread notifications' : 'No notifications yet' }}</h2>
+              <p>@{{ activeFilter === 'unread' ? 'You have reviewed all your updates.' : 'New updates will appear here.' }}</p>
+            </div>
           </div>
         </div>
       </div>
+    </div>
 
     <script>
 
         const sendGroupNotification = createApp({
           setup() {
+            const root = document.getElementById('groupNotifications');
+            const loadUrl = root.dataset.loadUrl;
+            const readUrl = root.dataset.readUrl;
             const notifications = ref([]);
             const isLoading = ref(false);
             const page = ref(1);
             const allLoaded = ref(false);
             const isLoadingMore = ref(false);
+            const activeFilter = ref('all');
 
             const loadNotifications = async (loadPage = 1) => {
                 if(loadPage === 1) {
@@ -86,12 +118,13 @@
                   isLoadingMore.value = true;
                 }
                 try {
-                  const response = await axios.get(`/load-notifications?page=${loadPage}`);
+                  const response = await axios.get(`${loadUrl}?page=${loadPage}`);
                   if(loadPage === 1){
                     notifications.value = response.data;
                   } else {
                     notifications.value.push(...response.data);
                   }
+                  allLoaded.value = response.data.length < 10;
                   page.value = loadPage;
                 } catch (error) {
                   showError('Failed to load notifications', error.message);
@@ -101,33 +134,8 @@
                 }
               };
 
-            // Scroll handler to detect when near bottom
-            const onScroll = () => {
-              const container = document.getElementById('notifications');
-              if (!container) return;
-
-              const threshold = 150; // px from bottom to trigger load
-              if (container.scrollTop + container.clientHeight >= container.scrollHeight - threshold) {
-                loadNotifications();
-              }
-            };
-
             onMounted(() => {
-              nextTick(() => {
-                loadNotifications();
-
-                const container = document.getElementById('notifications');
-                if (container) {
-                  container.addEventListener('scroll', onScroll);
-                }
-              });
-            });
-
-            onUnmounted(() => {
-              const container = document.getElementById('notifications');
-              if (container) {
-                container.removeEventListener('scroll', onScroll);
-              }
+              nextTick(() => loadNotifications());
             });
 
             const markAsRead = async (notification) => {
@@ -135,11 +143,12 @@
               try {
                 const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-                await axios.patch(`/notifications/${notification.id}/read`, { api: true }, {
+                const notificationReadUrl = readUrl.replace('__notification__', encodeURIComponent(notification.id));
+                await axios.patch(notificationReadUrl, { api: true }, {
                   headers: { 'X-CSRF-TOKEN': csrfToken }
                 });
 
-                window.location.href = notification.data.url;
+                window.location.href = notification.data.url || '/';
 
               } catch (error) {
                 console.log(error);
@@ -166,19 +175,37 @@
               });
             };
 
-            const loadMoreNotifications = () => {
-                if(!isLoadingMore.value) {
+            const loadMoreNotifications = (event) => {
+                const container = event.target;
+                if (
+                  container.scrollTop + container.clientHeight >= container.scrollHeight - 120 &&
+                  !isLoadingMore.value &&
+                  !allLoaded.value
+                ) {
                   loadNotifications(page.value + 1);
                 }
             };
 
+            const unreadCount = computed(() =>
+              notifications.value.filter(notification => !notification.read_at).length
+            );
+            const filteredNotifications = computed(() =>
+              activeFilter.value === 'unread'
+                ? notifications.value.filter(notification => !notification.read_at)
+                : notifications.value
+            );
+
             return {
               notifications,
+              activeFilter,
+              unreadCount,
+              filteredNotifications,
               timeAgo,
               markAsRead,
               isLoading,
               loadMoreNotifications,
-              isLoadingMore
+              isLoadingMore,
+              allLoaded
             };
           }
         });

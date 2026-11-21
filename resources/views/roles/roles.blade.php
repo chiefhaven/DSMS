@@ -40,7 +40,7 @@
                                         <div class="dropdown d-inline-block">
                                             <button class="btn btn-sm btn-primary rounded-pill px-3 text-nowrap" data-bs-toggle="dropdown"><i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions</button>
                                             <div class="dropdown-menu dropdown-menu-end p-2">
-                                                @if (in_array($role->name, ['superAdmin', 'Super-Admin'], true))
+                                                @if ($role->name === 'superAdmin')
                                                     <span class="dropdown-item-text text-muted">Protected role</span>
                                                 @else
                                                     @can('edit roles')
@@ -64,7 +64,7 @@
                                     <td class="fw-semibold">{{ $role->name }}</td>
                                     <td class="text-center">{{ $role->users_count }}</td>
                                     <td class="text-center">
-                                        {{ in_array($role->name, ['superAdmin', 'Super-Admin'], true) ? 'All' : $role->permissions_count }}
+                                        {{ $role->name === 'superAdmin' ? 'All' : $role->permissions_count }}
                                     </td>
                                 </tr>
                             @endforeach

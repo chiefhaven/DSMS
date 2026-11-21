@@ -25,7 +25,7 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        Gate::before(fn ($user) => $user->hasAnyRole(['superAdmin', 'Super-Admin']) ? true : null);
+        Gate::before(fn ($user) => $user->hasRole('superAdmin') ? true : null);
 
         Gate::define('view-dashboard', fn ($user) =>
             $user->can('access management')

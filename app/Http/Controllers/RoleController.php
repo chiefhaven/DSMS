@@ -10,7 +10,7 @@ use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
-    private const PROTECTED_ROLES = ['superAdmin', 'Super-Admin'];
+    private const PROTECTED_ROLES = ['superAdmin'];
 
     public function __construct()
     {

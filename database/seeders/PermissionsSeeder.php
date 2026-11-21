@@ -67,7 +67,7 @@ class PermissionsSeeder extends Seeder
         $role2->givePermissionTo('create reference letters');
         $role2->givePermissionTo('view settings');
 
-        $role3 = Role::create(['name' => 'Super-Admin']);
+        $role3 = Role::findOrCreate('superAdmin', 'web');
         // gets all permissions via Gate::before rule; see AuthServiceProvider
 
         $this->call(AccessPermissionsSeeder::class);
@@ -86,7 +86,7 @@ class PermissionsSeeder extends Seeder
         $user->assignRole($role2);
 
         $user = \App\Models\User::factory()->create([
-            'name' => 'Example Super-Admin User',
+            'name' => 'Example Super Admin User',
             'email' => 'superadmin@example.com',
         ]);
         $user->assignRole($role3);

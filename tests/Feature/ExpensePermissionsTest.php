@@ -79,10 +79,14 @@ class ExpensePermissionsTest extends TestCase
             $table->decimal('paid')->nullable();
             $table->timestamps();
         });
-        DB::table('administrators')->insert(['id' => 'admin-1', 'fname' => 'Test', 'sname' => 'Admin']);
+        DB::table('administrators')->insert([
+            ['id' => 'admin-1', 'fname' => 'Test', 'sname' => 'Admin'],
+            ['id' => 'admin-2', 'fname' => 'Other', 'sname' => 'Admin'],
+        ]);
         DB::table('expenses')->insert([
             ['id' => '00000000-0000-4000-8000-000000000011', 'group' => '01/01/2026', 'added_by' => 'admin-1', 'approved' => 0],
             ['id' => '00000000-0000-4000-8000-000000000012', 'group' => '02/01/2026', 'added_by' => 'admin-1', 'approved' => 1],
+            ['id' => '00000000-0000-4000-8000-000000000013', 'group' => '03/01/2026', 'added_by' => 'admin-2', 'approved' => 0],
         ]);
         DB::table('expense_student')->insert([
             ['student_id' => 'student-1', 'expense_id' => '00000000-0000-4000-8000-000000000011'],
@@ -155,6 +159,26 @@ class ExpensePermissionsTest extends TestCase
         $this->deleteJson('/expenses/00000000-0000-4000-8000-000000000012')->assertStatus(409);
         $this->assertDatabaseHas('expenses', ['id' => '00000000-0000-4000-8000-000000000012', 'group' => '02/01/2026', 'approved' => 1]);
         $this->assertDatabaseHas('expense_student', ['student_id' => 'student-1', 'expense_id' => '00000000-0000-4000-8000-000000000012']);
+    }
+
+    public function test_admin_cannot_read_or_mutate_another_administrators_expense(): void
+    {
+        $role = Role::findByName('admin');
+        $role->givePermissionTo(['view expenses', 'edit expenses', 'delete expenses']);
+
+        $user = new User(['name' => 'Admin IDOR test']);
+        $user->id = '00000000-0000-4000-8000-000000000001';
+        $user->administrator_id = 'admin-1';
+        $user->setRelation('roles', collect([$role]));
+        $user->setRelation('notifications', collect());
+        $user->setRelation('unreadNotifications', collect());
+        $this->actingAs($user);
+
+        $foreignId = '00000000-0000-4000-8000-000000000013';
+        $this->get("/expenses/{$foreignId}/edit")->assertNotFound();
+        $this->putJson("/expenses/{$foreignId}", ['expenseGroupName' => 'changed', 'students' => []])->assertNotFound();
+        $this->deleteJson("/expenses/{$foreignId}")->assertNotFound();
+        $this->postJson('/removeStudent', ['student' => 'student-1', 'expenseId' => $foreignId])->assertNotFound();
     }
 
     public function test_bulk_attendance_lookup_keeps_its_existing_access_boundary(): void

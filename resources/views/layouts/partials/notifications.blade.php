@@ -1,4 +1,4 @@
-<div class="dropdown d-inline-block">
+<div class="dropdown d-inline-block notification-dropdown">
     @php
         $user = Auth::user();
         $notifications = $user?->notifications->take(10) ?? collect();
@@ -6,7 +6,7 @@
     @endphp
 
     <!-- Notification Bell Button -->
-    <button type="button" class="btn btn-alt-secondary position-relative"
+    <button type="button" class="btn btn-alt-secondary position-relative notification-bell"
             id="page-header-notifications-dropdown"
             data-bs-toggle="dropdown"
             aria-haspopup="true"
@@ -26,52 +26,60 @@
     </button>
 
     <!-- Dropdown Menu -->
-    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0"
-         aria-labelledby="page-header-notifications-dropdown"
-         style="max-height: 400px; overflow-y: auto;" role="menu" aria-label="Notifications">
+    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0 notification-menu"
+         aria-labelledby="page-header-notifications-dropdown" role="menu" aria-label="Notifications">
 
         <!-- Header -->
-        <div class="bg-primary fw-semibold text-white text-center p-3">
-            Notifications
-        </div>
-        @if($unreadNotificationsCount > 0)
-            <div class="fw-semibold text-center p-3">
-                <form action="{{ route('notifications.markAllRead') }}" method="POST">
+        <div class="notification-menu-header">
+            <div>
+                <span class="notification-menu-eyebrow">Inbox</span>
+                <h6 class="mb-0 fw-semibold">Notifications</h6>
+            </div>
+            @if($unreadNotificationsCount > 0)
+                <form action="{{ route('notifications.markAllRead', [], false) }}" method="POST">
                     @csrf
                     @method('PATCH')
-                    <button type="submit" class="btn btn-link text-decoration-none p-0 m-0">Mark all as read</button>
+                    <button type="submit" class="notification-mark-all">Mark all read</button>
                 </form>
-            </div>
-        @endif
+            @endif
+        </div>
         <!-- Notification List -->
-        <div class="bg-light">
+        <div class="notification-menu-list">
             @forelse ($notifications as $notification)
                 @if(isset($notification->data['url']))
-                    <form action="{{ route('notifications.read', $notification->id) }}" method="POST" class="notification-form">
+                    <form action="{{ route('notifications.read', ['notificationId' => $notification->id], false) }}" method="POST" class="notification-form">
                         @csrf
                         @method('PATCH')
                         <input type="hidden" name="redirect_url" value="{{ $notification->data['url'] }}">
 
-                        <a href="#" class="text-reset" onclick="event.preventDefault(); this.closest('form').submit();">
-                            <p class="p-3 m-2 rounded"
-                            style="background-color: {{ $notification->read() ? '#f8f9fa' : '#3de6ff' }};
-                                    color: {{ $notification->unread() ? 'black' : '#303030' }};
-                                    border-left: 5px solid {{ $notification->unread() ? '#007bff' : '#ccc' }};">
-                                <strong>{{ $notification->data['title'] ?? 'No Title' }}</strong><br>
-                                {{ $notification->data['body'] ?? 'No Body' }}<br>
+                        <a href="#" class="notification-menu-item {{ $notification->unread() ? 'is-unread' : '' }}"
+                           onclick="event.preventDefault(); this.closest('form').submit();">
+                            <div class="notification-icon">
+                                <i class="fa fa-bell" aria-hidden="true"></i>
+                            </div>
+                            <div class="notification-menu-copy">
+                                <strong>{{ $notification->data['title'] ?? 'Notification' }}</strong>
+                                <p>{{ $notification->data['body'] ?? 'You have a new update.' }}</p>
                                 <small>{{ $notification->created_at->diffForHumans() }}</small>
-                            </p>
+                            </div>
+                            @if($notification->unread())
+                                <span class="notification-unread-dot" aria-label="Unread"></span>
+                            @endif
                         </a>
                     </form>
                 @endif
             @empty
-                <p class="text-center p-3">No notifications available.</p>
+                <div class="notification-empty">
+                    <i class="fa fa-bell-slash" aria-hidden="true"></i>
+                    <p>No notifications available.</p>
+                </div>
             @endforelse
 
             @if($notifications->isNotEmpty())
-                <div class="text-center p-2">
-                    <a href="{{ route('notifications.index') }}" class="btn btn-link text-decoration-none">
-                        All notifications
+                <div class="notification-menu-footer">
+                    <a href="{{ route('notifications.index') }}">
+                        View all notifications
+                        <i class="fa fa-arrow-right ms-1" aria-hidden="true"></i>
                     </a>
                 </div>
             @endif

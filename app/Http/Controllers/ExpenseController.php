@@ -69,17 +69,13 @@ class ExpenseController extends Controller
         // Capture the search keyword from the request if provided
         $search = $request->input('search.value'); // This is the global search input
 
-        $expenses = Expense::with('Students')
-        ->when(Auth::user()->hasRole('admin'), function ($query) {
-            $query->where('added_by', Auth::user()->administrator_id);
-        })
-        ->orderBy('created_at', 'DESC');
+        $expenses = Expense::readableBy(Auth::user())
+            ->with('Students')
+            ->orderBy('created_at', 'DESC');
 
         if ($search) {
-            $expenses = Expense::with('students')
-            ->when(Auth::user()->hasRole('admin'), function ($query) {
-                return $query->where('added_by', Auth::user()->administrator_id);
-            })
+            $expenses = Expense::readableBy(Auth::user())
+            ->with('students')
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('group', 'like', "%$search%")
@@ -351,6 +347,7 @@ class ExpenseController extends Controller
 
     public function showPage(Expense $expense)
     {
+        $expense = Expense::readableBy(Auth::user())->findOrFail($expense->id);
         return view('expenses.viewExpense', compact('expense'));
     }
 
@@ -362,11 +359,13 @@ class ExpenseController extends Controller
      */
     public function reviewExpense(expense $expense)
     {
+        $expense = Expense::readableBy(Auth::user())->findOrFail($expense->id);
         return view('expenses.reviewExpense', compact('expense'));
     }
 
     public function reviewExpenseData(expense $expense)
     {
+        $expense = Expense::readableBy(Auth::user())->findOrFail($expense->id);
         // Fetch students linked to the given expense ID
         $expenseId = $expense->id;
 
@@ -409,7 +408,7 @@ class ExpenseController extends Controller
      */
     public function edit(expense $expense)
     {
-        $expense = Expense::with('Students')->find($expense->id);
+        $expense = Expense::readableBy(Auth::user())->with('Students')->findOrFail($expense->id);
 
         if($expense->approved == true){
             Alert::toast('You cannot edit an approved expense', 'error');
@@ -429,8 +428,9 @@ class ExpenseController extends Controller
     public function update(UpdateexpenseRequest $request, Expense $expense)
     {
         if (!$expense->exists) {
-            $expense = Expense::findOrFail($request->input('expenseId'));
+            $expense = Expense::readableBy(Auth::user())->findOrFail($request->input('expenseId'));
         }
+        $expense = Expense::readableBy(Auth::user())->findOrFail($expense->id);
         $request->merge(['expenseId' => $expense->id]);
 
         $messages = [
@@ -453,7 +453,7 @@ class ExpenseController extends Controller
 
             DB::beginTransaction();
 
-            $expense = Expense::whereKey($expense->id)->lockForUpdate()->firstOrFail();
+            $expense = Expense::readableBy(Auth::user())->whereKey($expense->id)->lockForUpdate()->firstOrFail();
             if ($expense->approved) {
                 DB::rollBack();
                 return redirect()->back()->withErrors(['error' => 'You cannot edit an approved expense']);
@@ -531,7 +531,7 @@ class ExpenseController extends Controller
     public function destroy(expense $expense)
     {
         DB::transaction(function () use ($expense) {
-            $expense = Expense::whereKey($expense->id)->lockForUpdate()->firstOrFail();
+            $expense = Expense::readableBy(Auth::user())->whereKey($expense->id)->lockForUpdate()->firstOrFail();
             abort_if($expense->approved, 409, 'An approved expense cannot be deleted.');
             $expense->delete();
         });
@@ -548,7 +548,7 @@ class ExpenseController extends Controller
         $post = $request->all();
 
         DB::transaction(function () use ($request) {
-            $expense = Expense::whereKey($request->input('expenseId'))->lockForUpdate()->firstOrFail();
+            $expense = Expense::readableBy(Auth::user())->whereKey($request->input('expenseId'))->lockForUpdate()->firstOrFail();
             abort_if($expense->approved, 409, 'Students cannot be removed from an approved expense.');
             DB::table('expense_student')->where('student_id', $request['student'])->where('expense_id', $expense->id)->delete();
         });
@@ -684,7 +684,7 @@ class ExpenseController extends Controller
 
         $user = Auth::user();
         $expense = DB::transaction(function () use ($request, $user) {
-            $expense = Expense::whereKey($request->expenseId)->lockForUpdate()->firstOrFail();
+            $expense = Expense::readableBy($user)->whereKey($request->expenseId)->lockForUpdate()->firstOrFail();
             $expense->approved_by = $user->administrator_id;
             $expense->approved_amount = $request->approvedAmount;
             $expense->approved = !$expense->approved;
@@ -722,6 +722,7 @@ class ExpenseController extends Controller
 
     public function download(expense $expense){
 
+        $expense = Expense::readableBy(Auth::user())->findOrFail($expense->id);
         $setting = $this->setting;
         $date = date('j F, Y');
         $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/e8704ed2-d90e-41ca-9143-8ytf6/'.$expense->id);
@@ -748,6 +749,7 @@ class ExpenseController extends Controller
 
     public function expensePaymentReport(expense $expense){
 
+        $expense = Expense::readableBy(Auth::user())->findOrFail($expense->id);
         $setting = $this->setting;
         $date = date('j F, Y');
         $qrCode = havenUtils::qrCode('https://www.dsms.darondrivingschool.com/expense-payment-report/'.$expense->id);

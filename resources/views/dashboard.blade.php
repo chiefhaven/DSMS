@@ -3,44 +3,6 @@
 @section('title', 'Dashboard')
 
 @section('content')
-
-    <!-- Dashboard Header -->
-    <div class="bg-body-light">
-        <div class="content content-full">
-
-            <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
-
-                <div class="flex-grow-1">
-                    <h1 class="fs-3 fw-semibold my-2 my-sm-3">
-                        Dashboard
-                    </h1>
-                </div>
-
-                <nav class="flex-shrink-0 my-2 my-sm-0 ms-sm-3"
-                     aria-label="breadcrumb">
-
-                    <ol class="breadcrumb mb-0">
-
-                        <li class="breadcrumb-item">
-                            App
-                        </li>
-
-                        <li class="breadcrumb-item active"
-                            aria-current="page">
-                            Dashboard
-                        </li>
-
-                    </ol>
-
-                </nav>
-
-            </div>
-
-        </div>
-    </div>
-    <!-- END Dashboard Header -->
-
-
     <!-- Dashboard Content -->
     <div class="content content-full">
 
@@ -55,7 +17,7 @@
         @endcannot
 
         @can('access management')
-        @role(['superAdmin', 'Super-Admin'])
+        @role('superAdmin')
 
             {{-- Super Administrator Dashboard --}}
             @include('dashboard_partials.super_admin')

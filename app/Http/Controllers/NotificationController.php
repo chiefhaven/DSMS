@@ -50,8 +50,17 @@ class NotificationController extends Controller
                             ->orderBy('created_at', 'desc')
                             ->paginate($perPage, ['*'], 'page', $page);
 
-        // Return only the collection data (items) as JSON
-        return response()->json($notifications->items());
+        $items = collect($notifications->items())->map(function ($notification) {
+            $data = $notification->data;
+            if (isset($data['url'])) {
+                $data['url'] = $this->relativeNotificationUrl($data['url']);
+                $notification->data = $data;
+            }
+
+            return $notification;
+        });
+
+        return response()->json($items);
     }
 
 
@@ -323,7 +332,38 @@ class NotificationController extends Controller
         }
 
         // Redirect to the URL stored in the notification data
-        return redirect($notification->data['url'] ?? '/');
+        return redirect($this->relativeNotificationUrl($notification->data['url'] ?? null) ?? '/');
+    }
+
+    private function relativeNotificationUrl(?string $url): ?string
+    {
+        if (!$url) {
+            return null;
+        }
+
+        $parts = parse_url($url);
+        if ($parts === false) {
+            return null;
+        }
+
+        $appHost = parse_url(config('app.url'), PHP_URL_HOST);
+        $urlHost = $parts['host'] ?? null;
+
+        $internalHosts = array_filter([$appHost, request()->getHost()]);
+        if ($urlHost && !collect($internalHosts)->contains(
+            fn ($host) => strcasecmp($urlHost, $host) === 0
+        )) {
+            return $url;
+        }
+
+        $path = $parts['path'] ?? '/';
+        if (str_starts_with($path, '//')) {
+            return null;
+        }
+
+        return $path
+            . (isset($parts['query']) ? '?' . $parts['query'] : '')
+            . (isset($parts['fragment']) ? '#' . $parts['fragment'] : '');
     }
 
     public function markAllRead()

@@ -89,7 +89,7 @@
 
         {{-- School --}}
         @php
-            $schoolPlaceholderRoles = ['superAdmin', 'Super-Admin', 'admin'];
+            $schoolPlaceholderRoles = ['superAdmin', 'admin'];
         @endphp
         @if (auth()->user()->canAny(['view classrooms', 'view courses', 'view lessons']) || auth()->user()->hasAnyRole($schoolPlaceholderRoles))
                 <li class="nav-main-item">
