@@ -289,14 +289,20 @@
 .qr-camera-frame {
     position: relative;
     overflow: hidden;
-    width: min(100%, 960px);
-    min-height: 300px;
-    height: min(64vh, 560px);
+    width: 100%;
+    max-width: 560px;
+    aspect-ratio: 1;
     margin: 0 auto;
     border: 1px solid #dce4ef;
     border-radius: 16px;
     background: #0f172a;
     isolation: isolate;
+}
+
+.qr-camera-frame.is-loading #webcam-preview,
+.qr-camera-frame.is-loading .scan-overlay,
+.qr-camera-frame.is-loading .qr-camera-corner {
+    display: none;
 }
 
 #webcam-preview {
@@ -392,18 +398,81 @@
     border-bottom-right-radius: 10px;
 }
 
+.qr-scan-loading {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .75rem;
+    padding: 1.5rem;
+    color: #fff;
+    background: rgba(15, 23, 42, .94);
+    text-align: center;
+}
+
+.qr-scan-loading[hidden] {
+    display: none;
+}
+
+.qr-scan-loading-spinner {
+    width: 42px;
+    height: 42px;
+    border: 4px solid rgba(255, 255, 255, .25);
+    border-top-color: #5ee7b0;
+    border-radius: 50%;
+    animation: qr-scan-spin .8s linear infinite;
+}
+
+.qr-scan-progress {
+    overflow: hidden;
+    width: min(220px, 75%);
+    height: 5px;
+    margin-top: .25rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .2);
+}
+
+.qr-scan-progress span {
+    display: block;
+    width: 38%;
+    height: 100%;
+    border-radius: inherit;
+    background: #5ee7b0;
+    animation: qr-scan-progress 1.2s ease-in-out infinite;
+}
+
+@keyframes qr-scan-spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes qr-scan-progress {
+    from { transform: translateX(-110%); }
+    to { transform: translateX(360%); }
+}
+
 @media (max-width: 600px) {
     .qr-camera-frame {
-        min-height: 260px;
-        height: 48vh;
         border-radius: 12px;
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .scan-line {
+    .scan-line,
+    .qr-scan-loading-spinner,
+    .qr-scan-progress span {
         animation: none;
+    }
+
+    .scan-line {
         top: 50%;
+    }
+
+    .qr-scan-progress span {
+        width: 38%;
+        transform: none;
     }
 }
 

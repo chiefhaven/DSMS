@@ -9,6 +9,14 @@
             <div class="qr-camera-corner qr-camera-corner-top-right"></div>
             <div class="qr-camera-corner qr-camera-corner-bottom-left"></div>
             <div class="qr-camera-corner qr-camera-corner-bottom-right"></div>
+            <div id="qr-scan-loading" class="qr-scan-loading" role="status" aria-live="polite" hidden>
+                <span class="qr-scan-loading-spinner" aria-hidden="true"></span>
+                <strong>QR code scanned</strong>
+                <span>Opening payment details...</span>
+                <div class="qr-scan-progress" role="progressbar" aria-label="Opening payment details">
+                    <span></span>
+                </div>
+            </div>
         </div>
         <p id="result" class="mt-2 text-center text-muted">Align QR code within the box</p>
     </div>
@@ -20,7 +28,11 @@
         // Configuration
         const ALLOWED_DOMAIN = 'https://www.dsms.darondrivingschool.com';
         const videoElement = document.getElementById('webcam-preview');
+        const cameraFrame = document.querySelector('.qr-camera-frame');
+        const loadingIndicator = document.getElementById('qr-scan-loading');
+        const resultMessage = document.getElementById('result');
         let isScanning = false;
+        let scanHandled = false;
         let codeReader;
 
         // Verify ZXing loaded
@@ -54,7 +66,7 @@
                         await handleScanResult(result.text);
                     }
 
-                    if (err && !isExpectedError(err)) {
+                    if (err && !scanHandled && !isExpectedError(err)) {
                         console.error('Scanning error:', err);
                         await showError('Scanner encountered an error');
                         stopScanning();
@@ -71,6 +83,12 @@
             if (codeReader) {
                 codeReader.reset();
             }
+            const stream = videoElement.srcObject;
+            if (stream && typeof stream.getTracks === 'function') {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            videoElement.pause();
+            videoElement.srcObject = null;
             isScanning = false;
         }
 
@@ -81,37 +99,35 @@
         }
 
         async function handleScanResult(scannedUrl) {
+            if (scanHandled) return;
+            scanHandled = true;
             stopScanning();
 
-            try {
+            if (!scannedUrl.includes(ALLOWED_DOMAIN)) {
                 await Swal.fire({
-                    title: 'Scan Complete!',
-                    text: 'Verifying document...',
-                    icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: true
+                    title: 'Invalid Document',
+                    text: 'This QR code is not from Daron\'s system',
+                    icon: 'error'
                 });
-
-                if (scannedUrl.includes(ALLOWED_DOMAIN)) {
-                    const redirectPath = scannedUrl.replace(ALLOWED_DOMAIN, '');
-
-                    // Security check for valid path
-                    if (isValidPath(redirectPath)) {
-                        window.location.href = redirectPath;
-                    } else {
-                        await showError('Invalid document path');
-                    }
-                } else {
-                    await Swal.fire({
-                        title: 'Invalid Document',
-                        text: 'This QR code is not from Daron\'s system',
-                        icon: 'error'
-                    });
-                    startScanning(); // Resume scanning
-                }
-            } catch (error) {
-                startScanning(); // Resume scanning after error
+                scanHandled = false;
+                startScanning();
+                return;
             }
+
+            const redirectPath = scannedUrl.replace(ALLOWED_DOMAIN, '');
+            if (!isValidPath(redirectPath)) {
+                await showError('Invalid document path');
+                scanHandled = false;
+                startScanning();
+                return;
+            }
+
+            cameraFrame.classList.add('is-loading');
+            loadingIndicator.hidden = false;
+            resultMessage.textContent = 'Opening payment details...';
+            window.setTimeout(() => {
+                window.location.href = redirectPath;
+            }, 200);
         }
 
         function isValidPath(path) {
