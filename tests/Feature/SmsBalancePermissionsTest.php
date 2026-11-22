@@ -44,6 +44,18 @@ class SmsBalancePermissionsTest extends TestCase
         Http::assertSent(fn ($request) => str_ends_with($request->url(), '/balance'));
     }
 
+    public function test_sms_balance_endpoint_normalizes_thousands_separators(): void
+    {
+        Http::fake([
+            '*/balance' => Http::response(['data' => ['remaining_balance' => '1,315']], 200),
+        ]);
+        $this->authenticate(Role::findByName('superAdmin', 'web'));
+
+        $this->getJson('/api/sms-balance')
+            ->assertOk()
+            ->assertExactJson(['balance' => 1315]);
+    }
+
     public function test_migration_preserves_only_intersecting_legacy_grants_idempotently(): void
     {
         $role = Role::create(['name' => 'sms-manager', 'guard_name' => 'web']);

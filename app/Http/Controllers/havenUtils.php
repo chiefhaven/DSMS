@@ -374,10 +374,20 @@ class havenUtils extends Controller
             }
 
             $data = $response->json();
+            $balance = data_get($data, 'data.remaining_balance');
+            if (is_string($balance)) {
+                $balance = str_replace(',', '', trim($balance));
+            }
 
-            Log::info($data['data']['remaining_balance'] ?? 0.00);
+            if (!is_numeric($balance)) {
+                Log::error('SMS Balance Fetch Failed: Invalid remaining balance in response.');
+                return response()->json(['balance' => null, 'error' => 'Invalid balance response'], 502);
+            }
 
-            return response()->json(['balance' => $data['data']['remaining_balance'] ?? 0.00]);
+            $balance = (float) $balance;
+            Log::info($balance);
+
+            return response()->json(['balance' => $balance]);
         } catch (\Exception $e) {
             Log::error('SMS Balance Exception: ' . $e->getMessage());
             return response()->json(['balance' => null, 'error' => $e->getMessage()], 500);
