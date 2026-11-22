@@ -8,7 +8,7 @@
             <div class="modal-content">
                 <!-- Modal Header -->
                 <div class="modal-header text-white">
-                    <h3><b v-if="showActions"> Edit</b> @{{ course.name }} lessons</h3>
+                    <h3 class="text-white"><b v-if="showActions"> Edit</b> @{{ course.name }} lessons</h3>
                 </div>
 
                 <!-- Modal Body -->

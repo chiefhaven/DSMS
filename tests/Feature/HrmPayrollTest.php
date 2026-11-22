@@ -3,7 +3,9 @@
 namespace Tests\Feature;
 
 use App\Models\Administrator;
+use App\Models\HrDepartment;
 use App\Models\Instructor;
+use App\Models\SalaryGrade;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -76,17 +78,14 @@ class HrmPayrollTest extends TestCase
         (require base_path('database/migrations/2026_11_16_000100_create_payroll_groups_table.php'))->up();
         (require base_path('database/migrations/2026_11_15_000500_create_designations_table.php'))->up();
         (require base_path('database/migrations/2026_11_16_000300_add_basic_salary_to_designations.php'))->up();
-        (require base_path('vendor/spatie/laravel-permission/database/migrations/create_permission_tables.php.stub'))->up();
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
-        Permission::create(['name' => 'view payroll', 'guard_name' => 'web']);
-        Permission::create(['name' => 'process payroll', 'guard_name' => 'web']);
-
-        $this->processor = $this->makeUser('Processor', 'processor@example.test');
-        $this->processor->givePermissionTo(['view payroll', 'process payroll']);
-        $this->viewer = $this->makeUser('Viewer', 'viewer@example.test');
-        $this->viewer->givePermissionTo('view payroll');
-
-        DB::table('settings')->insert(['id' => 1, 'bonus' => 50]);
+        $legacyDesignationId = (string) Str::uuid();
+        DB::table('designations')->insert([
+            'id' => $legacyDesignationId,
+            'name' => 'Legacy designation',
+            'basic_salary' => 1800,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
         DB::table('instructors')->insert([
             'id' => self::INSTRUCTOR_ID, 'fname' => 'Example', 'sname' => 'Instructor', 'status' => 'active',
             'basic_salary' => 1500,
@@ -94,6 +93,33 @@ class HrmPayrollTest extends TestCase
         DB::table('administrators')->insert([
             'id' => self::ADMINISTRATOR_ID, 'fname' => 'Office', 'sname' => 'Admin', 'status' => 'Active',
         ]);
+        DB::table('administrators')->where('id', self::ADMINISTRATOR_ID)->update([
+            'designation_id' => $legacyDesignationId,
+        ]);
+        (require base_path('database/migrations/2026_11_22_113900_create_salary_grades_table.php'))->up();
+        (require base_path('database/migrations/2026_11_22_120000_add_salary_grades_to_staff_and_remove_designation_salary.php'))->up();
+        (require base_path('database/migrations/2026_11_15_000650_create_hr_departments_table.php'))->up();
+        (require base_path('database/migrations/2026_11_22_130000_add_hr_department_id_to_designations.php'))->up();
+        (require base_path('vendor/spatie/laravel-permission/database/migrations/create_permission_tables.php.stub'))->up();
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        Permission::create(['name' => 'view payroll', 'guard_name' => 'web']);
+        Permission::create(['name' => 'process payroll', 'guard_name' => 'web']);
+        Permission::create(['name' => 'manage salary grades', 'guard_name' => 'web']);
+        Permission::create(['name' => 'view designations', 'guard_name' => 'web']);
+        Permission::create(['name' => 'manage designations', 'guard_name' => 'web']);
+
+        $this->processor = $this->makeUser('Processor', 'processor@example.test');
+        $this->processor->givePermissionTo([
+            'view payroll',
+            'process payroll',
+            'manage salary grades',
+            'view designations',
+            'manage designations',
+        ]);
+        $this->viewer = $this->makeUser('Viewer', 'viewer@example.test');
+        $this->viewer->givePermissionTo('view payroll');
+
+        DB::table('settings')->insert(['id' => 1, 'bonus' => 50]);
     }
 
     private function makeUser(string $name, string $email): User
@@ -255,13 +281,21 @@ class HrmPayrollTest extends TestCase
         $this->assertStringContainsString('Office Admin', $response->json('data.0.employee'));
     }
 
-    public function test_employees_endpoint_includes_stored_basic_salary_for_prefill(): void
+    public function test_employees_endpoint_uses_editable_salary_or_grade_default(): void
     {
-        // The administrator has no own salary but is assigned a designation with a default.
-        $designation = \App\Models\Designation::create(['name' => 'Accountant', 'basic_salary' => 2000]);
-        DB::table('administrators')->where('id', self::ADMINISTRATOR_ID)->update(['designation_id' => $designation->id]);
-        // The instructor's own salary takes precedence over the designation default.
-        DB::table('instructors')->where('id', self::INSTRUCTOR_ID)->update(['designation_id' => $designation->id]);
+        $this->assertFalse(Schema::hasColumn('designations', 'basic_salary'));
+
+        $salaryGrade = SalaryGrade::create([
+            'code' => 'SG-01',
+            'name' => 'Senior',
+            'basic_salary' => 2000,
+        ]);
+        DB::table('administrators')->where('id', self::ADMINISTRATOR_ID)->update(['salary_grade_id' => $salaryGrade->id]);
+        DB::table('instructors')->where('id', self::INSTRUCTOR_ID)->update(['salary_grade_id' => $salaryGrade->id]);
+        $this->actingAs($this->processor)
+            ->deleteJson(route('salary-grades.destroy', $salaryGrade))
+            ->assertUnprocessable()
+            ->assertJsonPath('message', 'Reassign this salary grade before deleting it.');
 
         $response = $this->actingAs($this->viewer)
             ->getJson(route('payroll.employees'))
@@ -272,7 +306,41 @@ class HrmPayrollTest extends TestCase
         $this->assertEquals(1500, (float) $instructorEntry['basic_salary']);
 
         $administratorEntry = collect($response->json())->firstWhere('value', 'administrator:' . self::ADMINISTRATOR_ID);
-        $this->assertEquals(2000, (float) $administratorEntry['basic_salary']);
+        $this->assertNotNull($administratorEntry);
+        $this->assertEquals(1800, (float) $administratorEntry['basic_salary']);
+
+        DB::table('instructors')->where('id', self::INSTRUCTOR_ID)->update(['basic_salary' => null]);
+        DB::table('administrators')->where('id', self::ADMINISTRATOR_ID)->update(['basic_salary' => null]);
+        $gradeDefaults = $this->actingAs($this->viewer)
+            ->getJson(route('payroll.employees'))
+            ->assertOk();
+        $defaultInstructor = collect($gradeDefaults->json())->firstWhere('value', 'instructor:' . self::INSTRUCTOR_ID);
+        $this->assertEquals(2000, (float) $defaultInstructor['basic_salary']);
+        $defaultAdministrator = collect($gradeDefaults->json())->firstWhere('value', 'administrator:' . self::ADMINISTRATOR_ID);
+        $this->assertEquals(2000, (float) $defaultAdministrator['basic_salary']);
+    }
+
+    public function test_designations_require_and_return_an_hr_department(): void
+    {
+        $department = HrDepartment::create(['name' => 'Operations']);
+
+        $this->actingAs($this->processor)
+            ->postJson(route('designations.store'), ['name' => 'Accountant'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('hr_department_id');
+
+        $this->postJson(route('designations.store'), [
+            'name' => 'Accountant',
+            'description' => 'Finance team designation',
+            'hr_department_id' => $department->id,
+        ])
+            ->assertOk()
+            ->assertJsonPath('designation.hr_department_id', $department->id)
+            ->assertJsonPath('designation.hr_department.name', 'Operations');
+
+        $this->getJson(route('designations.fetch'))
+            ->assertOk()
+            ->assertJsonPath('0.hr_department.name', 'Operations');
     }
 
     public function test_inactive_employees_are_excluded_and_rejected(): void

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Administrator;
+use App\Models\Designation;
+use App\Models\SalaryGrade;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\District;
@@ -20,6 +22,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use RealRashid\SweetAlert\Facades\Alert;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use App\Http\Controllers\havenUtils;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -210,7 +214,7 @@ class AdministratorController extends Controller
      */
     public function edit($id)
     {
-        $administrator = Administrator::with('User')->findOrFail($id);
+        $administrator = Administrator::with(['User', 'salaryGrade'])->findOrFail($id);
         $district = District::get();
         $roleNames = ['admin', 'financeAdmin'];
         if (Auth::user()->can('manage system')) {
@@ -224,7 +228,10 @@ class AdministratorController extends Controller
         $designations = Auth::user()->can('process payroll')
             ? \App\Models\Designation::orderBy('name')->get()
             : collect();
-        return view('administrators.editadministrator', [ 'administrator' => $administrator ], compact('administrator', 'district', 'role', 'genders', 'hrDepartments', 'designations'));
+        $salaryGrades = Auth::user()->can('process payroll')
+            ? SalaryGrade::orderBy('code')->get()
+            : collect();
+        return view('administrators.editadministrator', [ 'administrator' => $administrator ], compact('administrator', 'district', 'role', 'genders', 'hrDepartments', 'designations', 'salaryGrades'));
     }
 
     /**
@@ -296,15 +303,39 @@ class AdministratorController extends Controller
         $Administrator->district_id = $district;
 
         if ($request->user()->can('process payroll')
-            && ($request->exists('hr_department_id') || $request->exists('basic_salary') || $request->exists('designation_id'))) {
+            && ($request->exists('hr_department_id') || $request->exists('basic_salary') || $request->exists('designation_id') || $request->exists('salary_grade_id'))) {
             $hrm = $request->validate([
-                'hr_department_id' => 'nullable|exists:hr_departments,id',
-                'designation_id' => 'nullable|exists:designations,id',
+                'hr_department_id' => ['nullable', Rule::exists('hr_departments', 'id')->whereNull('deleted_at')],
+                'designation_id' => ['nullable', Rule::exists('designations', 'id')->whereNull('deleted_at')],
+                'salary_grade_id' => ['nullable', Rule::exists('salary_grades', 'id')->whereNull('deleted_at')],
                 'basic_salary' => 'nullable|numeric|min:0',
             ]);
-            $Administrator->hr_department_id = $hrm['hr_department_id'] ?? null;
-            $Administrator->designation_id = $hrm['designation_id'] ?? null;
-            $Administrator->basic_salary = $hrm['basic_salary'] ?? null;
+            if (!empty($hrm['designation_id'])) {
+                $designation = Designation::findOrFail($hrm['designation_id']);
+                $departmentId = $request->exists('hr_department_id')
+                    ? ($hrm['hr_department_id'] ?? null)
+                    : $Administrator->hr_department_id;
+                $isUnchangedAssignment = $designation->id === $Administrator->designation_id
+                    && $departmentId === $Administrator->hr_department_id;
+
+                if ($designation->hr_department_id !== $departmentId && !$isUnchangedAssignment) {
+                    throw ValidationException::withMessages([
+                        'designation_id' => 'The selected designation does not belong to the selected HR department.',
+                    ]);
+                }
+            }
+            if ($request->exists('hr_department_id')) {
+                $Administrator->hr_department_id = $hrm['hr_department_id'] ?? null;
+            }
+            if ($request->exists('designation_id')) {
+                $Administrator->designation_id = $hrm['designation_id'] ?? null;
+            }
+            if ($request->exists('salary_grade_id')) {
+                $Administrator->salary_grade_id = $hrm['salary_grade_id'] ?? null;
+            }
+            if ($request->exists('basic_salary')) {
+                $Administrator->basic_salary = $hrm['basic_salary'] ?? null;
+            }
         }
 
         $Administrator->save();

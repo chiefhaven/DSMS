@@ -7,6 +7,7 @@ use App\Http\Controllers\ExpenseResourceController;
 use App\Http\Controllers\HrDepartmentController;
 use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\PayrollController;
+use App\Http\Controllers\SalaryGradeController;
 use App\Http\Controllers\StaffAccountController;
 use App\Http\Controllers\InstructorPaymentController;
 use App\Http\Controllers\InvoiceController;
@@ -60,6 +61,8 @@ Route::resource('instructor-payments', InstructorPaymentController::class)
 
 // HRM module
 Route::middleware('auth')->prefix('hrm')->group(function () {
+    Route::view('leaves', 'hrm.leaves')->name('leaves.index');
+
     Route::get('payroll', [PayrollController::class, 'index'])->name('payroll.index');
     Route::get('payroll/fetch', [PayrollController::class, 'fetch'])->name('payroll.fetch');
     Route::get('payroll/employees', [PayrollController::class, 'employees'])->name('payroll.employees');
@@ -87,4 +90,10 @@ Route::middleware('auth')->prefix('hrm')->group(function () {
     Route::post('designations', [DesignationController::class, 'store'])->name('designations.store');
     Route::put('designations/{designation}', [DesignationController::class, 'update'])->name('designations.update');
     Route::delete('designations/{designation}', [DesignationController::class, 'destroy'])->name('designations.destroy');
+
+    Route::get('salary-grades', [SalaryGradeController::class, 'index'])->name('salary-grades.index');
+    Route::get('salary-grades/fetch', [SalaryGradeController::class, 'fetch'])->name('salary-grades.fetch');
+    Route::post('salary-grades', [SalaryGradeController::class, 'store'])->name('salary-grades.store');
+    Route::put('salary-grades/{salary_grade}', [SalaryGradeController::class, 'update'])->name('salary-grades.update');
+    Route::delete('salary-grades/{salary_grade}', [SalaryGradeController::class, 'destroy'])->name('salary-grades.destroy');
 });

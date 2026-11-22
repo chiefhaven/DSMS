@@ -16,11 +16,12 @@ class Designation extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
-    protected $fillable = ['name', 'description', 'basic_salary'];
+    protected $fillable = ['name', 'description', 'hr_department_id'];
 
-    protected $casts = [
-        'basic_salary' => 'decimal:2',
-    ];
+    public function hrDepartment()
+    {
+        return $this->belongsTo(HrDepartment::class, 'hr_department_id')->withTrashed();
+    }
 
     public function getActivitylogOptions(): LogOptions
     {

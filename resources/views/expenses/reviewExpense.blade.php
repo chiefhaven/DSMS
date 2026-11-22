@@ -87,9 +87,25 @@
           <h5 class="card-title mb-0">Students List</h5>
         </div>
 
-        <div v-if="state.loadingData" class="card-body d-flex flex-column justify-content-center align-items-center" style="min-height: 300px;">
-          <div class="spinner-border text-primary" role="status"></div>
-          <p class="mt-3 mb-0">Loading student data...</p>
+        <div v-if="state.loadingData" class="card-body p-0" aria-busy="true" aria-label="Loading student data">
+          <div class="table-responsive">
+            <table class="table table-vcenter mb-0" aria-hidden="true">
+              <thead class="table-light">
+                <tr>
+                  <th v-for="column in 7" :key="'heading-' + column">
+                    <div class="skeleton" style="height: 12px; width: 70%;"></div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in 6" :key="'row-' + row">
+                  <td v-for="column in 7" :key="'cell-' + row + '-' + column">
+                    <div class="skeleton" :style="{ height: '14px', width: (45 + ((row * 11 + column * 17) % 46)) + '%' }"></div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <div v-else class="card-body p-0">
@@ -201,7 +217,7 @@ const app = createApp({
       selectedStudents: [],
       expenseId: '{{ $expense->id }}',
       expenseStatus: {{ $expense->approved }},
-      loadingData: false,
+      loadingData: true,
       processing: false,
       totalAmount: 0
     });
@@ -335,4 +351,18 @@ const app = createApp({
 });
 app.mount('#expense');
 </script>
+<style>
+  #expense .skeleton {
+    display: inline-block;
+    border-radius: .375rem;
+    background: linear-gradient(90deg, #e9edf3 25%, #f4f7fb 50%, #e9edf3 75%);
+    background-size: 200% 100%;
+    animation: review-expense-skeleton-shimmer 1.4s ease-in-out infinite;
+  }
+
+  @keyframes review-expense-skeleton-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+</style>
 @endsection

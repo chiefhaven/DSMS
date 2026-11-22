@@ -30,12 +30,17 @@ class Administrator extends Model
        return $this->belongsTo(Designation::class, 'designation_id');
     }
 
+    public function salaryGrade()
+    {
+       return $this->belongsTo(SalaryGrade::class, 'salary_grade_id');
+    }
+
     /**
-     * Basic salary for payroll: the administrator's own salary, falling back to the designation default.
+     * The editable staff salary takes precedence; the salary grade supplies its default when unset.
      */
     public function getEffectiveBasicSalaryAttribute()
     {
-        return $this->basic_salary ?? $this->designation?->basic_salary;
+        return $this->basic_salary ?? $this->salaryGrade?->basic_salary;
     }
 
     public function Expense()

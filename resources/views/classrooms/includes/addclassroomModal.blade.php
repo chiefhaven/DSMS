@@ -16,7 +16,7 @@
         <div class="modal-content">
             <!-- Modal Header -->
             <div class="modal-header">
-                <h3>@{{ state.modalTitle }}</h3>
+                <h3 class="text-white">@{{ state.modalTitle }}</h3>
             </div>
 
             <!-- Modal Body -->

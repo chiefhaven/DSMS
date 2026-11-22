@@ -123,12 +123,12 @@
                 <div class="row push">
                   <div class="col-lg-4">
                     <p class="text-muted">
-                      HR department and basic salary used for payroll
+                      HR department, designation and salary grade
                     </p>
                   </div>
                   <div class="col-lg-8 col-xl-5">
                     <div class="form-floating mb-4">
-                      <select class="form-select" id="hr_department_id" name="hr_department_id">
+                      <select class="form-select" id="hr_department_id" name="hr_department_id" onchange="filterDesignationOptions(true)">
                         <option value="" {{ old('hr_department_id', $administrator->hr_department_id) ? '' : 'selected' }}>No department</option>
                         @foreach ($hrDepartments as $hrDepartment)
                           <option value="{{ $hrDepartment->id }}" {{ old('hr_department_id', $administrator->hr_department_id) == $hrDepartment->id ? 'selected' : '' }}>
@@ -139,29 +139,60 @@
                       <label for="hr_department_id">HR department</label>
                     </div>
                     <div class="form-floating mb-4">
-                      <select class="form-select" id="designation_id" name="designation_id" onchange="prefillDesignationSalary(this)">
+                      <select class="form-select" id="designation_id" name="designation_id">
                         <option value="" {{ old('designation_id', $administrator->designation_id) ? '' : 'selected' }}>No designation</option>
                         @foreach ($designations as $designation)
-                          <option value="{{ $designation->id }}" data-salary="{{ $designation->basic_salary }}" {{ old('designation_id', $administrator->designation_id) == $designation->id ? 'selected' : '' }}>
-                            {{ $designation->name }}{{ $designation->basic_salary !== null ? ' — K' . number_format((float) $designation->basic_salary, 2) : '' }}
+                          <option value="{{ $designation->id }}" data-department="{{ $designation->hr_department_id }}"
+                                  data-current="{{ old('designation_id', $administrator->designation_id) == $designation->id ? 'true' : 'false' }}"
+                                  {{ old('designation_id', $administrator->designation_id) == $designation->id ? 'selected' : '' }}>
+                            {{ $designation->name }}
                           </option>
                         @endforeach
                       </select>
                       <label for="designation_id">Designation</label>
                     </div>
+                    <div class="form-floating mb-2">
+                      <select class="form-select" id="salary_grade_id" name="salary_grade_id" onchange="setBasicSalaryFromGrade(this)">
+                        <option value="" {{ old('salary_grade_id', $administrator->salary_grade_id) ? '' : 'selected' }}>No salary grade</option>
+                        @foreach ($salaryGrades as $salaryGrade)
+                          <option value="{{ $salaryGrade->id }}" data-salary="{{ $salaryGrade->basic_salary }}" {{ old('salary_grade_id', $administrator->salary_grade_id) == $salaryGrade->id ? 'selected' : '' }}>
+                            {{ $salaryGrade->code }} — {{ $salaryGrade->name }} (K{{ number_format((float) $salaryGrade->basic_salary, 2) }})
+                          </option>
+                        @endforeach
+                      </select>
+                      <label for="salary_grade_id">Salary grade</label>
+                    </div>
+                    <div class="form-text mb-4">Selecting a grade sets its basic salary as the starting amount. You can edit the amount below.</div>
                     <div class="form-floating mb-4">
-                      <input type="number" step="0.01" min="0" class="form-control" id="basic_salary" name="basic_salary" placeholder="0.00" value="{{ old('basic_salary', $administrator->basic_salary) }}">
+                      <input type="number" step="0.01" min="0" class="form-control" id="basic_salary" name="basic_salary" placeholder="0.00" value="{{ old('basic_salary', $administrator->basic_salary ?? $administrator->salaryGrade?->basic_salary) }}">
                       <label class="form-label" for="basic_salary">Basic salary (K)</label>
-                      <div class="form-text">Leave blank to use the designation's default salary in payroll.</div>
                     </div>
                     <script>
-                      function prefillDesignationSalary(select) {
-                        const salaryInput = document.getElementById('basic_salary');
+                      function filterDesignationOptions(clearInvalidSelection) {
+                        const departmentSelect = document.getElementById('hr_department_id');
+                        const designationSelect = document.getElementById('designation_id');
+                        const selectedOption = designationSelect.options[designationSelect.selectedIndex];
+
+                        if (clearInvalidSelection && selectedOption.value
+                            && selectedOption.dataset.department !== departmentSelect.value) {
+                          designationSelect.value = '';
+                        }
+
+                        Array.from(designationSelect.options).forEach((option) => {
+                          const matchesDepartment = option.dataset.department === departmentSelect.value;
+                          const keepCurrent = !clearInvalidSelection && option.dataset.current === 'true';
+                          option.hidden = Boolean(option.value) && !matchesDepartment && !keepCurrent;
+                        });
+                      }
+
+                      function setBasicSalaryFromGrade(select) {
                         const salary = select.options[select.selectedIndex]?.dataset.salary;
-                        if (salaryInput && !salaryInput.value && salary) {
-                          salaryInput.value = salary;
+                        if (salary !== undefined) {
+                          document.getElementById('basic_salary').value = salary;
                         }
                       }
+
+                      filterDesignationOptions(false);
                     </script>
                   </div>
                 </div>

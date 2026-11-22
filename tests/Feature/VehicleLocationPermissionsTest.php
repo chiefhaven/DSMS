@@ -88,6 +88,10 @@ class VehicleLocationPermissionsTest extends TestCase
     public function test_recording_is_limited_to_authorized_instructors_and_their_assigned_vehicle(): void
     {
         DB::table('fleets')->insert(['id' => 12, 'instructor_id' => 'instructor-one']);
+        $adminRole = Role::findByName('superAdmin', 'web');
+        $this->authenticate($adminRole);
+        $this->assertStringNotContainsString('/api/save-vehicle-location', view('layouts.partials.main_nav')->render());
+
         $role = Role::findByName('instructor', 'web');
         $user = $this->authenticate($role);
         $instructor = new Instructor();

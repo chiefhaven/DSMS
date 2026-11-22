@@ -272,9 +272,11 @@
             </li>
             @endcan
         @endrole
-        @can('record vehicle locations')
-            @include('partials.location')
-        @endcan
+        @role('instructor')
+            @can('record vehicle locations')
+                @include('partials.location')
+            @endcan
+        @endrole
 
         {{-- Knowledge Navigation --}}
         @include('layouts.partials.knowledgeNav')

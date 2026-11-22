@@ -23,8 +23,8 @@
                         <thead class="thead-dark">
                             <tr>
                                 <th style="min-width: 12rem;">Name</th>
+                                <th style="min-width: 12rem;">Department</th>
                                 <th>Description</th>
-                                <th class="text-end" style="min-width: 9rem;">Basic salary</th>
                                 @can('manage designations')
                                 <th class="text-center" style="min-width: 100px;">Actions</th>
                                 @endcan
@@ -32,12 +32,12 @@
                         </thead>
                         <tbody>
                             <tr v-if="!items.length">
-                                <td colspan="4" class="text-center text-muted py-4">No designations yet.</td>
+                                <td :colspan="@can('manage designations') 4 @else 3 @endcan" class="text-center text-muted py-4">No designations yet.</td>
                             </tr>
                             <tr v-for="item in items" :key="item.id">
                                 <td class="fw-semibold">@{{ item.name }}</td>
+                                <td>@{{ item.hr_department?.name || '-' }}</td>
                                 <td>@{{ item.description || '-' }}</td>
-                                <td class="text-end">@{{ item.basic_salary !== null ? 'K' + formatAmount(item.basic_salary) : '-' }}</td>
                                 @can('manage designations')
                                 <td class="text-center">
                                     <div class="dropdown d-inline-block">
@@ -61,7 +61,7 @@
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="designation-modal-title">@{{ form.id ? 'Edit designation' : 'Add designation' }}</h5>
+                        <h5 class="modal-title text-white" id="designation-modal-title">@{{ form.id ? 'Edit designation' : 'Add designation' }}</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <form @submit.prevent="save">
@@ -73,15 +73,19 @@
                                 <div v-if="formErrors.name" class="text-danger fs-sm">@{{ formErrors.name[0] }}</div>
                             </div>
                             <div class="mb-3">
+                                <label class="form-label" for="designation-department">Department</label>
+                                <select id="designation-department" class="form-select" v-model="form.hr_department_id" required>
+                                    <option value="">Select department</option>
+                                    @foreach ($departments as $department)
+                                        <option value="{{ $department->id }}">{{ $department->name }}</option>
+                                    @endforeach
+                                </select>
+                                <div v-if="formErrors.hr_department_id" class="text-danger fs-sm">@{{ formErrors.hr_department_id[0] }}</div>
+                            </div>
+                            <div class="mb-3">
                                 <label class="form-label" for="designation-description">Description</label>
                                 <input id="designation-description" type="text" class="form-control" v-model="form.description" maxlength="255">
                                 <div v-if="formErrors.description" class="text-danger fs-sm">@{{ formErrors.description[0] }}</div>
-                            </div>
-                            <div class="mb-0">
-                                <label class="form-label" for="designation-salary">Basic salary (K)</label>
-                                <input id="designation-salary" type="number" step="0.01" min="0" class="form-control" v-model.number="form.basic_salary" placeholder="0.00">
-                                <div class="form-text">Used as the default basic salary for employees assigned to this designation when they have none set.</div>
-                                <div v-if="formErrors.basic_salary" class="text-danger fs-sm">@{{ formErrors.basic_salary[0] }}</div>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -104,7 +108,7 @@
                 const items = ref([]);
                 const loading = ref(true);
                 const loadError = ref('');
-                const form = ref({ id: null, name: '', description: '', basic_salary: null });
+                const form = ref({ id: null, name: '', description: '', hr_department_id: '' });
                 const formErrors = ref({});
                 const formError = ref('');
                 const saving = ref(false);
@@ -128,7 +132,7 @@
                 };
 
                 const openAdd = () => {
-                    form.value = { id: null, name: '', description: '', basic_salary: null };
+                    form.value = { id: null, name: '', description: '', hr_department_id: '' };
                     formErrors.value = {};
                     formError.value = '';
                     getModal()?.show();
@@ -139,7 +143,7 @@
                         id: item.id,
                         name: item.name,
                         description: item.description || '',
-                        basic_salary: item.basic_salary !== null ? Number(item.basic_salary) : null
+                        hr_department_id: item.hr_department_id || ''
                     };
                     formErrors.value = {};
                     formError.value = '';
@@ -155,7 +159,7 @@
                         const payload = {
                             name: form.value.name,
                             description: form.value.description || null,
-                            basic_salary: form.value.basic_salary === '' ? null : form.value.basic_salary
+                            hr_department_id: form.value.hr_department_id
                         };
                         const response = form.value.id
                             ? await axios.put(@json(url('hrm/designations')) + '/' + form.value.id, payload)
@@ -195,15 +199,12 @@
                     icon: 'success', title: message, toast: true, timer: 3000,
                     position: 'top-end', showConfirmButton: false, timerProgressBar: true
                 });
-
-                const formatAmount = (value) => Number(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
                 onMounted(() => {
                     axios.defaults.headers.common['X-CSRF-TOKEN'] = $('meta[name="csrf-token"]').attr('content');
                     load();
                 });
 
-                return { items, loading, loadError, form, formErrors, formError, saving, openAdd, openEdit, save, confirmDelete, formatAmount };
+                return { items, loading, loadError, form, formErrors, formError, saving, openAdd, openEdit, save, confirmDelete };
             }
         }).mount('#designations');
     </script>

@@ -48,9 +48,7 @@
                     class="form-control @error('date_of_birth') is-invalid @enderror"
                     id="date_of_birth"
                     name="date_of_birth"
-                    value="
-                    {{ old('date_of_birth', optional($instructor)->date_of_birth) }}"
-
+                    value="{{ old('date_of_birth', optional($instructor)->date_of_birth) }}"
                     required>
             <label class="form-label" for="date_of_birth">Date of birth</label>
         </div>
@@ -169,13 +167,13 @@
     @if(($hrDepartments ?? null) !== null && auth()->user()->can('process payroll'))
     <div class="col-lg-4">
         <p class="text-muted">
-            HRM — HR department and basic salary used for payroll
+            HRM — HR department, designation and salary grade
         </p>
     </div>
 
     <div class="col-lg-8 col-xl-5">
         <div class="form-floating mb-4">
-            <select class="form-select" id="hr_department_id" name="hr_department_id">
+            <select class="form-select" id="hr_department_id" name="hr_department_id" onchange="filterDesignationOptions(true)">
                 <option value="" {{ old('hr_department_id', optional($instructor)->hr_department_id) ? '' : 'selected' }}>No department</option>
                 @foreach ($hrDepartments as $hrDepartment)
                     <option value="{{ $hrDepartment->id }}"
@@ -187,31 +185,62 @@
             <label for="hr_department_id">HR department</label>
         </div>
         <div class="form-floating mb-4">
-            <select class="form-select" id="designation_id" name="designation_id" onchange="prefillDesignationSalary(this)">
+            <select class="form-select" id="designation_id" name="designation_id">
                 <option value="" {{ old('designation_id', optional($instructor)->designation_id) ? '' : 'selected' }}>No designation</option>
                 @foreach ($designations ?? [] as $designation)
-                    <option value="{{ $designation->id }}" data-salary="{{ $designation->basic_salary }}"
+                    <option value="{{ $designation->id }}" data-department="{{ $designation->hr_department_id }}"
+                            data-current="{{ old('designation_id', optional($instructor)->designation_id) == $designation->id ? 'true' : 'false' }}"
                             {{ old('designation_id', optional($instructor)->designation_id) == $designation->id ? 'selected' : '' }}>
-                        {{ $designation->name }}{{ $designation->basic_salary !== null ? ' — K' . number_format((float) $designation->basic_salary, 2) : '' }}
+                        {{ $designation->name }}
                     </option>
                 @endforeach
             </select>
             <label for="designation_id">Designation</label>
         </div>
+        <div class="form-floating mb-2">
+            <select class="form-select" id="salary_grade_id" name="salary_grade_id" onchange="setBasicSalaryFromGrade(this)">
+                <option value="" {{ old('salary_grade_id', optional($instructor)->salary_grade_id) ? '' : 'selected' }}>No salary grade</option>
+                @foreach ($salaryGrades ?? [] as $salaryGrade)
+                    <option value="{{ $salaryGrade->id }}" data-salary="{{ $salaryGrade->basic_salary }}"
+                            {{ old('salary_grade_id', optional($instructor)->salary_grade_id) == $salaryGrade->id ? 'selected' : '' }}>
+                        {{ $salaryGrade->code }} — {{ $salaryGrade->name }} (K{{ number_format((float) $salaryGrade->basic_salary, 2) }})
+                    </option>
+                @endforeach
+            </select>
+            <label for="salary_grade_id">Salary grade</label>
+        </div>
+        <div class="form-text mb-4">Selecting a grade sets its basic salary as the starting amount. You can edit the amount below.</div>
         <div class="form-floating mb-4">
             <input type="number" step="0.01" min="0" class="form-control" id="basic_salary" name="basic_salary"
-                   placeholder="0.00" value="{{ old('basic_salary', optional($instructor)->basic_salary) }}">
+                   placeholder="0.00" value="{{ old('basic_salary', $instructor?->basic_salary ?? $instructor?->salaryGrade?->basic_salary) }}">
             <label class="form-label" for="basic_salary">Basic salary (K)</label>
-            <div class="form-text">Leave blank to use the designation's default salary in payroll.</div>
         </div>
         <script>
-            function prefillDesignationSalary(select) {
-                const salaryInput = document.getElementById('basic_salary');
+            function filterDesignationOptions(clearInvalidSelection) {
+                const departmentSelect = document.getElementById('hr_department_id');
+                const designationSelect = document.getElementById('designation_id');
+                const selectedOption = designationSelect.options[designationSelect.selectedIndex];
+
+                if (clearInvalidSelection && selectedOption.value
+                    && selectedOption.dataset.department !== departmentSelect.value) {
+                    designationSelect.value = '';
+                }
+
+                Array.from(designationSelect.options).forEach((option) => {
+                    const matchesDepartment = option.dataset.department === departmentSelect.value;
+                    const keepCurrent = !clearInvalidSelection && option.dataset.current === 'true';
+                    option.hidden = Boolean(option.value) && !matchesDepartment && !keepCurrent;
+                });
+            }
+
+            function setBasicSalaryFromGrade(select) {
                 const salary = select.options[select.selectedIndex]?.dataset.salary;
-                if (salaryInput && !salaryInput.value && salary) {
-                    salaryInput.value = salary;
+                if (salary !== undefined) {
+                    document.getElementById('basic_salary').value = salary;
                 }
             }
+
+            filterDesignationOptions(false);
         </script>
     </div>
 
@@ -261,25 +290,12 @@
                 passwordInput.setAttribute('type', type);
             }
 
-            // Set the datepicker with current date as default value
             $(document).ready(function() {
-                var instructorDateOfBirth = "{{ $instructor?->date_of_birth }}"; // Get date_of_birth as a string from Blade
-
-                var today = instructorDateOfBirth && instructorDateOfBirth.trim() !== ""
-                    ? moment(instructorDateOfBirth, "YYYY-MM-DD").toDate()
-                    : new Date(); // If date_of_birth is not available, use the current date
-
-                // Extract day, month, and year with leading zeroes
-                var day = ("0" + today.getDate()).slice(-2);
-                var month = ("0" + (today.getMonth() + 1)).slice(-2); // Months are zero-based
-                var year = today.getFullYear();
-
-                // Set the datepicker
                 $("#date_of_birth").datepicker({
                     format: "dd-mm-yyyy",
                     autoclose: true,
                     todayHighlight: true
-                }).datepicker('setDate', day + '/' + month + '/' + year); // Use `/` for proper format
+                });
             });
         </script>
     </div>

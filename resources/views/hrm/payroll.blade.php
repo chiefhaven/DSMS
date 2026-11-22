@@ -6,29 +6,44 @@
     <div class="content content-full" id="payroll">
         <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
             <h2 class="fs-4 fw-semibold mb-0">Payroll</h2>
-            @can('process payroll')
-                <button type="button" class="btn btn-sm btn-primary rounded-pill px-3" @click="openAddPayroll">
-                    <i class="fa fa-plus me-1"></i> Add payroll
-                </button>
+            @can('view payroll')
+                @can('process payroll')
+                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-3" @click="openAddPayroll">
+                        <i class="fa fa-plus me-1"></i> Add payroll
+                    </button>
+                @endcan
             @endcan
         </div>
 
         <div class="block block-rounded">
             <ul class="nav nav-tabs nav-tabs-block" role="tablist" aria-label="Payroll views">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="payrolls-tab" data-bs-toggle="tab" data-bs-target="#payrolls-panel"
-                            type="button" role="tab" aria-controls="payrolls-panel" aria-selected="true">
-                        <i class="fa fa-coins me-2"></i>All Payrolls
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="groups-tab" data-bs-toggle="tab" data-bs-target="#groups-panel"
-                            type="button" role="tab" aria-controls="groups-panel" aria-selected="false">
-                        <i class="fa fa-layer-group me-2"></i>All payroll groups
-                    </button>
-                </li>
+                @can('view payroll')
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="payrolls-tab" data-bs-toggle="tab" data-bs-target="#payrolls-panel"
+                                type="button" role="tab" aria-controls="payrolls-panel" aria-selected="true">
+                            <i class="fa fa-coins me-2"></i>All Payrolls
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="groups-tab" data-bs-toggle="tab" data-bs-target="#groups-panel"
+                                type="button" role="tab" aria-controls="groups-panel" aria-selected="false">
+                            <i class="fa fa-layer-group me-2"></i>All payroll groups
+                        </button>
+                    </li>
+                @endcan
+                @can('view salary grades')
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {{ auth()->user()->can('view payroll') ? '' : 'active' }}"
+                                id="salary-grades-tab" data-bs-toggle="tab" data-bs-target="#salary-grades-panel"
+                                type="button" role="tab" aria-controls="salary-grades-panel"
+                                aria-selected="{{ auth()->user()->can('view payroll') ? 'false' : 'true' }}">
+                            <i class="fa fa-layer-group me-2"></i>Salary Grades
+                        </button>
+                    </li>
+                @endcan
             </ul>
             <div class="block-content tab-content">
+                @can('view payroll')
                 <div class="tab-pane fade show active" id="payrolls-panel" role="tabpanel" aria-labelledby="payrolls-tab">
                     <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
                         <label for="payroll-month-filter" class="fs-sm text-muted mb-0">Month</label>
@@ -78,16 +93,21 @@
                         </table>
                     </div>
                 </div>
+                @endcan
+                @can('view salary grades')
+                    @include('hrm.partials.salary-grades-tab')
+                @endcan
             </div>
         </div>
 
+        @can('view payroll')
         @can('process payroll')
         {{-- Add payroll (group / multi-employee) modal --}}
         <div class="modal fade" id="payroll-add-modal" tabindex="-1" aria-labelledby="payroll-add-modal-title" aria-hidden="true">
             <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="payroll-add-modal-title">Add payroll</h5>
+                        <h5 class="modal-title text-white" id="payroll-add-modal-title">Add payroll</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <form @submit.prevent="saveGroup">
@@ -194,7 +214,7 @@
             <div class="modal-dialog modal-lg modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="payroll-modal-title">Edit payroll record</h5>
+                        <h5 class="modal-title text-white" id="payroll-modal-title">Edit payroll record</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <form @submit.prevent="savePayroll">
@@ -264,13 +284,15 @@
             </div>
         </div>
         @endcan
+        @endcan
 
         {{-- Payroll group details modal --}}
+        @can('view payroll')
         <div class="modal fade" id="payroll-group-modal" tabindex="-1" aria-labelledby="payroll-group-modal-title" aria-hidden="true">
             <div class="modal-dialog modal-xl modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="payroll-group-modal-title">@{{ groupDetails?.group.name || 'Payroll group' }}</h5>
+                        <h5 class="modal-title text-white" id="payroll-group-modal-title">@{{ groupDetails?.group.name || 'Payroll group' }}</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body" style="max-height: calc(100vh - 230px); overflow-y: auto;">
@@ -364,11 +386,13 @@
                 </div>
             </div>
         </div>
+        @endcan
     </div>
 
     <script>
         createApp({
             setup() {
+                @can('view payroll')
                 const monthFilter = ref('');
                 const groupFilter = ref(null);
 
@@ -386,12 +410,29 @@
                 const bonusLoading = ref(false);
                 let table = null;
                 let groupsTable = null;
+                @endcan
+
+                @can('view salary grades')
+                const salaryGrades = ref([]);
+                const salaryGradesLoading = ref(true);
+                const salaryGradesLoadError = ref('');
+                const salaryGradeForm = ref(emptySalaryGradeForm());
+                const salaryGradeFormErrors = ref({});
+                const salaryGradeFormError = ref('');
+                const salaryGradeSaving = ref(false);
+                @endcan
 
                 const getModal = (id) => {
                     const modalElement = document.getElementById(id);
                     return modalElement ? bootstrap.Modal.getOrCreateInstance(modalElement) : null;
                 };
 
+                const toast = (message) => Swal.fire({
+                    icon: 'success', title: message, toast: true, timer: 3000,
+                    position: 'top-end', showConfirmButton: false, timerProgressBar: true
+                });
+
+                @can('view payroll')
                 function emptyGroupForm() {
                     return { payment_month: '', name: '', status: 'Pending', payment_date: '', saving: false, error: '' };
                 }
@@ -403,7 +444,15 @@
                         status: 'Pending', payment_date: ''
                     };
                 }
+                @endcan
 
+                @can('view salary grades')
+                function emptySalaryGradeForm() {
+                    return { id: null, code: '', name: '', description: '', basic_salary: null };
+                }
+                @endcan
+
+                @can('view payroll')
                 const formatAmount = (value) => Number(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 const formatMonth = (month) => {
                     if (!month) return '-';
@@ -672,100 +721,192 @@
                     }
                 };
 
-                const toast = (message) => Swal.fire({
-                    icon: 'success', title: message, toast: true, timer: 3000,
-                    position: 'top-end', showConfirmButton: false, timerProgressBar: true
-                });
-
                 const reloadTable = () => table?.ajax.reload(null, false);
                 const clearMonthFilter = () => { monthFilter.value = ''; reloadTable(); };
+                @endcan
+
+                @can('view salary grades')
+                const loadSalaryGrades = async () => {
+                    salaryGradesLoading.value = true;
+                    salaryGradesLoadError.value = '';
+                    try {
+                        const { data } = await axios.get(@json(route('salary-grades.fetch')));
+                        salaryGrades.value = data;
+                    } catch (error) {
+                        salaryGradesLoadError.value = 'Unable to load salary grades. Reload the page to try again.';
+                    } finally {
+                        salaryGradesLoading.value = false;
+                    }
+                };
+
+                const openAddSalaryGrade = () => {
+                    salaryGradeForm.value = emptySalaryGradeForm();
+                    salaryGradeFormErrors.value = {};
+                    salaryGradeFormError.value = '';
+                    getModal('salary-grade-modal')?.show();
+                };
+
+                const openEditSalaryGrade = (item) => {
+                    salaryGradeForm.value = {
+                        id: item.id,
+                        code: item.code,
+                        name: item.name,
+                        description: item.description || '',
+                        basic_salary: Number(item.basic_salary)
+                    };
+                    salaryGradeFormErrors.value = {};
+                    salaryGradeFormError.value = '';
+                    getModal('salary-grade-modal')?.show();
+                };
+
+                const saveSalaryGrade = async () => {
+                    if (salaryGradeSaving.value) return;
+                    salaryGradeSaving.value = true;
+                    salaryGradeFormErrors.value = {};
+                    salaryGradeFormError.value = '';
+                    try {
+                        const payload = {
+                            code: salaryGradeForm.value.code,
+                            name: salaryGradeForm.value.name,
+                            description: salaryGradeForm.value.description || null,
+                            basic_salary: salaryGradeForm.value.basic_salary
+                        };
+                        const response = salaryGradeForm.value.id
+                            ? await axios.put(@json(url('hrm/salary-grades')) + '/' + salaryGradeForm.value.id, payload)
+                            : await axios.post(@json(route('salary-grades.store')), payload);
+                        getModal('salary-grade-modal')?.hide();
+                        toast(response.data.message);
+                        loadSalaryGrades();
+                    } catch (error) {
+                        salaryGradeFormErrors.value = error.response?.data?.errors ?? {};
+                        salaryGradeFormError.value = error.response?.data?.message || 'Unable to save the salary grade. Please try again.';
+                    } finally {
+                        salaryGradeSaving.value = false;
+                    }
+                };
+
+                const confirmDeleteSalaryGrade = (item) => {
+                    Swal.fire({
+                        title: 'Delete salary grade?',
+                        text: `"${item.code} - ${item.name}" will be removed.`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        confirmButtonText: 'Delete'
+                    }).then(async (result) => {
+                        if (!result.isConfirmed) return;
+                        try {
+                            const { data } = await axios.delete(@json(url('hrm/salary-grades')) + '/' + item.id);
+                            toast(data.message);
+                            loadSalaryGrades();
+                        } catch (error) {
+                            Swal.fire({ icon: 'error', title: 'Unable to delete', text: error.response?.data?.message || 'Please try again.' });
+                        }
+                    });
+                };
+
+                const formatSalaryAmount = (value) => Number(value || 0).toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                @endcan
 
                 onMounted(() => {
                     axios.defaults.headers.common['X-CSRF-TOKEN'] = $('meta[name="csrf-token"]').attr('content');
-                    $('#payrolls-tab').on('shown.bs.tab', () => table?.columns.adjust());
-                    $('#groups-tab').on('shown.bs.tab', () => groupsTable?.columns.adjust());
-                    groupsTable = $('#groupsTable').DataTable({
-                        serverSide: true,
-                        processing: true,
-                        scrollX: true,
-                        scrollCollapse: true,
-                        pageLength: 25,
-                        lengthMenu: [10, 25, 50, 100],
-                        order: [[5, 'desc']],
-                        ajax: async (data, callback) => {
-                            try {
-                                const response = await axios.get(@json(route('payroll.groups')), {
-                                    params: data,
-                                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                                });
-                                callback(response.data);
-                            } catch (error) {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Unable to load payroll groups',
-                                    text: [401, 403].includes(error.response?.status)
-                                        ? 'Session expired or access denied. Reload the page.'
-                                        : 'Please try again.'
-                                });
-                            }
-                        },
-                        columns: [
-                            { data: 'group', name: 'name' },
-                            { data: 'month', name: 'payment_month' },
-                            { data: 'employees', name: 'payrolls_count', className: 'text-end' },
-                            { data: 'total_net', name: 'payrolls_sum_net_pay', className: 'text-end' },
-                            { data: 'payment_status', name: 'paid_count' },
-                            { data: 'created_by', orderable: false, searchable: false },
-                            { data: 'created_on', name: 'created_at' },
-                            { data: 'actions', className: 'text-center', orderable: false, searchable: false }
-                        ]
-                    });
-                    table = $('#payrollTable').DataTable({
-                        serverSide: true,
-                        processing: true,
-                        scrollX: true,
-                        scrollCollapse: true,
-                        pageLength: 25,
-                        lengthMenu: [10, 25, 50, 100],
-                        order: [[3, 'desc']],
-                        ajax: async (data, callback) => {
-                            try {
-                                NProgress.start();
-                                const response = await axios.get(@json(route('payroll.fetch')), {
-                                    params: { ...data, month: monthFilter.value, group: groupFilter.value?.id || '' },
-                                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                                });
-                                callback(response.data);
-                            } catch (error) {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Unable to load payroll records',
-                                    text: [401, 403].includes(error.response?.status)
-                                        ? 'Session expired or access denied. Reload the page.'
-                                        : 'Please try again.'
-                                });
-                            } finally {
-                                NProgress.done();
-                            }
-                        },
-                        columns: [
-                            { data: 'actions', className: 'text-center', orderable: false, searchable: false },
-                            { data: 'employee', orderable: false },
-                            { data: 'type', orderable: false, searchable: false },
-                            { data: 'month', name: 'payment_month' },
-                            { data: 'basic_salary', name: 'basic_salary', className: 'text-end' },
-                            { data: 'allowances', name: 'allowances', className: 'text-end' },
-                            { data: 'bonus', name: 'bonus', className: 'text-end' },
-                            { data: 'deductions', name: 'deductions', className: 'text-end' },
-                            { data: 'net_pay', name: 'net_pay', className: 'text-end' },
-                            { data: 'payment_date', name: 'payment_date' },
-                            { data: 'status', name: 'status' },
-                            { data: 'processed_by', orderable: false, searchable: false }
-                        ]
-                    });
+                    @can('view payroll')
+                    if (document.getElementById('payrollTable')) {
+                        $('#payrolls-tab').on('shown.bs.tab', () => table?.columns.adjust());
+                        $('#groups-tab').on('shown.bs.tab', () => groupsTable?.columns.adjust());
+                        groupsTable = $('#groupsTable').DataTable({
+                            serverSide: true,
+                            processing: true,
+                            scrollX: true,
+                            scrollCollapse: true,
+                            pageLength: 25,
+                            lengthMenu: [10, 25, 50, 100],
+                            order: [[5, 'desc']],
+                            ajax: async (data, callback) => {
+                                try {
+                                    const response = await axios.get(@json(route('payroll.groups')), {
+                                        params: data,
+                                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                                    });
+                                    callback(response.data);
+                                } catch (error) {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Unable to load payroll groups',
+                                        text: [401, 403].includes(error.response?.status)
+                                            ? 'Session expired or access denied. Reload the page.'
+                                            : 'Please try again.'
+                                    });
+                                }
+                            },
+                            columns: [
+                                { data: 'group', name: 'name' },
+                                { data: 'month', name: 'payment_month' },
+                                { data: 'employees', name: 'payrolls_count', className: 'text-end' },
+                                { data: 'total_net', name: 'payrolls_sum_net_pay', className: 'text-end' },
+                                { data: 'payment_status', name: 'paid_count' },
+                                { data: 'created_by', orderable: false, searchable: false },
+                                { data: 'created_on', name: 'created_at' },
+                                { data: 'actions', className: 'text-center', orderable: false, searchable: false }
+                            ]
+                        });
+                        table = $('#payrollTable').DataTable({
+                            serverSide: true,
+                            processing: true,
+                            scrollX: true,
+                            scrollCollapse: true,
+                            pageLength: 25,
+                            lengthMenu: [10, 25, 50, 100],
+                            order: [[3, 'desc']],
+                            ajax: async (data, callback) => {
+                                try {
+                                    NProgress.start();
+                                    const response = await axios.get(@json(route('payroll.fetch')), {
+                                        params: { ...data, month: monthFilter.value, group: groupFilter.value?.id || '' },
+                                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                                    });
+                                    callback(response.data);
+                                } catch (error) {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Unable to load payroll records',
+                                        text: [401, 403].includes(error.response?.status)
+                                            ? 'Session expired or access denied. Reload the page.'
+                                            : 'Please try again.'
+                                    });
+                                } finally {
+                                    NProgress.done();
+                                }
+                            },
+                            columns: [
+                                { data: 'actions', className: 'text-center', orderable: false, searchable: false },
+                                { data: 'employee', orderable: false },
+                                { data: 'type', orderable: false, searchable: false },
+                                { data: 'month', name: 'payment_month' },
+                                { data: 'basic_salary', name: 'basic_salary', className: 'text-end' },
+                                { data: 'allowances', name: 'allowances', className: 'text-end' },
+                                { data: 'bonus', name: 'bonus', className: 'text-end' },
+                                { data: 'deductions', name: 'deductions', className: 'text-end' },
+                                { data: 'net_pay', name: 'net_pay', className: 'text-end' },
+                                { data: 'payment_date', name: 'payment_date' },
+                                { data: 'status', name: 'status' },
+                                { data: 'processed_by', orderable: false, searchable: false }
+                            ]
+                        });
+                    }
+                    @endcan
+                    @can('view salary grades')
+                    if (document.getElementById('salary-grades-panel')) {
+                        loadSalaryGrades();
+                    }
+                    @endcan
                 });
 
                 return {
+                    @can('view payroll')
                     monthFilter, groupFilter,
                     employeeRows, employeesLoading, bonuses, defaultSalary, groupForm,
                     selectedCount, allSelected, defaultGroupName, totalNet,
@@ -775,9 +916,26 @@
                     groupDetails, groupDetailsLoading, groupDetailsError, filterByGroup,
                     form, formErrors, formError, saving, bonus, bonusLoading,
                     isInstructorSelected, netPay, formatAmount, formatMonth,
-                    loadBonusPreview, savePayroll, reloadTable, clearMonthFilter
+                    loadBonusPreview, savePayroll, reloadTable, clearMonthFilter,
+                    @endcan
+                    @can('view salary grades')
+                    salaryGrades, salaryGradesLoading, salaryGradesLoadError,
+                    salaryGradeForm, salaryGradeFormErrors, salaryGradeFormError, salaryGradeSaving,
+                    openAddSalaryGrade, openEditSalaryGrade, saveSalaryGrade,
+                    confirmDeleteSalaryGrade, formatSalaryAmount
+                    @endcan
                 };
             }
         }).mount('#payroll');
+    </script>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.location.hash === '#salary-grades-tab') {
+                const salaryGradesTab = document.getElementById('salary-grades-tab');
+                if (salaryGradesTab) {
+                    bootstrap.Tab.getOrCreateInstance(salaryGradesTab).show();
+                }
+            }
+        });
     </script>
 @endsection

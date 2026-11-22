@@ -99,7 +99,7 @@ class InstructorPermissionsTest extends TestCase
         DB::table('districts')->insert(['id' => 'district', 'name' => 'Central']);
         DB::table('instructors')->insert([
             'id' => self::INSTRUCTOR, 'fname' => 'Example', 'sname' => 'Instructor',
-            'department_id' => 'one', 'status' => 'active',
+            'department_id' => 'one', 'status' => 'active', 'date_of_birth' => '15-04-1990',
         ]);
         DB::table('users')->insert([
             'id' => 'teacher-user', 'instructor_id' => self::INSTRUCTOR, 'name' => 'Teacher',
@@ -173,7 +173,11 @@ class InstructorPermissionsTest extends TestCase
         $role = Role::create(['name' => 'instructor-editor', 'guard_name' => 'web']);
         $role->givePermissionTo('edit instructors');
         $this->authenticate($role);
-        $this->get('/instructors/'.self::INSTRUCTOR.'/edit')->assertOk()->assertSee('readonly');
+        $this->get('/instructors/'.self::INSTRUCTOR.'/edit')
+            ->assertOk()
+            ->assertSee('readonly')
+            ->assertSee('type="text"', false)
+            ->assertSee('value="15-04-1990"', false);
         $this->postJson('/instructors', [])->assertForbidden();
         $this->putJson('/instructors/'.self::INSTRUCTOR, [])->assertUnprocessable();
         $this->postJson('/updateinstructor', ['instructor_id' => self::INSTRUCTOR])->assertUnprocessable();

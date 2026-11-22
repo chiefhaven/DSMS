@@ -7,7 +7,7 @@
 
                 <!-- Header -->
                 <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title">
+                    <h5 class="modal-title text-white">
                         <i class="fas fa-bullhorn me-2"></i> Send Announcement
                     </h5>
                     <button type="button"

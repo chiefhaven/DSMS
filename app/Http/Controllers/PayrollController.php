@@ -25,7 +25,8 @@ class PayrollController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('permission:view payroll')->only(['index', 'fetch', 'employees', 'bonusPreview', 'bonusPreviews', 'groups', 'showGroup', 'payslip']);
+        $this->middleware('permission:view payroll')->only(['fetch', 'employees', 'bonusPreview', 'bonusPreviews', 'groups', 'showGroup', 'payslip']);
+        $this->middleware('permission:view payroll|view salary grades')->only('index');
         $this->middleware('permission:process payroll')->only(['store', 'update', 'destroy', 'destroyGroup', 'emailPayslip']);
     }
 
@@ -137,7 +138,7 @@ class PayrollController extends Controller
 
     public function employees(): JsonResponse
     {
-        $instructors = Instructor::with('designation')
+        $instructors = Instructor::with('salaryGrade')
             ->whereRaw("LOWER(status) = 'active'")
             ->orderBy('fname')
             ->get()
@@ -147,7 +148,7 @@ class PayrollController extends Controller
                 'basic_salary' => $instructor->effective_basic_salary,
             ]);
 
-        $administrators = Administrator::with('designation')
+        $administrators = Administrator::with('salaryGrade')
             ->whereRaw("LOWER(status) = 'active'")
             ->orderBy('fname')
             ->get()
