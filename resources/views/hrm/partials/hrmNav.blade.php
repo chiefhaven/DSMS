@@ -16,7 +16,9 @@
                 @can('view designations')
                 <li class="nav-item"><a class="nav-link {{ $hrmActive === 'designations' ? 'active' : '' }}" href="{{ route('designations.index') }}">Designations</a></li>
                 @endcan
-                <li class="nav-item"><a class="nav-link text-muted" href="#" aria-disabled="true" title="Coming soon">Settings</a></li>
+                @canany(['view salary grades', 'process payroll'])
+                <li class="nav-item"><a class="nav-link {{ $hrmActive === 'settings' ? 'active' : '' }}" href="{{ route('hrm.settings') }}">Settings</a></li>
+                @endcanany
             </ul>
         </div>
     </div>

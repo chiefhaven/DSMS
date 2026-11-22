@@ -189,7 +189,7 @@ class HrmPayrollTest extends TestCase
             'payment_month' => '2026-11',
             'bonus_attendances' => 3,
             'bonus' => 150,
-            'net_pay' => 1200,
+            'net_pay' => 1050,
             'status' => 'Paid',
             'created_by' => $this->processor->id,
         ]);
@@ -200,6 +200,305 @@ class HrmPayrollTest extends TestCase
             'net_pay' => 800,
         ]);
     }
+
+    public function test_instructor_bonus_above_basic_salary_sets_gross_salary(): void
+    {
+        $this->addAttendance('2026-11-03 09:00:00');
+        $this->addAttendance('2026-11-10 09:00:00');
+        $this->addAttendance('2026-11-24 09:00:00');
+
+        $this->actingAs($this->processor)
+            ->postJson(route('payroll.store'), [
+                'payment_month' => '2026-11',
+                'status' => 'Pending',
+                'employees' => [
+                    [
+                        'employee' => 'instructor:' . self::INSTRUCTOR_ID,
+                        'basic_salary' => 100,
+                        'allowances' => 25,
+                        'deductions' => 10,
+                    ],
+                ],
+            ])
+            ->assertOk();
+
+        $this->assertDatabaseHas('payrolls', [
+            'instructor_id' => self::INSTRUCTOR_ID,
+            'basic_salary' => 100,
+            'bonus' => 150,
+            'net_pay' => 165,
+        ]);
+    }
+
+    public function test_updating_instructor_payroll_uses_greater_of_basic_salary_or_bonus(): void
+    {
+        $this->addAttendance('2026-11-03 09:00:00');
+        $this->addAttendance('2026-11-10 09:00:00');
+        $this->addAttendance('2026-11-24 09:00:00');
+
+        $payroll = \App\Models\Payroll::create([
+            'instructor_id' => self::INSTRUCTOR_ID,
+            'payment_month' => '2026-11',
+            'basic_salary' => 100,
+            'net_pay' => 100,
+            'status' => 'Pending',
+        ]);
+
+        $this->actingAs($this->processor)
+            ->putJson(route('payroll.update', $payroll->id), [
+                'basic_salary' => 100,
+                'allowances' => 25,
+                'deductions' => 10,
+                'status' => 'Pending',
+            ])
+            ->assertOk();
+
+        $this->assertDatabaseHas('payrolls', [
+            'id' => $payroll->id,
+            'bonus' => 150,
+            'net_pay' => 165,
+        ]);
+    }
+
+    public function test_final_status_is_valid_and_counted_separately_in_group_details(): void
+    {
+        $this->actingAs($this->processor)
+            ->postJson(route('payroll.store'), [
+                'payment_month' => '2026-11',
+                'status' => 'Final',
+                'employees' => [
+                    ['employee' => 'administrator:' . self::ADMINISTRATOR_ID, 'basic_salary' => 800],
+                ],
+            ])
+            ->assertOk();
+
+        $payroll = \App\Models\Payroll::firstOrFail();
+        $this->assertDatabaseHas('payrolls', [
+            'id' => $payroll->id,
+            'status' => 'Final',
+            'payment_date' => null,
+        ]);
+
+        $this->actingAs($this->viewer)
+            ->getJson(route('payroll.groups.show', $payroll->payroll_group_id))
+            ->assertOk()
+            ->assertJsonPath('summary.paid', 0)
+            ->assertJsonPath('summary.final', 1)
+            ->assertJsonPath('summary.pending', 0)
+            ->assertJsonPath('records.0.status', 'Final');
+    }
+
+    public function test_final_payroll_can_be_paid_with_a_payment_date(): void
+    {
+        $payroll = \App\Models\Payroll::create([
+            'administrator_id' => self::ADMINISTRATOR_ID,
+            'payment_month' => '2026-11',
+            'basic_salary' => 800,
+            'net_pay' => 800,
+            'status' => 'Final',
+        ]);
+
+        $this->actingAs($this->processor)
+            ->postJson(route('payroll.pay', $payroll->id), ['payment_date' => '2026-11-30'])
+            ->assertOk()
+            ->assertJson(['message' => 'Payroll marked as Paid.']);
+
+        $this->assertDatabaseHas('payrolls', [
+            'id' => $payroll->id,
+            'status' => 'Paid',
+            'payment_date' => '2026-11-30 00:00:00',
+        ]);
+
+        $pending = \App\Models\Payroll::create([
+            'instructor_id' => self::INSTRUCTOR_ID,
+            'payment_month' => '2026-11',
+            'basic_salary' => 1000,
+            'net_pay' => 1000,
+            'status' => 'Pending',
+        ]);
+
+        $this->postJson(route('payroll.pay', $pending->id), ['payment_date' => '2026-11-30'])
+            ->assertUnprocessable();
+        $this->assertDatabaseHas('payrolls', ['id' => $pending->id, 'status' => 'Pending']);
+    }
+
+    public function test_final_payroll_group_can_be_paid_as_a_group(): void
+    {
+        $response = $this->actingAs($this->processor)
+            ->postJson(route('payroll.store'), [
+                'payment_month' => '2026-11',
+                'status' => 'Final',
+                'employees' => [
+                    ['employee' => 'instructor:' . self::INSTRUCTOR_ID, 'basic_salary' => 1000],
+                    ['employee' => 'administrator:' . self::ADMINISTRATOR_ID, 'basic_salary' => 800],
+                ],
+            ])
+            ->assertOk();
+
+        $groupId = $response->json('group.id');
+        $this->postJson(route('payroll.groups.pay', $groupId), ['payment_date' => '2026-11-30'])
+            ->assertOk()
+            ->assertJson(['message' => 'Payroll group paid with 2 records.']);
+
+        $this->assertDatabaseHas('payrolls', [
+            'payroll_group_id' => $groupId,
+            'instructor_id' => self::INSTRUCTOR_ID,
+            'status' => 'Paid',
+            'payment_date' => '2026-11-30 00:00:00',
+        ]);
+        $this->assertDatabaseHas('payrolls', [
+            'payroll_group_id' => $groupId,
+            'administrator_id' => self::ADMINISTRATOR_ID,
+            'status' => 'Paid',
+            'payment_date' => '2026-11-30 00:00:00',
+        ]);
+    }
+
+    public function test_paid_payroll_records_cannot_be_edited(): void
+    {
+        $payroll = \App\Models\Payroll::create([
+            'administrator_id' => self::ADMINISTRATOR_ID,
+            'payment_month' => '2026-11',
+            'basic_salary' => 800,
+            'net_pay' => 800,
+            'status' => 'Paid',
+            'payment_date' => '2026-11-30',
+        ]);
+
+        $this->actingAs($this->processor)
+            ->putJson(route('payroll.update', $payroll->id), [
+                'basic_salary' => 1000,
+                'status' => 'Paid',
+                'payment_date' => '2026-11-30',
+            ])
+            ->assertUnprocessable()
+            ->assertJson(['message' => 'Paid payroll records cannot be edited.']);
+
+        $this->assertDatabaseHas('payrolls', [
+            'id' => $payroll->id,
+            'basic_salary' => 800,
+            'net_pay' => 800,
+            'status' => 'Paid',
+        ]);
+
+        $this->deleteJson(route('payroll.destroy', $payroll->id))
+            ->assertUnprocessable()
+            ->assertJson(['message' => 'Paid payroll records cannot be deleted.']);
+        $this->assertDatabaseHas('payrolls', ['id' => $payroll->id, 'status' => 'Paid']);
+    }
+
+    public function test_payroll_group_with_paid_records_cannot_be_deleted(): void
+    {
+        $response = $this->actingAs($this->processor)
+            ->postJson(route('payroll.store'), [
+                'payment_month' => '2026-11',
+                'status' => 'Paid',
+                'payment_date' => '2026-11-30',
+                'employees' => [
+                    ['employee' => 'administrator:' . self::ADMINISTRATOR_ID, 'basic_salary' => 800],
+                ],
+            ])
+            ->assertOk();
+
+        $groupId = $response->json('group.id');
+        $this->deleteJson(route('payroll.groups.destroy', $groupId))
+            ->assertUnprocessable()
+            ->assertJson(['message' => 'Payroll groups containing Paid records cannot be deleted.']);
+
+        $this->assertDatabaseHas('payroll_groups', ['id' => $groupId]);
+        $this->assertDatabaseHas('payrolls', [
+            'payroll_group_id' => $groupId,
+            'status' => 'Paid',
+        ]);
+    }
+
+    public function test_pending_payroll_deletion_is_soft(): void
+    {
+        $payroll = \App\Models\Payroll::create([
+            'administrator_id' => self::ADMINISTRATOR_ID,
+            'payment_month' => '2026-11',
+            'basic_salary' => 800,
+            'net_pay' => 800,
+            'status' => 'Pending',
+        ]);
+
+        $this->actingAs($this->processor)
+            ->deleteJson(route('payroll.destroy', $payroll->id))
+            ->assertOk();
+
+        $this->assertDatabaseCount('payrolls', 1);
+        $this->assertSame(0, \App\Models\Payroll::count());
+        $this->assertSame(1, \App\Models\Payroll::onlyTrashed()->count());
+        $this->assertNotNull(DB::table('payrolls')->where('id', $payroll->id)->value('deleted_at'));
+    }
+
+    public function test_pending_payroll_group_can_be_edited_but_final_groups_are_locked(): void
+    {
+        $this->addAttendance('2026-11-03 09:00:00');
+        $this->addAttendance('2026-11-10 09:00:00');
+        $this->addAttendance('2026-11-24 09:00:00');
+
+        $createResponse = $this->actingAs($this->processor)
+            ->postJson(route('payroll.store'), [
+                'payment_month' => '2026-11',
+                'group_name' => 'Original group',
+                'status' => 'Pending',
+                'employees' => [
+                    ['employee' => 'administrator:' . self::ADMINISTRATOR_ID, 'basic_salary' => 800],
+                ],
+            ])
+            ->assertOk();
+
+        $groupId = $createResponse->json('group.id');
+        $administratorPayroll = \App\Models\Payroll::where('payroll_group_id', $groupId)->firstOrFail();
+        $payload = [
+            'payment_month' => '2026-11',
+            'group_name' => 'Updated group',
+            'status' => 'Pending',
+            'employees' => [
+                [
+                    'employee' => 'administrator:' . self::ADMINISTRATOR_ID,
+                    'basic_salary' => 900,
+                    'allowances' => 50,
+                    'deductions' => 10,
+                ],
+                [
+                    'employee' => 'instructor:' . self::INSTRUCTOR_ID,
+                    'basic_salary' => 100,
+                    'allowances' => 25,
+                    'deductions' => 10,
+                ],
+            ],
+        ];
+
+        $this->putJson(route('payroll.groups.update', $groupId), $payload)
+            ->assertOk()
+            ->assertJson(['message' => 'Payroll group updated successfully.']);
+
+        $this->assertDatabaseHas('payroll_groups', ['id' => $groupId, 'name' => 'Updated group']);
+        $this->assertDatabaseHas('payrolls', [
+            'id' => $administratorPayroll->id,
+            'basic_salary' => 900,
+            'net_pay' => 940,
+        ]);
+        $this->assertDatabaseHas('payrolls', [
+            'instructor_id' => self::INSTRUCTOR_ID,
+            'payroll_group_id' => $groupId,
+            'bonus' => 150,
+            'net_pay' => 165,
+        ]);
+
+        $payload['employees'] = [$payload['employees'][1]];
+        $this->putJson(route('payroll.groups.update', $groupId), $payload)->assertOk();
+        $this->assertNotNull(DB::table('payrolls')->where('id', $administratorPayroll->id)->value('deleted_at'));
+        $this->assertSame(1, \App\Models\Payroll::where('payroll_group_id', $groupId)->count());
+
+        DB::table('payrolls')
+            ->where('payroll_group_id', $groupId)
+            ->update(['status' => 'Final']);
+        $this->putJson(route('payroll.groups.update', $groupId), $payload)->assertUnprocessable();
+    }
+
 
     public function test_duplicate_employee_months_are_rejected(): void
     {
@@ -251,6 +550,10 @@ class HrmPayrollTest extends TestCase
 
         $this->assertSame(0, \App\Models\Payroll::count());
         $this->assertSame(0, \App\Models\PayrollGroup::count());
+        $this->assertDatabaseCount('payrolls', 2);
+        $this->assertDatabaseCount('payroll_groups', 1);
+        $this->assertSame(2, \App\Models\Payroll::onlyTrashed()->count());
+        $this->assertSame(1, \App\Models\PayrollGroup::onlyTrashed()->count());
     }
 
     public function test_fetch_filters_by_global_search_server_side(): void
@@ -396,8 +699,8 @@ class HrmPayrollTest extends TestCase
             ->assertJsonPath('summary.paid', 0)
             ->assertJsonPath('summary.pending', 2);
 
-        // Instructor: 1000 + 100 + (1 attendance x 50) - 50 = 1100; administrator: 800.
-        $this->assertEquals(1900, $response->json('summary.net_pay'));
+        // Instructor: max(1000, 50) + 100 - 50 = 1050; administrator: 800.
+        $this->assertEquals(1850, $response->json('summary.net_pay'));
         $this->assertCount(2, $response->json('records'));
         $this->assertSame('Example Instructor', $response->json('records.0.employee'));
         $this->assertEquals(50, $response->json('records.0.bonus'));

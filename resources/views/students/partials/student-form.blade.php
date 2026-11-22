@@ -77,7 +77,7 @@
                                     @enderror
                                 </div>
                             @endforeach
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label" for="gender">Gender <span class="text-danger">*</span></label>
                                 <select class="form-select @error('gender') is-invalid @enderror" id="gender" name="gender" required @error('gender') aria-invalid="true" aria-describedby="gender-error" @enderror>
                                     @foreach (['male' => 'Male', 'female' => 'Female', 'other' => 'Other'] as $value => $label)
@@ -88,15 +88,15 @@
                                     <div id="gender-error" class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label" for="date_of_birth">Date of birth <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('date_of_birth') is-invalid @enderror" id="date_of_birth" name="date_of_birth" placeholder="YYYY-MM-DD" value="{{ old('date_of_birth', $currentStudent?->date_of_birth) }}" autocomplete="bday" required aria-describedby="birth-date-help @error('date_of_birth') birth-date-error @enderror" @error('date_of_birth') aria-invalid="true" @enderror>
+                                <input type="text" class="form-control js-datepicker @error('date_of_birth') is-invalid @enderror" id="date_of_birth" name="date_of_birth" placeholder="YYYY-MM-DD" value="{{ old('date_of_birth', optional($currentStudent?->date_of_birth)->format('Y-m-d') ?? $currentStudent?->date_of_birth) }}" autocomplete="off" required aria-describedby="birth-date-help @error('date_of_birth') birth-date-error @enderror" @error('date_of_birth') aria-invalid="true" @enderror>
                                 <div id="birth-date-help" class="form-text">Format: YYYY-MM-DD.</div>
                                 @error('date_of_birth')
                                     <div id="birth-date-error" class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label" for="trn">TRN <span class="text-muted fw-normal fs-sm">(optional)</span></label>
                                 <input type="text" class="form-control @error('trn') is-invalid @enderror" id="trn" name="trn" value="{{ old('trn', $currentStudent?->trn) }}" placeholder="TRN if available" aria-describedby="trn-help @error('trn') trn-error @enderror" @error('trn') aria-invalid="true" @enderror>
                                 <div id="trn-help" class="form-text">Can be added later.</div>
@@ -104,7 +104,7 @@
                                     <div id="trn-error" class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label" for="signature">Student signature
                                     @if (!$editing)
                                         <span class="text-danger">*</span>
@@ -136,14 +136,14 @@
                     </div>
                     <div class="block-content block-content-full">
                         <div class="row g-4">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label" for="phone">Phone number <span class="text-danger">*</span></label>
                                 <input type="tel" class="form-control @error('phone') is-invalid @enderror" id="phone" name="phone" value="{{ old('phone', $currentStudent?->phone ?? '+265') }}" placeholder="+265" autocomplete="tel" required @error('phone') aria-invalid="true" aria-describedby="phone-error" @enderror>
                                 @error('phone')
                                     <div id="phone-error" class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label" for="email">Email address <span class="text-danger">*</span></label>
                                 <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" value="{{ old('email', $currentStudent?->user?->email) }}" placeholder="student@example.com" autocomplete="email" required @readonly(!$canManageStudentAccount) @error('email') aria-invalid="true" aria-describedby="email-error" @enderror>
                                 @if (!$canManageStudentAccount)
@@ -153,14 +153,14 @@
                                     <div id="email-error" class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label" for="address">Street address <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control @error('address') is-invalid @enderror" id="address" name="address" value="{{ old('address', $currentStudent?->address) }}" autocomplete="street-address" required @error('address') aria-invalid="true" aria-describedby="address-error" @enderror>
                                 @error('address')
                                     <div id="address-error" class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label" for="district">District <span class="text-danger">*</span></label>
                                 <select class="form-select @error('district') is-invalid @enderror" id="district" name="district" required @error('district') aria-invalid="true" aria-describedby="district-error" @enderror>
                                     @foreach ($district as $item)
@@ -183,6 +183,16 @@
 
 @push('scripts')
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof $ !== 'undefined' && $.fn.datepicker) {
+                $('#date_of_birth.js-datepicker').datepicker({
+                    format: 'yyyy-mm-dd',
+                    autoclose: true,
+                    todayHighlight: true
+                });
+            }
+        });
+
         document.getElementById('student-form').addEventListener('submit', function () {
             const button = this.querySelector('button[type="submit"]');
             button.disabled = true;

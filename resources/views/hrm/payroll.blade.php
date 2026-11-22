@@ -15,6 +15,71 @@
             @endcan
         </div>
 
+        @can('view payroll')
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+            <label for="payroll-month-filter-mode" class="fs-sm text-muted mb-0">Filter</label>
+            <select id="payroll-month-filter-mode" class="form-select form-select-sm w-auto" v-model="monthFilterMode" @change="onMonthFilterModeChange">
+                <option value="month">Month</option>
+                <option value="range">Custom range</option>
+            </select>
+
+            <template v-if="monthFilterMode === 'month'">
+                <label for="payroll-month-filter" class="fs-sm text-muted mb-0">Month</label>
+                <input type="text" id="payroll-month-filter" class="form-control form-control-sm w-auto js-monthpicker" v-model="monthFilter" placeholder="YYYY-MM" autocomplete="off">
+            </template>
+            <template v-else>
+                <label for="payroll-month-from" class="fs-sm text-muted mb-0">From</label>
+                <input type="text" id="payroll-month-from" class="form-control form-control-sm w-auto js-monthpicker" v-model="monthFrom" placeholder="YYYY-MM" autocomplete="off">
+                <label for="payroll-month-to" class="fs-sm text-muted mb-0">To</label>
+                <input type="text" id="payroll-month-to" class="form-control form-control-sm w-auto js-monthpicker" v-model="monthTo" placeholder="YYYY-MM" autocomplete="off">
+            </template>
+
+            <button type="button" class="btn btn-sm btn-outline-secondary" v-if="hasMonthFilter" @click="clearMonthFilter">Clear</button>
+            <span v-if="groupFilter" class="badge bg-primary d-inline-flex align-items-center gap-2">
+                Group: @{{ groupFilter.name }}
+                <button type="button" class="btn-close btn-close-white" style="font-size: .6rem;" aria-label="Clear group filter" @click="clearGroupFilter"></button>
+            </span>
+        </div>
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-lg-3">
+                <div class="block block-rounded mb-0 h-100">
+                    <div class="block-content block-content-full">
+                        <div class="fs-sm fw-semibold text-uppercase text-muted">Gross earnings</div>
+                        <div class="fs-4 fw-semibold">K@{{ formatAmount(payrollSummary.gross || 0) }}</div>
+                        <div class="fs-sm text-muted">Basic + allowances + bonus</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="block block-rounded mb-0 h-100">
+                    <div class="block-content block-content-full">
+                        <div class="fs-sm fw-semibold text-uppercase text-muted">Total PAYE</div>
+                        <div class="fs-4 fw-semibold">K@{{ formatAmount(payrollSummary.paye || 0) }}</div>
+                        <div class="fs-sm text-muted">Employee tax deducted</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="block block-rounded mb-0 h-100">
+                    <div class="block-content block-content-full">
+                        <div class="fs-sm fw-semibold text-uppercase text-muted">Total pension</div>
+                        <div class="fs-4 fw-semibold">K@{{ formatAmount(payrollSummary.employee_pension || 0) }}</div>
+                        <div class="fs-sm text-muted">Employer contribution K@{{ formatAmount(payrollSummary.employer_pension || 0) }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="block block-rounded mb-0 h-100">
+                    <div class="block-content block-content-full">
+                        <div class="fs-sm fw-semibold text-uppercase text-muted">Total net</div>
+                        <div class="fs-4 fw-semibold">K@{{ formatAmount(payrollSummary.net_pay || 0) }}</div>
+                        <div class="fs-sm text-muted">Net pay for filtered payrolls</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endcan
+
         <div class="block block-rounded">
             <ul class="nav nav-tabs nav-tabs-block" role="tablist" aria-label="Payroll views">
                 @can('view payroll')
@@ -31,29 +96,10 @@
                         </button>
                     </li>
                 @endcan
-                @can('view salary grades')
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link {{ auth()->user()->can('view payroll') ? '' : 'active' }}"
-                                id="salary-grades-tab" data-bs-toggle="tab" data-bs-target="#salary-grades-panel"
-                                type="button" role="tab" aria-controls="salary-grades-panel"
-                                aria-selected="{{ auth()->user()->can('view payroll') ? 'false' : 'true' }}">
-                            <i class="fa fa-layer-group me-2"></i>Salary Grades
-                        </button>
-                    </li>
-                @endcan
             </ul>
             <div class="block-content tab-content">
                 @can('view payroll')
                 <div class="tab-pane fade show active" id="payrolls-panel" role="tabpanel" aria-labelledby="payrolls-tab">
-                    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-                        <label for="payroll-month-filter" class="fs-sm text-muted mb-0">Month</label>
-                        <input type="month" id="payroll-month-filter" class="form-control form-control-sm w-auto" v-model="monthFilter" @change="reloadTable">
-                        <button type="button" class="btn btn-sm btn-outline-secondary" v-if="monthFilter" @click="clearMonthFilter">Clear</button>
-                        <span v-if="groupFilter" class="badge bg-primary d-inline-flex align-items-center gap-2">
-                            Group: @{{ groupFilter.name }}
-                            <button type="button" class="btn-close btn-close-white" style="font-size: .6rem;" aria-label="Clear group filter" @click="clearGroupFilter"></button>
-                        </span>
-                    </div>
                     <div class="table-responsive">
                         <table id="payrollTable" class="table table-bordered table-striped table-vcenter w-100 fs-sm">
                             <thead class="thead-dark">
@@ -94,9 +140,6 @@
                     </div>
                 </div>
                 @endcan
-                @can('view salary grades')
-                    @include('hrm.partials.salary-grades-tab')
-                @endcan
             </div>
         </div>
 
@@ -107,7 +150,7 @@
             <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title text-white" id="payroll-add-modal-title">Add payroll</h5>
+                        <h5 class="modal-title text-white" id="payroll-add-modal-title">@{{ groupForm.id ? 'Edit payroll group' : 'Add payroll' }}</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <form @submit.prevent="saveGroup">
@@ -116,7 +159,7 @@
                             <div class="row g-3 mb-3">
                                 <div class="col-md-4">
                                     <label class="form-label" for="group-month">Pay month</label>
-                                    <input id="group-month" type="month" class="form-control" v-model="groupForm.payment_month" required @change="loadBonusPreviews">
+                                    <input id="group-month" type="text" class="form-control js-monthpicker" v-model="groupForm.payment_month" placeholder="YYYY-MM" autocomplete="off" required @change="loadBonusPreviews">
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label" for="group-name">Group name <span class="text-muted fs-sm">(optional)</span></label>
@@ -126,6 +169,7 @@
                                     <label class="form-label" for="group-status">Status</label>
                                     <select id="group-status" class="form-select" v-model="groupForm.status" required>
                                         <option value="Pending">Pending</option>
+                                        <option value="Final">Final</option>
                                         <option value="Paid">Paid</option>
                                     </select>
                                 </div>
@@ -135,12 +179,7 @@
                                 </div>
                             </div>
 
-                            <div class="d-flex flex-wrap align-items-end gap-2 mb-2">
-                                <div>
-                                    <label class="form-label mb-1 fs-sm" for="group-default-salary">Default basic salary (K)</label>
-                                    <input id="group-default-salary" type="number" step="0.01" min="0" class="form-control form-control-sm" v-model.number="defaultSalary" style="width: 160px;">
-                                </div>
-                                <button type="button" class="btn btn-sm btn-outline-secondary" @click="applyDefaultSalary" :disabled="!selectedCount">Apply to selected</button>
+                            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
                                 <span class="ms-auto fs-sm text-muted">@{{ selectedCount }} employee@{{ selectedCount === 1 ? '' : 's' }} selected</span>
                             </div>
 
@@ -157,12 +196,14 @@
                                             <th style="min-width: 7rem;">Allowances (K)</th>
                                             <th style="min-width: 7rem;">Deductions (K)</th>
                                             <th class="text-end">Bonus</th>
+                                            <th class="text-end">PAYE</th>
+                                            <th class="text-end">Pension</th>
                                             <th class="text-end">Net pay</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr v-if="!employeeRows.length">
-                                            <td colspan="8" class="text-center text-muted py-3">
+                                            <td colspan="10" class="text-center text-muted py-3">
                                                 <span v-if="employeesLoading"><span class="spinner-border spinner-border-sm me-2"></span>Loading employees...</span>
                                                 <span v-else>No employees available.</span>
                                             </td>
@@ -180,6 +221,14 @@
                                                 <span v-if="row.type === 'Instructor'">K@{{ formatAmount(rowBonus(row)) }} <small class="text-muted d-block">@{{ rowAttendances(row) }} att.</small></span>
                                                 <span v-else class="text-muted">-</span>
                                             </td>
+                                            <td class="text-end text-nowrap">
+                                                <span v-if="rowPaye(row) > 0">K@{{ formatAmount(rowPaye(row)) }}</span>
+                                                <span v-else class="text-muted">-</span>
+                                            </td>
+                                            <td class="text-end text-nowrap">
+                                                <span v-if="rowEmployeePension(row) > 0">K@{{ formatAmount(rowEmployeePension(row)) }}</span>
+                                                <span v-else class="text-muted">-</span>
+                                            </td>
                                             <td class="text-end fw-semibold text-nowrap">K@{{ formatAmount(rowNet(row)) }}</td>
                                         </tr>
                                     </tbody>
@@ -192,6 +241,14 @@
                                     <span class="fw-semibold">K@{{ formatAmount(bonuses.rate) }} per attendance</span>
                                 </div>
                                 <div>
+                                    <span class="text-muted fs-sm d-block">Total PAYE (@{{ selectedCount }} selected)</span>
+                                    <span class="fw-semibold">K@{{ formatAmount(totalPaye) }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-muted fs-sm d-block">Total pension (@{{ selectedCount }} selected)</span>
+                                    <span class="fw-semibold">K@{{ formatAmount(totalEmployeePension) }}</span>
+                                </div>
+                                <div>
                                     <span class="text-muted fs-sm d-block">Total net pay (@{{ selectedCount }} selected)</span>
                                     <span class="fw-semibold fs-5">K@{{ formatAmount(totalNet) }}</span>
                                 </div>
@@ -201,7 +258,7 @@
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                             <button type="submit" class="btn btn-primary" :disabled="groupForm.saving || !selectedCount">
                                 <span v-if="groupForm.saving" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
-                                Create payroll (@{{ selectedCount }})
+                                @{{ groupForm.id ? 'Save changes' : 'Create payroll' }} (@{{ selectedCount }})
                             </button>
                         </div>
                     </form>
@@ -248,6 +305,7 @@
                                     <label class="form-label" for="payroll-status">Status</label>
                                     <select id="payroll-status" class="form-select" v-model="form.status" required>
                                         <option value="Pending">Pending</option>
+                                        <option value="Final">Final</option>
                                         <option value="Paid">Paid</option>
                                     </select>
                                     <div v-if="formErrors.status" class="text-danger fs-sm">@{{ formErrors.status[0] }}</div>
@@ -264,6 +322,16 @@
                                         <span class="text-muted fs-sm d-block">Instructor bonus (auto-calculated)</span>
                                         <span class="fw-semibold" v-if="bonusLoading"><span class="spinner-border spinner-border-sm" role="status"></span></span>
                                         <span class="fw-semibold" v-else>K@{{ formatAmount(bonus.bonus) }} <small class="text-muted">(@{{ bonus.attendances }} attendances &times; K@{{ formatAmount(bonus.rate) }})</small></span>
+                                    </div>
+                                    <div>
+                                        <span class="text-muted fs-sm d-block">PAYE</span>
+                                        <span class="fw-semibold">K@{{ formatAmount(singlePaye) }}</span>
+                                        <small class="text-muted d-block">Calculated from employee PAYE setting</small>
+                                    </div>
+                                    <div>
+                                        <span class="text-muted fs-sm d-block">Pension (employee)</span>
+                                        <span class="fw-semibold">K@{{ formatAmount(singleEmployeePension) }}</span>
+                                        <small class="text-muted d-block">Calculated from employee pension setting</small>
                                     </div>
                                     <div>
                                         <span class="text-muted fs-sm d-block">Net pay</span>
@@ -312,13 +380,16 @@
                                     <div class="bg-body-light rounded-3 p-3 h-100">
                                         <span class="text-muted fs-sm d-block">Employees</span>
                                         <span class="fw-semibold">@{{ groupDetails.summary.employees }}</span>
-                                        <small class="text-muted d-block">@{{ groupDetails.summary.paid }} paid / @{{ groupDetails.summary.pending }} pending</small>
+                                        <small class="text-muted d-block">@{{ groupDetails.summary.paid }} paid / @{{ groupDetails.summary.final }} final / @{{ groupDetails.summary.pending }} pending</small>
                                     </div>
                                 </div>
                                 <div class="col-sm-6 col-lg-3">
                                     <div class="bg-body-light rounded-3 p-3 h-100">
-                                        <span class="text-muted fs-sm d-block">Total net pay</span>
-                                        <span class="fw-semibold fs-5">K@{{ formatAmount(groupDetails.summary.net_pay) }}</span>
+                                        <span class="text-muted fs-sm d-block">Total PAYE</span>
+                                        <span class="fw-semibold">K@{{ formatAmount(groupDetails.summary.paye || 0) }}</span>
+                                        <span class="text-muted fs-sm d-block mt-2">Total pension (employee)</span>
+                                        <span class="fw-semibold">K@{{ formatAmount(groupDetails.summary.employee_pension || 0) }}</span>
+                                        <small class="text-muted d-block">Total net: K@{{ formatAmount(groupDetails.summary.net_pay) }}</small>
                                     </div>
                                 </div>
                                 <div class="col-sm-6 col-lg-3">
@@ -339,6 +410,8 @@
                                             <th class="text-end">Allowances</th>
                                             <th class="text-end">Bonus</th>
                                             <th class="text-end">Deductions</th>
+                                            <th class="text-end">PAYE</th>
+                                            <th class="text-end">Pension</th>
                                             <th class="text-end">Net pay</th>
                                             <th>Payment date</th>
                                             <th>Status</th>
@@ -355,10 +428,12 @@
                                                 <small v-if="record.type === 'Instructor'" class="text-muted d-block">@{{ record.bonus_attendances }} att.</small>
                                             </td>
                                             <td class="text-end">K@{{ formatAmount(record.deductions) }}</td>
+                                            <td class="text-end">K@{{ formatAmount(record.paye || 0) }}</td>
+                                            <td class="text-end">K@{{ formatAmount(record.employee_pension || 0) }}</td>
                                             <td class="text-end fw-semibold">K@{{ formatAmount(record.net_pay) }}</td>
                                             <td>@{{ record.payment_date || '-' }}</td>
                                             <td>
-                                                <span class="badge" :class="record.status === 'Paid' ? 'bg-success' : 'bg-warning text-dark'">@{{ record.status }}</span>
+                                                <span class="badge" :class="record.status === 'Paid' ? 'bg-success' : (record.status === 'Final' ? 'bg-primary' : 'bg-warning text-dark')">@{{ record.status }}</span>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -369,6 +444,8 @@
                                             <td class="text-end">K@{{ formatAmount(groupDetails.summary.allowances) }}</td>
                                             <td class="text-end">K@{{ formatAmount(groupDetails.summary.bonus) }}</td>
                                             <td class="text-end">K@{{ formatAmount(groupDetails.summary.deductions) }}</td>
+                                            <td class="text-end">K@{{ formatAmount(groupDetails.summary.paye || 0) }}</td>
+                                            <td class="text-end">K@{{ formatAmount(groupDetails.summary.employee_pension || 0) }}</td>
                                             <td class="text-end">K@{{ formatAmount(groupDetails.summary.net_pay) }}</td>
                                             <td colspan="2"></td>
                                         </tr>
@@ -379,6 +456,20 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        @can('process payroll')
+                        <a class="btn btn-success"
+                           :class="{ disabled: !groupDetails }"
+                           :href="groupDetails ? ('{{ url('hrm/payroll/groups') }}/' + groupDetails.group.id + '/export-standard-bank-csv') : '#'"
+                           @click="!groupDetails && $event.preventDefault()">
+                            <i class="fa fa-file-csv me-1"></i> Export Standard Bank CSV
+                        </a>
+                        <a class="btn btn-outline-success"
+                           :class="{ disabled: !groupDetails }"
+                           :href="groupDetails ? ('{{ url('hrm/payroll/groups') }}/' + groupDetails.group.id + '/export-paye-csv') : '#'"
+                           @click="!groupDetails && $event.preventDefault()">
+                            <i class="fa fa-file-csv me-1"></i> Export PAYE CSV
+                        </a>
+                        @endcan
                         <button type="button" class="btn btn-primary" @click="filterByGroup" :disabled="!groupDetails">
                             <i class="fa fa-filter me-1"></i> Open in All Payrolls
                         </button>
@@ -393,13 +484,28 @@
         createApp({
             setup() {
                 @can('view payroll')
-                const monthFilter = ref('');
+                const monthFilter = ref(@json($defaultPayrollMonth ?? ''));
+                const monthFrom = ref('');
+                const monthTo = ref('');
+                const monthFilterMode = ref('month');
                 const groupFilter = ref(null);
+                const payrollSummary = ref({
+                    count: 0, gross: 0, total_deductions: 0, paye: 0,
+                    employee_pension: 0, employer_pension: 0, net_pay: 0,
+                    paid_count: 0, pending_count: 0, final_count: 0
+                });
+                const payrollSummaryLoading = ref(false);
+                const formatNumber = (value) => Number(value || 0).toLocaleString('en-US');
+                const hasMonthFilter = computed(() => monthFilterMode.value === 'range'
+                    ? !!(monthFrom.value || monthTo.value)
+                    : !!monthFilter.value);
+                const monthFilterParams = () => monthFilterMode.value === 'range'
+                    ? { from_month: monthFrom.value || '', to_month: monthTo.value || '' }
+                    : { month: monthFilter.value || '' };
 
                 const employeeRows = ref([]);
                 const employeesLoading = ref(false);
                 const bonuses = ref({ rate: 0, attendances: {} });
-                const defaultSalary = ref(null);
                 const groupForm = ref(emptyGroupForm());
 
                 const form = ref(emptyForm());
@@ -410,16 +516,6 @@
                 const bonusLoading = ref(false);
                 let table = null;
                 let groupsTable = null;
-                @endcan
-
-                @can('view salary grades')
-                const salaryGrades = ref([]);
-                const salaryGradesLoading = ref(true);
-                const salaryGradesLoadError = ref('');
-                const salaryGradeForm = ref(emptySalaryGradeForm());
-                const salaryGradeFormErrors = ref({});
-                const salaryGradeFormError = ref('');
-                const salaryGradeSaving = ref(false);
                 @endcan
 
                 const getModal = (id) => {
@@ -434,30 +530,153 @@
 
                 @can('view payroll')
                 function emptyGroupForm() {
-                    return { payment_month: '', name: '', status: 'Pending', payment_date: '', saving: false, error: '' };
+                    return { id: null, payment_month: '', name: '', status: 'Pending', payment_date: '', saving: false, error: '' };
                 }
 
                 function emptyForm() {
                     return {
                         id: null, employee: '', employeeName: '', payment_month: '',
-                        basic_salary: null, allowances: null, deductions: null,
+                        basic_salary: null, allowances: null, deductions: null, paye: 0, paye_applicable: false,
+                        employee_pension: 0, employer_pension: 0, pension_applicable: false,
                         status: 'Pending', payment_date: ''
                     };
                 }
                 @endcan
 
-                @can('view salary grades')
-                function emptySalaryGradeForm() {
-                    return { id: null, code: '', name: '', description: '', basic_salary: null };
-                }
-                @endcan
-
                 @can('view payroll')
+                const payeConfig = ref(@json($payeConfig ?? config('payroll.paye')));
+                const pensionConfig = ref(@json($pensionConfig ?? \App\Models\Setting::pensionConfig()));
                 const formatAmount = (value) => Number(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 const formatMonth = (month) => {
                     if (!month) return '-';
                     const [year, monthNumber] = month.split('-');
                     return new Date(Number(year), Number(monthNumber) - 1, 1).toLocaleString('en-GB', { month: 'long', year: 'numeric' });
+                };
+
+                const syncSingleMonthPicker = (selector, valueRef) => {
+                    const $picker = $(selector);
+                    if (!$picker.length || !$.fn.datepicker) {
+                        return;
+                    }
+                    const value = valueRef.value || '';
+                    if (value) {
+                        const [year, monthNumber] = value.split('-').map(Number);
+                        if (year && monthNumber) {
+                            $picker.datepicker('update', new Date(year, monthNumber - 1, 1));
+                        } else {
+                            $picker.val(value);
+                        }
+                    } else {
+                        $picker.datepicker('update', '');
+                        $picker.val('');
+                    }
+                };
+
+                const initSingleMonthPicker = (selector, valueRef) => {
+                    const $picker = $(selector);
+                    if (!$picker.length || !$.fn.datepicker || $picker.data('payroll-monthpicker-init')) {
+                        syncSingleMonthPicker(selector, valueRef);
+                        return;
+                    }
+                    $picker.datepicker({
+                        format: 'yyyy-mm',
+                        minViewMode: 'months',
+                        startView: 'months',
+                        autoclose: true,
+                        clearBtn: true
+                    }).on('changeDate clearDate', (event) => {
+                        const value = event.format ? event.format('yyyy-mm') : ($picker.val() || '');
+                        if (valueRef.value !== value) {
+                            valueRef.value = value;
+                        }
+                        reloadTable();
+                    }).on('change', () => {
+                        const value = $picker.val() || '';
+                        if (valueRef.value !== value) {
+                            valueRef.value = value;
+                        }
+                        reloadTable();
+                    });
+                    $picker.data('payroll-monthpicker-init', true);
+                    syncSingleMonthPicker(selector, valueRef);
+                };
+
+                const initMonthFilterPickers = () => {
+                    if (monthFilterMode.value === 'range') {
+                        initSingleMonthPicker('#payroll-month-from', monthFrom);
+                        initSingleMonthPicker('#payroll-month-to', monthTo);
+                    } else {
+                        initSingleMonthPicker('#payroll-month-filter', monthFilter);
+                    }
+                };
+
+                const syncMonthFilterPickers = () => {
+                    if (monthFilterMode.value === 'range') {
+                        syncSingleMonthPicker('#payroll-month-from', monthFrom);
+                        syncSingleMonthPicker('#payroll-month-to', monthTo);
+                    } else {
+                        syncSingleMonthPicker('#payroll-month-filter', monthFilter);
+                    }
+                };
+
+                const onMonthFilterModeChange = () => {
+                    if (monthFilterMode.value === 'range') {
+                        monthFilter.value = '';
+                    } else {
+                        monthFrom.value = '';
+                        monthTo.value = '';
+                    }
+                    setTimeout(() => {
+                        initMonthFilterPickers();
+                        syncMonthFilterPickers();
+                        reloadTable();
+                    }, 0);
+                };
+
+                const syncGroupMonthPicker = () => {
+                    const $picker = $('#group-month');
+                    if (!$picker.length || !$.fn.datepicker) {
+                        return;
+                    }
+                    const value = groupForm.value.payment_month || '';
+                    if (value) {
+                        const [year, monthNumber] = value.split('-').map(Number);
+                        if (year && monthNumber) {
+                            $picker.datepicker('update', new Date(year, monthNumber - 1, 1));
+                        } else {
+                            $picker.val(value);
+                        }
+                    } else {
+                        $picker.datepicker('update', '');
+                        $picker.val('');
+                    }
+                };
+
+                const initGroupMonthPicker = () => {
+                    const $picker = $('#group-month');
+                    if (!$picker.length || !$.fn.datepicker || $picker.data('payroll-monthpicker')) {
+                        return;
+                    }
+                    $picker.datepicker({
+                        format: 'yyyy-mm',
+                        minViewMode: 'months',
+                        startView: 'months',
+                        autoclose: true
+                    }).on('changeDate clearDate', (event) => {
+                        const value = event.format ? event.format('yyyy-mm') : ($picker.val() || '');
+                        if (groupForm.value.payment_month !== value) {
+                            groupForm.value.payment_month = value;
+                        }
+                        loadBonusPreviews();
+                    }).on('change', () => {
+                        const value = $picker.val() || '';
+                        if (groupForm.value.payment_month !== value) {
+                            groupForm.value.payment_month = value;
+                        }
+                        loadBonusPreviews();
+                    });
+                    $picker.data('payroll-monthpicker', true);
+                    syncGroupMonthPicker();
                 };
 
                 // ----- Add payroll (group) -----
@@ -470,22 +689,55 @@
                 const rowBonus = (row) => row.type === 'Instructor'
                     ? Math.round(rowAttendances(row) * (bonuses.value.rate || 0) * 100) / 100
                     : 0;
-                const rowNet = (row) => Math.round((
-                    (parseFloat(row.basic_salary) || 0)
-                    + (parseFloat(row.allowances) || 0)
-                    + rowBonus(row)
-                    - (parseFloat(row.deductions) || 0)
-                ) * 100) / 100;
+                const rowGross = (row) => {
+                    const basic = parseFloat(row.basic_salary) || 0;
+                    const bonus = rowBonus(row);
+                    const grossSalary = row.type === 'Instructor' ? Math.max(basic, bonus) : basic + bonus;
+                    return grossSalary + (parseFloat(row.allowances) || 0);
+                };
+                const computePaye = (taxable, applicable) => {
+                    const config = payeConfig.value || {};
+                    if (!applicable || !(config.enabled ?? true)) return 0;
+                    const amount = Math.max(parseFloat(taxable) || 0, 0);
+                    const bands = Array.isArray(config.bands) ? config.bands : [];
+                    if (bands.length) {
+                        let tax = 0;
+                        let previous = 0;
+                        bands.forEach((band) => {
+                            const limit = band.up_to === null || band.up_to === undefined ? null : Number(band.up_to);
+                            const rate = Number(band.rate || 0);
+                            const upper = limit === null ? amount : Math.min(limit, amount);
+                            if (upper > previous) {
+                                tax += (upper - previous) * rate;
+                                previous = upper;
+                            }
+                        });
+                        if (amount > previous) {
+                            const lastRate = Number(bands[bands.length - 1]?.rate || 0);
+                            tax += (amount - previous) * lastRate;
+                        }
+                        return Math.round(tax * 100) / 100;
+                    }
+                    return Math.round(amount * Number(config.rate || 0) * 100) / 100;
+                };
+                const computePension = (basicSalary, applicable, isEmployer = false) => {
+                    const config = pensionConfig.value || {};
+                    if (!applicable || !(config.enabled ?? true)) return 0;
+                    const base = Math.max(parseFloat(basicSalary) || 0, 0);
+                    const rate = isEmployer ? Number(config.employer_rate || 0) : Number(config.employee_rate || 0);
+                    return Math.round(base * rate * 100) / 100;
+                };
+                const rowPaye = (row) => computePaye(rowGross(row), !!row.paye);
+                const rowEmployeePension = (row) => computePension(row.basic_salary, !!row.pension_applicable, false);
+                const rowEmployerPension = (row) => computePension(row.basic_salary, !!row.pension_applicable, true);
+                const rowNet = (row) => Math.round((rowGross(row) - (parseFloat(row.deductions) || 0) - rowPaye(row) - rowEmployeePension(row)) * 100) / 100;
+                const totalPaye = computed(() => selectedRows.value.reduce((sum, row) => sum + rowPaye(row), 0));
+                const totalEmployeePension = computed(() => selectedRows.value.reduce((sum, row) => sum + rowEmployeePension(row), 0));
                 const totalNet = computed(() => selectedRows.value.reduce((sum, row) => sum + rowNet(row), 0));
 
                 const toggleSelectAll = () => {
                     const select = !allSelected.value;
                     employeeRows.value.forEach((row) => { row.selected = select; });
-                };
-
-                const applyDefaultSalary = () => {
-                    if (defaultSalary.value === null || defaultSalary.value === '') return;
-                    selectedRows.value.forEach((row) => { row.basic_salary = defaultSalary.value; });
                 };
 
                 const loadEmployees = async () => {
@@ -499,12 +751,14 @@
                                 key: employee.value,
                                 id,
                                 type: type === 'instructor' ? 'Instructor' : 'Administrator',
-                                name: employee.label.split(' — ')[0],
+                                name: employee.name || employee.label.split(/\\s[\\u2014\\u2013-]\\s/)[0],
                                 selected: false,
                                 default_salary: employee.basic_salary !== null ? Number(employee.basic_salary) : null,
                                 basic_salary: employee.basic_salary !== null ? Number(employee.basic_salary) : null,
                                 allowances: null,
-                                deductions: null
+                                deductions: null,
+                                paye: !!employee.paye,
+                                pension_applicable: !!employee.pension_applicable
                             };
                         });
                     } catch (error) {
@@ -538,6 +792,10 @@
                     });
                     loadEmployees();
                     getModal('payroll-add-modal')?.show();
+                    setTimeout(() => {
+                        initGroupMonthPicker();
+                        syncGroupMonthPicker();
+                    }, 0);
                 };
 
                 const saveGroup = async () => {
@@ -549,7 +807,7 @@
                     groupForm.value.saving = true;
                     groupForm.value.error = '';
                     try {
-                        const response = await axios.post(@json(route('payroll.store')), {
+                        const payload = {
                             payment_month: groupForm.value.payment_month,
                             group_name: groupForm.value.name || null,
                             status: groupForm.value.status,
@@ -560,13 +818,17 @@
                                 allowances: row.allowances || 0,
                                 deductions: row.deductions || 0
                             }))
-                        });
+                        };
+                        const response = groupForm.value.id
+                            ? await axios.put(@json(url('hrm/payroll/groups')) + '/' + groupForm.value.id, payload)
+                            : await axios.post(@json(route('payroll.store')), payload);
                         getModal('payroll-add-modal')?.hide();
                         toast(response.data.message);
                         reloadTable();
                         reloadGroups();
                     } catch (error) {
-                        groupForm.value.error = error.response?.data?.message || 'Unable to create the payroll group. Please try again.';
+                        groupForm.value.error = error.response?.data?.message
+                            || (groupForm.value.id ? 'Unable to update the payroll group. Please try again.' : 'Unable to create the payroll group. Please try again.');
                     } finally {
                         groupForm.value.saving = false;
                     }
@@ -577,6 +839,97 @@
                 const groupDetails = ref(null);
                 const groupDetailsLoading = ref(false);
                 const groupDetailsError = ref('');
+
+                const requestPaymentDate = async (title) => {
+                    const today = new Date();
+                    const paymentDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                    const result = await Swal.fire({
+                        title,
+                        text: 'Select the payment date.',
+                        input: 'date',
+                        inputValue: paymentDate,
+                        showCancelButton: true,
+                        confirmButtonText: 'Pay',
+                        inputValidator: (value) => !value && 'Select a payment date.'
+                    });
+
+                    return result.isConfirmed ? result.value : null;
+                };
+
+                window.payPayrollGroup = async (element) => {
+                    const group = JSON.parse(element.dataset.group);
+                    const paymentDate = await requestPaymentDate(`Pay "${group.name}"?`);
+                    if (!paymentDate) return;
+
+                    try {
+                        const { data } = await axios.post(
+                            @json(url('hrm/payroll/groups')) + '/' + group.id + '/pay',
+                            { payment_date: paymentDate }
+                        );
+                        toast(data.message);
+                        reloadGroups();
+                        reloadTable();
+                    } catch (error) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Unable to pay group',
+                            text: error.response?.data?.message || 'Please try again.'
+                        });
+                    }
+                };
+
+                window.editPayrollGroup = async (element) => {
+                    const group = JSON.parse(element.dataset.group);
+                    groupForm.value = { ...emptyGroupForm(), id: group.id, name: group.name };
+                    employeeRows.value = [];
+                    bonuses.value = { rate: 0, attendances: {} };
+                    getModal('payroll-add-modal')?.show();
+                    setTimeout(() => {
+                        initGroupMonthPicker();
+                        syncGroupMonthPicker();
+                    }, 0);
+
+                    try {
+                        const { data } = await axios.get(@json(url('hrm/payroll/groups')) + '/' + group.id);
+                        groupForm.value.payment_month = data.group.payment_month;
+                        groupForm.value.status = data.records[0]?.status || 'Pending';
+                        syncGroupMonthPicker();
+
+                        await loadEmployees();
+                        if (groupForm.value.error) throw new Error(groupForm.value.error);
+
+                        data.records.forEach((record) => {
+                            let row = employeeRows.value.find((employee) => employee.key === record.employee_key);
+                            if (!row) {
+                                const [type, id] = record.employee_key.split(':');
+                                row = {
+                                    key: record.employee_key,
+                                    id,
+                                    type: type === 'instructor' ? 'Instructor' : 'Administrator',
+                                    name: record.employee,
+                                    selected: false,
+                                    default_salary: record.basic_salary,
+                                    basic_salary: record.basic_salary,
+                                    allowances: 0,
+                                    deductions: 0,
+                                    paye: Number(record.paye || 0) > 0,
+                                    pension_applicable: !!record.pension_applicable
+                                };
+                                employeeRows.value.push(row);
+                            }
+                            row.selected = true;
+                            row.basic_salary = record.basic_salary;
+                            row.allowances = record.allowances;
+                            row.deductions = record.deductions;
+                            row.paye = Number(record.paye || 0) > 0 || !!row.paye;
+                            row.pension_applicable = !!record.pension_applicable || !!row.pension_applicable;
+                        });
+
+                        await loadBonusPreviews();
+                    } catch (error) {
+                        groupForm.value.error = error.response?.data?.message || 'Unable to load the pending payroll group for editing.';
+                    }
+                };
 
                 window.viewPayrollGroup = async (element) => {
                     const group = JSON.parse(element.dataset.group);
@@ -632,13 +985,48 @@
 
                 // ----- Edit single record -----
                 const isInstructorSelected = computed(() => (form.value.employee || '').startsWith('instructor:'));
+                const singlePaye = computed(() => {
+                    const basic = parseFloat(form.value.basic_salary) || 0;
+                    const allowances = parseFloat(form.value.allowances) || 0;
+                    const bonusAmount = parseFloat(bonus.value.bonus) || 0;
+                    const grossSalary = isInstructorSelected.value ? Math.max(basic, bonusAmount) : basic + bonusAmount;
+                    return computePaye(grossSalary + allowances, !!form.value.paye_applicable);
+                });
+                const singleEmployeePension = computed(() => {
+                    const basic = parseFloat(form.value.basic_salary) || 0;
+                    return computePension(basic, !!form.value.pension_applicable, false);
+                });
 
                 const netPay = computed(() => {
                     const basic = parseFloat(form.value.basic_salary) || 0;
                     const allowances = parseFloat(form.value.allowances) || 0;
                     const deductions = parseFloat(form.value.deductions) || 0;
-                    return Math.round((basic + allowances + (parseFloat(bonus.value.bonus) || 0) - deductions) * 100) / 100;
+                    const bonusAmount = parseFloat(bonus.value.bonus) || 0;
+                    const grossSalary = isInstructorSelected.value ? Math.max(basic, bonusAmount) : basic + bonusAmount;
+                    return Math.round((grossSalary + allowances - deductions - singlePaye.value - singleEmployeePension.value) * 100) / 100;
                 });
+
+                window.payPayroll = async (element) => {
+                    const payroll = JSON.parse(element.dataset.payroll);
+                    const paymentDate = await requestPaymentDate(`Pay ${payroll.employee}?`);
+                    if (!paymentDate) return;
+
+                    try {
+                        const { data } = await axios.post(
+                            @json(url('hrm/payroll')) + '/' + payroll.id + '/pay',
+                            { payment_date: paymentDate }
+                        );
+                        toast(data.message);
+                        reloadTable();
+                        reloadGroups();
+                    } catch (error) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Unable to pay payroll',
+                            text: error.response?.data?.message || 'Please try again.'
+                        });
+                    }
+                };
 
                 const loadBonusPreview = async () => {
                     bonus.value = { attendances: 0, rate: 0, bonus: 0 };
@@ -656,8 +1044,10 @@
                     }
                 };
 
-                window.openEditPayroll = (element) => {
+                window.openEditPayroll = async (element) => {
                     const data = JSON.parse(element.dataset.payroll);
+                    await loadEmployees();
+                    const employeeRow = employeeRows.value.find((employee) => employee.key === data.employee_key);
                     form.value = {
                         id: data.id,
                         employee: data.employee_key,
@@ -666,6 +1056,11 @@
                         basic_salary: data.basic_salary,
                         allowances: data.allowances,
                         deductions: data.deductions,
+                        paye: data.paye || 0,
+                        paye_applicable: employeeRow ? !!employeeRow.paye : Number(data.paye || 0) > 0,
+                        employee_pension: data.employee_pension || 0,
+                        employer_pension: data.employer_pension || 0,
+                        pension_applicable: employeeRow ? !!employeeRow.pension_applicable : Number(data.employee_pension || 0) > 0,
                         status: data.status,
                         payment_date: data.payment_date || ''
                     };
@@ -721,99 +1116,39 @@
                     }
                 };
 
-                const reloadTable = () => table?.ajax.reload(null, false);
-                const clearMonthFilter = () => { monthFilter.value = ''; reloadTable(); };
-                @endcan
-
-                @can('view salary grades')
-                const loadSalaryGrades = async () => {
-                    salaryGradesLoading.value = true;
-                    salaryGradesLoadError.value = '';
+                const loadPayrollSummary = async () => {
+                    payrollSummaryLoading.value = true;
                     try {
-                        const { data } = await axios.get(@json(route('salary-grades.fetch')));
-                        salaryGrades.value = data;
+                        const { data } = await axios.get(@json(route('payroll.summary')), {
+                            params: { ...monthFilterParams(), group: groupFilter.value?.id || '' }
+                        });
+                        payrollSummary.value = { ...payrollSummary.value, ...data };
                     } catch (error) {
-                        salaryGradesLoadError.value = 'Unable to load salary grades. Reload the page to try again.';
+                        // Keep existing summary values if refresh fails.
                     } finally {
-                        salaryGradesLoading.value = false;
+                        payrollSummaryLoading.value = false;
                     }
                 };
 
-                const openAddSalaryGrade = () => {
-                    salaryGradeForm.value = emptySalaryGradeForm();
-                    salaryGradeFormErrors.value = {};
-                    salaryGradeFormError.value = '';
-                    getModal('salary-grade-modal')?.show();
+                const reloadTable = () => {
+                    table?.ajax.reload(null, false);
+                    loadPayrollSummary();
                 };
-
-                const openEditSalaryGrade = (item) => {
-                    salaryGradeForm.value = {
-                        id: item.id,
-                        code: item.code,
-                        name: item.name,
-                        description: item.description || '',
-                        basic_salary: Number(item.basic_salary)
-                    };
-                    salaryGradeFormErrors.value = {};
-                    salaryGradeFormError.value = '';
-                    getModal('salary-grade-modal')?.show();
+                const clearMonthFilter = () => {
+                    monthFilter.value = '';
+                    monthFrom.value = '';
+                    monthTo.value = '';
+                    syncMonthFilterPickers();
+                    reloadTable();
                 };
-
-                const saveSalaryGrade = async () => {
-                    if (salaryGradeSaving.value) return;
-                    salaryGradeSaving.value = true;
-                    salaryGradeFormErrors.value = {};
-                    salaryGradeFormError.value = '';
-                    try {
-                        const payload = {
-                            code: salaryGradeForm.value.code,
-                            name: salaryGradeForm.value.name,
-                            description: salaryGradeForm.value.description || null,
-                            basic_salary: salaryGradeForm.value.basic_salary
-                        };
-                        const response = salaryGradeForm.value.id
-                            ? await axios.put(@json(url('hrm/salary-grades')) + '/' + salaryGradeForm.value.id, payload)
-                            : await axios.post(@json(route('salary-grades.store')), payload);
-                        getModal('salary-grade-modal')?.hide();
-                        toast(response.data.message);
-                        loadSalaryGrades();
-                    } catch (error) {
-                        salaryGradeFormErrors.value = error.response?.data?.errors ?? {};
-                        salaryGradeFormError.value = error.response?.data?.message || 'Unable to save the salary grade. Please try again.';
-                    } finally {
-                        salaryGradeSaving.value = false;
-                    }
-                };
-
-                const confirmDeleteSalaryGrade = (item) => {
-                    Swal.fire({
-                        title: 'Delete salary grade?',
-                        text: `"${item.code} - ${item.name}" will be removed.`,
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#d33',
-                        confirmButtonText: 'Delete'
-                    }).then(async (result) => {
-                        if (!result.isConfirmed) return;
-                        try {
-                            const { data } = await axios.delete(@json(url('hrm/salary-grades')) + '/' + item.id);
-                            toast(data.message);
-                            loadSalaryGrades();
-                        } catch (error) {
-                            Swal.fire({ icon: 'error', title: 'Unable to delete', text: error.response?.data?.message || 'Please try again.' });
-                        }
-                    });
-                };
-
-                const formatSalaryAmount = (value) => Number(value || 0).toLocaleString('en-US', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
                 @endcan
 
                 onMounted(() => {
                     axios.defaults.headers.common['X-CSRF-TOKEN'] = $('meta[name="csrf-token"]').attr('content');
                     @can('view payroll')
+                    initMonthFilterPickers();
+                    syncMonthFilterPickers();
+                    loadPayrollSummary();
                     if (document.getElementById('payrollTable')) {
                         $('#payrolls-tab').on('shown.bs.tab', () => table?.columns.adjust());
                         $('#groups-tab').on('shown.bs.tab', () => groupsTable?.columns.adjust());
@@ -865,7 +1200,7 @@
                                 try {
                                     NProgress.start();
                                     const response = await axios.get(@json(route('payroll.fetch')), {
-                                        params: { ...data, month: monthFilter.value, group: groupFilter.value?.id || '' },
+                                        params: { ...data, ...monthFilterParams(), group: groupFilter.value?.id || '' },
                                         headers: { 'X-Requested-With': 'XMLHttpRequest' }
                                     });
                                     callback(response.data);
@@ -898,44 +1233,24 @@
                         });
                     }
                     @endcan
-                    @can('view salary grades')
-                    if (document.getElementById('salary-grades-panel')) {
-                        loadSalaryGrades();
-                    }
-                    @endcan
                 });
 
                 return {
                     @can('view payroll')
-                    monthFilter, groupFilter,
-                    employeeRows, employeesLoading, bonuses, defaultSalary, groupForm,
-                    selectedCount, allSelected, defaultGroupName, totalNet,
-                    rowAttendances, rowBonus, rowNet, toggleSelectAll, applyDefaultSalary,
+                    monthFilter, monthFrom, monthTo, monthFilterMode, hasMonthFilter, onMonthFilterModeChange,
+                    groupFilter, payrollSummary, payrollSummaryLoading, formatNumber, loadPayrollSummary,
+                    employeeRows, employeesLoading, bonuses, groupForm,
+                    selectedCount, allSelected, defaultGroupName, totalNet, totalEmployeePension,
+                    rowAttendances, rowBonus, rowPaye, rowEmployeePension, rowNet, totalPaye, toggleSelectAll,
                     loadBonusPreviews, openAddPayroll, saveGroup,
                     reloadGroups, clearGroupFilter,
                     groupDetails, groupDetailsLoading, groupDetailsError, filterByGroup,
                     form, formErrors, formError, saving, bonus, bonusLoading,
-                    isInstructorSelected, netPay, formatAmount, formatMonth,
+                    isInstructorSelected, singlePaye, singleEmployeePension, netPay, formatAmount, formatMonth,
                     loadBonusPreview, savePayroll, reloadTable, clearMonthFilter,
-                    @endcan
-                    @can('view salary grades')
-                    salaryGrades, salaryGradesLoading, salaryGradesLoadError,
-                    salaryGradeForm, salaryGradeFormErrors, salaryGradeFormError, salaryGradeSaving,
-                    openAddSalaryGrade, openEditSalaryGrade, saveSalaryGrade,
-                    confirmDeleteSalaryGrade, formatSalaryAmount
                     @endcan
                 };
             }
         }).mount('#payroll');
-    </script>
-    <script>
-        window.addEventListener('DOMContentLoaded', () => {
-            if (window.location.hash === '#salary-grades-tab') {
-                const salaryGradesTab = document.getElementById('salary-grades-tab');
-                if (salaryGradesTab) {
-                    bootstrap.Tab.getOrCreateInstance(salaryGradesTab).show();
-                }
-            }
-        });
     </script>
 @endsection

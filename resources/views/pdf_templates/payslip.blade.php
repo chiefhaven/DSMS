@@ -60,6 +60,11 @@
                 <th class="invoice-td" style="text-align: right;">Amount (K)</th>
             </thead>
             <tbody>
+                @php($deductions = (float) ($payroll->deductions ?? 0))
+                @php($paye = (float) ($payroll->paye ?? 0))
+                @php($employeePension = (float) ($payroll->employee_pension ?? 0))
+                @php($employerPension = (float) ($payroll->employer_pension ?? 0))
+                @php($gross = (float) $payroll->net_pay + $deductions + $paye + $employeePension)
                 <tr>
                     <td class="invoice-td">Basic salary</td>
                     <td class="invoice-td" style="text-align: right;">{{ number_format((float) $payroll->basic_salary, 2) }}</td>
@@ -79,12 +84,30 @@
                 </tr>
                 <tr>
                     <td class="invoice-td"><strong>Gross earnings</strong></td>
-                    <td class="invoice-td" style="text-align: right;"><strong>{{ number_format((float) $payroll->basic_salary + (float) $payroll->allowances + (float) $payroll->bonus, 2) }}</strong></td>
+                    <td class="invoice-td" style="text-align: right;"><strong>{{ number_format($gross, 2) }}</strong></td>
                 </tr>
                 <tr>
                     <td class="invoice-td">Deductions</td>
-                    <td class="invoice-td" style="text-align: right;">({{ number_format((float) $payroll->deductions, 2) }})</td>
+                    <td class="invoice-td" style="text-align: right;">({{ number_format($deductions, 2) }})</td>
                 </tr>
+                @if($paye > 0)
+                <tr>
+                    <td class="invoice-td">PAYE</td>
+                    <td class="invoice-td" style="text-align: right;">({{ number_format($paye, 2) }})</td>
+                </tr>
+                @endif
+                @if($employeePension > 0)
+                <tr>
+                    <td class="invoice-td">Pension (employee)</td>
+                    <td class="invoice-td" style="text-align: right;">({{ number_format($employeePension, 2) }})</td>
+                </tr>
+                @endif
+                @if($employerPension > 0)
+                <tr>
+                    <td class="invoice-td">Pension (employer contribution)</td>
+                    <td class="invoice-td" style="text-align: right;">{{ number_format($employerPension, 2) }}</td>
+                </tr>
+                @endif
                 <tr style="background-color: #eef4fc;">
                     <td class="invoice-td"><strong>Net pay</strong></td>
                     <td class="invoice-td" style="text-align: right;"><strong>K{{ number_format((float) $payroll->net_pay, 2) }}</strong></td>

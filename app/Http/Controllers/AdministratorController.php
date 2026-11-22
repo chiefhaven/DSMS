@@ -132,19 +132,6 @@ class AdministratorController extends Controller
      */
     public function store(StoreAdministratorRequest $request)
     {
-        $messages = [
-            'first_name.required' => 'First name is required',
-            'sir_name.required' => 'Surname is required',
-            'email.required' => 'Email is required',
-            'email.unique' => 'Email is already in use',
-            'gender.required' => 'The Gender field is required',
-            'date_of_birth.required' => 'Date of birth is required',
-            'role.required' => 'Role is required',
-            'password.required' => 'Password is required',
-        ];
-
-        $request->validated();
-
         $post = $request->validated();
 
         DB::transaction(function () use ($post) {
@@ -158,6 +145,20 @@ class AdministratorController extends Controller
             $administrator->phone = $post['phone'];
             $administrator->address = $post['address'];
             $administrator->date_of_birth = $post['date_of_birth'];
+            $administrator->employment_date = $post['employment_date'] ?? null;
+            $administrator->employment_type = $post['employment_type'] ?? null;
+            $administrator->end_date = $post['end_date'] ?? null;
+            $administrator->paye = (bool) ($post['paye'] ?? false);
+            $administrator->pension_applicable = (bool) ($post['pension_applicable'] ?? false);
+            $administrator->terms_of_employment = $post['terms_of_employment'] ?? null;
+            $administrator->contract_signed = (bool) ($post['contract_signed'] ?? false);
+            $administrator->contract_signed_at = $post['contract_signed_at'] ?? null;
+            $administrator->status = $post['status'] ?? 'Active';
+            $administrator->bank_name = $post['bank_name'] ?? null;
+            $administrator->bank_branch = $post['bank_branch'] ?? null;
+            $administrator->bank_account_name = $post['bank_account_name'] ?? null;
+            $administrator->bank_account_number = $post['bank_account_number'] ?? null;
+            $administrator->bank_account_type = $post['bank_account_type'] ?? null;
             $administrator->district_id = $district;
             $administrator->save();
 
@@ -190,7 +191,11 @@ class AdministratorController extends Controller
         if (!$administrator->exists) {
             $administrator = Administrator::findOrFail(Auth::user()->administrator_id);
         }
-        $administrator->load('User.roles');
+        $relations = ['User.roles', 'hrDepartment', 'designation', 'salaryGrade'];
+        if (request()->user()->can('process payroll')) {
+            $relations['payrolls'] = fn ($query) => $query->orderByDesc('payment_month');
+        }
+        $administrator->load($relations);
 
         return view('administrators.viewadministrator', compact('administrator'));
     }
@@ -231,7 +236,7 @@ class AdministratorController extends Controller
         $salaryGrades = Auth::user()->can('process payroll')
             ? SalaryGrade::orderBy('code')->get()
             : collect();
-        return view('administrators.editadministrator', [ 'administrator' => $administrator ], compact('administrator', 'district', 'role', 'genders', 'hrDepartments', 'designations', 'salaryGrades'));
+        return view('administrators.editadministrator', compact('administrator', 'district', 'role', 'genders', 'hrDepartments', 'designations', 'salaryGrades'));
     }
 
     /**
@@ -261,6 +266,12 @@ class AdministratorController extends Controller
 
         $user = User::where('administrator_id', $request->administrator_id)->first();
 
+        $directory = config('bank_directory', []);
+        $bankName = $request->input('bank_name');
+        $branchNames = is_string($bankName) && isset($directory[$bankName])
+            ? array_keys($directory[$bankName]['branches'] ?? [])
+            : [];
+
         $this->validate($request, [
             'first_name' => 'required',
             'sir_name' => 'required',
@@ -268,9 +279,23 @@ class AdministratorController extends Controller
             'address' => 'required',
             'gender' => 'required',
             'date_of_birth' => 'required',
+            'employment_date' => ['nullable', 'date'],
+            'employment_type' => ['nullable', Rule::in(['Full time', 'Contract', 'Part-time'])],
+            'end_date' => ['nullable', 'date'],
+            'terms_of_employment' => ['nullable', 'string'],
+            'contract_signed' => ['nullable', 'boolean'],
+            'contract_signed_at' => ['nullable', 'date'],
+            'paye' => ['nullable', 'boolean'],
+            'pension_applicable' => ['nullable', 'boolean'],
+            'status' => ['nullable', Rule::in(['Active', 'Pending', 'Suspended', 'Contract ended'])],
             'district' => 'required',
             'role' => 'nullable|in:admin,financeAdmin,superAdmin',
-            'phone' => 'required'
+            'phone' => 'required',
+            'bank_name' => ['nullable', 'string', Rule::in(array_keys($directory)), 'required_with:bank_branch,bank_account_name,bank_account_number,bank_account_type'],
+            'bank_branch' => ['nullable', 'string', Rule::in($branchNames), 'required_with:bank_name,bank_account_name,bank_account_number,bank_account_type'],
+            'bank_account_name' => 'nullable|string|max:255',
+            'bank_account_number' => 'nullable|string|max:100',
+            'bank_account_type' => 'nullable|string|max:100',
         ], $messages);
 
         $post = $request->all();
@@ -300,6 +325,42 @@ class AdministratorController extends Controller
         $Administrator->phone = $post['phone'];
         $Administrator->address = $post['address'];
         $Administrator->date_of_birth = $post['date_of_birth'];
+        if ($request->exists('employment_date')) {
+            $Administrator->employment_date = $post['employment_date'] ?? null;
+        }
+        if ($request->exists('employment_type')) {
+            $Administrator->employment_type = $post['employment_type'] ?? null;
+        }
+        if ($request->exists('end_date')) {
+            $Administrator->end_date = $post['end_date'] ?? null;
+        }
+        if ($request->exists('paye')) {
+            $Administrator->paye = (bool) ($post['paye'] ?? false);
+        }
+        if ($request->exists('pension_applicable')) {
+            $Administrator->pension_applicable = (bool) ($post['pension_applicable'] ?? false);
+        }
+        if ($request->exists('terms_of_employment')) {
+            $Administrator->terms_of_employment = $post['terms_of_employment'] ?? null;
+        }
+        if ($request->exists('contract_signed')) {
+            $Administrator->contract_signed = (bool) ($post['contract_signed'] ?? false);
+        }
+        if ($request->exists('contract_signed_at')) {
+            $Administrator->contract_signed_at = $post['contract_signed_at'] ?? null;
+        }
+        if ($request->exists('status')) {
+            $Administrator->status = $post['status'] ?? $Administrator->status;
+        }
+        if ($request->exists('bank_name') || $request->exists('bank_branch')) {
+            $Administrator->bank_name = $post['bank_name'] ?? null;
+            $Administrator->bank_branch = $post['bank_branch'] ?? null;
+        }
+        foreach (['bank_account_name', 'bank_account_number', 'bank_account_type'] as $field) {
+            if ($request->exists($field)) {
+                $Administrator->{$field} = $post[$field] ?? null;
+            }
+        }
         $Administrator->district_id = $district;
 
         if ($request->user()->can('process payroll')

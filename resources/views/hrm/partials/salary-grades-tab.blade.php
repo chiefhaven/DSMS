@@ -1,4 +1,4 @@
-<div class="tab-pane fade {{ auth()->user()->can('view payroll') ? '' : 'show active' }}"
+<div class="tab-pane fade {{ auth()->user()->can('view salary grades') ? 'show active' : '' }}"
      id="salary-grades-panel" role="tabpanel" aria-labelledby="salary-grades-tab">
     <div class="block block-rounded mb-0">
         <div class="block-header block-header-default d-flex flex-wrap gap-2 align-items-center justify-content-between">

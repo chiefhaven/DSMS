@@ -44,6 +44,10 @@
                 <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-panel"
                         type="button" role="tab" aria-controls="profile-panel" aria-selected="true">Profile</button>
             </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="hrm-tab" data-bs-toggle="tab" data-bs-target="#hrm-panel"
+                        type="button" role="tab" aria-controls="hrm-panel" aria-selected="false">HRM</button>
+            </li>
             @can('manage instructor accounts')
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="account-tab" data-bs-toggle="tab" data-bs-target="#account-panel"
@@ -211,6 +215,12 @@
             @endif
         @endforeach
 
+        </div>
+        <div class="tab-pane fade" id="hrm-panel" role="tabpanel" aria-labelledby="hrm-tab">
+            @include('hrm.partials.staff-profile', [
+                'employee' => $instructor,
+                'staffStatus' => $instructor->status,
+            ])
         </div>
         @can('manage instructor accounts')
             <div class="tab-pane fade" id="account-panel" role="tabpanel" aria-labelledby="account-tab">

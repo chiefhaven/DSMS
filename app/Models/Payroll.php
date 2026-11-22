@@ -26,6 +26,9 @@ class Payroll extends Model
         'bonus',
         'bonus_attendances',
         'deductions',
+        'paye',
+        'employee_pension',
+        'employer_pension',
         'net_pay',
         'payment_date',
         'status',
@@ -39,6 +42,9 @@ class Payroll extends Model
         'bonus' => 'decimal:2',
         'bonus_attendances' => 'integer',
         'deductions' => 'decimal:2',
+        'paye' => 'decimal:2',
+        'employee_pension' => 'decimal:2',
+        'employer_pension' => 'decimal:2',
         'net_pay' => 'decimal:2',
     ];
 

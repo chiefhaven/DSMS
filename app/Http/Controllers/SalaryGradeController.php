@@ -18,7 +18,7 @@ class SalaryGradeController extends Controller
 
     public function index()
     {
-        return redirect()->to(route('payroll.index') . '#salary-grades-tab');
+        return redirect()->to(route('hrm.settings') . '#salary-grades-tab');
     }
 
     public function fetch(): JsonResponse

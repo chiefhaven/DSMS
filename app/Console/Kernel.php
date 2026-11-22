@@ -20,6 +20,9 @@ class Kernel extends ConsoleKernel
         $schedule->command('pay:early-bonuses')->monthlyOn(28, '02:05')->timezone('Africa/Harare')
             ->description('Trigger early bonus payments for instructors on the 28th of every month at 02:03 AM Harare time');
 
+        $schedule->command('staff:auto-end-contracts')->dailyAt('00:10')->timezone('Africa/Harare')
+            ->description('Automatically mark staff contracts as ended when end date is reached');
+
         $schedule->job(new SyncMbiraSyncPositions)
             ->everyMinute()
             ->withoutOverlapping();

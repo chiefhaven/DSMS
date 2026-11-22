@@ -418,6 +418,8 @@ class InstructorController extends Controller
             'district'      => 'required',
             'phone'         => 'required',
             'department'    => 'required|exists:departments,id',
+            'paye'          => 'nullable|boolean',
+            'pension_applicable' => 'nullable|boolean',
             'signature'     => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ], $messages);
 
@@ -438,8 +440,22 @@ class InstructorController extends Controller
         $instructor->gender = $post['gender'];
         $instructor->phone = $post['phone'];
         $instructor->address = $post['address'];
-        $instructor->status = $post['status'];
+        $status = $post['status'] ?? null;
+        $instructor->status = is_string($status) && strcasecmp($status, 'contract ended') === 0 ? 'Contract ended' : $status;
         $instructor->date_of_birth = $post['date_of_birth'];
+        $instructor->employment_date = $post['employment_date'] ?? null;
+        $instructor->employment_type = $post['employment_type'] ?? null;
+        $instructor->end_date = $post['end_date'] ?? null;
+        $instructor->paye = (bool) ($post['paye'] ?? false);
+        $instructor->pension_applicable = (bool) ($post['pension_applicable'] ?? false);
+        $instructor->terms_of_employment = $post['terms_of_employment'] ?? null;
+        $instructor->contract_signed = (bool) ($post['contract_signed'] ?? false);
+        $instructor->contract_signed_at = $post['contract_signed_at'] ?? null;
+        $instructor->bank_name = $post['bank_name'] ?? null;
+        $instructor->bank_branch = $post['bank_branch'] ?? null;
+        $instructor->bank_account_name = $post['bank_account_name'] ?? null;
+        $instructor->bank_account_number = $post['bank_account_number'] ?? null;
+        $instructor->bank_account_type = $post['bank_account_type'] ?? null;
         $instructor->district_id = $district;
         $instructor->department_id = $post['department'];
         $instructor->signature = $filename;
@@ -521,7 +537,19 @@ class InstructorController extends Controller
                 ->toJson();
         }
 
-        $instructor->load(['user', 'department', 'fleet', 'classrooms']);
+        $relations = [
+            'user',
+            'department',
+            'fleet',
+            'classrooms',
+            'hrDepartment',
+            'designation',
+            'salaryGrade',
+        ];
+        if ($request->user()->can('process payroll')) {
+            $relations['payrolls'] = fn ($query) => $query->orderByDesc('payment_month');
+        }
+        $instructor->load($relations);
         $activeStudents = $instructor->assignedStudents()->where('status', '!=', 'Finished')->count();
         $completedStudents = $instructor->assignedStudents()->where('status', 'Finished')->count();
 
@@ -571,7 +599,7 @@ class InstructorController extends Controller
         $salaryGrades = auth()->user()->can('process payroll')
             ? SalaryGrade::orderBy('code')->get()
             : collect();
-        return view('instructors.editinstructor', [ 'instructor' => $instructor ], compact('instructor', 'district', 'departments', 'hrDepartments', 'designations', 'salaryGrades'));
+        return view('instructors.editinstructor', compact('instructor', 'district', 'departments', 'hrDepartments', 'designations', 'salaryGrades'));
     }
 
     /**
@@ -606,6 +634,12 @@ class InstructorController extends Controller
             'signature.max'            => 'The "Signature" may not be greater than 2MB!',
         ];
 
+        $directory = config('bank_directory', []);
+        $bankName = $request->input('bank_name');
+        $branchNames = is_string($bankName) && isset($directory[$bankName])
+            ? array_keys($directory[$bankName]['branches'] ?? [])
+            : [];
+
         $this->validate($request, [
             'first_name'    => 'required',
             'sir_name'      => 'required',
@@ -613,11 +647,24 @@ class InstructorController extends Controller
             'address'       => 'required',
             'gender'        => 'required',
             'date_of_birth' => ['required', 'date', 'before:' . now()->subYears(18)->format('Y-m-d')],
+            'employment_date' => ['nullable', 'date'],
+            'employment_type' => ['nullable', Rule::in(['Full time', 'Contract', 'Part-time'])],
+            'end_date' => ['nullable', 'date'],
+            'terms_of_employment' => ['nullable', 'string'],
+            'contract_signed' => ['nullable', 'boolean'],
+            'contract_signed_at' => ['nullable', 'date'],
+            'paye' => ['nullable', 'boolean'],
+            'pension_applicable' => ['nullable', 'boolean'],
             'district'      => 'required',
             'phone'         => 'required',
             'department'    => 'required|exists:departments,id',
-            'status'        => 'required|in:active,pending,suspended,contract ended',
+            'status'        => 'required|in:active,pending,suspended,Contract ended,contract ended',
             'signature'     => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'bank_name' => ['nullable', 'string', Rule::in(array_keys($directory)), 'required_with:bank_branch,bank_account_name,bank_account_number,bank_account_type'],
+            'bank_branch' => ['nullable', 'string', Rule::in($branchNames), 'required_with:bank_name,bank_account_name,bank_account_number,bank_account_type'],
+            'bank_account_name' => 'nullable|string|max:255',
+            'bank_account_number' => 'nullable|string|max:100',
+            'bank_account_type' => 'nullable|string|max:100',
         ], $messages);
 
         $post = $request->all();
@@ -647,8 +694,42 @@ class InstructorController extends Controller
         $instructor->gender = $post['gender'];
         $instructor->phone = $post['phone'];
         $instructor->address = $post['address'];
-        $instructor->status = $post['status'];
+        $status = $post['status'] ?? null;
+        $instructor->status = is_string($status) && strcasecmp($status, 'contract ended') === 0 ? 'Contract ended' : $status;
         $instructor->date_of_birth = $post['date_of_birth'];
+        if ($request->exists('employment_date')) {
+            $instructor->employment_date = $post['employment_date'] ?? null;
+        }
+        if ($request->exists('employment_type')) {
+            $instructor->employment_type = $post['employment_type'] ?? null;
+        }
+        if ($request->exists('end_date')) {
+            $instructor->end_date = $post['end_date'] ?? null;
+        }
+        if ($request->exists('paye')) {
+            $instructor->paye = (bool) ($post['paye'] ?? false);
+        }
+        if ($request->exists('pension_applicable')) {
+            $instructor->pension_applicable = (bool) ($post['pension_applicable'] ?? false);
+        }
+        if ($request->exists('terms_of_employment')) {
+            $instructor->terms_of_employment = $post['terms_of_employment'] ?? null;
+        }
+        if ($request->exists('contract_signed')) {
+            $instructor->contract_signed = (bool) ($post['contract_signed'] ?? false);
+        }
+        if ($request->exists('contract_signed_at')) {
+            $instructor->contract_signed_at = $post['contract_signed_at'] ?? null;
+        }
+        if ($request->exists('bank_name') || $request->exists('bank_branch')) {
+            $instructor->bank_name = $post['bank_name'] ?? null;
+            $instructor->bank_branch = $post['bank_branch'] ?? null;
+        }
+        foreach (['bank_account_name', 'bank_account_number', 'bank_account_type'] as $field) {
+            if ($request->exists($field)) {
+                $instructor->{$field} = $post[$field] ?? null;
+            }
+        }
         $instructor->district_id = $district;
         if ($instructor->department_id != $post['department']) {
             DB::transaction(function () use ($instructor) {

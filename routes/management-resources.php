@@ -62,16 +62,32 @@ Route::resource('instructor-payments', InstructorPaymentController::class)
 // HRM module
 Route::middleware('auth')->prefix('hrm')->group(function () {
     Route::view('leaves', 'hrm.leaves')->name('leaves.index');
+    Route::get('settings', function () {
+        return view('hrm.settings', [
+            'payeConfig' => \App\Models\Setting::payeConfig(),
+            'pensionConfig' => \App\Models\Setting::pensionConfig(),
+        ]);
+    })->name('hrm.settings');
 
     Route::get('payroll', [PayrollController::class, 'index'])->name('payroll.index');
     Route::get('payroll/fetch', [PayrollController::class, 'fetch'])->name('payroll.fetch');
+    Route::get('payroll/summary', [PayrollController::class, 'summary'])->name('payroll.summary');
     Route::get('payroll/employees', [PayrollController::class, 'employees'])->name('payroll.employees');
     Route::get('payroll/bonus-preview', [PayrollController::class, 'bonusPreview'])->name('payroll.bonus-preview');
     Route::get('payroll/bonus-previews', [PayrollController::class, 'bonusPreviews'])->name('payroll.bonus-previews');
+    Route::get('payroll/paye-settings', [PayrollController::class, 'payeSettings'])->name('payroll.paye-settings');
+    Route::put('payroll/paye-settings', [PayrollController::class, 'updatePayeSettings'])->name('payroll.paye-settings.update');
+    Route::get('payroll/pension-settings', [PayrollController::class, 'pensionSettings'])->name('payroll.pension-settings');
+    Route::put('payroll/pension-settings', [PayrollController::class, 'updatePensionSettings'])->name('payroll.pension-settings.update');
     Route::get('payroll/groups', [PayrollController::class, 'groups'])->name('payroll.groups');
     Route::get('payroll/groups/{payroll_group}', [PayrollController::class, 'showGroup'])->name('payroll.groups.show');
+    Route::get('payroll/groups/{payroll_group}/export-standard-bank-csv', [PayrollController::class, 'exportStandardBankCsv'])->name('payroll.groups.export-standard-bank-csv');
+    Route::get('payroll/groups/{payroll_group}/export-paye-csv', [PayrollController::class, 'exportPayeCsv'])->name('payroll.groups.export-paye-csv');
+    Route::post('payroll/groups/{payroll_group}/pay', [PayrollController::class, 'payGroup'])->name('payroll.groups.pay');
+    Route::put('payroll/groups/{payroll_group}', [PayrollController::class, 'updateGroup'])->name('payroll.groups.update');
     Route::delete('payroll/groups/{payroll_group}', [PayrollController::class, 'destroyGroup'])->name('payroll.groups.destroy');
     Route::post('payroll', [PayrollController::class, 'store'])->name('payroll.store');
+    Route::post('payroll/{payroll}/pay', [PayrollController::class, 'pay'])->name('payroll.pay');
     Route::get('payroll/{payroll}/payslip', [PayrollController::class, 'payslip'])->name('payroll.payslip');
     Route::post('payroll/{payroll}/email-payslip', [PayrollController::class, 'emailPayslip'])
         ->middleware('throttle:10,1')

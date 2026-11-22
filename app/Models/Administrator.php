@@ -35,6 +35,11 @@ class Administrator extends Model
        return $this->belongsTo(SalaryGrade::class, 'salary_grade_id');
     }
 
+    public function payrolls()
+    {
+        return $this->hasMany(Payroll::class, 'administrator_id');
+    }
+
     /**
      * The editable staff salary takes precedence; the salary grade supplies its default when unset.
      */

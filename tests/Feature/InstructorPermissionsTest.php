@@ -13,6 +13,9 @@ use Tests\TestCase;
 class InstructorPermissionsTest extends TestCase
 {
     private const INSTRUCTOR = 'f2638868-b1d0-4c92-b71d-59a1f01e6e22';
+    private const BANK_NAME = 'CONTINENTAL DISCOUNT HOUSE LTD';
+    private const BRANCH_NAME = 'UMODZI PARK AGENCY';
+    private const OTHER_BRANCH_NAME = 'CHITAWIRA';
 
     protected function setUp(): void
     {
@@ -36,13 +39,49 @@ class InstructorPermissionsTest extends TestCase
         ] as $name) {
             Permission::findOrCreate($name, 'web');
         }
+        Permission::findOrCreate('process payroll', 'web');
         (require base_path('database/migrations/2026_11_12_001900_seed_instructor_permissions.php'))->up();
         Schema::create('instructors', function (Blueprint $table) {
             $table->string('id')->primary();
-            foreach (['fname', 'sname', 'gender', 'phone', 'address', 'status', 'date_of_birth', 'district_id', 'department_id', 'signature'] as $column) {
+            foreach (['fname', 'sname', 'gender', 'phone', 'address', 'status', 'date_of_birth', 'district_id', 'department_id', 'signature', 'hr_department_id', 'designation_id', 'salary_grade_id', 'bank_name', 'bank_branch', 'bank_account_name', 'bank_account_number', 'bank_account_type'] as $column) {
                 $table->string($column)->nullable();
             }
+            $table->decimal('basic_salary', 12, 2)->nullable();
+            $table->date('employment_date')->nullable();
+            $table->string('employment_type')->nullable();
+            $table->date('end_date')->nullable();
             $table->timestamps();
+            $table->softDeletes();
+        });
+        Schema::create('hr_departments', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('name');
+            $table->softDeletes();
+        });
+        Schema::create('designations', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('name');
+            $table->softDeletes();
+        });
+        Schema::create('salary_grades', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('code');
+            $table->string('name');
+            $table->decimal('basic_salary', 12, 2);
+            $table->softDeletes();
+        });
+        Schema::create('payrolls', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('instructor_id')->nullable();
+            $table->unsignedBigInteger('administrator_id')->nullable();
+            $table->string('payment_month');
+            $table->decimal('basic_salary', 12, 2);
+            $table->decimal('allowances', 12, 2);
+            $table->decimal('bonus', 12, 2);
+            $table->decimal('deductions', 12, 2);
+            $table->decimal('net_pay', 12, 2);
+            $table->date('payment_date')->nullable();
+            $table->string('status');
             $table->softDeletes();
         });
         Schema::create('users', function (Blueprint $table) {
@@ -100,6 +139,8 @@ class InstructorPermissionsTest extends TestCase
         DB::table('instructors')->insert([
             'id' => self::INSTRUCTOR, 'fname' => 'Example', 'sname' => 'Instructor',
             'department_id' => 'one', 'status' => 'active', 'date_of_birth' => '15-04-1990',
+            'employment_date' => '2020-03-15', 'employment_type' => 'Full time',
+            'end_date' => '2025-03-14', 'basic_salary' => 1500,
         ]);
         DB::table('users')->insert([
             'id' => 'teacher-user', 'instructor_id' => self::INSTRUCTOR, 'name' => 'Teacher',
@@ -123,6 +164,9 @@ class InstructorPermissionsTest extends TestCase
         $this->assertStringNotContainsString('Delete', $row['actions']);
         $this->get('/viewinstructor/'.self::INSTRUCTOR)->assertOk()
             ->assertSee('Example Instructor')->assertDontSee('Edit Profile')
+            ->assertSee('id="hrm-tab"', false)->assertSee('Employment date')
+            ->assertSee('15-03-2020')->assertSee('Full time')->assertDontSee('Basic salary')
+            ->assertDontSee('Payroll history')
             ->assertDontSee('id="account-tab"', false)->assertDontSee('Assigned students')
             ->assertDontSee('Active students')->assertDontSee('Finished students')
             ->assertDontSee('id="attendancesChart"', false)->assertDontSee('const account =', false);
@@ -135,6 +179,33 @@ class InstructorPermissionsTest extends TestCase
         $this->deleteJson('/deleteinstructor/'.self::INSTRUCTOR)->assertForbidden();
         $this->putJson('/instructors/'.self::INSTRUCTOR.'/account', [])->assertForbidden();
         $this->assertStringContainsString('Instructors', view('layouts.partials.main_nav')->render());
+    }
+
+    public function test_payroll_permission_allows_salary_details_in_the_hrm_tab(): void
+    {
+        $role = Role::create(['name' => 'instructor-payroll-viewer', 'guard_name' => 'web']);
+        $role->givePermissionTo(['view instructors', 'process payroll']);
+        $this->authenticate($role);
+        DB::table('payrolls')->insert([
+            'id' => 'instructor-payroll',
+            'instructor_id' => self::INSTRUCTOR,
+            'payment_month' => '2026-10',
+            'basic_salary' => 1500,
+            'allowances' => 100,
+            'bonus' => 50,
+            'deductions' => 25,
+            'net_pay' => 1625,
+            'payment_date' => '2026-11-05',
+            'status' => 'Paid',
+        ]);
+
+        $this->get('/viewinstructor/'.self::INSTRUCTOR)->assertOk()
+            ->assertSee('id="hrm-tab"', false)
+            ->assertSee('Basic salary')
+            ->assertSee('K1,500.00')
+            ->assertSee('Payroll history')
+            ->assertSee('2026-10')
+            ->assertSee('K1,625.00');
     }
 
     public function test_classroom_assignment_options_are_minimal_and_available_without_instructor_view(): void
@@ -177,7 +248,13 @@ class InstructorPermissionsTest extends TestCase
             ->assertOk()
             ->assertSee('readonly')
             ->assertSee('type="text"', false)
-            ->assertSee('value="15-04-1990"', false);
+            ->assertSee('value="15-04-1990"', false)
+            ->assertSee('Employment date')
+            ->assertSee('Employment type')
+            ->assertSee('End date')
+            ->assertSee('Bank account details')
+            ->assertSee('CONTINENTAL DISCOUNT HOUSE LTD')
+            ->assertSee('UMODZI PARK AGENCY');
         $this->postJson('/instructors', [])->assertForbidden();
         $this->putJson('/instructors/'.self::INSTRUCTOR, [])->assertUnprocessable();
         $this->postJson('/updateinstructor', ['instructor_id' => self::INSTRUCTOR])->assertUnprocessable();
@@ -187,6 +264,10 @@ class InstructorPermissionsTest extends TestCase
 
         $role->givePermissionTo('create instructors');
         $this->authenticate($role);
+        $this->get('/instructors/create')->assertOk()
+            ->assertSee('Bank account details')
+            ->assertSee('CONTINENTAL DISCOUNT HOUSE LTD')
+            ->assertSee('UMODZI PARK AGENCY');
         $this->postJson('/storeinstructor', [])->assertUnprocessable();
         $this->postJson('/instructors', [])->assertUnprocessable();
     }
@@ -200,7 +281,15 @@ class InstructorPermissionsTest extends TestCase
             'first_name' => 'Updated', 'sir_name' => 'Instructor', 'email' => 'teacher@example.test',
             'address' => 'Address', 'gender' => 'male', 'date_of_birth' => '1990-01-01',
             'district' => 'Central', 'phone' => '123', 'department' => 'one', 'status' => 'active',
+            'employment_date' => '2020-03-15', 'employment_type' => 'Full time', 'end_date' => '2025-03-14',
+            'bank_name' => self::BANK_NAME,
+            'bank_branch' => self::BRANCH_NAME,
+            'bank_account_name' => 'Updated Instructor',
+            'bank_account_number' => '000987654321',
+            'bank_account_type' => 'Savings',
         ];
+        $this->putJson('/instructors/'.self::INSTRUCTOR, array_merge($data, ['bank_branch' => self::OTHER_BRANCH_NAME]))
+            ->assertUnprocessable()->assertJsonValidationErrors('bank_branch');
         $this->putJson('/instructors/'.self::INSTRUCTOR, array_merge($data, ['email' => 'changed@example.test']))->assertForbidden();
         $this->putJson('/instructors/'.self::INSTRUCTOR, array_merge($data, ['password' => 'new-password']))->assertForbidden();
         $this->assertDatabaseHas('users', ['id' => 'teacher-user', 'email' => 'teacher@example.test', 'password' => 'original']);
@@ -218,7 +307,19 @@ class InstructorPermissionsTest extends TestCase
         $role->givePermissionTo('edit classrooms');
         $this->authenticate($role);
         $this->put('/instructors/'.self::INSTRUCTOR, $data)->assertRedirect(route('instructors.index'));
-        $this->assertDatabaseHas('instructors', ['id' => self::INSTRUCTOR, 'department_id' => 'two', 'fname' => 'Updated']);
+        $this->assertDatabaseHas('instructors', [
+            'id' => self::INSTRUCTOR,
+            'department_id' => 'two',
+            'fname' => 'Updated',
+            'employment_date' => '2020-03-15',
+            'employment_type' => 'Full time',
+            'end_date' => '2025-03-14',
+            'bank_name' => self::BANK_NAME,
+            'bank_branch' => self::BRANCH_NAME,
+            'bank_account_name' => 'Updated Instructor',
+            'bank_account_number' => '000987654321',
+            'bank_account_type' => 'Savings',
+        ]);
         $this->assertDatabaseHas('fleets', ['id' => 'fleet', 'instructor_id' => null]);
         $this->assertDatabaseMissing('classroom_instructor', ['classroom_id' => 'class', 'instructor_id' => self::INSTRUCTOR]);
     }
@@ -247,9 +348,26 @@ class InstructorPermissionsTest extends TestCase
             'address' => 'Address', 'gender' => 'male', 'date_of_birth' => '1990-01-01',
             'district' => 'Central', 'phone' => '123', 'department' => 'one', 'status' => 'active',
             'username' => 'new-teacher', 'password' => 'new-password',
+            'employment_date' => '2021-06-01', 'employment_type' => 'Contract', 'end_date' => '2026-05-31',
+            'bank_name' => self::BANK_NAME,
+            'bank_branch' => self::BRANCH_NAME,
+            'bank_account_name' => 'New Teacher',
+            'bank_account_number' => '000112233',
+            'bank_account_type' => 'Savings',
         ])->assertRedirect(route('instructors.index'));
         $id = DB::table('instructors')->where('fname', 'New')->value('id');
         $this->assertNotNull($id);
+        $this->assertDatabaseHas('instructors', [
+            'id' => $id,
+            'employment_date' => '2021-06-01',
+            'employment_type' => 'Contract',
+            'end_date' => '2026-05-31',
+            'bank_name' => 'CONTINENTAL DISCOUNT HOUSE LTD',
+            'bank_branch' => 'UMODZI PARK AGENCY',
+            'bank_account_name' => 'New Teacher',
+            'bank_account_number' => '000112233',
+            'bank_account_type' => 'Savings',
+        ]);
         $this->assertDatabaseHas('users', ['instructor_id' => $id, 'email' => 'new@example.test']);
         $role->givePermissionTo('delete instructors');
         $this->authenticate($role);

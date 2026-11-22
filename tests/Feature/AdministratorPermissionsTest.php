@@ -12,6 +12,10 @@ use Tests\TestCase;
 
 class AdministratorPermissionsTest extends TestCase
 {
+    private const BANK_NAME = 'CONTINENTAL DISCOUNT HOUSE LTD';
+    private const BRANCH_NAME = 'UMODZI PARK AGENCY';
+    private const OTHER_BRANCH_NAME = 'CHITAWIRA';
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -28,12 +32,48 @@ class AdministratorPermissionsTest extends TestCase
         }
         (require base_path('database/migrations/2026_11_11_120000_seed_access_permissions.php'))->up();
         (require base_path('database/migrations/2026_11_12_002000_seed_administrator_permissions.php'))->up();
+        Permission::findOrCreate('process payroll', 'web');
         Schema::create('administrators', function (Blueprint $table) {
             $table->id();
-            foreach (['fname', 'sname', 'gender', 'phone', 'address', 'date_of_birth', 'district_id'] as $name) {
+            foreach (['fname', 'sname', 'gender', 'phone', 'address', 'date_of_birth', 'district_id', 'hr_department_id', 'designation_id', 'salary_grade_id', 'bank_name', 'bank_branch', 'bank_account_name', 'bank_account_number', 'bank_account_type'] as $name) {
                 $table->string($name)->nullable();
             }
+            $table->decimal('basic_salary', 12, 2)->nullable();
+            $table->date('employment_date')->nullable();
+            $table->string('employment_type')->nullable();
+            $table->date('end_date')->nullable();
             $table->timestamps();
+            $table->softDeletes();
+        });
+        Schema::create('hr_departments', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('name');
+            $table->softDeletes();
+        });
+        Schema::create('designations', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('name');
+            $table->softDeletes();
+        });
+        Schema::create('salary_grades', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('code');
+            $table->string('name');
+            $table->decimal('basic_salary', 12, 2);
+            $table->softDeletes();
+        });
+        Schema::create('payrolls', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('instructor_id')->nullable();
+            $table->unsignedBigInteger('administrator_id')->nullable();
+            $table->string('payment_month');
+            $table->decimal('basic_salary', 12, 2);
+            $table->decimal('allowances', 12, 2);
+            $table->decimal('bonus', 12, 2);
+            $table->decimal('deductions', 12, 2);
+            $table->decimal('net_pay', 12, 2);
+            $table->date('payment_date')->nullable();
+            $table->string('status');
             $table->softDeletes();
         });
         Schema::create('users', function (Blueprint $table) {
@@ -53,6 +93,7 @@ class AdministratorPermissionsTest extends TestCase
         DB::table('districts')->insert(['id' => 'central', 'name' => 'Central']);
         DB::table('administrators')->insert([
             'id' => 1, 'fname' => 'Example', 'sname' => 'Administrator',
+            'bank_name' => self::BANK_NAME, 'bank_branch' => self::BRANCH_NAME,
         ]);
         DB::table('users')->insert([
             'id' => 'target', 'administrator_id' => 1, 'name' => 'Target',
@@ -73,6 +114,8 @@ class AdministratorPermissionsTest extends TestCase
         $this->assertStringNotContainsString('Delete', $row['actions']);
         $this->get('/administrators/1')->assertOk()->assertSee('Example Administrator')
             ->assertDontSee('Edit Profile')->assertDontSee('id="account-tab"', false)
+            ->assertSee('id="hrm-tab"', false)->assertSee('Employment date')->assertDontSee('Basic salary')
+            ->assertDontSee('Payroll history')
             ->assertDontSee('const account =', false);
         $this->getJson('/administrators/create')->assertForbidden();
         $this->postJson('/storeadministrator')->assertForbidden();
@@ -83,13 +126,48 @@ class AdministratorPermissionsTest extends TestCase
         $this->assertStringContainsString('Administrators', view('layouts.partials.main_nav')->render());
     }
 
+    public function test_payroll_permission_allows_salary_details_in_the_hrm_tab(): void
+    {
+        $role = Role::create(['name' => 'administrator-payroll-viewer', 'guard_name' => 'web']);
+        $role->givePermissionTo(['view administrators', 'process payroll']);
+        $this->authenticate($role);
+        DB::table('administrators')->where('id', 1)->update(['basic_salary' => 1234.50]);
+        DB::table('payrolls')->insert([
+            'id' => 'administrator-payroll',
+            'administrator_id' => 1,
+            'payment_month' => '2026-10',
+            'basic_salary' => 1234.50,
+            'allowances' => 100,
+            'bonus' => 50,
+            'deductions' => 25,
+            'net_pay' => 1359.50,
+            'payment_date' => '2026-11-05',
+            'status' => 'Paid',
+        ]);
+
+        $this->get('/administrators/1')->assertOk()
+            ->assertSee('id="hrm-tab"', false)
+            ->assertSee('Basic salary')
+            ->assertSee('K1,234.50')
+            ->assertSee('Payroll history')
+            ->assertSee('2026-10')
+            ->assertSee('K1,359.50');
+    }
+
     public function test_editing_profile_cannot_change_account_or_roles_without_separate_permissions(): void
     {
         $role = Role::create(['name' => 'administrator-editor', 'guard_name' => 'web']);
         $role->givePermissionTo('edit administrators');
         $this->authenticate($role);
         $this->get('/administrators/1/edit')->assertOk()
-            ->assertSee('readonly')->assertDontSee('name="role"', false);
+            ->assertSee('readonly')
+            ->assertSee('Employment date')
+            ->assertSee('Employment type')
+            ->assertSee('End date')
+            ->assertSee('Bank account details')
+            ->assertSee('CONTINENTAL DISCOUNT HOUSE LTD')
+            ->assertSee('UMODZI PARK AGENCY')
+            ->assertDontSee('name="role"', false);
         $data = $this->profileData();
         $this->putJson('/administrators/1', array_merge($data, ['email' => 'other@example.test']))->assertForbidden();
         $this->putJson('/administrators/1', array_merge($data, ['password' => 'new-password']))->assertForbidden();
@@ -98,7 +176,18 @@ class AdministratorPermissionsTest extends TestCase
         $this->assertDatabaseHas('users', ['id' => 'target', 'email' => 'target@example.test', 'password' => 'original']);
         $this->assertEqualsCanonicalizing(['admin', 'instructor'], $this->target()->getRoleNames()->all());
         $this->post('/updateadministrator', array_merge($data, ['administrator_id' => 1]))->assertRedirect(route('administrators.index'));
-        $this->assertDatabaseHas('administrators', ['id' => 1, 'fname' => 'Updated']);
+        $this->assertDatabaseHas('administrators', [
+            'id' => 1,
+            'fname' => 'Updated',
+            'employment_date' => '2020-03-15',
+            'employment_type' => 'Full time',
+            'end_date' => '2025-03-14',
+            'bank_name' => 'CONTINENTAL DISCOUNT HOUSE LTD',
+            'bank_branch' => 'UMODZI PARK AGENCY',
+            'bank_account_name' => 'Updated Administrator',
+            'bank_account_number' => '000123456789',
+            'bank_account_type' => 'Current',
+        ]);
         $this->assertEqualsCanonicalizing(['admin', 'instructor'], $this->target()->getRoleNames()->all());
     }
 
@@ -108,7 +197,7 @@ class AdministratorPermissionsTest extends TestCase
         $role->givePermissionTo(['edit administrators', 'assign administrator roles']);
         $this->authenticate($role);
         $this->get('/administrators/1/edit')->assertOk()
-            ->assertSee('<option value="" selected>Keep current roles</option>', false)
+            ->assertSee('Keep current roles')
             ->assertDontSee('value="instructor"', false)
             ->assertDontSee('value="superAdmin"', false);
         $this->put('/administrators/1', array_merge($this->profileData(), ['role' => '']))
@@ -181,12 +270,23 @@ class AdministratorPermissionsTest extends TestCase
         $role->givePermissionTo('assign administrator roles');
         $this->authenticate($role);
         $this->get('/administrators/create')->assertOk()
+            ->assertSee('Employment date')
+            ->assertSee('Employment type')
+            ->assertSee('End date')
+            ->assertSee('Bank account details')
+            ->assertSee('CONTINENTAL DISCOUNT HOUSE LTD')
+            ->assertSee('UMODZI PARK AGENCY')
             ->assertDontSee('value="instructor"', false)
             ->assertDontSee('value="superAdmin"', false);
         $data = array_merge($this->profileData(), [
             'email' => 'new@example.test', 'username' => 'new-admin',
             'password' => 'password123', 'role' => 'financeAdmin',
+            'employment_date' => '2021-06-01',
+            'employment_type' => 'Contract',
+            'end_date' => '2026-05-31',
         ]);
+        $this->postJson('/administrators', array_merge($data, ['bank_branch' => self::OTHER_BRANCH_NAME]))
+            ->assertUnprocessable()->assertJsonValidationErrors('bank_branch');
         $this->postJson('/administrators', array_merge($data, ['role' => 'student']))
             ->assertUnprocessable()->assertJsonValidationErrors('role');
         $this->postJson('/administrators', array_merge($data, ['role' => 'superAdmin']))
@@ -194,6 +294,17 @@ class AdministratorPermissionsTest extends TestCase
         $this->post('/administrators', $data)->assertRedirect(route('administrators.index'));
         $newUser = User::where('email', 'new@example.test')->firstOrFail();
         $this->assertTrue($newUser->hasRole('financeAdmin'));
+        $this->assertDatabaseHas('administrators', [
+            'id' => $newUser->administrator_id,
+            'employment_date' => '2021-06-01',
+            'employment_type' => 'Contract',
+            'end_date' => '2026-05-31',
+            'bank_name' => self::BANK_NAME,
+            'bank_branch' => self::BRANCH_NAME,
+            'bank_account_name' => 'Updated Administrator',
+            'bank_account_number' => '000123456789',
+            'bank_account_type' => 'Current',
+        ]);
 
         $role->givePermissionTo('manage system');
         $this->authenticate($role);
@@ -243,6 +354,12 @@ class AdministratorPermissionsTest extends TestCase
             'first_name' => 'Updated', 'sir_name' => 'Administrator', 'email' => 'target@example.test',
             'address' => 'Address', 'gender' => 'male', 'date_of_birth' => '1990-01-01',
             'district' => 'Central', 'phone' => '123',
+            'employment_date' => '2020-03-15', 'employment_type' => 'Full time', 'end_date' => '2025-03-14',
+            'bank_name' => self::BANK_NAME,
+            'bank_branch' => self::BRANCH_NAME,
+            'bank_account_name' => 'Updated Administrator',
+            'bank_account_number' => '000123456789',
+            'bank_account_type' => 'Current',
         ];
     }
 
