@@ -4,7 +4,7 @@
             <tr>
                 <td class="content-cell" align="center">
                     <p>&copy; {{ date('Y') }} {{ config('app.school_name', config('app.name', 'Mbira DSMS')) }}. All rights reserved.</p>
-                    <p>Powered by <a href="https://www.havenplustechnologies.co.mw">HavenPlus Technologies</a></p>
+                    <p>Powered by <a href="https://www.havenplustechnologies.co.mw">HavenPlus Technologies Ltd</a></p>
                 </td>
             </tr>
         </table>
