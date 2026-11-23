@@ -685,31 +685,38 @@
     align-items: center;
     justify-content: center;
     gap: .4rem;
+    flex-shrink: 0;
     padding: .4rem .8rem;
-    border: 1px solid rgba(255, 255, 255, .28);
+    border: 1px solid rgba(255, 255, 255, .85);
     border-radius: 999px;
-    background: rgba(255, 255, 255, .14);
-    color: #fff;
+    background: rgba(255, 255, 255, .96);
+    color: #334155;
     font-size: .75rem;
     font-weight: 600;
     line-height: 1.2;
     text-decoration: none;
     white-space: nowrap;
     cursor: pointer;
-    transition: background-color .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .08);
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease, transform .15s ease;
 }
 
 .notification-mark-all:hover,
 .notification-mark-all:focus {
-    background: rgba(255, 255, 255, .22);
-    border-color: rgba(255, 255, 255, .4);
-    color: #fff;
+    background: #fff;
+    border-color: #fff;
+    color: #0f172a;
     text-decoration: none;
+    box-shadow: 0 .25rem .75rem rgba(15, 23, 42, .12);
+}
+
+.notification-mark-all:active {
+    transform: translateY(1px);
 }
 
 .notification-mark-all:focus-visible {
     outline: 0;
-    box-shadow: 0 0 0 .2rem rgba(255, 255, 255, .2);
+    box-shadow: 0 0 0 .2rem rgba(255, 255, 255, .28);
 }
 
 .notification-menu-eyebrow {
