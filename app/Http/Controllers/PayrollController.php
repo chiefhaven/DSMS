@@ -8,6 +8,8 @@ use App\Models\Instructor;
 use App\Models\Payroll;
 use App\Models\PayrollGroup;
 use App\Models\Setting;
+use App\Models\User;
+use App\Notifications\PayrollPendingReview;
 use App\Notifications\PayslipIssued;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -26,12 +28,57 @@ class PayrollController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('permission:view payroll')->only(['fetch', 'employees', 'bonusPreview', 'bonusPreviews', 'groups', 'showGroup', 'payslip']);
+        $this->middleware('permission:view payroll')->only(['fetch', 'employees', 'bonusPreview', 'bonusPreviews', 'groups', 'showGroup']);
         $this->middleware('permission:view payroll|view salary grades')->only('index');
         $this->middleware('permission:process payroll')->only([
-            'store', 'update', 'updateGroup', 'pay', 'payGroup', 'destroy', 'destroyGroup', 'emailPayslip',
-            'payeSettings', 'updatePayeSettings',
+            'store', 'update', 'updateGroup', 'destroy', 'destroyGroup', 'emailPayslip',
+            'payeSettings', 'updatePayeSettings', 'pensionSettings', 'updatePensionSettings',
+            'finalize', 'finalizeGroup',
+            'exportStandardBankCsv', 'exportPayeCsv',
         ]);
+    }
+
+    private function canReviewPayroll(User $user): bool
+    {
+        return $user->hasAnyRole(['superAdmin', 'Super-Admin', 'admin']) || $user->can('process payroll');
+    }
+
+    private function canPayPayroll(User $user): bool
+    {
+        return $user->hasAnyRole(['superAdmin', 'Super-Admin', 'financeAdmin']) || $user->can('manage finance');
+    }
+
+    private function authorizePayrollReview(): void
+    {
+        abort_unless($this->canReviewPayroll(auth()->user()), 403, 'You are not authorized to review or finalize payroll records.');
+    }
+
+    private function authorizePayrollPayment(): void
+    {
+        abort_unless($this->canPayPayroll(auth()->user()), 403, 'You are not authorized to pay payroll records.');
+    }
+
+    private function notifyPayrollReviewers(PayrollGroup $group): void
+    {
+        try {
+            $group->loadCount('payrolls');
+            $reviewers = User::query()
+                ->where(function ($query) {
+                    $query->permission('process payroll')
+                        ->orWhereHas('roles', fn ($roles) => $roles->whereIn('name', ['superAdmin', 'Super-Admin', 'admin']));
+                })
+                ->get()
+                ->unique('id');
+
+            foreach ($reviewers as $reviewer) {
+                $reviewer->notify(new PayrollPendingReview($group));
+            }
+        } catch (\Throwable $exception) {
+            Log::warning('Payroll review notification failed.', [
+                'payroll_group_id' => $group->id,
+                'error' => $exception->getMessage(),
+            ]);
+        }
     }
 
     public function index()
@@ -229,6 +276,11 @@ class PayrollController extends Controller
             });
         }
 
+        $user = auth()->user();
+        $canReview = $this->canReviewPayroll($user);
+        $canPay = $this->canPayPayroll($user);
+        $canProcess = $user->can('process payroll');
+
         return DataTables::of($payrolls)
             ->filter(function () {
                 // Search already applied above.
@@ -261,59 +313,63 @@ class PayrollController extends Controller
             ->addColumn('net_pay', fn ($payroll) => '<strong>K' . number_format((float) $payroll->net_pay, 2) . '</strong>')
             ->addColumn('payment_date', fn ($payroll) => $payroll->payment_date ? $payroll->payment_date->format('d M, Y') : '-')
             ->addColumn('status', function ($payroll) {
-                $class = match (strtolower($payroll->status)) {
+                $status = strtolower($payroll->status);
+                $class = match ($status) {
                     'paid' => 'bg-success',
                     'final' => 'bg-primary',
                     default => 'bg-warning text-dark',
                 };
+                $label = $status === 'pending' ? 'Pending review' : ucfirst($payroll->status);
 
-                return '<span class="badge ' . $class . '">' . e(ucfirst($payroll->status)) . '</span>';
+                return '<span class="badge ' . $class . '">' . e($label) . '</span>';
             })
             ->addColumn('processed_by', fn ($payroll) => e($payroll->processor->name ?? 'System'))
-            ->addColumn('actions', function ($payroll) {
+            ->addColumn('actions', function ($payroll) use ($canReview, $canPay, $canProcess) {
                 $payslip = '<a class="dropdown-item btn" href="' . e(url('hrm/payroll/' . $payroll->id . '/payslip')) . '" target="_blank"><i class="fa fa-file-pdf me-3"></i> Download payslip</a>';
-                $email = $pay = $edit = $delete = '';
+                $email = $pay = $edit = $finalize = $delete = '';
 
-                if (auth()->user()->can('process payroll')) {
+                $payload = htmlspecialchars(json_encode([
+                    'id' => $payroll->id,
+                    'employee' => $payroll->employee_name,
+                    'employee_key' => $payroll->instructor_id
+                        ? 'instructor:' . $payroll->instructor_id
+                        : 'administrator:' . $payroll->administrator_id,
+                    'type' => $payroll->employee_type,
+                    'payment_month' => $payroll->payment_month,
+                    'basic_salary' => (float) $payroll->basic_salary,
+                    'allowances' => (float) $payroll->allowances,
+                    'bonus' => (float) ($payroll->bonus ?? 0),
+                    'bonus_attendances' => (int) ($payroll->bonus_attendances ?? 0),
+                    'deductions' => (float) ($payroll->deductions ?? 0),
+                    'paye' => (float) ($payroll->paye ?? 0),
+                    'employee_pension' => (float) ($payroll->employee_pension ?? 0),
+                    'employer_pension' => (float) ($payroll->employer_pension ?? 0),
+                    'net_pay' => (float) ($payroll->net_pay ?? 0),
+                    'status' => $payroll->status,
+                    'payment_date' => $payroll->payment_date?->format('Y-m-d'),
+                ]), ENT_QUOTES, 'UTF-8');
+
+                $isPending = strcasecmp($payroll->status, 'Pending') === 0;
+                $isFinal = strcasecmp($payroll->status, 'Final') === 0;
+                $isPaid = strcasecmp($payroll->status, 'Paid') === 0;
+
+                if ($canProcess) {
                     $emailPayload = htmlspecialchars(json_encode([
                         'id' => $payroll->id,
                         'employee' => $payroll->employee_name,
                     ]), ENT_QUOTES, 'UTF-8');
                     $email = '<a class="dropdown-item btn" data-payslip=\'' . $emailPayload . '\' onclick="emailPayslip(this)"><i class="fa fa-envelope me-3"></i> Email payslip</a>';
+                }
 
-                    $payload = htmlspecialchars(json_encode([
-                        'id' => $payroll->id,
-                        'employee' => $payroll->employee_name,
-                        'employee_key' => $payroll->instructor_id
-                            ? 'instructor:' . $payroll->instructor_id
-                            : 'administrator:' . $payroll->administrator_id,
-                        'payment_month' => $payroll->payment_month,
-                        'basic_salary' => (float) $payroll->basic_salary,
-                        'allowances' => (float) $payroll->allowances,
-                        'deductions' => (float) $payroll->deductions,
-                        'paye' => (float) ($payroll->paye ?? 0),
-                        'employee_pension' => (float) ($payroll->employee_pension ?? 0),
-                        'employer_pension' => (float) ($payroll->employer_pension ?? 0),
-                        'status' => $payroll->status,
-                        'payment_date' => $payroll->payment_date?->format('Y-m-d'),
-                    ]), ENT_QUOTES, 'UTF-8');
-
-                    if (strcasecmp($payroll->status, 'Final') === 0) {
-                        $pay = '<a class="dropdown-item btn" data-payroll=\'' . $payload . '\' onclick="payPayroll(this)"><i class="fa fa-money-bill-wave me-3"></i> Pay</a>';
-                    }
-                    if (strcasecmp($payroll->status, 'Paid') !== 0) {
-                        $edit = '<a class="dropdown-item btn" data-payroll=\'' . $payload . '\' onclick="openEditPayroll(this)"><i class="fa fa-pencil me-3"></i> Edit</a>';
-                    }
-                    if (strcasecmp($payroll->status, 'Paid') !== 0) {
-                        $delete = '<div class="dropdown-divider"></div><a class="dropdown-item btn text-danger" onclick="openDeletePayroll(\'' . e($payroll->id) . '\')"><i class="fa fa-trash me-3"></i> Delete</a>';
-                    }
+                if ($canPay && $isFinal) {
+                    $pay = '<a class="dropdown-item btn" data-payroll=\'' . $payload . '\' onclick="payPayroll(this)"><i class="fa fa-money-bill-wave me-3"></i> Pay</a>';
                 }
 
                 return '
                     <div class="dropdown d-inline-block">
                         <button class="btn btn-sm btn-primary rounded-pill px-3 text-nowrap" data-bs-toggle="dropdown"><i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions</button>
                         <div class="dropdown-menu dropdown-menu-end">
-                            ' . $payslip . $email . $pay . $edit . $delete . '
+                            ' . $payslip . $email . $pay . $delete . '
                         </div>
                     </div>
                 ';
@@ -393,6 +449,10 @@ class PayrollController extends Controller
             ->withSum('payrolls', 'net_pay')
             ->with('processor:id,name');
 
+        if ($request->filled('month')) {
+            $groups->where('payment_month', $request->input('month'));
+        }
+
         $search = trim((string) $request->input('search.value'));
         if ($search !== '') {
             $term = '%' . $search . '%';
@@ -402,10 +462,15 @@ class PayrollController extends Controller
             });
         }
 
-        return DataTables::of($groups)
+        $user = auth()->user();
+        $canReview = $this->canReviewPayroll($user);
+        $canPay = $this->canPayPayroll($user);
+        $canProcess = $user->can('process payroll');
+
+        return DataTables::eloquent($groups)
             ->filter(function () {
-                // Search already applied above.
-            })
+                //
+            }, true)
             ->addColumn('group', fn ($group) => '<strong>' . e($group->name) . '</strong>')
             ->addColumn('month', function ($group) {
                 try {
@@ -414,7 +479,7 @@ class PayrollController extends Controller
                     return $group->payment_month;
                 }
             })
-            ->addColumn('employees', fn ($group) => (int) $group->payrolls_count)
+            ->addColumn('employees', fn ($group) => $group->payrolls_count)
             ->addColumn('total_net', fn ($group) => '<strong>K' . number_format((float) $group->payrolls_sum_net_pay, 2) . '</strong>')
             ->addColumn('payment_status', function ($group) {
                 $total = (int) $group->payrolls_count;
@@ -437,46 +502,57 @@ class PayrollController extends Controller
                     return '<span class="badge bg-info text-dark">Partially finalized (' . $final . '/' . $total . ')</span>';
                 }
 
-                return '<span class="badge bg-secondary">Pending</span>';
+                return '<span class="badge bg-secondary">Pending review</span>';
             })
-            ->addColumn('created_by', fn ($group) => e($group->processor->name ?? 'System'))
+            ->addColumn('created_by', fn ($group) => $group->processor->name ?? 'System')
             ->addColumn('created_on', fn ($group) => $group->created_at?->format('d M, Y H:i') ?? '-')
-            ->addColumn('actions', function ($group) {
+            ->addColumn('actions', function ($group) use ($canReview, $canPay, $canProcess) {
                 $payload = htmlspecialchars(json_encode([
                     'id' => $group->id,
                     'name' => $group->name,
-                    'count' => (int) $group->payrolls_count,
+                    'payment_month' => $group->payment_month,
                 ]), ENT_QUOTES, 'UTF-8');
-
                 $view = '<a class="dropdown-item btn" data-group=\'' . $payload . '\' onclick="viewPayrollGroup(this)"><i class="fa fa-eye me-3"></i> View payrolls</a>';
                 $isPending = (int) $group->payrolls_count > 0
                     && (int) $group->pending_count === (int) $group->payrolls_count;
-                $edit = auth()->user()->can('process payroll') && $isPending
-                    ? '<a class="dropdown-item btn" data-group=\'' . $payload . '\' onclick="editPayrollGroup(this)"><i class="fa fa-edit me-3"></i> Edit group</a>'
-                    : '';
                 $isFinal = (int) $group->payrolls_count > 0
                     && (int) $group->final_count === (int) $group->payrolls_count;
-                $pay = auth()->user()->can('process payroll') && $isFinal
+
+                $edit = $canProcess && $isPending
+                    ? '<a class="dropdown-item btn" data-group=\'' . $payload . '\' onclick="editPayrollGroup(this)"><i class="fa fa-edit me-3"></i> Edit group</a>'
+                    : '';
+                $review = $canReview && $isPending
+                    ? '<a class="dropdown-item btn" data-group=\'' . $payload . '\' onclick="reviewPayrollGroup(this)"><i class="fa fa-clipboard-check me-3"></i> Review</a>'
+                    : '';
+                $pay = $canPay && $isFinal
                     ? '<a class="dropdown-item btn" data-group=\'' . $payload . '\' onclick="payPayrollGroup(this)"><i class="fa fa-money-bill-wave me-3"></i> Pay group</a>'
                     : '';
-                $export = auth()->user()->can('process payroll')
-                    ? '<a class="dropdown-item" href="' . e(route('payroll.groups.export-standard-bank-csv', $group->id)) . '"><i class="fa fa-file-csv me-3"></i> Export Standard Bank CSV</a>'
+                $canExport = $canProcess && (int) $group->payrolls_count > 0 && (int) $group->pending_count === 0;
+                $exportCsv = $canExport
+                    ? '<a class="dropdown-item btn" href="' . route('payroll.groups.export-standard-bank-csv', $group) . '"><i class="fa fa-file-csv me-3"></i> Export Standard Bank CSV</a>'
                     : '';
-                $payeExport = auth()->user()->can('process payroll')
-                    ? '<a class="dropdown-item" href="' . e(route('payroll.groups.export-paye-csv', $group->id)) . '"><i class="fa fa-file-csv me-3"></i> Export PAYE CSV</a>'
+                $exportPayeCsv = $canExport
+                    ? '<a class="dropdown-item btn" href="' . route('payroll.groups.export-paye-csv', $group) . '"><i class="fa fa-file-csv me-3"></i> Export PAYE CSV</a>'
                     : '';
-                $delete = auth()->user()->can('process payroll') && (int) $group->paid_count === 0
+                $delete = $canProcess && (int) $group->paid_count === 0
                     ? '<a class="dropdown-item btn text-danger" data-group=\'' . $payload . '\' onclick="deletePayrollGroup(this)"><i class="fa fa-trash me-3"></i> Delete</a>'
                     : '';
 
-                return '
-                    <div class="dropdown d-inline-block">
-                        <button class="btn btn-sm btn-primary rounded-pill px-3 text-nowrap" data-bs-toggle="dropdown"><i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions</button>
-                        <div class="dropdown-menu dropdown-menu-end">
-                            ' . $edit . $pay . $view . $export . $payeExport . $delete . '
-                        </div>
-                    </div>
-                ';
+                $items = implode('', array_filter([
+                    '<li>' . $view . '</li>',
+                    $edit ? '<li>' . $edit . '</li>' : '',
+                    $review ? '<li>' . $review . '</li>' : '',
+                    $pay ? '<li>' . $pay . '</li>' : '',
+                    ($exportCsv || $exportPayeCsv) ? '<li><hr class="dropdown-divider"></li>' : '',
+                    $exportCsv ? '<li>' . $exportCsv . '</li>' : '',
+                    $exportPayeCsv ? '<li>' . $exportPayeCsv . '</li>' : '',
+                    $delete ? '<li><hr class="dropdown-divider"></li><li>' . $delete . '</li>' : '',
+                ]));
+
+                return '<div class="dropdown">
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="dropdown" aria-expanded="false">Actions</button>
+                    <ul class="dropdown-menu">' . $items . '</ul>
+                </div>';
             })
             ->rawColumns(['group', 'total_net', 'payment_status', 'actions'])
             ->only(['group', 'month', 'employees', 'total_net', 'payment_status', 'created_by', 'created_on', 'actions'])
@@ -506,7 +582,7 @@ class PayrollController extends Controller
             'employer_pension' => (float) ($payroll->employer_pension ?? 0),
             'pension_applicable' => (bool) ($payroll->instructor?->pension_applicable ?? $payroll->administrator?->pension_applicable ?? false),
             'net_pay' => (float) $payroll->net_pay,
-            'status' => ucfirst($payroll->status),
+            'status' => strcasecmp($payroll->status, 'Pending') === 0 ? 'Pending review' : ucfirst($payroll->status),
             'payment_date' => $payroll->payment_date?->format('d M, Y'),
         ])->values();
 
@@ -568,6 +644,7 @@ class PayrollController extends Controller
         $payroll_group->load([
             'payrolls' => fn ($query) => $query->with(['instructor', 'administrator'])->orderBy('created_at'),
         ]);
+        abort_if($payroll_group->payrolls->isEmpty() || $payroll_group->payrolls->contains(fn ($payroll) => strcasecmp($payroll->status, 'Pending') === 0), 403, 'Payroll exports are available for Final or Paid groups only.');
 
         $fileName = 'standard-bank-payroll-'
             . Str::slug($payroll_group->name ?: $payroll_group->payment_month)
@@ -627,6 +704,7 @@ class PayrollController extends Controller
         $payroll_group->load([
             'payrolls' => fn ($query) => $query->with(['instructor', 'administrator'])->orderBy('created_at'),
         ]);
+        abort_if($payroll_group->payrolls->isEmpty() || $payroll_group->payrolls->contains(fn ($payroll) => strcasecmp($payroll->status, 'Pending') === 0), 403, 'Payroll exports are available for Final or Paid groups only.');
 
         $fileName = 'paye-payroll-'
             . Str::slug($payroll_group->name ?: $payroll_group->payment_month)
@@ -693,8 +771,6 @@ class PayrollController extends Controller
         $validated = $request->validate([
             'payment_month' => ['required', 'date_format:Y-m'],
             'group_name' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', Rule::in(['Pending', 'Final', 'Paid'])],
-            'payment_date' => ['nullable', 'date', 'required_if:status,Paid'],
             'employees' => ['required', 'array', 'min:1'],
             'employees.*.employee' => ['required', 'string', 'distinct', 'regex:/^(instructor|administrator):\S+$/'],
             'employees.*.basic_salary' => ['required', 'numeric', 'min:0'],
@@ -790,8 +866,8 @@ class PayrollController extends Controller
                     'employee_pension' => $amounts['employee_pension'] ?? 0,
                     'employer_pension' => $amounts['employer_pension'] ?? 0,
                     'net_pay' => $amounts['net_pay'],
-                    'payment_date' => $validated['payment_date'] ?? null,
-                    'status' => $validated['status'],
+                    'payment_date' => null,
+                    'status' => 'Pending',
                     'created_by' => Auth::id(),
                 ]);
             }
@@ -799,8 +875,10 @@ class PayrollController extends Controller
             return $group;
         });
 
+        $this->notifyPayrollReviewers($group);
+
         return response()->json([
-            'message' => 'Payroll group created with ' . $rows->count() . ' employee record' . ($rows->count() === 1 ? '' : 's') . '.',
+            'message' => 'Payroll group created with ' . $rows->count() . ' employee record' . ($rows->count() === 1 ? '' : 's') . ' and set to Pending review.',
             'group' => $group,
         ]);
     }
@@ -812,15 +890,13 @@ class PayrollController extends Controller
             || $payroll_group->payrolls()->whereRaw('LOWER(status) != ?', ['pending'])->exists()
         ) {
             return response()->json([
-                'message' => 'Only payroll groups with all entries Pending can be edited.',
+                'message' => 'Only payroll groups with all entries Pending review can be edited.',
             ], 422);
         }
 
         $validated = $request->validate([
             'payment_month' => ['required', 'date_format:Y-m'],
             'group_name' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', Rule::in(['Pending', 'Final', 'Paid'])],
-            'payment_date' => ['nullable', 'date', 'required_if:status,Paid'],
             'employees' => ['required', 'array', 'min:1'],
             'employees.*.employee' => ['required', 'string', 'distinct', 'regex:/^(instructor|administrator):\S+$/'],
             'employees.*.basic_salary' => ['required', 'numeric', 'min:0'],
@@ -842,7 +918,7 @@ class PayrollController extends Controller
             : 'administrator:' . $payroll->administrator_id)->all();
         $instructors = Instructor::withTrashed()
             ->findOrFail($rows->where('type', 'instructor')->pluck('id'))
-            ->keyBy('id');
+            ->keyBy(fn ($instructor) => (string) $instructor->getKey());
         $administrators = Administrator::withTrashed()
             ->findOrFail($rows->where('type', 'administrator')->pluck('id'))
             ->keyBy(fn ($administrator) => (string) $administrator->getKey());
@@ -854,7 +930,7 @@ class PayrollController extends Controller
                 }
 
                 $employee = $row['type'] === 'instructor'
-                    ? $instructors[$row['id']]
+                    ? $instructors[(string) $row['id']]
                     : $administrators[(string) $row['id']];
 
                 return strcasecmp((string) $employee->status, 'active') === 0
@@ -870,22 +946,13 @@ class PayrollController extends Controller
             ], 422);
         }
 
-        $instructorIds = $rows->where('type', 'instructor')->pluck('id');
-        $administratorIds = $rows->where('type', 'administrator')->pluck('id');
-        $existing = Payroll::withTrashed()
-            ->where('payment_month', $validated['payment_month'])
-            ->where(function ($query) use ($instructorIds, $administratorIds) {
-                $query->whereIn('instructor_id', $instructorIds)
-                    ->orWhereIn('administrator_id', $administratorIds);
+        $existing = Payroll::where('payment_month', $validated['payment_month'])
+            ->where('payroll_group_id', '!=', $payroll_group->id)
+            ->where(function ($query) use ($rows) {
+                $query->whereIn('instructor_id', $rows->where('type', 'instructor')->pluck('id'))
+                    ->orWhereIn('administrator_id', $rows->where('type', 'administrator')->pluck('id'));
             })
-            ->where(function ($query) use ($payroll_group) {
-                $query->whereNull('payroll_group_id')
-                    ->orWhere('payroll_group_id', '!=', $payroll_group->id);
-            })
-            ->with([
-                'instructor' => fn ($query) => $query->withTrashed(),
-                'administrator' => fn ($query) => $query->withTrashed(),
-            ])
+            ->with(['instructor', 'administrator'])
             ->get();
 
         if ($existing->isNotEmpty()) {
@@ -901,40 +968,24 @@ class PayrollController extends Controller
         $payeConfig = $this->payeConfig();
         $pensionConfig = $this->pensionConfig();
 
-        DB::transaction(function () use (
-            $validated,
-            $rows,
-            $payroll_group,
-            $currentPayrolls,
-            $rate,
-            $attendanceCounts,
-            $monthLabel,
-            $payeConfig,
-            $pensionConfig,
-            $instructors,
-            $administrators
-        ) {
+        DB::transaction(function () use ($validated, $rows, $instructors, $administrators, $rate, $attendanceCounts, $monthLabel, $payroll_group, $currentPayrolls, $payeConfig, $pensionConfig) {
             $payroll_group->update([
-                'name' => trim($validated['group_name'] ?? '') !== ''
-                    ? trim($validated['group_name'])
-                    : 'Payroll ' . $monthLabel,
+                'name' => trim($validated['group_name'] ?? '') !== '' ? trim($validated['group_name']) : 'Payroll ' . $monthLabel,
                 'payment_month' => $validated['payment_month'],
             ]);
 
-            $currentByEmployee = $currentPayrolls->keyBy(fn ($payroll) => $payroll->instructor_id
-                ? 'instructor:' . $payroll->instructor_id
-                : 'administrator:' . $payroll->administrator_id);
             $retainedPayrollIds = [];
 
             foreach ($rows as $row) {
-                $employeeKey = $row['employee'];
-                $isInstructor = $row['type'] === 'instructor';
-                $attendances = $isInstructor ? (int) ($attendanceCounts[$row['id']] ?? 0) : 0;
+                $attendances = $row['type'] === 'instructor' ? (int) ($attendanceCounts[(string) $row['id']] ?? $attendanceCounts[$row['id']] ?? 0) : 0;
                 $bonus = round($attendances * $rate, 2);
-                $payroll = $currentByEmployee->get($employeeKey) ?? new Payroll();
+                $isInstructor = $row['type'] === 'instructor';
                 $employee = $isInstructor
-                    ? $instructors[$row['id']]
+                    ? $instructors[(string) $row['id']]
                     : $administrators[(string) $row['id']];
+                $payroll = $isInstructor
+                    ? $currentPayrolls->firstWhere('instructor_id', $row['id'])
+                    : $currentPayrolls->firstWhere('administrator_id', $row['id']);
                 $amounts = $this->payrollAmounts(
                     $row,
                     $bonus,
@@ -944,6 +995,10 @@ class PayrollController extends Controller
                     (bool) ($employee->pension_applicable ?? false),
                     $pensionConfig
                 );
+
+                if (!$payroll) {
+                    $payroll = new Payroll();
+                }
 
                 $payroll->instructor_id = $isInstructor ? $row['id'] : null;
                 $payroll->administrator_id = $isInstructor ? null : $row['id'];
@@ -958,8 +1013,8 @@ class PayrollController extends Controller
                 $payroll->employee_pension = $amounts['employee_pension'] ?? 0;
                 $payroll->employer_pension = $amounts['employer_pension'] ?? 0;
                 $payroll->net_pay = $amounts['net_pay'];
-                $payroll->payment_date = $validated['status'] === 'Paid' ? $validated['payment_date'] : null;
-                $payroll->status = $validated['status'];
+                $payroll->payment_date = null;
+                $payroll->status = 'Pending';
                 $payroll->created_by = $payroll->created_by ?? Auth::id();
                 $payroll->save();
 
@@ -969,11 +1024,55 @@ class PayrollController extends Controller
             $payroll_group->payrolls()->whereNotIn('id', $retainedPayrollIds)->delete();
         });
 
-        return response()->json(['message' => 'Payroll group updated successfully.']);
+        return response()->json(['message' => 'Payroll group updated successfully. It remains Pending review.']);
+    }
+
+    public function finalize(Request $request, Payroll $payroll): JsonResponse
+    {
+        $this->authorizePayrollReview();
+
+        if (strcasecmp($payroll->status, 'Pending') !== 0) {
+            return response()->json(['message' => 'Only payroll records pending review can be approved/finalized.'], 422);
+        }
+
+        $payroll->update([
+            'status' => 'Final',
+            'payment_date' => null,
+        ]);
+
+        return response()->json(['message' => 'Payroll record approved and finalized successfully.']);
+    }
+
+    public function finalizeGroup(Request $request, PayrollGroup $payroll_group): JsonResponse
+    {
+        $this->authorizePayrollReview();
+
+        $payrolls = $payroll_group->payrolls()->get();
+        if (
+            $payrolls->isEmpty()
+            || $payrolls->contains(fn ($payroll) => strcasecmp($payroll->status, 'Pending') !== 0)
+        ) {
+            return response()->json(['message' => 'Only payroll groups with all entries Pending review can be approved/finalized.'], 422);
+        }
+
+        DB::transaction(function () use ($payrolls) {
+            foreach ($payrolls as $payroll) {
+                $payroll->update([
+                    'status' => 'Final',
+                    'payment_date' => null,
+                ]);
+            }
+        });
+
+        return response()->json([
+            'message' => 'Payroll group approved and finalized with ' . $payrolls->count() . ' record' . ($payrolls->count() === 1 ? '' : 's') . '.',
+        ]);
     }
 
     public function pay(Request $request, Payroll $payroll): JsonResponse
     {
+        $this->authorizePayrollPayment();
+
         $validated = $request->validate([
             'payment_date' => ['required', 'date_format:Y-m-d'],
         ]);
@@ -992,6 +1091,8 @@ class PayrollController extends Controller
 
     public function payGroup(Request $request, PayrollGroup $payroll_group): JsonResponse
     {
+        $this->authorizePayrollPayment();
+
         $validated = $request->validate([
             'payment_date' => ['required', 'date_format:Y-m-d'],
         ]);
@@ -1020,20 +1121,22 @@ class PayrollController extends Controller
 
     public function update(Request $request, Payroll $payroll): JsonResponse
     {
-        if (strcasecmp($payroll->status, 'Paid') === 0) {
-            return response()->json(['message' => 'Paid payroll records cannot be edited.'], 422);
+        if (strcasecmp($payroll->status, 'Pending') !== 0) {
+            return response()->json(['message' => 'Only payroll records pending review can be edited.'], 422);
         }
 
-        $validated = $this->validatePayroll($request);
+        $validated = $request->validate([
+            'basic_salary' => ['required', 'numeric', 'min:0'],
+            'allowances' => ['nullable', 'numeric', 'min:0'],
+            'deductions' => ['nullable', 'numeric', 'min:0'],
+        ]);
 
-        $bonus = $payroll->instructor
-            ? $this->instructorBonus($payroll->instructor, $payroll->payment_month)
-            : ['attendances' => (int) $payroll->bonus_attendances, 'rate' => 0, 'bonus' => (float) $payroll->bonus];
-        $employee = $payroll->instructor ?? $payroll->administrator;
+        $isInstructor = $payroll->instructor_id !== null;
+        $employee = $isInstructor ? $payroll->instructor : $payroll->administrator;
         $amounts = $this->payrollAmounts(
             $validated,
-            (float) $bonus['bonus'],
-            $payroll->instructor_id !== null,
+            (float) $payroll->bonus,
+            $isInstructor,
             (bool) ($employee->paye ?? false),
             $this->payeConfig(),
             (bool) ($employee->pension_applicable ?? false),
@@ -1043,21 +1146,16 @@ class PayrollController extends Controller
         $payroll->update([
             'basic_salary' => $validated['basic_salary'],
             'allowances' => $validated['allowances'] ?? 0,
-            'bonus' => $bonus['bonus'],
-            'bonus_attendances' => $bonus['attendances'],
             'deductions' => $validated['deductions'] ?? 0,
             'paye' => $amounts['paye'],
             'employee_pension' => $amounts['employee_pension'] ?? 0,
             'employer_pension' => $amounts['employer_pension'] ?? 0,
             'net_pay' => $amounts['net_pay'],
-            'payment_date' => $validated['payment_date'] ?? null,
-            'status' => $validated['status'],
+            'payment_date' => null,
+            'status' => 'Pending',
         ]);
 
-        return response()->json([
-            'message' => 'Payroll record updated successfully.',
-            'payroll' => $payroll->fresh(),
-        ]);
+        return response()->json(['message' => 'Payroll record updated successfully.']);
     }
 
     public function destroy(Payroll $payroll): JsonResponse
@@ -1073,12 +1171,29 @@ class PayrollController extends Controller
 
     public function payslip(Payroll $payroll)
     {
+        $authUser = Auth::user();
+
+        $canManagePayroll = $authUser->can('view payroll');
+        $isOwnPayroll = ($authUser->administrator_id && (string) $payroll->administrator_id === (string) $authUser->administrator_id)
+            || ($authUser->instructor_id && (string) $payroll->instructor_id === (string) $authUser->instructor_id);
+        $isFinalOrPaid = in_array(strtolower((string) $payroll->status), ['final', 'paid'], true);
+
+        abort_unless(
+            $canManagePayroll || $authUser->can('access payslip') || ($isOwnPayroll && $isFinalOrPaid),
+            403,
+            'You are not authorized to download this payslip.'
+        );
+
+        if (!$canManagePayroll && $isOwnPayroll) {
+            abort_unless($isFinalOrPaid, 403, 'Only finalized or paid payslips are available.');
+        }
+
         [$pdf, $fileName] = $this->payslipPdf($payroll);
 
         return $pdf->download($fileName);
     }
 
-    public function emailPayslip(Payroll $payroll): JsonResponse
+    public function emailPayslip(Request $request, Payroll $payroll): JsonResponse
     {
         $payroll->load(['instructor.user', 'administrator.User']);
         $user = $payroll->instructor?->user ?? $payroll->administrator?->User;
@@ -1128,17 +1243,6 @@ class PayrollController extends Controller
         $fileName = 'Payslip-' . str_replace(' ', '-', $payroll->employee_name) . '-' . $payroll->payment_month . '.pdf';
 
         return [$pdf, $fileName, $monthLabel];
-    }
-
-    private function validatePayroll(Request $request): array
-    {
-        return $request->validate([
-            'basic_salary' => ['required', 'numeric', 'min:0'],
-            'allowances' => ['nullable', 'numeric', 'min:0'],
-            'deductions' => ['nullable', 'numeric', 'min:0'],
-            'status' => ['required', Rule::in(['Pending', 'Final', 'Paid'])],
-            'payment_date' => ['nullable', 'date', 'required_if:status,Paid'],
-        ]);
     }
 
     private function grossSalary(array $row, float $bonus, bool $isInstructor = false): float

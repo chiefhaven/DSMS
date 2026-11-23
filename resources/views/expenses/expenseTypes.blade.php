@@ -71,11 +71,11 @@
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <form @submit.prevent="submitExpenseType">
-          <div class="modal-header">
+          <div class="modal-header bg-primary">
             <h5 class="modal-title text-white" id="expenseTypeModalLabel">
               @{{ isEditMode ? 'Edit Expense Type' : 'Create Expense Type' }}
             </h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
 
           <div class="modal-body">

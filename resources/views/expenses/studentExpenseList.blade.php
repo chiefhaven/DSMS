@@ -108,9 +108,9 @@
         <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header bg-primary">
                     <h5 class="block-title text-white fs-4 fw-bold" id="paymentModalLabel">Make payment</h5>
-                    <button type="button" class="btn-close" @click="cancel" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" @click="cancel" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form @submit.prevent="submitPayment">

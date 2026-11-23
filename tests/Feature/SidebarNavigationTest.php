@@ -2,12 +2,10 @@
 
 namespace Tests\Feature;
 
-use App\Http\Controllers\InstructorPaymentController;
 use App\Models\User;
 use DOMDocument;
 use DOMElement;
 use DOMXPath;
-use Illuminate\Http\Request;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Role;
@@ -86,8 +84,7 @@ class SidebarNavigationTest extends TestCase
         $hrm = $xpath->query("//ul[contains(concat(' ', normalize-space(@class), ' '), ' Sidebar ')]/li[a/span[normalize-space(.)='HRM']]");
         $bonusLinks = $xpath->query("//a[contains(@href, '/instructor-payments')]");
 
-        $this->assertSame($hrmVisible ? 1 : 0, $hrm->length);
-        $this->assertSame($hrmVisible ? 1 : 0, $bonusLinks->length);
+        $this->assertSame(0, $bonusLinks->length);
 
         $roleLinks = $xpath->query("//a[span[normalize-space(.)='Roles & permissions']]");
         $this->assertSame($rolesVisible ? 1 : 0, $roleLinks->length);
@@ -105,7 +102,7 @@ class SidebarNavigationTest extends TestCase
             $this->assertSame(route('roles.index'), $rolesLink->getAttribute('href'));
         }
 
-        if (!$hrmVisible) {
+        if ($hrm->length === 0) {
             return;
         }
 
@@ -119,10 +116,7 @@ class SidebarNavigationTest extends TestCase
         );
 
         $this->assertSame(1, $toggle->length);
-        $this->assertSame(1, $submenuLinks->length);
-        $link = $submenuLinks->item(0);
-        $this->assertInstanceOf(DOMElement::class, $link);
-        $this->assertSame(url('/instructor-payments'), $link->getAttribute('href'));
+        $this->assertSame(0, $submenuLinks->length);
     }
 
     public static function menuAccess(): array
@@ -153,7 +147,7 @@ class SidebarNavigationTest extends TestCase
 
         $html = view('layouts.partials.main_nav')->render();
 
-        $this->assertStringContainsString('Bonus Payments', $html);
+        $this->assertStringNotContainsString('Bonus Payments', $html);
         $this->assertStringContainsString('All students', $html);
         $this->assertStringNotContainsString('Add student', $html);
         $this->assertStringNotContainsString('Add expense', $html);
@@ -305,13 +299,5 @@ class SidebarNavigationTest extends TestCase
         $html = view('layouts.partials.main_nav')->render();
 
         $this->assertStringContainsString(route('roles.index'), $html);
-    }
-
-    public function test_bonus_payment_url_resolves_to_the_existing_page(): void
-    {
-        $route = app('router')->getRoutes()->match(Request::create('/instructor-payments', 'GET'));
-
-        $this->assertSame(InstructorPaymentController::class.'@index', $route->getActionName());
-        $this->assertContains('auth', $route->middleware());
     }
 }

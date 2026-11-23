@@ -191,9 +191,18 @@ class AdministratorController extends Controller
         if (!$administrator->exists) {
             $administrator = Administrator::findOrFail(Auth::user()->administrator_id);
         }
+        $user = request()->user();
         $relations = ['User.roles', 'hrDepartment', 'designation', 'salaryGrade'];
-        if (request()->user()->can('process payroll')) {
-            $relations['payrolls'] = fn ($query) => $query->orderByDesc('payment_month');
+        $canManagePayroll = $user?->can('process payroll') || $user?->can('view payroll');
+        $isOwnProfile = $user && $user->administrator_id
+            && (string) $user->administrator_id === (string) $administrator->id;
+        if ($canManagePayroll || $isOwnProfile) {
+            $relations['payrolls'] = function ($query) use ($canManagePayroll, $isOwnProfile) {
+                $query->orderByDesc('payment_month');
+                if ($isOwnProfile && !$canManagePayroll) {
+                    $query->whereIn('status', ['Final', 'Paid']);
+                }
+            };
         }
         $administrator->load($relations);
 

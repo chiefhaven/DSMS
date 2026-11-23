@@ -40,6 +40,11 @@ class Administrator extends Model
         return $this->hasMany(Payroll::class, 'administrator_id');
     }
 
+    public function leaveRequests()
+    {
+        return $this->hasMany(LeaveRequest::class, 'administrator_id');
+    }
+
     /**
      * The editable staff salary takes precedence; the salary grade supplies its default when unset.
      */

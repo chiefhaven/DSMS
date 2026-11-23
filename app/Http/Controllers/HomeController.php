@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Attendance;
 use App\Models\Instructor;
-use App\Models\InstructorPayment;
 use App\Models\Invoice;
 use App\Models\Setting;
 use App\Models\Student;
@@ -57,14 +56,7 @@ class HomeController extends Controller
 
             if ($instructor) {
 
-                $lastPaymentDate = InstructorPayment::query()
-                    ->where('instructor_id', $instructor->id)
-                    ->latest('payment_date')
-                    ->value('payment_date');
-
-                $startDate = $lastPaymentDate
-                    ? Carbon::parse($lastPaymentDate)
-                    : $now->copy()->startOfMonth();
+                $startDate = $now->copy()->startOfMonth();
 
                 $attendanceCount = Attendance::query()
                     ->where('instructor_id', $instructor->id)
@@ -134,11 +126,6 @@ class HomeController extends Controller
 
         $instructors = Instructor::query()
             ->where('status', 'active')
-            ->with([
-                'payments' => function ($query) {
-                    $query->latest('payment_date');
-                },
-            ])
             ->get();
 
         /*
@@ -149,11 +136,7 @@ class HomeController extends Controller
 
         $instructors->each(function ($instructor) use ($now, $settings) {
 
-            $lastPayment = $instructor->payments->first();
-
-            $startDate = $lastPayment
-                ? Carbon::parse($lastPayment->payment_date)
-                : Carbon::parse($instructor->created_at);
+            $startDate = $now->copy()->startOfMonth();
 
             $attendanceCount = Attendance::query()
                 ->where('instructor_id', $instructor->id)
@@ -168,8 +151,6 @@ class HomeController extends Controller
 
             $instructor->estimated_pay = $attendanceCount
                 * (float) $settings->bonus;
-
-            $instructor->last_payment_date = $lastPayment?->payment_date;
         });
 
         /*

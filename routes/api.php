@@ -18,7 +18,6 @@ use App\Http\Controllers\ExpensePaymentController;
 use App\Http\Controllers\ExpenseTypeController;
 use App\Http\Controllers\FleetTrackerController;
 use App\Http\Controllers\havenUtils;
-use App\Http\Controllers\InstructorPaymentController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\StudentController;
@@ -95,8 +94,6 @@ Route::post("/update-bulk-attendance", [BulkAttendanceController::class, 'update
 Route::delete('/bulk-attendance/{bulkAttendance}', [BulkAttendanceController::class, 'destroy'])
     ->middleware('auth')
     ->name('api.bulk-attendance.destroy');
-
-Route::post('/bonuses/pay-early', [InstructorPaymentController::class, 'store'])->middleware('auth:sanctum')->name('pay-insturctor-bonuses');
 
 Route::get('/expenses', [ExpenseController::class, 'fetchExpenses'])->name('api.expenses.index')->middleware('auth:sanctum');
 

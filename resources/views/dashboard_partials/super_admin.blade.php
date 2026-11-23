@@ -498,7 +498,7 @@
                     </div>
                 </div>
                 <div class="card-footer bg-white border-top py-3 px-4">
-                    <p class="mb-2 fs-sm">
+                    <p class="mb-0 fs-sm">
                         Bonus rate:
                         <strong class="text-dark">K{{ number_format($settings->bonus, 2) }}</strong>
                         per attendance.
@@ -506,30 +506,6 @@
                             Edit <i class="fa fa-pencil-alt ms-1 fs-xs"></i>
                         </a>
                     </p>
-                    <p class="text-warning fs-sm mb-3">
-                        <i class="fa fa-clock me-1"></i>
-                        Bonuses are scheduled for the 28th.
-                    </p>
-
-                    @can('process instructor payments')
-                    {{-- Early Bonus Payment with Skeleton --}}
-                    <div id="bonuses" v-cloak>
-                        <button
-                            type="button"
-                            class="btn btn-primary rounded-pill px-4 w-100"
-                            :disabled="paymentLoading"
-                            @click="payEarly"
-                        >
-                            <template v-if="paymentLoading">
-                                <span class="skeleton skeleton-text d-inline-block" style="width: 100px; height: 14px; vertical-align: middle;"></span>
-                            </template>
-                            <template v-else>
-                                <i class="fa fa-money-bill-wave me-1"></i>
-                                Pay Early
-                            </template>
-                        </button>
-                    </div>
-                    @endcan
                 </div>
             </div>
 
@@ -554,69 +530,6 @@ document.addEventListener('DOMContentLoaded', function () {
         nextTick
     } = Vue;
 
-    /*
-    |--------------------------------------------------------------------------
-    | Early Bonus Payment
-    |--------------------------------------------------------------------------
-    */
-
-    @can('process instructor payments')
-    createApp({
-        setup() {
-            const paymentLoading = ref(false);
-
-            const payEarly = async () => {
-                const result = await Swal.fire({
-                    title: 'Process Early Payment?',
-                    text: 'You are about to process instructor bonus payments.',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Proceed',
-                    cancelButtonText: 'Cancel',
-                    confirmButtonColor: '#28a745'
-                });
-
-                if (!result.isConfirmed || paymentLoading.value) {
-                    return;
-                }
-
-                paymentLoading.value = true;
-                NProgress.start();
-
-                try {
-                    await axios.post(@json(route('instructor-payments.store')));
-
-                    await Swal.fire({
-                        title: 'Success',
-                        text: 'Early payment request completed successfully.',
-                        icon: 'success'
-                    });
-
-                    window.location.reload();
-
-                } catch (error) {
-                    const message = error.response?.data?.message
-                        || 'The payment could not be processed. Please try again.';
-
-                    await Swal.fire({
-                        title: 'Payment Failed',
-                        text: message,
-                        icon: 'error'
-                    });
-
-                } finally {
-                    paymentLoading.value = false;
-                    NProgress.done();
-                }
-            };
-
-            return {
-                paymentLoading,
-                payEarly
-            };
-        }
-    }).mount('#bonuses');
-    @endcan
 
 
     /*

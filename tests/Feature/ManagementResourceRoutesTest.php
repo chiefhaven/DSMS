@@ -92,10 +92,8 @@ class ManagementResourceRoutesTest extends TestCase
             }
             $cases["$resource.patch"] = ["$resource.update", 'PATCH', "/$resource/123"];
         }
-        foreach (['payments', 'instructor-payments'] as $resource) {
-            $cases["$resource.index"] = ["$resource.index", 'GET', "/$resource"];
-            $cases["$resource.store"] = ["$resource.store", 'POST', "/$resource"];
-        }
+        $cases['payments.index'] = ['payments.index', 'GET', '/payments'];
+        $cases['payments.store'] = ['payments.store', 'POST', '/payments'];
         $cases['payments.destroy'] = ['payments.destroy', 'DELETE', '/payments/123'];
 
         return $cases;
@@ -103,10 +101,13 @@ class ManagementResourceRoutesTest extends TestCase
 
     public function test_stub_methods_are_not_exposed_as_canonical_routes(): void
     {
-        foreach (['payments' => ['create', 'show', 'edit', 'update'], 'instructor-payments' => ['create', 'show', 'edit', 'update', 'destroy']] as $resource => $actions) {
+        foreach (['payments' => ['create', 'show', 'edit', 'update']] as $resource => $actions) {
             foreach ($actions as $action) {
                 $this->assertFalse(Route::has("$resource.$action"));
             }
+        }
+        foreach (['instructor-payments.index', 'instructor-payments.store', 'instructor-payments.create', 'instructor-payments.show', 'instructor-payments.edit', 'instructor-payments.update', 'instructor-payments.destroy'] as $routeName) {
+            $this->assertFalse(Route::has($routeName));
         }
     }
 
@@ -211,7 +212,7 @@ class ManagementResourceRoutesTest extends TestCase
 
     public function test_guests_cannot_write_canonical_resources(): void
     {
-        foreach (['invoices', 'payments', 'instructors', 'administrators', 'expenses', 'instructor-payments'] as $resource) {
+        foreach (['invoices', 'payments', 'instructors', 'administrators', 'expenses'] as $resource) {
             $this->postJson("/$resource")->assertUnauthorized();
         }
     }

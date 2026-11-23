@@ -546,8 +546,16 @@ class InstructorController extends Controller
             'designation',
             'salaryGrade',
         ];
-        if ($request->user()->can('process payroll')) {
-            $relations['payrolls'] = fn ($query) => $query->orderByDesc('payment_month');
+        $isOwnProfile = $request->user()->instructor_id
+            && (string) $request->user()->instructor_id === (string) $instructor->id;
+        $canManagePayroll = $request->user()->can('process payroll') || $request->user()->can('view payroll');
+        if ($canManagePayroll || $isOwnProfile) {
+            $relations['payrolls'] = function ($query) use ($canManagePayroll, $isOwnProfile) {
+                $query->orderByDesc('payment_month');
+                if ($isOwnProfile && !$canManagePayroll) {
+                    $query->whereIn('status', ['Final', 'Paid']);
+                }
+            };
         }
         $instructor->load($relations);
         $activeStudents = $instructor->assignedStudents()->where('status', '!=', 'Finished')->count();
@@ -577,6 +585,75 @@ class InstructorController extends Controller
     public function showProfile()
     {
         return $this->show(auth()->user()->instructor_id, request());
+    }
+
+    /**
+     * Display HRM self-service information for the authenticated staff member.
+     */
+    public function myHrm(Request $request)
+    {
+        $user = $request->user();
+        abort_unless($user && ($user->instructor_id || $user->administrator_id), 403, 'Employee profile not found.');
+
+        $isInstructor = (bool) $user->instructor_id;
+        $employee = null;
+
+        if ($isInstructor) {
+            $employee = Instructor::with([
+                'user',
+                'department',
+                'fleet',
+                'classrooms',
+                'hrDepartment',
+                'designation',
+                'salaryGrade',
+                'payrolls' => fn ($query) => $query
+                    ->whereIn('status', ['Final', 'Paid'])
+                    ->orderByDesc('payment_month'),
+            ])->findOrFail($user->instructor_id);
+        } else {
+            $employee = \App\Models\Administrator::with([
+                'User',
+                'hrDepartment',
+                'designation',
+                'salaryGrade',
+                'payrolls' => fn ($query) => $query
+                    ->whereIn('status', ['Final', 'Paid'])
+                    ->orderByDesc('payment_month'),
+            ])->findOrFail($user->administrator_id);
+        }
+
+        $leaveRequests = collect();
+        $leaveRequests = collect();
+        if (class_exists(\App\Models\LeaveRequest::class) && \Illuminate\Support\Facades\Schema::hasTable('leave_requests')) {
+            $leaveRequests = \App\Models\LeaveRequest::query()
+                ->with(['leaveType', 'reviewer'])
+                ->where(function ($query) use ($isInstructor, $employee) {
+                    if ($isInstructor) {
+                        $query->where('instructor_id', $employee->id);
+                    } else {
+                        $query->where('administrator_id', $employee->id);
+                    }
+                })
+                ->latest()
+                ->get();
+        }
+
+        $leaveTypes = collect();
+        if (class_exists(\App\Models\LeaveType::class) && \Illuminate\Support\Facades\Schema::hasTable('leave_types')) {
+            $leaveTypes = \App\Models\LeaveType::query()->orderBy('name')->get();
+        }
+
+        $canRequestLeave = \Illuminate\Support\Facades\Schema::hasTable('leave_requests');
+
+        return view('instructors.my-hrm', [
+            'employee' => $employee,
+            'instructor' => $isInstructor ? $employee : null,
+            'leaveRequests' => $leaveRequests,
+            'leaveTypes' => $leaveTypes,
+            'isInstructorEmployee' => $isInstructor,
+            'canRequestLeave' => $canRequestLeave,
+        ]);
     }
 
     /**

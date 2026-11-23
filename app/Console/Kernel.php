@@ -17,11 +17,18 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // $schedule->command('inspire')->hourly();
-        $schedule->command('pay:early-bonuses')->monthlyOn(28, '02:05')->timezone('Africa/Harare')
-            ->description('Trigger early bonus payments for instructors on the 28th of every month at 02:03 AM Harare time');
 
         $schedule->command('staff:auto-end-contracts')->dailyAt('00:10')->timezone('Africa/Harare')
             ->description('Automatically mark staff contracts as ended when end date is reached');
+
+        $schedule->command('hrm:payroll-status')->monthlyOn(25, '07:30')->timezone('Africa/Harare')
+            ->description('Report payroll status for the current month ahead of month-end processing');
+
+        $schedule->command('hrm:payroll-status')->monthlyOn(28, '07:30')->timezone('Africa/Harare')
+            ->description('Report payroll status for the current month on month-end payroll day');
+
+        $schedule->command('hrm:leave-pending --days=3')->weekdays()->at('08:00')->timezone('Africa/Harare')
+            ->description('Report pending leave requests awaiting HR review');
 
         $schedule->job(new SyncMbiraSyncPositions)
             ->everyMinute()

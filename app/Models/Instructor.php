@@ -55,6 +55,11 @@ class Instructor extends Model
         return $this->hasMany(Payroll::class, 'instructor_id');
     }
 
+    public function leaveRequests()
+    {
+        return $this->hasMany(LeaveRequest::class, 'instructor_id');
+    }
+
     /**
      * The editable staff salary takes precedence; the salary grade supplies its default when unset.
      */
@@ -102,19 +107,6 @@ class Instructor extends Model
         });
     }
 
-    public function payments()
-    {
-        return $this->hasMany(InstructorPayment::class);
-    }
-
-    public function currentAttendances()
-    {
-        $lastPayment = $this->payments()->latest('payment_date')->first();
-        $startDate = $lastPayment ? $lastPayment->payment_date : $this->created_at;
-
-        return $this->attendances()
-            ->whereBetween('created_at', [$startDate, now()]);
-    }
 
     public function getActivitylogOptions(): LogOptions
     {

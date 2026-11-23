@@ -149,9 +149,9 @@
         <div class="modal fade" id="payroll-add-modal" tabindex="-1" aria-labelledby="payroll-add-modal-title" aria-hidden="true">
             <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title text-white" id="payroll-add-modal-title">@{{ groupForm.id ? 'Edit payroll group' : 'Add payroll' }}</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <div class="modal-header bg-primary">
+                        <h5 class="modal-title text-white" id="payroll-add-modal-title">@{{ groupModalMode === 'review' ? 'Review payroll group' : (groupForm.id ? 'Edit payroll group' : 'Add payroll') }}</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <form @submit.prevent="saveGroup">
                         <div class="modal-body" style="max-height: calc(100vh - 230px); overflow-y: auto;">
@@ -161,21 +161,16 @@
                                     <label class="form-label" for="group-month">Pay month</label>
                                     <input id="group-month" type="text" class="form-control js-monthpicker" v-model="groupForm.payment_month" placeholder="YYYY-MM" autocomplete="off" required @change="loadBonusPreviews">
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <label class="form-label" for="group-name">Group name <span class="text-muted fs-sm">(optional)</span></label>
                                     <input id="group-name" type="text" class="form-control" v-model="groupForm.name" maxlength="255" :placeholder="defaultGroupName">
                                 </div>
-                                <div class="col-md-2">
-                                    <label class="form-label" for="group-status">Status</label>
-                                    <select id="group-status" class="form-select" v-model="groupForm.status" required>
-                                        <option value="Pending">Pending</option>
-                                        <option value="Final">Final</option>
-                                        <option value="Paid">Paid</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-2" v-if="groupForm.status === 'Paid'">
-                                    <label class="form-label" for="group-date">Payment date</label>
-                                    <input id="group-date" type="date" class="form-control" v-model="groupForm.payment_date" required>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <div class="w-100">
+                                        <label class="form-label d-block">Status</label>
+                                        <span class="badge bg-warning text-dark">Pending review</span>
+                                        <div v-if="groupModalMode === 'review'" class="fs-xs text-muted mt-1">Review and edit this group as needed, then approve and finalize to save and submit it for payment.</div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -255,10 +250,14 @@
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-primary" :disabled="groupForm.saving || !selectedCount">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@{{ groupModalMode === 'review' ? 'Close' : 'Cancel' }}</button>
+                            <button v-if="groupModalMode !== 'review'" type="submit" class="btn btn-primary" :disabled="groupForm.saving || !selectedCount">
                                 <span v-if="groupForm.saving" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
-                                @{{ groupForm.id ? 'Save changes' : 'Create payroll' }} (@{{ selectedCount }})
+                                @{{ groupForm.id ? 'Save changes' : 'Create payroll (Pending review)' }} (@{{ selectedCount }})
+                            </button>
+                            <button v-if="groupModalMode === 'review'" type="button" class="btn btn-success" @click="finalizeGroupFromForm" :disabled="groupForm.saving || groupReviewFinalizing || !groupForm.id || !selectedCount">
+                                <span v-if="groupReviewFinalizing" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+                                <i v-else class="fa fa-check-double me-1"></i> Approve &amp; finalize group
                             </button>
                         </div>
                     </form>
@@ -266,91 +265,6 @@
             </div>
         </div>
 
-        {{-- Edit single payroll record modal --}}
-        <div class="modal fade" id="payroll-modal" tabindex="-1" aria-labelledby="payroll-modal-title" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title text-white" id="payroll-modal-title">Edit payroll record</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <form @submit.prevent="savePayroll">
-                        <div class="modal-body">
-                            <div v-if="formError" class="alert alert-danger" role="alert">@{{ formError }}</div>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">Employee</label>
-                                    <input type="text" class="form-control-plaintext" :value="form.employeeName" readonly>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Pay month</label>
-                                    <input type="text" class="form-control-plaintext" :value="form.payment_month" readonly>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label" for="payroll-basic">Basic salary (K)</label>
-                                    <input id="payroll-basic" type="number" step="0.01" min="0" class="form-control" v-model.number="form.basic_salary" required>
-                                    <div v-if="formErrors.basic_salary" class="text-danger fs-sm">@{{ formErrors.basic_salary[0] }}</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label" for="payroll-allowances">Allowances (K)</label>
-                                    <input id="payroll-allowances" type="number" step="0.01" min="0" class="form-control" v-model.number="form.allowances">
-                                    <div v-if="formErrors.allowances" class="text-danger fs-sm">@{{ formErrors.allowances[0] }}</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label" for="payroll-deductions">Deductions (K)</label>
-                                    <input id="payroll-deductions" type="number" step="0.01" min="0" class="form-control" v-model.number="form.deductions">
-                                    <div v-if="formErrors.deductions" class="text-danger fs-sm">@{{ formErrors.deductions[0] }}</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label" for="payroll-status">Status</label>
-                                    <select id="payroll-status" class="form-select" v-model="form.status" required>
-                                        <option value="Pending">Pending</option>
-                                        <option value="Final">Final</option>
-                                        <option value="Paid">Paid</option>
-                                    </select>
-                                    <div v-if="formErrors.status" class="text-danger fs-sm">@{{ formErrors.status[0] }}</div>
-                                </div>
-                                <div class="col-md-4" v-if="form.status === 'Paid'">
-                                    <label class="form-label" for="payroll-date">Payment date</label>
-                                    <input id="payroll-date" type="date" class="form-control" v-model="form.payment_date" required>
-                                    <div v-if="formErrors.payment_date" class="text-danger fs-sm">@{{ formErrors.payment_date[0] }}</div>
-                                </div>
-                            </div>
-                            <div class="bg-body-light rounded-3 p-3 mt-3">
-                                <div class="d-flex flex-wrap gap-4">
-                                    <div v-if="isInstructorSelected">
-                                        <span class="text-muted fs-sm d-block">Instructor bonus (auto-calculated)</span>
-                                        <span class="fw-semibold" v-if="bonusLoading"><span class="spinner-border spinner-border-sm" role="status"></span></span>
-                                        <span class="fw-semibold" v-else>K@{{ formatAmount(bonus.bonus) }} <small class="text-muted">(@{{ bonus.attendances }} attendances &times; K@{{ formatAmount(bonus.rate) }})</small></span>
-                                    </div>
-                                    <div>
-                                        <span class="text-muted fs-sm d-block">PAYE</span>
-                                        <span class="fw-semibold">K@{{ formatAmount(singlePaye) }}</span>
-                                        <small class="text-muted d-block">Calculated from employee PAYE setting</small>
-                                    </div>
-                                    <div>
-                                        <span class="text-muted fs-sm d-block">Pension (employee)</span>
-                                        <span class="fw-semibold">K@{{ formatAmount(singleEmployeePension) }}</span>
-                                        <small class="text-muted d-block">Calculated from employee pension setting</small>
-                                    </div>
-                                    <div>
-                                        <span class="text-muted fs-sm d-block">Net pay</span>
-                                        <span class="fw-semibold fs-5">K@{{ formatAmount(netPay) }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-primary" :disabled="saving">
-                                <span v-if="saving" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
-                                Save changes
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
         @endcan
         @endcan
 
@@ -359,9 +273,9 @@
         <div class="modal fade" id="payroll-group-modal" tabindex="-1" aria-labelledby="payroll-group-modal-title" aria-hidden="true">
             <div class="modal-dialog modal-xl modal-dialog-centered">
                 <div class="modal-content">
-                    <div class="modal-header">
+                    <div class="modal-header bg-primary">
                         <h5 class="modal-title text-white" id="payroll-group-modal-title">@{{ groupDetails?.group.name || 'Payroll group' }}</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body" style="max-height: calc(100vh - 230px); overflow-y: auto;">
                         <div v-if="groupDetailsError" class="alert alert-danger" role="alert">@{{ groupDetailsError }}</div>
@@ -458,15 +372,15 @@
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         @can('process payroll')
                         <a class="btn btn-success"
-                           :class="{ disabled: !groupDetails }"
-                           :href="groupDetails ? ('{{ url('hrm/payroll/groups') }}/' + groupDetails.group.id + '/export-standard-bank-csv') : '#'"
-                           @click="!groupDetails && $event.preventDefault()">
+                           :class="{ disabled: !groupDetails || (groupDetails.summary.pending || 0) > 0 }"
+                           :href="groupDetails && (groupDetails.summary.pending || 0) === 0 ? ('{{ url('hrm/payroll/groups') }}/' + groupDetails.group.id + '/export-standard-bank-csv') : '#'"
+                           @click="(!groupDetails || (groupDetails.summary.pending || 0) > 0) && $event.preventDefault()">
                             <i class="fa fa-file-csv me-1"></i> Export Standard Bank CSV
                         </a>
                         <a class="btn btn-outline-success"
-                           :class="{ disabled: !groupDetails }"
-                           :href="groupDetails ? ('{{ url('hrm/payroll/groups') }}/' + groupDetails.group.id + '/export-paye-csv') : '#'"
-                           @click="!groupDetails && $event.preventDefault()">
+                           :class="{ disabled: !groupDetails || (groupDetails.summary.pending || 0) > 0 }"
+                           :href="groupDetails && (groupDetails.summary.pending || 0) === 0 ? ('{{ url('hrm/payroll/groups') }}/' + groupDetails.group.id + '/export-paye-csv') : '#'"
+                           @click="(!groupDetails || (groupDetails.summary.pending || 0) > 0) && $event.preventDefault()">
                             <i class="fa fa-file-csv me-1"></i> Export PAYE CSV
                         </a>
                         @endcan
@@ -509,9 +423,6 @@
                 const groupForm = ref(emptyGroupForm());
 
                 const form = ref(emptyForm());
-                const formErrors = ref({});
-                const formError = ref('');
-                const saving = ref(false);
                 const bonus = ref({ attendances: 0, rate: 0, bonus: 0 });
                 const bonusLoading = ref(false);
                 let table = null;
@@ -530,15 +441,14 @@
 
                 @can('view payroll')
                 function emptyGroupForm() {
-                    return { id: null, payment_month: '', name: '', status: 'Pending', payment_date: '', saving: false, error: '' };
+                    return { id: null, payment_month: '', name: '', saving: false, error: '' };
                 }
 
                 function emptyForm() {
                     return {
-                        id: null, employee: '', employeeName: '', payment_month: '',
+                        id: null, employee: '', employeeName: '', employee_key: '', payment_month: '',
                         basic_salary: null, allowances: null, deductions: null, paye: 0, paye_applicable: false,
-                        employee_pension: 0, employer_pension: 0, pension_applicable: false,
-                        status: 'Pending', payment_date: ''
+                        employee_pension: 0, employer_pension: 0, pension_applicable: false
                     };
                 }
                 @endcan
@@ -633,22 +543,31 @@
                     }, 0);
                 };
 
+                let syncingGroupMonthPicker = false;
                 const syncGroupMonthPicker = () => {
                     const $picker = $('#group-month');
                     if (!$picker.length || !$.fn.datepicker) {
                         return;
                     }
                     const value = groupForm.value.payment_month || '';
-                    if (value) {
-                        const [year, monthNumber] = value.split('-').map(Number);
-                        if (year && monthNumber) {
-                            $picker.datepicker('update', new Date(year, monthNumber - 1, 1));
+                    if (($picker.val() || '') === value) {
+                        return;
+                    }
+                    syncingGroupMonthPicker = true;
+                    try {
+                        if (value) {
+                            const [year, monthNumber] = value.split('-').map(Number);
+                            if (year && monthNumber) {
+                                $picker.datepicker('update', new Date(year, monthNumber - 1, 1));
+                            } else {
+                                $picker.val(value);
+                            }
                         } else {
-                            $picker.val(value);
+                            $picker.datepicker('update', '');
+                            $picker.val('');
                         }
-                    } else {
-                        $picker.datepicker('update', '');
-                        $picker.val('');
+                    } finally {
+                        syncingGroupMonthPicker = false;
                     }
                 };
 
@@ -663,12 +582,14 @@
                         startView: 'months',
                         autoclose: true
                     }).on('changeDate clearDate', (event) => {
+                        if (syncingGroupMonthPicker) return;
                         const value = event.format ? event.format('yyyy-mm') : ($picker.val() || '');
                         if (groupForm.value.payment_month !== value) {
                             groupForm.value.payment_month = value;
                         }
                         loadBonusPreviews();
                     }).on('change', () => {
+                        if (syncingGroupMonthPicker) return;
                         const value = $picker.val() || '';
                         if (groupForm.value.payment_month !== value) {
                             groupForm.value.payment_month = value;
@@ -781,7 +702,11 @@
                     }
                 };
 
+                const groupModalMode = ref('add'); // add | edit | review
+                const groupReviewFinalizing = ref(false);
+
                 const openAddPayroll = () => {
+                    groupModalMode.value = 'add';
                     groupForm.value = emptyGroupForm();
                     bonuses.value = { rate: 0, attendances: {} };
                     employeeRows.value.forEach((row) => {
@@ -799,7 +724,7 @@
                 };
 
                 const saveGroup = async () => {
-                    if (groupForm.value.saving) return;
+                    if (groupForm.value.saving || groupReviewFinalizing.value) return;
                     if (!selectedCount.value) {
                         groupForm.value.error = 'Select at least one employee.';
                         return;
@@ -810,8 +735,6 @@
                         const payload = {
                             payment_month: groupForm.value.payment_month,
                             group_name: groupForm.value.name || null,
-                            status: groupForm.value.status,
-                            payment_date: groupForm.value.status === 'Paid' ? groupForm.value.payment_date : null,
                             employees: selectedRows.value.map((row) => ({
                                 employee: row.key,
                                 basic_salary: row.basic_salary || 0,
@@ -834,11 +757,116 @@
                     }
                 };
 
+                const loadGroupIntoAddModal = async (group, mode) => {
+                    groupModalMode.value = mode;
+                    groupForm.value = { ...emptyGroupForm(), id: group.id, name: group.name || '' };
+                    employeeRows.value = [];
+                    bonuses.value = { rate: 0, attendances: {} };
+                    groupReviewFinalizing.value = false;
+                    getModal('payroll-add-modal')?.show();
+                    setTimeout(() => {
+                        initGroupMonthPicker();
+                        syncGroupMonthPicker();
+                    }, 0);
+
+                    try {
+                        const { data } = await axios.get(@json(url('hrm/payroll/groups')) + '/' + group.id);
+                        groupForm.value.payment_month = data.group.payment_month;
+                        if (data.group.name) groupForm.value.name = data.group.name;
+                        syncGroupMonthPicker();
+
+                        await loadEmployees();
+                        if (groupForm.value.error) throw new Error(groupForm.value.error);
+
+                        data.records.forEach((record) => {
+                            let row = employeeRows.value.find((employee) => employee.key === record.employee_key);
+                            if (!row) {
+                                const [type, id] = record.employee_key.split(':');
+                                row = {
+                                    key: record.employee_key,
+                                    id,
+                                    type: type === 'instructor' ? 'Instructor' : 'Administrator',
+                                    name: record.employee,
+                                    selected: false,
+                                    default_salary: record.basic_salary,
+                                    basic_salary: record.basic_salary,
+                                    allowances: 0,
+                                    deductions: 0,
+                                    paye: Number(record.paye || 0) > 0,
+                                    pension_applicable: !!record.pension_applicable
+                                };
+                                employeeRows.value.push(row);
+                            }
+                            row.selected = true;
+                            row.basic_salary = record.basic_salary;
+                            row.allowances = record.allowances;
+                            row.deductions = record.deductions;
+                            row.paye = Number(record.paye || 0) > 0 || !!row.paye;
+                            row.pension_applicable = !!record.pension_applicable || !!row.pension_applicable;
+                        });
+
+                        await loadBonusPreviews();
+                    } catch (error) {
+                        const fallback = mode === 'review'
+                            ? 'Unable to load the payroll group for review.'
+                            : 'Unable to load the pending payroll group for editing.';
+                        groupForm.value.error = error.response?.data?.message || error.message || fallback;
+                    }
+                };
+
+                const finalizeGroupFromForm = async () => {
+                    if (!groupForm.value.id || groupReviewFinalizing.value || groupForm.value.saving || groupModalMode.value !== 'review') return;
+                    if (!selectedCount.value) {
+                        groupForm.value.error = 'Select at least one employee.';
+                        return;
+                    }
+                    groupReviewFinalizing.value = true;
+                    groupForm.value.error = '';
+                    try {
+                        const payload = {
+                            payment_month: groupForm.value.payment_month,
+                            group_name: groupForm.value.name || null,
+                            employees: selectedRows.value.map((row) => ({
+                                employee: row.key,
+                                basic_salary: row.basic_salary || 0,
+                                allowances: row.allowances || 0,
+                                deductions: row.deductions || 0
+                            }))
+                        };
+                        await axios.put(@json(url('hrm/payroll/groups')) + '/' + groupForm.value.id, payload);
+                        const { data } = await axios.post(
+                            @json(url('hrm/payroll/groups')) + '/' + groupForm.value.id + '/finalize'
+                        );
+                        getModal('payroll-add-modal')?.hide();
+                        toast(data.message);
+                        reloadGroups();
+                        reloadTable();
+                    } catch (error) {
+                        const message = error.response?.data?.message || 'Unable to save and finalize the payroll group. Please try again.';
+                        groupForm.value.error = message;
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Unable to approve and finalize group',
+                            text: message
+                        });
+                    } finally {
+                        groupReviewFinalizing.value = false;
+                    }
+                };
+
                 // ----- Groups tab -----
                 const reloadGroups = () => groupsTable?.ajax.reload(null, false);
                 const groupDetails = ref(null);
                 const groupDetailsLoading = ref(false);
                 const groupDetailsError = ref('');
+                const groupReviewMode = ref(false);
+                const groupFinalizeSaving = ref(false);
+
+                const canFinalizeLoadedGroup = computed(() => {
+                    if (!groupReviewMode.value || !groupDetails.value) return false;
+                    const summary = groupDetails.value.summary || {};
+                    return Number(summary.employees || 0) > 0 && Number(summary.pending || 0) === Number(summary.employees || 0);
+                });
 
                 const requestPaymentDate = async (title) => {
                     const today = new Date();
@@ -878,61 +906,35 @@
                     }
                 };
 
-                window.editPayrollGroup = async (element) => {
-                    const group = JSON.parse(element.dataset.group);
-                    groupForm.value = { ...emptyGroupForm(), id: group.id, name: group.name };
-                    employeeRows.value = [];
-                    bonuses.value = { rate: 0, attendances: {} };
-                    getModal('payroll-add-modal')?.show();
-                    setTimeout(() => {
-                        initGroupMonthPicker();
-                        syncGroupMonthPicker();
-                    }, 0);
-
+                const finalizeLoadedPayrollGroup = async () => {
+                    if (!groupDetails.value || groupFinalizeSaving.value) return;
+                    groupFinalizeSaving.value = true;
                     try {
-                        const { data } = await axios.get(@json(url('hrm/payroll/groups')) + '/' + group.id);
-                        groupForm.value.payment_month = data.group.payment_month;
-                        groupForm.value.status = data.records[0]?.status || 'Pending';
-                        syncGroupMonthPicker();
-
-                        await loadEmployees();
-                        if (groupForm.value.error) throw new Error(groupForm.value.error);
-
-                        data.records.forEach((record) => {
-                            let row = employeeRows.value.find((employee) => employee.key === record.employee_key);
-                            if (!row) {
-                                const [type, id] = record.employee_key.split(':');
-                                row = {
-                                    key: record.employee_key,
-                                    id,
-                                    type: type === 'instructor' ? 'Instructor' : 'Administrator',
-                                    name: record.employee,
-                                    selected: false,
-                                    default_salary: record.basic_salary,
-                                    basic_salary: record.basic_salary,
-                                    allowances: 0,
-                                    deductions: 0,
-                                    paye: Number(record.paye || 0) > 0,
-                                    pension_applicable: !!record.pension_applicable
-                                };
-                                employeeRows.value.push(row);
-                            }
-                            row.selected = true;
-                            row.basic_salary = record.basic_salary;
-                            row.allowances = record.allowances;
-                            row.deductions = record.deductions;
-                            row.paye = Number(record.paye || 0) > 0 || !!row.paye;
-                            row.pension_applicable = !!record.pension_applicable || !!row.pension_applicable;
-                        });
-
-                        await loadBonusPreviews();
+                        const { data } = await axios.post(
+                            @json(url('hrm/payroll/groups')) + '/' + groupDetails.value.group.id + '/finalize'
+                        );
+                        getModal('payroll-group-modal')?.hide();
+                        toast(data.message);
+                        reloadGroups();
+                        reloadTable();
                     } catch (error) {
-                        groupForm.value.error = error.response?.data?.message || 'Unable to load the pending payroll group for editing.';
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Unable to finalize group',
+                            text: error.response?.data?.message || 'Please try again.'
+                        });
+                    } finally {
+                        groupFinalizeSaving.value = false;
                     }
                 };
 
-                window.viewPayrollGroup = async (element) => {
+                window.editPayrollGroup = async (element) => {
                     const group = JSON.parse(element.dataset.group);
+                    await loadGroupIntoAddModal(group, 'edit');
+                };
+
+                const loadPayrollGroupDetails = async (group, reviewMode = false) => {
+                    groupReviewMode.value = !!reviewMode;
                     groupDetails.value = null;
                     groupDetailsError.value = '';
                     groupDetailsLoading.value = true;
@@ -945,6 +947,16 @@
                     } finally {
                         groupDetailsLoading.value = false;
                     }
+                };
+
+                window.viewPayrollGroup = async (element) => {
+                    const group = JSON.parse(element.dataset.group);
+                    await loadPayrollGroupDetails(group, false);
+                };
+
+                window.reviewPayrollGroup = async (element) => {
+                    const group = JSON.parse(element.dataset.group);
+                    await loadGroupIntoAddModal(group, 'review');
                 };
 
                 const filterByGroup = () => {
@@ -983,28 +995,6 @@
                     });
                 };
 
-                // ----- Edit single record -----
-                const isInstructorSelected = computed(() => (form.value.employee || '').startsWith('instructor:'));
-                const singlePaye = computed(() => {
-                    const basic = parseFloat(form.value.basic_salary) || 0;
-                    const allowances = parseFloat(form.value.allowances) || 0;
-                    const bonusAmount = parseFloat(bonus.value.bonus) || 0;
-                    const grossSalary = isInstructorSelected.value ? Math.max(basic, bonusAmount) : basic + bonusAmount;
-                    return computePaye(grossSalary + allowances, !!form.value.paye_applicable);
-                });
-                const singleEmployeePension = computed(() => {
-                    const basic = parseFloat(form.value.basic_salary) || 0;
-                    return computePension(basic, !!form.value.pension_applicable, false);
-                });
-
-                const netPay = computed(() => {
-                    const basic = parseFloat(form.value.basic_salary) || 0;
-                    const allowances = parseFloat(form.value.allowances) || 0;
-                    const deductions = parseFloat(form.value.deductions) || 0;
-                    const bonusAmount = parseFloat(bonus.value.bonus) || 0;
-                    const grossSalary = isInstructorSelected.value ? Math.max(basic, bonusAmount) : basic + bonusAmount;
-                    return Math.round((grossSalary + allowances - deductions - singlePaye.value - singleEmployeePension.value) * 100) / 100;
-                });
 
                 window.payPayroll = async (element) => {
                     const payroll = JSON.parse(element.dataset.payroll);
@@ -1028,93 +1018,7 @@
                     }
                 };
 
-                const loadBonusPreview = async () => {
-                    bonus.value = { attendances: 0, rate: 0, bonus: 0 };
-                    if (!isInstructorSelected.value || !form.value.payment_month) return;
-                    bonusLoading.value = true;
-                    try {
-                        const { data } = await axios.get(@json(route('payroll.bonus-preview')), {
-                            params: { employee: form.value.employee, payment_month: form.value.payment_month }
-                        });
-                        bonus.value = data;
-                    } catch (error) {
-                        // Bonus is recomputed server-side on save; the preview is best-effort.
-                    } finally {
-                        bonusLoading.value = false;
-                    }
-                };
 
-                window.openEditPayroll = async (element) => {
-                    const data = JSON.parse(element.dataset.payroll);
-                    await loadEmployees();
-                    const employeeRow = employeeRows.value.find((employee) => employee.key === data.employee_key);
-                    form.value = {
-                        id: data.id,
-                        employee: data.employee_key,
-                        employeeName: data.employee,
-                        payment_month: data.payment_month,
-                        basic_salary: data.basic_salary,
-                        allowances: data.allowances,
-                        deductions: data.deductions,
-                        paye: data.paye || 0,
-                        paye_applicable: employeeRow ? !!employeeRow.paye : Number(data.paye || 0) > 0,
-                        employee_pension: data.employee_pension || 0,
-                        employer_pension: data.employer_pension || 0,
-                        pension_applicable: employeeRow ? !!employeeRow.pension_applicable : Number(data.employee_pension || 0) > 0,
-                        status: data.status,
-                        payment_date: data.payment_date || ''
-                    };
-                    formErrors.value = {};
-                    formError.value = '';
-                    loadBonusPreview();
-                    getModal('payroll-modal')?.show();
-                };
-
-                window.openDeletePayroll = (id) => {
-                    Swal.fire({
-                        title: 'Delete payroll record?',
-                        text: 'This payroll record will be removed.',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#d33',
-                        confirmButtonText: 'Delete'
-                    }).then(async (result) => {
-                        if (!result.isConfirmed) return;
-                        try {
-                            const { data } = await axios.delete(@json(url('hrm/payroll')) + '/' + id);
-                            toast(data.message);
-                            reloadTable();
-                            reloadGroups();
-                        } catch (error) {
-                            Swal.fire({ icon: 'error', title: 'Unable to delete', text: error.response?.data?.message || 'Please try again.' });
-                        }
-                    });
-                };
-
-                const savePayroll = async () => {
-                    if (saving.value) return;
-                    saving.value = true;
-                    formErrors.value = {};
-                    formError.value = '';
-                    try {
-                        const response = await axios.put(@json(url('hrm/payroll')) + '/' + form.value.id, {
-                            basic_salary: form.value.basic_salary,
-                            allowances: form.value.allowances || 0,
-                            deductions: form.value.deductions || 0,
-                            status: form.value.status,
-                            payment_date: form.value.status === 'Paid' ? form.value.payment_date : null
-                        });
-                        getModal('payroll-modal')?.hide();
-                        toast(response.data.message);
-                        reloadTable();
-                        reloadGroups();
-                    } catch (error) {
-                        formErrors.value = error.response?.data?.errors ?? {};
-                        formError.value = error.response?.data?.message || 'Unable to save the payroll record. Please try again.';
-                    } finally {
-                        saving.value = false;
-                    }
-                };
 
                 const loadPayrollSummary = async () => {
                     payrollSummaryLoading.value = true;
@@ -1245,9 +1149,9 @@
                     loadBonusPreviews, openAddPayroll, saveGroup,
                     reloadGroups, clearGroupFilter,
                     groupDetails, groupDetailsLoading, groupDetailsError, filterByGroup,
-                    form, formErrors, formError, saving, bonus, bonusLoading,
-                    isInstructorSelected, singlePaye, singleEmployeePension, netPay, formatAmount, formatMonth,
-                    loadBonusPreview, savePayroll, reloadTable, clearMonthFilter,
+                    groupModalMode, groupReviewFinalizing, finalizeGroupFromForm,
+                    formatAmount, formatMonth,
+                    reloadTable, clearMonthFilter,
                     @endcan
                 };
             }

@@ -5,6 +5,17 @@
     $contractSigned = (bool) ($employee->contract_signed ?? $employee->terms_signed ?? $employee->employment_contract_signed ?? false);
     $contractSignedAt = $employee->contract_signed_at ?? $employee->terms_signed_at ?? null;
     $contractSignedAt = $contractSignedAt ? \Illuminate\Support\Carbon::parse($contractSignedAt)->format('d-m-Y') : null;
+
+    $authUser = auth()->user();
+    $ownsStaffProfile = $authUser
+        && (($employee instanceof \App\Models\Instructor && $authUser->instructor_id && (string) $authUser->instructor_id === (string) $employee->id)
+            || ($employee instanceof \App\Models\Administrator && $authUser->administrator_id && (string) $authUser->administrator_id === (string) $employee->id));
+    $canManagePayroll = $authUser && ($authUser->can('process payroll') || $authUser->can('view payroll'));
+    $canViewPayrollHistory = $canManagePayroll || $ownsStaffProfile;
+    $canDownloadPayslip = $canManagePayroll || $ownsStaffProfile;
+    $visiblePayrolls = $employee->relationLoaded('payrolls')
+        ? $employee->payrolls->filter(fn ($payroll) => $canManagePayroll || $ownsStaffProfile && in_array(strtolower((string) $payroll->status), ['final', 'paid'], true))
+        : collect();
 @endphp
 <div class="row g-3">
     <div class="col-lg-6">
@@ -37,9 +48,9 @@
         <div class="modal fade" id="{{ $contractModalId }}" tabindex="-1" aria-labelledby="{{ $contractModalId }}-label" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="{{ $contractModalId }}-label">Employment contract</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <div class="modal-header bg-primary">
+                        <h5 class="modal-title text-white" id="{{ $contractModalId }}-label">Employment contract</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <h6 class="fw-semibold mb-2">Contract details</h6>
@@ -152,25 +163,43 @@
     <div class="col-lg-6">
         <div class="card border-0 shadow-sm rounded-3 h-100">
             <div class="card-body p-3">
-                <h2 class="fs-6 fw-semibold mb-3">Organization</h2>
+                <h2 class="fs-6 fw-semibold mb-3">Organization & banking</h2>
                 <dl class="row g-2 mb-0">
                     <dt class="col-sm-5 text-muted fw-normal">HR department</dt>
                     <dd class="col-sm-7 mb-1">{{ $employee->hrDepartment?->name ?? 'Not assigned' }}</dd>
 
                     <dt class="col-sm-5 text-muted fw-normal">Designation</dt>
-                    <dd class="col-sm-7 mb-0">{{ $employee->designation?->name ?? 'Not assigned' }}</dd>
+                    <dd class="col-sm-7 mb-1">{{ $employee->designation?->name ?? 'Not assigned' }}</dd>
+
+                    <dt class="col-sm-5 text-muted fw-normal">Salary grade</dt>
+                    <dd class="col-sm-7 mb-1">{{ $employee->salaryGrade?->name ?? $employee->salaryGrade?->code ?? 'Not assigned' }}</dd>
+
+                    <dt class="col-sm-5 text-muted fw-normal">Bank</dt>
+                    <dd class="col-sm-7 mb-1">{{ $employee->bank_name ?: 'Not set' }}</dd>
+
+                    <dt class="col-sm-5 text-muted fw-normal">Bank branch</dt>
+                    <dd class="col-sm-7 mb-1">{{ $employee->bank_branch ?: 'Not set' }}</dd>
+
+                    <dt class="col-sm-5 text-muted fw-normal">Account name</dt>
+                    <dd class="col-sm-7 mb-1">{{ $employee->bank_account_name ?: 'Not set' }}</dd>
+
+                    <dt class="col-sm-5 text-muted fw-normal">Account number</dt>
+                    <dd class="col-sm-7 mb-1">{{ $employee->bank_account_number ?: 'Not set' }}</dd>
+
+                    <dt class="col-sm-5 text-muted fw-normal">Account type</dt>
+                    <dd class="col-sm-7 mb-0">{{ $employee->bank_account_type ?: 'Not set' }}</dd>
                 </dl>
             </div>
         </div>
     </div>
 
-    @can('process payroll')
+    @if ($canViewPayrollHistory)
         <div class="col-12">
             <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
-                <div class="card-header bg-body-light border-bottom p-3">
+                <div class="card-header bg-body-light border-bottom p-3 d-flex justify-content-between align-items-center gap-2">
                     <h2 class="fs-6 fw-semibold mb-0">Payroll history</h2>
                 </div>
-                @if ($employee->payrolls->isEmpty())
+                @if ($visiblePayrolls->isEmpty())
                     <div class="card-body text-muted">No payroll records found.</div>
                 @else
                     <div class="table-responsive">
@@ -181,23 +210,32 @@
                                     <th class="text-end">Basic salary</th>
                                     <th class="text-end">Allowances</th>
                                     <th class="text-end">Bonus</th>
+                                    <th class="text-end">Gross</th>
                                     <th class="text-end">Deductions</th>
                                     <th class="text-end">Net pay</th>
                                     <th>Status</th>
                                     <th>Payment date</th>
+                                    @if ($canDownloadPayslip)
+                                        <th class="text-end">Payslip</th>
+                                    @endif
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($employee->payrolls as $payroll)
+                                @foreach ($visiblePayrolls as $payroll)
+                                    @php
+                                        $gross = (float) ($payroll->basic_salary ?? 0) + (float) ($payroll->allowances ?? 0) + (float) ($payroll->bonus ?? 0);
+                                        $totalDeductions = (float) ($payroll->deductions ?? 0) + (float) ($payroll->paye ?? 0) + (float) ($payroll->employee_pension ?? 0);
+                                    @endphp
                                     <tr>
                                         <td>{{ $payroll->payment_month }}</td>
                                         <td class="text-end">K{{ number_format((float) $payroll->basic_salary, 2) }}</td>
                                         <td class="text-end">K{{ number_format((float) $payroll->allowances, 2) }}</td>
                                         <td class="text-end">K{{ number_format((float) $payroll->bonus, 2) }}</td>
-                                        <td class="text-end">K{{ number_format((float) $payroll->deductions, 2) }}</td>
+                                        <td class="text-end">K{{ number_format($gross, 2) }}</td>
+                                        <td class="text-end">K{{ number_format($totalDeductions, 2) }}</td>
                                         <td class="text-end fw-semibold">K{{ number_format((float) $payroll->net_pay, 2) }}</td>
                                         <td>
-                                            <span class="badge bg-{{ match (strtolower($payroll->status)) {
+                                            <span class="badge bg-{{ match (strtolower((string) $payroll->status)) {
                                                 'paid' => 'success',
                                                 'final' => 'primary',
                                                 default => 'warning',
@@ -206,6 +244,13 @@
                                             </span>
                                         </td>
                                         <td>{{ $payroll->payment_date?->format('d-m-Y') ?? 'Not paid' }}</td>
+                                        @if ($canDownloadPayslip)
+                                            <td class="text-end">
+                                                <a class="btn btn-sm btn-alt-primary" href="{{ route('payroll.payslip', $payroll->id) }}" title="Download payslip">
+                                                    <i class="fa fa-download"></i>
+                                                </a>
+                                            </td>
+                                        @endif
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -214,5 +259,5 @@
                 @endif
             </div>
         </div>
-    @endcan
+    @endif
 </div>

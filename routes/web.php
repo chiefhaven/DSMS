@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\LeaveRequestController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\CourseController;
@@ -20,7 +21,6 @@ use App\Http\Controllers\LessonController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ExpensePaymentController;
 use App\Http\Controllers\havenUtils;
-use App\Http\Controllers\InstructorPaymentController;
 use App\Http\Controllers\knowledgeController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\RoleDispatcherController;
@@ -46,6 +46,9 @@ Route::post('/', [HomeController::class,'index'])->middleware(['auth', 'can:view
 Route::get('/summaryData', [HomeController::class,'summaryData'])->middleware(['auth', 'permission:access management'])->name('summaryData');
 Route::get('/instructorSummaryData', [HomeController::class,'instructorSummaryData'])->middleware(['auth'])->name('instructorSummaryData');
 Route::get('/', [HomeController::class,'index'])->middleware(['auth', 'can:view-dashboard'])->name('dashboard.home');
+Route::get('/my-hrm', [InstructorController::class, 'myHrm'])->middleware('auth')->name('instructor.my-hrm');
+Route::post('/my-hrm/leave-requests', [LeaveRequestController::class, 'store'])->middleware('auth')->name('instructor.leave-requests.store');
+Route::post('/my-hrm/leave-requests/{leaveRequest}/cancel', [LeaveRequestController::class, 'cancel'])->middleware('auth')->name('instructor.leave-requests.cancel');
 
 Auth::routes();
 
@@ -185,13 +188,6 @@ Route::middleware('auth')->group(function () {
 // Routes without auth middleware
 Route::get('/viewinstructor/{instructor}', [InstructorController::class, 'show'])->name('viewinstructor');
 Route::get('/instructor-search', [InstructorController::class, 'instructorSearch'])->name('instructorSearch');
-
-Route::get('/instructor-payments', [InstructorPaymentController::class, 'index'])->middleware('auth')->name('instructor-payments');
-Route::get('/fetchPayments', [InstructorPaymentController::class, 'fetchPayments'])->middleware('auth')->name('fetchPayments');
-Route::get('/instructors/payment/{payment}', [InstructorPaymentController::class, 'show'])->name('viewpayment');
-Route::get('/instructors/payment/edit/{payment}', [InstructorPaymentController::class, 'edit'])->middleware('auth')->name('editpayment');
-Route::post('/instructors/payment/update/{payment}', [InstructorPaymentController::class, 'update'])->middleware('auth')->name('updatepayment');
-Route::delete('/instructors/payment/{payment}', [InstructorPaymentController::class, 'destroy'])->middleware('auth')->name('deletepayment');
 
 Route::get('/instructor-data/{instructor}', [InstructorController::class, 'instructorData'])->middleware('auth')->name('instructor-students');
 

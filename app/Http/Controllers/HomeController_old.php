@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Attendance;
 use App\Models\Instructor;
-use App\Models\InstructorPayment;
 use App\Models\Invoice;
 use App\Models\Setting;
 use App\Models\Student;
@@ -35,13 +34,7 @@ class HomeController extends Controller
         if (Auth::user()->hasRole('instructor')) {
             $instructorId = Auth::user()->instructor_id;
 
-            $lastPayment = InstructorPayment::where('instructor_id', $instructorId)
-                ->latest('payment_date')
-                ->first();
-
-            $startDate = $lastPayment
-                ? Carbon::parse($lastPayment->payment_date)
-                : Carbon::now()->startOfMonth();
+            $startDate = Carbon::now()->startOfMonth();
 
             $attendanceCount        = Attendance::where('instructor_id', $instructorId)
                 ->whereBetween('created_at', [$startDate, Carbon::now()])
@@ -63,18 +56,15 @@ class HomeController extends Controller
         $activities = Activity::orderByDesc('created_at')->paginate(25);
 
         $instructors = Instructor::where('status', 'active')
-            ->with(['attendances', 'payments' => function ($q) {
-                $q->latest('payment_date');
-            }])
+            ->with('attendances')
             ->get();
 
-            $instructors->each(function ($instructor) {
-                $lastPayment = $instructor->payments->first(); // latest payment
-                $startDate = $lastPayment ? Carbon::parse($lastPayment->payment_date) : $instructor->created_at;
+        $startDate = Carbon::now()->startOfMonth();
 
-                $instructor->attendances = $instructor->attendances()
-                    ->whereBetween('created_at', [$startDate, Carbon::now()])
-                    ->get();
+        $instructors->each(function ($instructor) use ($startDate) {
+            $instructor->attendances = $instructor->attendances()
+                ->whereBetween('created_at', [$startDate, Carbon::now()])
+                ->get();
         });
 
         return view('dashboard')
