@@ -144,7 +144,7 @@
         </div>
 
         @can('view payroll')
-        @can('process payroll')
+        @canany(['process payroll', 'review payroll'])
         {{-- Add payroll (group / multi-employee) modal --}}
         <div class="modal fade" id="payroll-add-modal" tabindex="-1" aria-labelledby="payroll-add-modal-title" aria-hidden="true">
             <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
@@ -251,21 +251,29 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@{{ groupModalMode === 'review' ? 'Close' : 'Cancel' }}</button>
-                            <button v-if="groupModalMode !== 'review'" type="submit" class="btn btn-primary" :disabled="groupForm.saving || !selectedCount">
+                            @can('process payroll')
+                            <button v-if="groupModalMode !== 'review' && !groupForm.id" type="submit" class="btn btn-primary" :disabled="groupForm.saving || !selectedCount">
                                 <span v-if="groupForm.saving" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
-                                @{{ groupForm.id ? 'Save changes' : 'Create payroll (Pending review)' }} (@{{ selectedCount }})
+                                Create payroll (Pending review) (@{{ selectedCount }})
+                            </button>
+                            @endcan
+                            @canany(['process payroll', 'review payroll'])
+                            <button v-if="groupModalMode !== 'review' && groupForm.id" type="submit" class="btn btn-primary" :disabled="groupForm.saving || !selectedCount">
+                                <span v-if="groupForm.saving" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+                                Save changes (@{{ selectedCount }})
                             </button>
                             <button v-if="groupModalMode === 'review'" type="button" class="btn btn-success" @click="finalizeGroupFromForm" :disabled="groupForm.saving || groupReviewFinalizing || !groupForm.id || !selectedCount">
                                 <span v-if="groupReviewFinalizing" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
                                 <i v-else class="fa fa-check-double me-1"></i> Approve &amp; finalize group
                             </button>
+                            @endcanany
                         </div>
                     </form>
                 </div>
             </div>
         </div>
 
-        @endcan
+        @endcanany
         @endcan
 
         {{-- Payroll group details modal --}}

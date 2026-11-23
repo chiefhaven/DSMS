@@ -4,7 +4,9 @@
         <div class="d-flex align-items-center">
             <h1 class="fs-4 fw-semibold mb-0 me-4 flex-shrink-0"><i class="fa fa-users me-2"></i>HRM</h1>
             <ul class="nav nav-pills flex-wrap align-items-center mb-0 fs-sm" aria-label="HRM sections">
+                @canany(['view leaves', 'manage leave types', 'review leave requests', 'process payroll', 'edit instructors', 'manage administrator accounts'])
                 <li class="nav-item"><a class="nav-link {{ $hrmActive === 'leaves' ? 'active' : '' }}" href="{{ route('leaves.index') }}">Leaves</a></li>
+                @endcanany
                 <li class="nav-item"><a class="nav-link text-muted" href="#" aria-disabled="true" title="Coming soon">Attendance</a></li>
                 @canany(['view payroll', 'view salary grades'])
                 <li class="nav-item"><a class="nav-link {{ $hrmActive === 'payroll' ? 'active' : '' }}" href="{{ route('payroll.index') }}">Payroll</a></li>

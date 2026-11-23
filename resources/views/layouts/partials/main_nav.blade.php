@@ -237,7 +237,7 @@
         @endcanany
 
         {{-- HRM --}}
-        @if (auth()->user()->canAny(['view payroll', 'view hr departments', 'view designations']))
+        @if (auth()->user()->canAny(['view payroll', 'view hr departments', 'view designations', 'view leaves', 'manage leave types', 'review leave requests']))
             <li class="nav-main-item {{ $isHrmMenuActive ? 'open' : '' }}">
                 <a class="nav-main-link nav-main-link-submenu {{ $isHrmMenuActive ? 'active' : '' }}" data-toggle="submenu" aria-haspopup="true" aria-expanded="{{ $isHrmMenuActive ? 'true' : 'false' }}" href="#">
                     <i class="nav-main-link-icon fa fa-user-tie"></i>
@@ -247,6 +247,9 @@
                     @can('view payroll')
                     <li class="nav-main-item"><a class="nav-main-link {{ $isPayrollActive ? 'active' : '' }}" href="{{ route('payroll.index') }}"><span class="nav-main-link-name">HR/Payroll</span></a></li>
                     @endcan
+                    @canany(['view leaves', 'manage leave types', 'review leave requests', 'process payroll', 'edit instructors', 'manage administrator accounts'])
+                    <li class="nav-main-item"><a class="nav-main-link {{ request()->routeIs('leaves.*') ? 'active' : '' }}" href="{{ route('leaves.index') }}"><span class="nav-main-link-name">Leaves</span></a></li>
+                    @endcanany
                     @can('view hr departments')
                     <li class="nav-main-item"><a class="nav-main-link {{ $isHrDepartmentsActive ? 'active' : '' }}" href="{{ route('hr-departments.index') }}"><span class="nav-main-link-name">Departments</span></a></li>
                     @endcan

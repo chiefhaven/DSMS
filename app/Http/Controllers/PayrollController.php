@@ -30,17 +30,21 @@ class PayrollController extends Controller
         $this->middleware('auth');
         $this->middleware('permission:view payroll')->only(['fetch', 'employees', 'bonusPreview', 'bonusPreviews', 'groups', 'showGroup']);
         $this->middleware('permission:view payroll|view salary grades')->only('index');
+        $this->middleware('permission:process payroll|review payroll')->only([
+            'updateGroup', 'finalize', 'finalizeGroup',
+        ]);
         $this->middleware('permission:process payroll')->only([
-            'store', 'update', 'updateGroup', 'destroy', 'destroyGroup', 'emailPayslip',
+            'store', 'update', 'destroy', 'destroyGroup', 'emailPayslip',
             'payeSettings', 'updatePayeSettings', 'pensionSettings', 'updatePensionSettings',
-            'finalize', 'finalizeGroup',
             'exportStandardBankCsv', 'exportPayeCsv',
         ]);
     }
 
     private function canReviewPayroll(User $user): bool
     {
-        return $user->hasAnyRole(['superAdmin', 'Super-Admin', 'admin']) || $user->can('process payroll');
+        return $user->hasAnyRole(['superAdmin', 'Super-Admin', 'admin'])
+            || $user->can('review payroll')
+            || $user->can('process payroll');
     }
 
     private function canPayPayroll(User $user): bool
@@ -64,7 +68,7 @@ class PayrollController extends Controller
             $group->loadCount('payrolls');
             $reviewers = User::query()
                 ->where(function ($query) {
-                    $query->permission('process payroll')
+                    $query->permission(['process payroll', 'review payroll'])
                         ->orWhereHas('roles', fn ($roles) => $roles->whereIn('name', ['superAdmin', 'Super-Admin', 'admin']));
                 })
                 ->get()
@@ -76,6 +80,77 @@ class PayrollController extends Controller
         } catch (\Throwable $exception) {
             Log::warning('Payroll review notification failed.', [
                 'payroll_group_id' => $group->id,
+                'error' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    private function payrollPayerUsers()
+    {
+        return User::query()
+            ->where(function ($query) {
+                $query->permission('manage finance')
+                    ->orWhereHas('roles', fn ($roles) => $roles->whereIn('name', ['superAdmin', 'Super-Admin', 'financeAdmin']));
+            })
+            ->get()
+            ->unique('id');
+    }
+
+    private function payrollEmployeeUsers(iterable $payrolls)
+    {
+        $instructorIds = collect($payrolls)->pluck('instructor_id')->filter()->unique()->values();
+        $administratorIds = collect($payrolls)->pluck('administrator_id')->filter()->unique()->values();
+
+        if ($instructorIds->isEmpty() && $administratorIds->isEmpty()) {
+            return collect();
+        }
+
+        return User::query()
+            ->where(function ($query) use ($instructorIds, $administratorIds) {
+                if ($instructorIds->isNotEmpty()) {
+                    $query->whereIn('instructor_id', $instructorIds);
+                }
+                if ($administratorIds->isNotEmpty()) {
+                    $method = $instructorIds->isNotEmpty() ? 'orWhereIn' : 'whereIn';
+                    $query->{$method}('administrator_id', $administratorIds);
+                }
+            })
+            ->get()
+            ->unique('id');
+    }
+
+    private function notifyPayrollApproved(?PayrollGroup $group = null, ?Payroll $payroll = null): void
+    {
+        try {
+            $payrolls = $group
+                ? $group->payrolls()->get()
+                : collect($payroll ? [$payroll] : []);
+
+            if ($payrolls->isEmpty()) {
+                return;
+            }
+
+            if ($group) {
+                $group->loadCount('payrolls');
+                $group->loadSum('payrolls', 'net_pay');
+            } else {
+                $payroll?->loadMissing(['instructor', 'administrator']);
+            }
+
+            $employeeUsers = $this->payrollEmployeeUsers($payrolls);
+            $payerUsers = $this->payrollPayerUsers();
+
+            foreach ($employeeUsers as $employeeUser) {
+                $employeeUser->notify(new PayrollApprovedEmployeeNotification($group, $group ? null : $payroll));
+            }
+
+            foreach ($payerUsers as $payerUser) {
+                $payerUser->notify(new PayrollReadyForPaymentNotification($group, $group ? null : $payroll));
+            }
+        } catch (\Throwable $exception) {
+            Log::warning('Payroll approval notification failed.', [
+                'payroll_group_id' => $group?->id,
+                'payroll_id' => $payroll?->id,
                 'error' => $exception->getMessage(),
             ]);
         }
@@ -518,7 +593,7 @@ class PayrollController extends Controller
                 $isFinal = (int) $group->payrolls_count > 0
                     && (int) $group->final_count === (int) $group->payrolls_count;
 
-                $edit = $canProcess && $isPending
+                $edit = ($canProcess || $canReview) && $isPending
                     ? '<a class="dropdown-item btn" data-group=\'' . $payload . '\' onclick="editPayrollGroup(this)"><i class="fa fa-edit me-3"></i> Edit group</a>'
                     : '';
                 $review = $canReview && $isPending
@@ -1040,6 +1115,8 @@ class PayrollController extends Controller
             'payment_date' => null,
         ]);
 
+        $this->notifyPayrollApproved(null, $payroll->fresh());
+
         return response()->json(['message' => 'Payroll record approved and finalized successfully.']);
     }
 
@@ -1063,6 +1140,8 @@ class PayrollController extends Controller
                 ]);
             }
         });
+
+        $this->notifyPayrollApproved($payroll_group->fresh(['payrolls']), null);
 
         return response()->json([
             'message' => 'Payroll group approved and finalized with ' . $payrolls->count() . ' record' . ($payrolls->count() === 1 ? '' : 's') . '.',

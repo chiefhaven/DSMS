@@ -120,6 +120,13 @@ class AccessPermissionsSeeder extends Seeder
         'send announcements' => ['superAdmin'],
         'view notification templates' => ['superAdmin', 'admin'],
         'edit notification templates' => ['superAdmin', 'admin'],
+        'view payroll' => ['superAdmin', 'admin', 'financeAdmin'],
+        'process payroll' => ['superAdmin', 'admin', 'financeAdmin'],
+        'review payroll' => ['superAdmin', 'admin'],
+        'access payslip' => ['superAdmin', 'admin', 'financeAdmin', 'instructor'],
+        'view leaves' => ['superAdmin', 'admin'],
+        'manage leave types' => ['superAdmin', 'admin'],
+        'review leave requests' => ['superAdmin', 'admin'],
     ];
 
     public function run(): void

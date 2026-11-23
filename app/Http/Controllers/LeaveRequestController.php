@@ -4,8 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
+use App\Models\User;
+use App\Notifications\LeaveRequestReviewedNotification;
+use App\Notifications\LeaveRequestSubmittedNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
 class LeaveRequestController extends Controller
@@ -17,7 +21,7 @@ class LeaveRequestController extends Controller
 
     public function index()
     {
-        $this->authorizeReview();
+        $this->authorizeLeaveManagement('view');
 
         $leaveTypes = collect();
         $leaveRequests = collect();
@@ -66,7 +70,9 @@ class LeaveRequestController extends Controller
             $payload['administrator_id'] = $user->administrator_id;
         }
 
-        LeaveRequest::create($payload);
+        $leaveRequest = LeaveRequest::create($payload);
+        $leaveRequest->load(['instructor', 'administrator', 'leaveType']);
+        $this->notifyLeaveRequestSubmitted($leaveRequest);
 
         return redirect()->route('instructor.my-hrm')
             ->with('success', 'Leave request submitted successfully.')
@@ -75,7 +81,7 @@ class LeaveRequestController extends Controller
 
     public function storeType(Request $request)
     {
-        $this->authorizeReview();
+        $this->authorizeLeaveManagement('types');
         abort_unless($this->leaveTablesReady(), 503, 'Leave management is not available yet. Please run migrations.');
 
         $validated = $request->validate([
@@ -95,7 +101,7 @@ class LeaveRequestController extends Controller
 
     public function updateType(Request $request, LeaveType $leaveType)
     {
-        $this->authorizeReview();
+        $this->authorizeLeaveManagement('types');
         abort_unless($this->leaveTablesReady(), 503, 'Leave management is not available yet. Please run migrations.');
 
         $validated = $request->validate([
@@ -115,7 +121,7 @@ class LeaveRequestController extends Controller
 
     public function destroyType(LeaveType $leaveType)
     {
-        $this->authorizeReview();
+        $this->authorizeLeaveManagement('types');
         abort_unless($this->leaveTablesReady(), 503, 'Leave management is not available yet. Please run migrations.');
 
         $leaveType->delete();
@@ -125,7 +131,7 @@ class LeaveRequestController extends Controller
 
     public function review(Request $request, LeaveRequest $leaveRequest)
     {
-        $this->authorizeReview();
+        $this->authorizeLeaveManagement('review');
         abort_unless($this->leaveTablesReady(), 503, 'Leave management is not available yet. Please run migrations.');
 
         $validated = $request->validate([
@@ -139,6 +145,9 @@ class LeaveRequestController extends Controller
             'reviewed_at' => now(),
             'review_notes' => $validated['review_notes'] ?? null,
         ]);
+
+        $leaveRequest->load(['instructor', 'administrator', 'leaveType']);
+        $this->notifyLeaveRequestReviewed($leaveRequest);
 
         return redirect()->route('leaves.index')->with('success', 'Leave request ' . $validated['status'] . ' successfully.');
     }
@@ -158,18 +167,83 @@ class LeaveRequestController extends Controller
             ->with('hrm_active_tab', 'leave');
     }
 
-    private function authorizeReview(): void
+    private function authorizeLeaveManagement(string $ability = 'view'): void
     {
         $user = auth()->user();
-        $allowed = $user && (
-            $user->hasRole('superAdmin')
+        abort_unless($user, 403);
+
+        $legacy = $user->hasRole('superAdmin')
             || $user->hasRole('administrator')
             || $user->administrator_id
             || $user->can('process payroll')
             || $user->can('edit instructors')
-            || $user->can('manage administrator accounts')
-        );
-        abort_unless($allowed, 403, 'You are not authorized to review leave requests.');
+            || $user->can('manage administrator accounts');
+
+        $allowed = match ($ability) {
+            'types' => $user->can('manage leave types') || $legacy,
+            'review' => $user->can('review leave requests') || $legacy,
+            default => $user->can('view leaves') || $user->can('manage leave types') || $user->can('review leave requests') || $legacy,
+        };
+
+        abort_unless($allowed, 403, 'You are not authorized to manage leave requests.');
+    }
+
+    private function leaveReviewerUsers()
+    {
+        return User::query()
+            ->where(function ($query) {
+                $query->permission(['view leaves', 'manage leave types', 'review leave requests'])
+                    ->orWhereHas('roles', fn ($roles) => $roles->whereIn('name', ['superAdmin', 'administrator']))
+                    ->orWhereNotNull('administrator_id')
+                    ->orWhere(fn ($legacy) => $legacy->permission(['process payroll', 'edit instructors', 'manage administrator accounts']));
+            })
+            ->get()
+            ->unique('id');
+    }
+
+    private function leaveRequestEmployeeUser(LeaveRequest $leaveRequest): ?User
+    {
+        if ($leaveRequest->instructor_id) {
+            return User::where('instructor_id', $leaveRequest->instructor_id)->first();
+        }
+
+        if ($leaveRequest->administrator_id) {
+            return User::where('administrator_id', $leaveRequest->administrator_id)->first();
+        }
+
+        return null;
+    }
+
+    private function notifyLeaveRequestSubmitted(LeaveRequest $leaveRequest): void
+    {
+        try {
+            $requesterId = auth()->id();
+            $reviewers = $this->leaveReviewerUsers()->filter(fn ($user) => (string) $user->id !== (string) $requesterId);
+
+            foreach ($reviewers as $reviewer) {
+                $reviewer->notify(new LeaveRequestSubmittedNotification($leaveRequest));
+            }
+        } catch (\Throwable $exception) {
+            Log::warning('Leave request submission notification failed.', [
+                'leave_request_id' => $leaveRequest->id,
+                'error' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    private function notifyLeaveRequestReviewed(LeaveRequest $leaveRequest): void
+    {
+        try {
+            $employeeUser = $this->leaveRequestEmployeeUser($leaveRequest);
+            if ($employeeUser) {
+                $employeeUser->notify(new LeaveRequestReviewedNotification($leaveRequest));
+            }
+        } catch (\Throwable $exception) {
+            Log::warning('Leave request review notification failed.', [
+                'leave_request_id' => $leaveRequest->id,
+                'error' => $exception->getMessage(),
+            ]);
+        }
     }
 
     private function leaveTablesReady(): bool
