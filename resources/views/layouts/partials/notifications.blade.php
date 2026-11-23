@@ -36,10 +36,13 @@
                 <h6 class="mb-0 fw-semibold">Notifications</h6>
             </div>
             @if($unreadNotificationsCount > 0)
-                <form action="{{ route('notifications.markAllRead', [], false) }}" method="POST">
+                <form action="{{ route('notifications.markAllRead', [], false) }}" method="POST" class="mb-0">
                     @csrf
                     @method('PATCH')
-                    <button type="submit" class="notification-mark-all">Mark all read</button>
+                    <button type="submit" class="notification-mark-all" title="Mark all notifications as read">
+                        <i class="fa fa-check-double" aria-hidden="true"></i>
+                        <span>Mark all read</span>
+                    </button>
                 </form>
             @endif
         </div>
