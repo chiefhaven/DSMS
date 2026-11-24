@@ -54,80 +54,75 @@
             <div class="block-content tab-content">
                 <div class="tab-pane fade show active" id="leave-panel" role="tabpanel" aria-labelledby="leave-tab">
                     <div class="py-2">
-                        <div class="card border-0 shadow-sm">
-                            <div class="card-header bg-body-light d-flex justify-content-between align-items-center">
-                                <h3 class="fs-6 fw-semibold mb-0">Employee Leave Requests</h3>
-                            </div>
-                            <div class="card-body p-0">
-                                @if($leaveRequests->isEmpty())
-                                    <div class="p-3 text-muted">No leave requests found.</div>
-                                @else
-                                    <div class="table-responsive">
-                                        <table class="table table-hover table-vcenter mb-0 fs-sm align-middle">
-                                            <thead class="bg-light">
+                        <div class="card-body p-0">
+                            @if($leaveRequests->isEmpty())
+                                <div class="p-3 text-muted">No leave requests found.</div>
+                            @else
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-vcenter mb-0 fs-sm align-middle">
+                                        <thead class="bg-light">
+                                            <tr>
+                                                <th>Employee</th>
+                                                <th>Type</th>
+                                                <th>Dates</th>
+                                                <th class="text-center">Days</th>
+                                                <th>Reason</th>
+                                                <th>Status</th>
+                                                <th>Reviewed by</th>
+                                                <th style="min-width: 260px;">Review action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($leaveRequests as $leave)
+                                                @php
+                                                    $employeeName = $leave->employee_name ?? trim(($leave->instructor->fname ?? $leave->administrator->fname ?? '') . ' ' . ($leave->instructor->mname ?? $leave->administrator->mname ?? '') . ' ' . ($leave->instructor->sname ?? $leave->administrator->sname ?? '')) ?: 'Unknown';
+                                                    $employeeType = $leave->employee_type ?? ($leave->administrator_id ? 'Administrator' : 'Instructor');
+                                                    $badge = match($leave->status) {
+                                                        'approved' => 'bg-success',
+                                                        'rejected' => 'bg-danger',
+                                                        'cancelled' => 'bg-secondary',
+                                                        default => 'bg-warning',
+                                                    };
+                                                @endphp
                                                 <tr>
-                                                    <th>Employee</th>
-                                                    <th>Type</th>
-                                                    <th>Dates</th>
-                                                    <th class="text-center">Days</th>
-                                                    <th>Reason</th>
-                                                    <th>Status</th>
-                                                    <th>Reviewed by</th>
-                                                    <th style="min-width: 260px;">Review action</th>
+                                                    <td class="fw-semibold">
+                                                        {{ $employeeName }}
+                                                        <div class="text-muted small">{{ $employeeType }}</div>
+                                                    </td>
+                                                    <td>{{ $leave->leaveType?->name ?? '—' }}</td>
+                                                    <td>{{ $leave->start_date?->format('d-m-Y') }} to {{ $leave->end_date?->format('d-m-Y') }}</td>
+                                                    <td class="text-center">{{ $leave->days }}</td>
+                                                    <td>{{ $leave->reason ? \Illuminate\Support\Str::limit($leave->reason, 60) : '—' }}</td>
+                                                    <td><span class="badge {{ $badge }}">{{ ucfirst($leave->status) }}</span></td>
+                                                    <td>
+                                                        {{ $leave->reviewer?->name ?? '—' }}
+                                                        @if($leave->reviewed_at)
+                                                            <div class="text-muted small">{{ $leave->reviewed_at->format('d-m-Y H:i') }}</div>
+                                                        @endif
+                                                        @if($leave->review_notes)
+                                                            <div class="text-muted small">{{ \Illuminate\Support\Str::limit($leave->review_notes, 60) }}</div>
+                                                        @endif
+                                                    </td>
+                                                    <td>
+                                                        @if($leave->status === 'pending')
+                                                            <form method="POST" action="{{ route('leaves.review', $leave->id) }}" class="d-flex flex-column gap-1">
+                                                                @csrf
+                                                                <input type="text" name="review_notes" class="form-control form-control-sm" placeholder="Review notes (optional)" maxlength="2000">
+                                                                <div class="d-flex gap-1">
+                                                                    <button type="submit" name="status" value="approved" class="btn btn-sm btn-success">Approve</button>
+                                                                    <button type="submit" name="status" value="rejected" class="btn btn-sm btn-danger">Reject</button>
+                                                                </div>
+                                                            </form>
+                                                        @else
+                                                            <span class="text-muted">No action</span>
+                                                        @endif
+                                                    </td>
                                                 </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach($leaveRequests as $leave)
-                                                    @php
-                                                        $employeeName = $leave->employee_name ?? trim(($leave->instructor->fname ?? $leave->administrator->fname ?? '') . ' ' . ($leave->instructor->mname ?? $leave->administrator->mname ?? '') . ' ' . ($leave->instructor->sname ?? $leave->administrator->sname ?? '')) ?: 'Unknown';
-                                                        $employeeType = $leave->employee_type ?? ($leave->administrator_id ? 'Administrator' : 'Instructor');
-                                                        $badge = match($leave->status) {
-                                                            'approved' => 'bg-success',
-                                                            'rejected' => 'bg-danger',
-                                                            'cancelled' => 'bg-secondary',
-                                                            default => 'bg-warning',
-                                                        };
-                                                    @endphp
-                                                    <tr>
-                                                        <td class="fw-semibold">
-                                                            {{ $employeeName }}
-                                                            <div class="text-muted small">{{ $employeeType }}</div>
-                                                        </td>
-                                                        <td>{{ $leave->leaveType?->name ?? '—' }}</td>
-                                                        <td>{{ $leave->start_date?->format('d-m-Y') }} to {{ $leave->end_date?->format('d-m-Y') }}</td>
-                                                        <td class="text-center">{{ $leave->days }}</td>
-                                                        <td>{{ $leave->reason ? \Illuminate\Support\Str::limit($leave->reason, 60) : '—' }}</td>
-                                                        <td><span class="badge {{ $badge }}">{{ ucfirst($leave->status) }}</span></td>
-                                                        <td>
-                                                            {{ $leave->reviewer?->name ?? '—' }}
-                                                            @if($leave->reviewed_at)
-                                                                <div class="text-muted small">{{ $leave->reviewed_at->format('d-m-Y H:i') }}</div>
-                                                            @endif
-                                                            @if($leave->review_notes)
-                                                                <div class="text-muted small">{{ \Illuminate\Support\Str::limit($leave->review_notes, 60) }}</div>
-                                                            @endif
-                                                        </td>
-                                                        <td>
-                                                            @if($leave->status === 'pending')
-                                                                <form method="POST" action="{{ route('leaves.review', $leave->id) }}" class="d-flex flex-column gap-1">
-                                                                    @csrf
-                                                                    <input type="text" name="review_notes" class="form-control form-control-sm" placeholder="Review notes (optional)" maxlength="2000">
-                                                                    <div class="d-flex gap-1">
-                                                                        <button type="submit" name="status" value="approved" class="btn btn-sm btn-success">Approve</button>
-                                                                        <button type="submit" name="status" value="rejected" class="btn btn-sm btn-danger">Reject</button>
-                                                                    </div>
-                                                                </form>
-                                                            @else
-                                                                <span class="text-muted">No action</span>
-                                                            @endif
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                @endif
-                            </div>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -167,67 +162,65 @@
 
                 <div class="tab-pane fade" id="leave-type-panel" role="tabpanel" aria-labelledby="leave-type-tab">
                     <div class="py-2">
-                        <div class="card border-0 shadow-sm">
-                            <div class="card-header bg-body-light d-flex justify-content-between align-items-center">
-                                <h3 class="fs-6 fw-semibold mb-0"></h3>
-                                <button type="button" class="btn btn-sm btn-primary" id="add-leave-type-btn" @unless($tablesReady) disabled @endunless>
-                                    <i class="fa fa-plus me-1"></i> Add leave type
-                                </button>
-                            </div>
-                            <div class="card-body p-0"> 
-                                @if($leaveTypes->isEmpty())
-                                    <div class="p-3 text-muted">No leave types found.</div>
-                                @else
-                                    <div class="table-responsive">
-                                        <table class="table table-hover table-vcenter mb-0 fs-sm">
-                                            <thead class="bg-light">
+                        <div class="card-header bg-body-light d-flex justify-content-between align-items-center">
+                            <h3 class="fs-6 fw-semibold mb-0"></h3>
+                            <button type="button" class="btn btn-sm btn-primary" id="add-leave-type-btn" @unless($tablesReady) disabled @endunless>
+                                <i class="fa fa-plus me-1"></i> Add leave type
+                            </button>
+                        </div>
+                        <div class="card-body p-0"> 
+                            @if($leaveTypes->isEmpty())
+                                <div class="p-3 text-muted">No leave types found.</div>
+                            @else
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-vcenter mb-0 fs-sm">
+                                        <thead class="bg-light">
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Description</th>
+                                                <th>Status</th>
+                                                <th class="text-center" style="min-width: 100px;">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($leaveTypes as $type)
                                                 <tr>
-                                                    <th>Name</th>
-                                                    <th>Description</th>
-                                                    <th>Status</th>
-                                                    <th class="text-center" style="min-width: 100px;">Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach($leaveTypes as $type)
-                                                    <tr>
-                                                        <td class="fw-semibold">{{ $type->name }}</td>
-                                                        <td>{{ $type->description ?: '—' }}</td>
-                                                        <td>
-                                                            <span class="badge {{ $type->is_active ? 'bg-success' : 'bg-secondary' }}">{{ $type->is_active ? 'Active' : 'Inactive' }}</span>
-                                                        </td>
-                                                        <td class="text-center">
-                                                            <div class="dropdown">
-                                                                <button class="btn btn-sm btn-primary rounded-pill px-3 text-nowrap" type="button" data-bs-toggle="dropdown" aria-expanded="false" @unless($tablesReady) disabled @endunless>
-                                                                    <i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions
+                                                    <td class="fw-semibold">{{ $type->name }}</td>
+                                                    <td>{{ $type->description ?: '—' }}</td>
+                                                    <td>
+                                                        <span class="badge {{ $type->is_active ? 'bg-success' : 'bg-secondary' }}">{{ $type->is_active ? 'Active' : 'Inactive' }}</span>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <div class="dropdown">
+                                                            <button class="btn btn-sm btn-primary rounded-pill px-3 text-nowrap" type="button" data-bs-toggle="dropdown" aria-expanded="false" @unless($tablesReady) disabled @endunless>
+                                                                <i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions
+                                                            </button>
+                                                            <div class="dropdown-menu dropdown-menu-end">
+                                                                <button type="button"
+                                                                    class="dropdown-item edit-leave-type-btn"
+                                                                    data-id="{{ $type->id }}"
+                                                                    data-name="{{ e($type->name) }}"
+                                                                    data-description="{{ e($type->description ?? '') }}"
+                                                                    data-active="{{ $type->is_active ? '1' : '0' }}"
+                                                                    data-update-url="{{ route('leaves.types.update', $type->id) }}">
+                                                                    <i class="fa fa-pen-to-square me-1"></i> Edit
                                                                 </button>
-                                                                <div class="dropdown-menu dropdown-menu-end">
-                                                                    <button type="button"
-                                                                        class="dropdown-item edit-leave-type-btn"
-                                                                        data-id="{{ $type->id }}"
-                                                                        data-name="{{ e($type->name) }}"
-                                                                        data-description="{{ e($type->description ?? '') }}"
-                                                                        data-active="{{ $type->is_active ? '1' : '0' }}"
-                                                                        data-update-url="{{ route('leaves.types.update', $type->id) }}">
-                                                                        <i class="fa fa-pen-to-square me-1"></i> Edit
+                                                                <form method="POST" action="{{ route('leaves.types.destroy', $type->id) }}" onsubmit="return confirm('Delete this leave type?');">
+                                                                    @csrf
+                                                                    @method('DELETE')
+                                                                    <button type="submit" class="dropdown-item text-danger">
+                                                                        <i class="fa fa-trash me-1"></i> Delete
                                                                     </button>
-                                                                    <form method="POST" action="{{ route('leaves.types.destroy', $type->id) }}" onsubmit="return confirm('Delete this leave type?');">
-                                                                        @csrf
-                                                                        @method('DELETE')
-                                                                        <button type="submit" class="dropdown-item text-danger">
-                                                                            <i class="fa fa-trash me-1"></i> Delete
-                                                                        </button>
-                                                                    </form>
-                                                                </div>
+                                                                </form>
                                                             </div>
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                @endif
-                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
