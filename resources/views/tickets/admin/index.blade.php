@@ -27,43 +27,45 @@
                     </div>
                     <div class="col-sm-6 col-md-4 col-xl-3">
                         <label class="form-label mb-1" for="ticket-date-from">Created from</label>
-                        <input class="form-control" id="ticket-date-from" type="date" value="{{ $selectedDateFrom }}">
+                        <input class="form-control js-datepicker" id="ticket-date-from" type="text" placeholder="YYYY-MM-DD" value="{{ $selectedDateFrom }}" autocomplete="off">
                     </div>
                     <div class="col-sm-6 col-md-4 col-xl-3">
                         <label class="form-label mb-1" for="ticket-date-to">Created to</label>
-                        <input class="form-control" id="ticket-date-to" type="date" value="{{ $selectedDateTo }}">
+                        <input class="form-control js-datepicker" id="ticket-date-to" type="text" placeholder="YYYY-MM-DD" value="{{ $selectedDateTo }}" autocomplete="off">
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="row row-cols-2 row-cols-md-3 row-cols-xl-6 g-3 mb-4">
-            @foreach ([
-                ['key' => 'total', 'label' => 'Total tickets', 'value' => $ticketSummary['total'], 'icon' => 'fa-ticket-alt', 'color' => 'primary'],
-                ['key' => 'open', 'label' => 'Open', 'value' => $ticketSummary['open'], 'icon' => 'fa-envelope-open', 'color' => 'info'],
-                ['key' => 'in_progress', 'label' => 'In progress', 'value' => $ticketSummary['in_progress'], 'icon' => 'fa-spinner', 'color' => 'warning'],
-                ['key' => 'waiting_on_student', 'label' => 'Waiting on student', 'value' => $ticketSummary['waiting_on_student'], 'icon' => 'fa-clock', 'color' => 'secondary'],
-                ['key' => 'completed', 'label' => 'Resolved / closed', 'value' => $ticketSummary['completed'], 'icon' => 'fa-check-circle', 'color' => 'success'],
-                ['key' => 'resolve_rate', 'label' => 'Resolve rate', 'value' => $ticketSummary['resolve_rate'], 'icon' => 'fa-percent', 'color' => 'primary'],
-            ] as $summary)
-                <div class="col">
-                    <div class="card border-0 shadow-sm rounded-3 h-100 stat-card">
-                        <div class="card-body p-3 d-flex align-items-center">
-                            <div class="flex-shrink-0 me-3">
-                                <div class="rounded-circle bg-{{ $summary['color'] }} d-flex align-items-center justify-content-center"
-                                     style="width: 48px; height: 48px;">
-                                    <i class="fa {{ $summary['icon'] }} {{ in_array($summary['color'], ['warning', 'info'], true) ? 'text-dark' : 'text-white' }}" aria-hidden="true"></i>
+        @if ($canViewTicketSummaries)
+            <div class="row row-cols-2 row-cols-md-3 row-cols-xl-6 g-3 mb-4">
+                @foreach ([
+                    ['key' => 'total', 'label' => 'Total tickets', 'value' => $ticketSummary['total'], 'icon' => 'fa-ticket-alt', 'color' => 'primary'],
+                    ['key' => 'open', 'label' => 'Open', 'value' => $ticketSummary['open'], 'icon' => 'fa-envelope-open', 'color' => 'info'],
+                    ['key' => 'in_progress', 'label' => 'In progress', 'value' => $ticketSummary['in_progress'], 'icon' => 'fa-spinner', 'color' => 'warning'],
+                    ['key' => 'waiting_on_student', 'label' => 'Waiting on student', 'value' => $ticketSummary['waiting_on_student'], 'icon' => 'fa-clock', 'color' => 'secondary'],
+                    ['key' => 'completed', 'label' => 'Resolved / closed', 'value' => $ticketSummary['completed'], 'icon' => 'fa-check-circle', 'color' => 'success'],
+                    ['key' => 'resolve_rate', 'label' => 'Resolve rate', 'value' => $ticketSummary['resolve_rate'], 'icon' => 'fa-percent', 'color' => 'primary'],
+                ] as $summary)
+                    <div class="col">
+                        <div class="card border-0 shadow-sm rounded-3 h-100 stat-card">
+                            <div class="card-body p-3 d-flex align-items-center">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="rounded-circle bg-{{ $summary['color'] }} d-flex align-items-center justify-content-center"
+                                         style="width: 48px; height: 48px;">
+                                        <i class="fa {{ $summary['icon'] }} {{ in_array($summary['color'], ['warning', 'info'], true) ? 'text-dark' : 'text-white' }}" aria-hidden="true"></i>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="flex-grow-1 text-end overflow-hidden">
-                                <div class="fw-bold fs-5 text-dark lh-1 mb-1" data-ticket-summary="{{ $summary['key'] }}">{{ number_format($summary['value']) }}{{ $summary['key'] === 'resolve_rate' ? '%' : '' }}</div>
-                                <div class="fs-xs text-muted text-truncate text-uppercase tracking-wide">{{ $summary['label'] }}</div>
+                                <div class="flex-grow-1 text-end overflow-hidden">
+                                    <div class="fw-bold fs-5 text-dark lh-1 mb-1" data-ticket-summary="{{ $summary['key'] }}">{{ number_format($summary['value']) }}{{ $summary['key'] === 'resolve_rate' ? '%' : '' }}</div>
+                                    <div class="fs-xs text-muted text-truncate text-uppercase tracking-wide">{{ $summary['label'] }}</div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            @endforeach
-        </div>
+                @endforeach
+            </div>
+        @endif
 
         <div class="block block-rounded block-bordered">
             <div class="block-content block-content-full">
@@ -91,6 +93,14 @@
 @push('scripts')
     <script>
         $(function () {
+            if ($.fn.datepicker) {
+                $('.js-datepicker').datepicker({
+                    format: 'yyyy-mm-dd',
+                    autoclose: true,
+                    todayHighlight: true
+                });
+            }
+
             const table = $('#student-tickets-table').DataTable({
                 processing: true,
                 serverSide: true,

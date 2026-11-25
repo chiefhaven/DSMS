@@ -86,6 +86,7 @@ class StudentTicketWorkflowTest extends TestCase
         }
         (require base_path('database/migrations/2026_11_25_000700_seed_student_ticket_permission.php'))->up();
         (require base_path('database/migrations/2026_11_25_000800_seed_student_ticket_action_permissions.php'))->up();
+        (require base_path('database/migrations/2026_11_25_000900_seed_student_ticket_summary_permission.php'))->up();
         (require base_path('database/migrations/2026_11_25_000600_create_student_ticket_tables.php'))->up();
 
         Notification::fake();
@@ -271,6 +272,7 @@ class StudentTicketWorkflowTest extends TestCase
     public function test_admin_ticket_list_shows_summary_counts_for_each_status_group(): void
     {
         [, $studentProfile] = $this->createStudent('Summary Student');
+        $this->grantTicketSummaryPermission('admin');
         [$admin] = $this->createUserWithRole('Admin', 'admin');
 
         foreach (['open', 'in_progress', 'waiting_on_student', 'resolved', 'closed'] as $status) {
@@ -290,6 +292,8 @@ class StudentTicketWorkflowTest extends TestCase
             ->assertSee('Total tickets')
             ->assertSee('Waiting on student')
             ->assertSee('Resolve rate')
+            ->assertSee('class="form-control js-datepicker" id="ticket-date-from" type="text" placeholder="YYYY-MM-DD"', false)
+            ->assertSee('class="form-control js-datepicker" id="ticket-date-to" type="text" placeholder="YYYY-MM-DD"', false)
             ->assertViewHas('ticketSummary', [
                 'total' => 5,
                 'open' => 1,
@@ -304,9 +308,43 @@ class StudentTicketWorkflowTest extends TestCase
         );
     }
 
+    public function test_ticket_summary_requires_its_dedicated_permission(): void
+    {
+        [, $studentProfile] = $this->createStudent('Summary Permission Student');
+        $this->assertFalse(
+            Role::findByName('admin', 'web')->hasPermissionTo('view student ticket summaries')
+        );
+
+        $viewerRole = Role::create(['name' => 'ticket-summary-viewer', 'guard_name' => 'web']);
+        $viewerRole->givePermissionTo('view all student tickets');
+        [$viewer] = $this->createUserWithRole('Ticket viewer', 'ticket-summary-viewer');
+        StudentTicket::query()->create([
+            'student_id' => $studentProfile->id,
+            'category' => 'general',
+            'subject' => 'Private summary ticket',
+            'status' => 'open',
+        ]);
+
+        $this->actingAs($viewer)
+            ->get(route('admin.tickets.index'))
+            ->assertOk()
+            ->assertDontSee('Total tickets')
+            ->assertDontSee('Resolve rate');
+
+        $response = $this->getJson(route('admin.tickets.index', [
+            'draw' => 1,
+            'start' => 0,
+            'length' => 10,
+        ]), ['HTTP_X-Requested-With' => 'XMLHttpRequest']);
+
+        $response->assertOk();
+        $this->assertArrayNotHasKey('ticketSummary', $response->json());
+    }
+
     public function test_ticket_summary_in_ajax_response_respects_created_date_filter(): void
     {
         [, $studentProfile] = $this->createStudent('Summary Date Student');
+        $this->grantTicketSummaryPermission('admin');
         [$admin] = $this->createUserWithRole('Admin', 'admin');
 
         $olderTicket = StudentTicket::query()->create([
@@ -351,6 +389,7 @@ class StudentTicketWorkflowTest extends TestCase
     public function test_admin_ticket_list_filters_by_created_date_range(): void
     {
         [, $studentProfile] = $this->createStudent('Date Filter Student');
+        $this->grantTicketSummaryPermission('admin');
         [$admin] = $this->createUserWithRole('Admin', 'admin');
         $olderDate = now()->subDays(10);
         $recentDate = now()->subDays(3);
@@ -577,5 +616,10 @@ class StudentTicketWorkflowTest extends TestCase
         ]);
 
         return [$user->fresh()];
+    }
+
+    private function grantTicketSummaryPermission(string $roleName): void
+    {
+        Role::findByName($roleName, 'web')->givePermissionTo('view student ticket summaries');
     }
 }

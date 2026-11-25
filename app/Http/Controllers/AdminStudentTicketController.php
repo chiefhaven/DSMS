@@ -52,7 +52,7 @@ class AdminStudentTicketController extends Controller
                 ->when($filters['date_from'] ?? null, fn ($query, $date) => $query->whereDate('created_at', '>=', $date))
                 ->when($filters['date_to'] ?? null, fn ($query, $date) => $query->whereDate('created_at', '<=', $date));
 
-            return DataTables::eloquent($query)
+            $dataTable = DataTables::eloquent($query)
                 ->filter(function ($query) use ($search, $matchingCategories, $matchingStatuses) {
                     if ($search === '') {
                         return;
@@ -128,17 +128,24 @@ class AdminStudentTicketController extends Controller
                     return $actions . '</div></div>';
                 })
                 ->only(['ticket', 'student', 'subject', 'category', 'status', 'assigned_to', 'updated_at', 'actions'])
-                ->rawColumns(['status', 'actions'])
-                ->with('ticketSummary', $this->ticketSummary($filters))
-                ->toJson();
+                ->rawColumns(['status', 'actions']);
+
+            if ($request->user()->can('view student ticket summaries')) {
+                $dataTable->with('ticketSummary', $this->ticketSummary($filters));
+            }
+
+            return $dataTable->toJson();
         }
+
+        $canViewTicketSummaries = $request->user()->can('view student ticket summaries');
 
         return view('tickets.admin.index', [
             'statuses' => StudentTicket::STATUSES,
             'selectedStatus' => $filters['status'] ?? '',
             'selectedDateFrom' => $filters['date_from'] ?? '',
             'selectedDateTo' => $filters['date_to'] ?? '',
-            'ticketSummary' => $this->ticketSummary($filters),
+            'canViewTicketSummaries' => $canViewTicketSummaries,
+            'ticketSummary' => $canViewTicketSummaries ? $this->ticketSummary($filters) : null,
         ]);
     }
 
