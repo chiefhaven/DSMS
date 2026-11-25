@@ -3,8 +3,10 @@
 @section('content')
     <div class="bg-body-light">
         <div class="content content-full">
-            <h1 class="fs-3 fw-semibold my-2 my-sm-3">Student support tickets</h1>
-            <p class="text-muted mb-0">Review, assign, and reply to student requests.</p>
+            <h1 class="fs-3 fw-semibold my-2 my-sm-3">
+                <i class="fa fa-headset text-primary me-2" aria-hidden="true"></i>Student support tickets
+            </h1>
+            <p class="fs-sm text-muted mb-0">Review, assign, and reply to student requests.</p>
         </div>
     </div>
 
@@ -14,6 +16,9 @@
         @endif
 
         <div class="block block-rounded block-bordered mb-4">
+            <div class="block-header block-header-default">
+                <h2 class="block-title"><i class="fa fa-filter text-primary me-2" aria-hidden="true"></i>Filter tickets</h2>
+            </div>
             <div class="block-content block-content-full">
                 <div class="row g-2 align-items-end">
                     <div class="col-sm-6 col-md-4 col-xl-3">
@@ -48,17 +53,14 @@
                     ['key' => 'resolve_rate', 'label' => 'Resolve rate', 'value' => $ticketSummary['resolve_rate'], 'icon' => 'fa-percent', 'color' => 'primary'],
                 ] as $summary)
                     <div class="col">
-                        <div class="card border-0 shadow-sm rounded-3 h-100 stat-card">
-                            <div class="card-body p-3 d-flex align-items-center">
-                                <div class="flex-shrink-0 me-3">
-                                    <div class="rounded-circle bg-{{ $summary['color'] }} d-flex align-items-center justify-content-center"
-                                         style="width: 48px; height: 48px;">
-                                        <i class="fa {{ $summary['icon'] }} {{ in_array($summary['color'], ['warning', 'info'], true) ? 'text-dark' : 'text-white' }}" aria-hidden="true"></i>
-                                    </div>
-                                </div>
-                                <div class="flex-grow-1 text-end overflow-hidden">
-                                    <div class="fw-bold fs-5 text-dark lh-1 mb-1" data-ticket-summary="{{ $summary['key'] }}">{{ number_format($summary['value']) }}{{ $summary['key'] === 'resolve_rate' ? '%' : '' }}</div>
-                                    <div class="fs-xs text-muted text-truncate text-uppercase tracking-wide">{{ $summary['label'] }}</div>
+                        <div class="block block-rounded h-100 mb-0">
+                            <div class="block-content block-content-full d-flex align-items-center gap-3">
+                                <span class="item item-rounded bg-{{ $summary['color'] }}-light text-{{ $summary['color'] }}">
+                                    <i class="fa {{ $summary['icon'] }} fs-4" aria-hidden="true"></i>
+                                </span>
+                                <div class="overflow-hidden">
+                                    <div class="fs-3 fw-semibold" data-ticket-summary="{{ $summary['key'] }}">{{ number_format($summary['value']) }}{{ $summary['key'] === 'resolve_rate' ? '%' : '' }}</div>
+                                    <div class="text-muted fs-xs text-truncate">{{ $summary['label'] }}</div>
                                 </div>
                             </div>
                         </div>
@@ -68,19 +70,24 @@
         @endif
 
         <div class="block block-rounded block-bordered">
-            <div class="block-content block-content-full">
+            <div class="block-header block-header-default">
+                <h2 class="block-title" id="student-tickets-table-title">
+                    <i class="fa fa-list text-primary me-2" aria-hidden="true"></i>All tickets
+                </h2>
+            </div>
+            <div class="block-content block-content-full fs-sm">
                 <div id="ticket-table-error" class="alert alert-danger d-none" role="alert"></div>
-                <table id="student-tickets-table" class="table table-bordered table-striped table-vcenter mb-0 w-100">
-                    <thead>
+                <table id="student-tickets-table" class="table table-hover table-vcenter align-middle mb-0 fs-sm w-100" aria-labelledby="student-tickets-table-title">
+                    <thead class="bg-body-light">
                         <tr>
-                            <th>Ticket</th>
-                            <th>Student</th>
-                            <th>Subject</th>
-                            <th>Category</th>
-                            <th>Status</th>
-                            <th>Assigned to</th>
-                            <th>Updated</th>
-                            <th class="text-end">Actions</th>
+                            <th scope="col" class="fs-xs text-uppercase text-muted">Ticket</th>
+                            <th scope="col" class="fs-xs text-uppercase text-muted">Student</th>
+                            <th scope="col" class="fs-xs text-uppercase text-muted">Subject</th>
+                            <th scope="col" class="fs-xs text-uppercase text-muted">Category</th>
+                            <th scope="col" class="fs-xs text-uppercase text-muted">Status</th>
+                            <th scope="col" class="fs-xs text-uppercase text-muted">Assigned to</th>
+                            <th scope="col" class="fs-xs text-uppercase text-muted">Updated</th>
+                            <th scope="col" class="text-end fs-xs text-uppercase text-muted">Actions</th>
                         </tr>
                     </thead>
                     <tbody></tbody>

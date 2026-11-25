@@ -11,6 +11,7 @@ Route::middleware('auth')->prefix('student')->name('student.')->group(function (
     Route::post('/tickets', [StudentTicketController::class, 'store'])->name('tickets.store');
     Route::get('/tickets/{ticket}', [StudentTicketController::class, 'show'])->name('tickets.show');
     Route::post('/tickets/{ticket}/replies', [StudentTicketController::class, 'reply'])->name('tickets.reply');
+    Route::post('/tickets/{ticket}/messages/{message}/vote', [StudentTicketController::class, 'vote'])->name('tickets.messages.vote');
 });
 
 Route::middleware(['auth', 'permission:view all student tickets|manage student tickets'])

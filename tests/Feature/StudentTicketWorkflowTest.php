@@ -88,6 +88,7 @@ class StudentTicketWorkflowTest extends TestCase
         (require base_path('database/migrations/2026_11_25_000800_seed_student_ticket_action_permissions.php'))->up();
         (require base_path('database/migrations/2026_11_25_000900_seed_student_ticket_summary_permission.php'))->up();
         (require base_path('database/migrations/2026_11_25_000600_create_student_ticket_tables.php'))->up();
+        (require base_path('database/migrations/2026_11_25_001000_create_student_ticket_message_votes_table.php'))->up();
 
         Notification::fake();
         Storage::fake('local');
@@ -193,6 +194,106 @@ class StudentTicketWorkflowTest extends TestCase
         $this->get(route('tickets.attachments.download', $attachment))->assertNotFound();
         $this->get(route('admin.tickets.index'))->assertNotFound();
         $this->assertNotSame($studentProfile->id, $otherProfile->id);
+    }
+
+    public function test_student_can_rate_and_update_a_staff_response(): void
+    {
+        [$student, $studentProfile] = $this->createStudent('Rating Student');
+        [$admin] = $this->createUserWithRole('Rating Admin', 'admin');
+        $ticket = StudentTicket::query()->create([
+            'student_id' => $studentProfile->id,
+            'category' => 'general',
+            'subject' => 'Rating test',
+            'status' => 'open',
+        ]);
+        $ownMessage = $ticket->messages()->create([
+            'user_id' => $student->id,
+            'body' => 'My original question.',
+        ]);
+        $message = $ticket->messages()->create([
+            'user_id' => $admin->id,
+            'body' => 'Here is the requested answer.',
+        ]);
+
+        $this->actingAs($student)
+            ->postJson(route('student.tickets.messages.vote', [$ticket, $message]), ['rating' => 4])
+            ->assertOk()
+            ->assertJsonPath('rating', 4);
+        $this->assertDatabaseHas('student_ticket_message_votes', [
+            'message_id' => $message->id,
+            'student_id' => $studentProfile->id,
+            'rating' => 4,
+        ]);
+
+        $this->postJson(route('student.tickets.messages.vote', [$ticket, $message]), ['rating' => 2])
+            ->assertOk()
+            ->assertJsonPath('rating', 2);
+        $this->assertDatabaseCount('student_ticket_message_votes', 1);
+        $this->assertDatabaseHas('student_ticket_message_votes', [
+            'message_id' => $message->id,
+            'student_id' => $studentProfile->id,
+            'rating' => 2,
+        ]);
+
+        $this->get(route('student.tickets.show', $ticket))
+            ->assertOk()
+            ->assertSee('Your rating: 2/5')
+            ->assertSee('value="2"', false);
+
+        $this->post(route('student.tickets.messages.vote', [$ticket, $ownMessage]), ['rating' => 5])
+            ->assertNotFound();
+
+        [$otherStudent] = $this->createStudent('Other Rating Student');
+        $this->actingAs($otherStudent)
+            ->post(route('student.tickets.messages.vote', [$ticket, $message]), ['rating' => 5])
+            ->assertNotFound();
+    }
+
+    public function test_student_response_times_are_shown_for_each_staff_reply(): void
+    {
+        [$student, $studentProfile] = $this->createStudent('Response Time Student');
+        [$admin] = $this->createUserWithRole('Response Time Admin', 'admin');
+        $ticket = StudentTicket::query()->create([
+            'student_id' => $studentProfile->id,
+            'category' => 'general',
+            'subject' => 'Response time test',
+            'status' => 'open',
+        ]);
+        $firstStudentMessage = $ticket->messages()->create([
+            'user_id' => $student->id,
+            'body' => 'First question.',
+        ]);
+        $firstStaffMessage = $ticket->messages()->create([
+            'user_id' => $admin->id,
+            'body' => 'First answer.',
+        ]);
+        $secondStudentMessage = $ticket->messages()->create([
+            'user_id' => $student->id,
+            'body' => 'Follow-up question.',
+        ]);
+        $secondStaffMessage = $ticket->messages()->create([
+            'user_id' => $admin->id,
+            'body' => 'Follow-up answer.',
+        ]);
+        $now = now()->startOfMinute();
+        DB::table('student_ticket_messages')->where('id', $firstStudentMessage->id)->update([
+            'created_at' => $now->copy()->subHours(3),
+        ]);
+        DB::table('student_ticket_messages')->where('id', $firstStaffMessage->id)->update([
+            'created_at' => $now->copy()->subHours(1)->subMinutes(45),
+        ]);
+        DB::table('student_ticket_messages')->where('id', $secondStudentMessage->id)->update([
+            'created_at' => $now->copy()->subMinutes(50),
+        ]);
+        DB::table('student_ticket_messages')->where('id', $secondStaffMessage->id)->update([
+            'created_at' => $now->copy()->subMinutes(20),
+        ]);
+
+        $this->actingAs($student)
+            ->get(route('student.tickets.show', $ticket))
+            ->assertOk()
+            ->assertSee('Response time: 1h 15m')
+            ->assertSee('Response time: 30m');
     }
 
     public function test_ticket_notification_email_failure_is_logged_without_failing_database_notification(): void

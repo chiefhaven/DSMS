@@ -31,4 +31,9 @@ class StudentTicketMessage extends Model
     {
         return $this->hasMany(StudentTicketAttachment::class, 'message_id');
     }
+
+    public function votes(): HasMany
+    {
+        return $this->hasMany(StudentTicketMessageVote::class, 'message_id');
+    }
 }

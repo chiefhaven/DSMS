@@ -25,14 +25,18 @@
             </a>
             <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mt-2">
                 <div>
-                    <h1 class="fs-3 fw-semibold my-2 my-sm-3">{{ $ticket->subject }}</h1>
-                    <div class="text-muted">
-                        Ticket #{{ strtoupper(substr($ticket->id, 0, 8)) }} &middot;
-                        {{ $ticket->student?->fname }} {{ $ticket->student?->sname }} &middot;
-                        {{ \App\Models\StudentTicket::CATEGORIES[$ticket->category] ?? $ticket->category }}
+                    <h1 class="fs-3 fw-semibold my-2 my-sm-3">
+                        <i class="fa fa-ticket-alt text-primary me-2" aria-hidden="true"></i>{{ $ticket->subject }}
+                    </h1>
+                    <div class="d-flex flex-wrap align-items-center gap-2 fs-sm text-muted">
+                        <span class="font-monospace">#{{ strtoupper(substr($ticket->id, 0, 8)) }}</span>
+                        <span aria-hidden="true">&middot;</span>
+                        <span>{{ $ticket->student?->fname }} {{ $ticket->student?->sname }}</span>
+                        <span aria-hidden="true">&middot;</span>
+                        <span>{{ \App\Models\StudentTicket::CATEGORIES[$ticket->category] ?? $ticket->category }}</span>
                     </div>
                 </div>
-                <span class="badge bg-{{ $statusClass }} fs-sm px-3 py-2">
+                <span class="badge rounded-pill bg-{{ $statusClass }} fs-sm px-3 py-2">
                     {{ \App\Models\StudentTicket::STATUSES[$ticket->status] ?? $ticket->status }}
                 </span>
             </div>
@@ -54,7 +58,7 @@
         @if ($canManageTickets || $canAssignTickets || $canCloseTickets || $canReopenTickets)
             <div id="ticket-management" class="block block-rounded block-bordered mb-4">
                 <div class="block-header block-header-default">
-                    <h3 class="block-title">Ticket management</h3>
+                    <h2 class="block-title"><i class="fa fa-sliders text-primary me-2" aria-hidden="true"></i>Ticket management</h2>
                 </div>
                 <div class="block-content block-content-full">
                     @if ($canManageTickets || $canAssignTickets)
@@ -113,14 +117,12 @@
             </div>
         @endif
 
-        <div class="mb-4">
-            @include('tickets.partials.messages')
-        </div>
+        @include('tickets.partials.messages')
 
         @if ($canReplyToTickets)
             <div id="ticket-reply" class="block block-rounded block-bordered">
                 <div class="block-header block-header-default">
-                    <h3 class="block-title">Reply to student</h3>
+                    <h2 class="block-title"><i class="fa fa-reply text-primary me-2" aria-hidden="true"></i>Reply to student</h2>
                 </div>
                 <div class="block-content block-content-full">
                     <form method="POST" action="{{ route('admin.tickets.reply', $ticket) }}" enctype="multipart/form-data">
