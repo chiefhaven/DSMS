@@ -42,6 +42,12 @@ class Handler extends ExceptionHandler
     function render($request, Throwable $exception)
     {
         if ($this->isHttpException($exception)) {
+            if (
+                $exception->getStatusCode() === 403
+                && $exception->getMessage() === __('User does not have the right permissions.')
+            ) {
+                return response()->view('errors.404', [], 404);
+            }
             if ($exception->getStatusCode() == 404) {
                 return response()->view('errors.404', [], 404);
             }

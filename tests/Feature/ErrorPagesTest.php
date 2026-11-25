@@ -60,4 +60,15 @@ class ErrorPagesTest extends TestCase
         $this->get('/missing-page-for-error-test')->assertNotFound()
             ->assertSee('Page not found')->assertSee('Go home');
     }
+
+    public function test_explicit_permission_denial_uses_the_not_found_page_only_for_that_message(): void
+    {
+        Route::get('/test-permission-denied', fn () => abort(403, 'User does not have the right permissions.'));
+        Route::get('/test-other-forbidden', fn () => abort(403, 'Different forbidden reason.'));
+
+        $this->get('/test-permission-denied')->assertNotFound()
+            ->assertSee('Page not found')
+            ->assertDontSee('User does not have the right permissions.');
+        $this->get('/test-other-forbidden')->assertForbidden();
+    }
 }
