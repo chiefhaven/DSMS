@@ -130,6 +130,12 @@
 @endsection
 
 @section('content')
+@php
+    $canManageStudentTrn = filled($student->trn)
+        ? auth()->user()->can('edit student TRN')
+        : auth()->user()->can('enter student TRN');
+    $studentTrnAction = filled($student->trn) ? 'Edit TRN' : 'Enter TRN';
+@endphp
 <!-- Hero -->
 <div class=""  id="student">
     <div class="bg-body-light">
@@ -173,6 +179,11 @@
                                 <i class="nav-main-link-icon  fas fa-toggle-on"></i>Change status
                             </button>
                             @endcan
+                            @if ($canManageStudentTrn)
+                            <button type="button" id="editStudentTrnAction" class="dropdown-item nav-main-link" data-bs-toggle="modal" data-bs-target="#editStudentTrnModal">
+                                <i class="nav-main-link-icon fas fa-id-card"></i>{{ $studentTrnAction }}
+                            </button>
+                            @endif
                             </div>
                         </div>
                     </div>
@@ -268,7 +279,7 @@
                                         <div class="col-12">
                                             <div class="d-flex">
                                                 <i class="fas fa-id-card me-2 text-muted mt-1"></i>
-                                                <span>TRN: {{ $student->trn ?? '-' }}</span>
+                                                <span id="studentTrnDisplay">TRN: {{ $student->trn ?? '-' }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -678,6 +689,160 @@
 @can('change student status')
     @include('students.partials.changeStatus')
 @endcan
+
+@if ($canManageStudentTrn)
+    <div class="modal fade" id="editStudentTrnModal" tabindex="-1" aria-labelledby="editStudentTrnModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-3">
+                <div class="modal-header bg-primary-dark p-3 border-0">
+                    <h5 class="modal-title text-white fw-bold" id="editStudentTrnModalLabel">
+                        <i class="fas fa-id-card me-2"></i>Enter or edit TRN
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="editStudentTrnForm" method="POST" enctype="multipart/form-data" action="{{ route('students.trn.update', ['student' => $student->id]) }}">
+                        @csrf
+                        <div id="trnStepLabel" class="fw-semibold mb-3" aria-live="polite">Step 1 of 2: Enter TRN</div>
+                        <div id="trnStepOne">
+                            <div class="mb-3">
+                                <label for="editStudentTrnInput" class="form-label">TRN</label>
+                                <input type="text" class="form-control" id="editStudentTrnInput" name="trn" value="{{ $student->trn }}" maxlength="255">
+                                <div id="editStudentTrnError" class="invalid-feedback"></div>
+                            </div>
+                        </div>
+                        <div id="trnStepTwo" class="d-none">
+                            <div class="mb-3">
+                                <label class="form-label">Take a TRN picture</label>
+                                <div class="mb-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" id="startTrnCamera">
+                                        <i class="fas fa-camera me-1"></i>Open camera
+                                    </button>
+                                </div>
+                                <div class="position-relative bg-dark rounded overflow-hidden" style="aspect-ratio: 4 / 3; max-width: 24rem;">
+                                    <video id="trnCameraVideo" class="position-absolute top-0 start-0 w-100 h-100 d-none" autoplay playsinline style="object-fit: contain;"></video>
+                                    <canvas id="trnCameraCanvas" class="d-none"></canvas>
+                                    <img id="trnPicturePreview"
+                                         class="position-absolute top-0 start-0 w-100 h-100 {{ $student->trn_picture ? '' : 'd-none' }}"
+                                         src="{{ $student->trn_picture ? route('students.trn-picture', ['student' => $student->id]) : '' }}"
+                                         data-saved-url="{{ $student->trn_picture ? route('students.trn-picture', ['student' => $student->id]) : '' }}"
+                                         alt="TRN picture preview"
+                                         style="object-fit: contain;">
+                                    <div id="trnCameraPlaceholder" class="position-absolute top-50 start-50 translate-middle text-white-50 text-center {{ $student->trn_picture ? 'd-none' : '' }}">
+                                        Camera preview will appear here
+                                    </div>
+                                    <button type="button" class="btn btn-light rounded-circle position-absolute bottom-0 start-50 translate-middle-x mb-3 d-none" id="captureTrnPicture" aria-label="Capture picture" disabled style="width: 3.5rem; height: 3.5rem;">
+                                        <i class="fas fa-camera fs-4"></i>
+                                    </button>
+                                </div>
+                                <div id="trnCameraError" class="small text-danger mt-2" role="alert"></div>
+                                <div id="trnPictureError" class="text-danger small" role="alert"></div>
+                                <div class="form-text">Capture a JPG or PNG image, max 2 MB.</div>
+                            </div>
+                        </div>
+                        <x-form-actions modal>
+                            <button type="button" class="btn btn-outline-secondary rounded-pill px-4 d-none" id="trnStepBack">Back</button>
+                            <button type="button" class="btn btn-primary rounded-pill px-4" id="trnStepNext">Next</button>
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 d-none" id="trnStepSave">Save TRN</button>
+                        </x-form-actions>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    @include('students.partials.trnCamera')
+    <script>
+        (function () {
+        const editStudentTrnForm = document.getElementById('editStudentTrnForm');
+        const editStudentTrnInput = document.getElementById('editStudentTrnInput');
+        const editStudentTrnError = document.getElementById('editStudentTrnError');
+        const canEnterStudentTrn = @json(auth()->user()->can('enter student TRN'));
+        const canEditStudentTrn = @json(auth()->user()->can('edit student TRN'));
+
+        editStudentTrnInput.addEventListener('input', function () {
+            editStudentTrnInput.classList.remove('is-invalid');
+            editStudentTrnError.textContent = '';
+            editStudentTrnError.classList.remove('d-block');
+        });
+
+        editStudentTrnForm.addEventListener('submit', async function (event) {
+            event.preventDefault();
+            if (!window.studentTrnCamera.isPictureStep()) {
+                window.studentTrnCamera.goToPictureStep();
+                return;
+            }
+            if (!window.studentTrnCamera.hasPicture()) {
+                window.studentTrnCamera.showPictureError('Please take a TRN picture before saving.');
+                return;
+            }
+            const submitButton = editStudentTrnForm.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            editStudentTrnInput.classList.remove('is-invalid');
+            editStudentTrnError.textContent = '';
+            editStudentTrnError.classList.remove('d-block');
+
+            try {
+                const formData = new FormData(editStudentTrnForm);
+                const capturedPicture = window.studentTrnCamera.getCapturedPicture();
+                if (capturedPicture) formData.set('trn_picture', capturedPicture);
+                window.studentTrnCamera.stopCamera();
+                const response = await axios.post(editStudentTrnForm.action, formData, {
+                    headers: {
+                        Accept: 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                });
+                editStudentTrnInput.value = response.data.trn || '';
+                document.getElementById('studentTrnDisplay').textContent = `TRN: ${response.data.trn || '-'}`;
+                window.studentTrnCamera.updatePreview(response.data.trn_picture_url, true);
+                window.studentTrnCamera.clearCapturedPicture();
+                const hasTrn = response.data.trn !== null && response.data.trn !== '';
+                const actionButton = document.getElementById('editStudentTrnAction');
+                if (actionButton && (hasTrn ? !canEditStudentTrn : !canEnterStudentTrn)) {
+                    actionButton.remove();
+                } else if (actionButton) {
+                    actionButton.innerHTML = '<i class="nav-main-link-icon fas fa-id-card"></i>' + (hasTrn ? 'Edit TRN' : 'Enter TRN');
+                }
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('editStudentTrnModal')).hide();
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: response.data.message,
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            } catch (error) {
+                const validationMessage = error.response?.data?.errors?.trn?.[0];
+                const pictureValidationMessage = error.response?.data?.errors?.trn_picture?.[0];
+                if (error.response?.status === 422) {
+                    if (validationMessage) {
+                        window.studentTrnCamera.showStep(1);
+                        editStudentTrnInput.classList.add('is-invalid');
+                        editStudentTrnError.textContent = validationMessage;
+                        editStudentTrnError.classList.add('d-block');
+                    }
+                    if (pictureValidationMessage) {
+                        window.studentTrnCamera.showPictureError(pictureValidationMessage);
+                    }
+                } else {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'error',
+                        title: error.response?.data?.message || 'Unable to update the student TRN.',
+                        showConfirmButton: false,
+                        timer: 4000
+                    });
+                }
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+        })();
+    </script>
+@endif
 
 <script setup>
 

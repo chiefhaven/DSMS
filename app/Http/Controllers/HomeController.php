@@ -88,7 +88,7 @@ class HomeController extends Controller
         $students = Student::query()
             ->with(['Invoice', 'User'])
             ->latest()
-            ->limit(10)
+            ->limit(25)
             ->get();
 
         /*
@@ -125,7 +125,7 @@ class HomeController extends Controller
         */
 
         $instructors = Instructor::query()
-            ->where('status', 'active')
+            ->whereRaw('LOWER(status) = ?', ['active'])
             ->get();
 
         /*

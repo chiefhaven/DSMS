@@ -97,14 +97,6 @@
                                 @enderror
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label" for="trn">TRN <span class="text-muted fw-normal fs-sm">(optional)</span></label>
-                                <input type="text" class="form-control @error('trn') is-invalid @enderror" id="trn" name="trn" value="{{ old('trn', $currentStudent?->trn) }}" placeholder="TRN if available" aria-describedby="trn-help @error('trn') trn-error @enderror" @error('trn') aria-invalid="true" @enderror>
-                                <div id="trn-help" class="form-text">Can be added later.</div>
-                                @error('trn')
-                                    <div id="trn-error" class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="col-md-4">
                                 <label class="form-label" for="signature">Student signature
                                     @if (!$editing)
                                         <span class="text-danger">*</span>

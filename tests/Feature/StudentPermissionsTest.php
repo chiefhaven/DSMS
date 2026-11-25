@@ -3,9 +3,14 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Notifications\StudentTrnApprovalRequestedNotification;
+use App\Notifications\StudentTrnChangeRejectedNotification;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ViewErrorBag;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -34,6 +39,9 @@ class StudentPermissionsTest extends TestCase
         (require base_path('database/migrations/2026_11_12_000500_seed_classroom_fleet_permissions.php'))->up();
         (require base_path('database/migrations/2026_11_12_001000_seed_expense_permissions.php'))->up();
         (require base_path('database/migrations/2026_11_15_000300_seed_student_account_permissions.php'))->up();
+        (require base_path('database/migrations/2026_11_25_000100_seed_student_trn_permission.php'))->up();
+        (require base_path('database/migrations/2026_11_25_000200_seed_student_trn_entry_permission.php'))->up();
+        (require base_path('database/migrations/2026_11_25_000500_seed_student_trn_approval_permission.php'))->up();
 
         Schema::create('instructors', function (Blueprint $table) {
             $table->string('id')->primary();
@@ -65,6 +73,7 @@ class StudentPermissionsTest extends TestCase
             $table->string('district_id')->nullable();
             $table->string('signature')->nullable();
             $table->string('trn')->nullable();
+            $table->string('trn_picture')->nullable();
             $table->string('fleet_id')->nullable();
             $table->string('classroom_id')->nullable();
             $table->string('course_id')->nullable();
@@ -87,6 +96,7 @@ class StudentPermissionsTest extends TestCase
                 $table->softDeletes();
             });
         }
+        (require base_path('database/migrations/2026_11_25_000400_create_student_trn_approval_requests_table.php'))->up();
         Schema::create('districts', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->string('name');
@@ -119,6 +129,8 @@ class StudentPermissionsTest extends TestCase
         (require base_path('database/migrations/2026_11_15_000300_seed_student_account_permissions.php'))->up();
         $this->assertTrue(Role::findByName('admin')->hasPermissionTo('create students'));
         $this->assertFalse(Role::findByName('admin')->hasPermissionTo('delete students'));
+        $this->assertTrue(Role::findByName('superAdmin')->hasPermissionTo('approve student TRN'));
+        $this->assertFalse(Role::findByName('admin')->hasPermissionTo('approve student TRN'));
         $this->assertTrue(Role::findByName('financeAdmin')->hasPermissionTo('view all students'));
         $this->assertFalse(Role::findByName('instructor')->hasPermissionTo('view all students'));
         $this->assertFalse(Role::findByName('student')->hasPermissionTo('view students'));
@@ -231,6 +243,130 @@ class StudentPermissionsTest extends TestCase
         $this->postJson('/trafic-card-reference-letter/car')->assertForbidden();
     }
 
+    public function test_student_trn_updates_use_a_dedicated_permission_and_enforce_uniqueness(): void
+    {
+        Storage::fake('local');
+        $entryRole = Role::create(['name' => 'trn-entry', 'guard_name' => 'web']);
+        $entryRole->givePermissionTo(['view students', 'view all students', 'enter student TRN', 'approve student TRN']);
+        $this->authenticate('trn-entry');
+        $this->postJson('/students/car/trn', ['trn' => 'TRN-123'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('trn_picture');
+        $this->postJson('/students/car/trn', [
+            'trn' => 'TRN-123',
+            'trn_picture' => UploadedFile::fake()->image('trn-card.png'),
+        ])
+            ->assertOk()
+            ->assertJson(['message' => 'Student TRN updated and approved successfully.', 'trn' => 'TRN-123']);
+        $this->assertDatabaseHas('student_trn_approval_requests', [
+            'student_id' => 'car',
+            'status' => 'approved',
+            'requested_trn' => 'TRN-123',
+        ]);
+        $this->postJson('/students/car/trn', ['trn' => 'TRN-456'])->assertForbidden();
+        $picturePath = DB::table('students')->where('id', 'car')->value('trn_picture');
+        $this->assertNotEmpty($picturePath);
+        Storage::disk('local')->assertExists($picturePath);
+        $this->get(route('students.trn-picture', ['student' => 'car']))->assertOk();
+
+        $editRole = Role::create(['name' => 'trn-editor', 'guard_name' => 'web']);
+        $editRole->givePermissionTo(['view all students', 'edit student TRN', 'approve student TRN']);
+        $this->authenticate('trn-editor');
+        $this->postJson('/students/class/trn', ['trn' => 'TRN-456'])->assertForbidden();
+        DB::table('students')->where('id', 'class')->update(['trn' => 'TRN-OLD']);
+        $this->postJson('/students/class/trn', [
+            'trn' => 'TRN-456',
+            'trn_picture' => UploadedFile::fake()->image('trn-card.png'),
+        ])
+            ->assertOk()
+            ->assertJson(['trn' => 'TRN-456']);
+        $this->assertDatabaseHas('students', ['id' => 'class', 'trn' => 'TRN-456']);
+        $this->assertDatabaseMissing('student_trn_approval_requests', ['student_id' => 'class', 'status' => 'pending']);
+        $this->postJson('/students/class/trn', ['trn' => 'TRN-456'])->assertOk();
+        DB::table('students')->where('id', 'other')->update(['trn' => 'TRN-456']);
+        $this->postJson('/students/other/trn', [
+            'trn' => 'TRN-456',
+            'trn_picture' => UploadedFile::fake()->image('trn-card.png'),
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('trn');
+    }
+
+    public function test_non_approver_trn_changes_wait_for_approval_and_can_be_rejected(): void
+    {
+        Storage::fake('local');
+        Notification::fake();
+        $requesterId = '00000000-0000-4000-8000-000000000001';
+        DB::table('users')->insert([
+            'id' => $requesterId,
+            'name' => 'TRN Editor',
+            'email' => 'trn-editor@example.test',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $requester = User::findOrFail($requesterId);
+
+        $approverRole = Role::create(['name' => 'trn-approver', 'guard_name' => 'web']);
+        $approverRole->givePermissionTo('approve student TRN');
+        $approver = new User();
+        $approver->id = '00000000-0000-4000-8000-000000000005';
+        $approver->name = 'TRN Approver';
+        $approver->email = 'trn-approver@example.test';
+        $approver->save();
+        $approver->assignRole($approverRole);
+
+        $requesterRole = Role::create(['name' => 'trn-requester', 'guard_name' => 'web']);
+        $requesterRole->givePermissionTo(['view students', 'view all students', 'enter student TRN']);
+        $this->authenticate('trn-requester');
+
+        $this->postJson('/students/car/trn', [
+            'trn' => 'TRN-PENDING',
+            'trn_picture' => UploadedFile::fake()->image('pending-trn.png'),
+        ])
+            ->assertOk()
+            ->assertJson(['approval_status' => 'pending', 'message' => 'Student TRN change submitted for approval.']);
+
+        $this->assertDatabaseHas('students', ['id' => 'car', 'trn' => null, 'trn_picture' => null]);
+        $approval = DB::table('student_trn_approval_requests')->where('student_id', 'car')->first();
+        $this->assertSame('pending', $approval->status);
+        $this->assertSame('TRN-PENDING', $approval->requested_trn);
+        Storage::disk('local')->assertExists($approval->picture_path);
+        $this->get(route('students.trn-approvals.index'))->assertForbidden();
+        Notification::assertSentTo($approver, StudentTrnApprovalRequestedNotification::class);
+
+        $this->authenticate('trn-approver');
+        $this->get(route('students.trn-approvals.index'))->assertOk()->assertSee('TRN-PENDING');
+        $this->get(route('students.trn-approvals.picture', ['approval' => $approval->id]))->assertOk();
+        $this->post(route('students.trn-approvals.approve', ['approval' => $approval->id]))
+            ->assertRedirect(route('students.trn-approvals.index'));
+
+        $this->assertDatabaseHas('students', ['id' => 'car', 'trn' => 'TRN-PENDING']);
+        $this->assertDatabaseHas('student_trn_approval_requests', [
+            'id' => $approval->id,
+            'status' => 'approved',
+        ]);
+        Storage::disk('local')->assertExists($approval->picture_path);
+
+        $this->authenticate('trn-requester');
+        $this->postJson('/students/class/trn', [
+            'trn' => 'TRN-REJECTED',
+            'trn_picture' => UploadedFile::fake()->image('rejected-trn.png'),
+        ])->assertOk()->assertJson(['approval_status' => 'pending']);
+        $rejectedApproval = DB::table('student_trn_approval_requests')->where('student_id', 'class')->where('status', 'pending')->first();
+        Storage::disk('local')->assertExists($rejectedApproval->picture_path);
+
+        $this->authenticate('trn-approver');
+        $this->post(route('students.trn-approvals.reject', ['approval' => $rejectedApproval->id]))
+            ->assertRedirect(route('students.trn-approvals.index'));
+        $this->assertDatabaseHas('student_trn_approval_requests', [
+            'id' => $rejectedApproval->id,
+            'status' => 'rejected',
+        ]);
+        $this->assertDatabaseHas('students', ['id' => 'class', 'trn' => null]);
+        Storage::disk('local')->assertMissing($rejectedApproval->picture_path);
+        Notification::assertSentTo($requester, StudentTrnChangeRejectedNotification::class);
+    }
+
     public function test_student_list_hides_actions_without_their_permissions(): void
     {
         $role = Role::create(['name' => 'reader', 'guard_name' => 'web']);
@@ -243,6 +379,22 @@ class StudentPermissionsTest extends TestCase
             ->assertDontSee('Add student')
             ->assertDontSee('Students report')
             ->assertDontSee('id="change-status"', false);
+    }
+
+    public function test_student_trn_action_modal_requires_its_specific_permission(): void
+    {
+        $role = Role::create(['name' => 'trn-editor', 'guard_name' => 'web']);
+        $role->givePermissionTo(['view students', 'enter student TRN']);
+        $this->authenticate('trn-editor', 'one');
+        auth()->user()->setRelation('notifications', collect());
+        auth()->user()->setRelation('unreadNotifications', collect());
+
+        $this->view('students.students', ['fleet' => collect(), 'errors' => new ViewErrorBag()])
+            ->assertSee('id="editStudentTrnModal"', false)
+            ->assertSee('id="startTrnCamera"', false)
+            ->assertSee('id="captureTrnPicture"', false)
+            ->assertDontSee('name="trn_picture"', false)
+            ->assertSee('Enter or edit TRN');
     }
 
     public function test_navigation_shows_links_for_direct_permission_grants(): void

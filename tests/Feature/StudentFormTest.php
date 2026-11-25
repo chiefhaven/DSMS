@@ -8,24 +8,23 @@ use Tests\TestCase;
 
 class StudentFormTest extends TestCase
 {
-    public function test_add_form_preserves_fields_and_marks_trn_optional(): void
+    public function test_add_form_preserves_fields_without_a_trn_input(): void
     {
         $html = $this->renderForm(false);
         $xpath = $this->xpath($html);
 
         $this->assertSame(1, $xpath->query('//form[@method="POST" and @enctype="multipart/form-data"]')->length);
-        foreach (['fname', 'mname', 'sname', 'gender', 'date_of_birth', 'trn', 'signature', 'phone', 'email', 'address', 'district'] as $field) {
+        foreach (['fname', 'mname', 'sname', 'gender', 'date_of_birth', 'signature', 'phone', 'email', 'address', 'district'] as $field) {
             $this->assertSame(1, $xpath->query('//*[@name="'.$field.'"]')->length, $field);
         }
+        $this->assertSame(0, $xpath->query('//*[@name="trn"]')->length);
         $this->assertSame(0, $xpath->query('//input[@name="password" or @name="username"]')->length);
         $this->assertStringContainsString('when the student is enrolled', $html);
-        $this->assertSame(0, $xpath->query('//input[@name="trn"]/@required')->length);
         $this->assertSame(0, $xpath->query('//input[@name="mname"]/@required')->length);
         $this->assertSame(0, $xpath->query('//input[@name="email" and @readonly]')->length);
         $this->assertStringContainsString('(optional)', $xpath->query('//label[@for="mname"]')->item(0)->textContent);
         $this->assertSame(1, $xpath->query('//input[@name="signature"]/@required')->length);
         $this->assertSame('', $xpath->query('//input[@name="date_of_birth"]')->item(0)->getAttribute('value'));
-        $this->assertStringContainsString('(optional)', $xpath->query('//label[@for="trn"]')->item(0)->textContent);
     }
 
     public function test_edit_form_restores_input_and_displays_inline_errors(): void
@@ -33,7 +32,6 @@ class StudentFormTest extends TestCase
         $this->app['request']->setLaravelSession($this->app['session']->driver());
         $this->app['session']->flashInput([
             'fname' => 'Revised name',
-            'trn' => '',
             'gender' => 'male',
             'district' => 'Blantyre',
         ]);
@@ -43,7 +41,7 @@ class StudentFormTest extends TestCase
 
         $this->assertSame('First Last', $xpath->query('//h1/em')->item(0)->textContent);
         $this->assertSame('Revised name', $xpath->query('//input[@name="fname"]')->item(0)->getAttribute('value'));
-        $this->assertSame('', $xpath->query('//input[@name="trn"]')->item(0)->getAttribute('value'));
+        $this->assertSame(0, $xpath->query('//*[@name="trn"]')->length);
         $this->assertSame('male', $xpath->query('//select[@name="gender"]/option[@selected]')->item(0)->getAttribute('value'));
         $this->assertSame('Blantyre', $xpath->query('//select[@name="district"]/option[@selected]')->item(0)->getAttribute('value'));
         $this->assertSame(0, $xpath->query('//input[@name="signature"]/@required')->length);

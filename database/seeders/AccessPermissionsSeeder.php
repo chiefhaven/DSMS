@@ -39,6 +39,7 @@ class AccessPermissionsSeeder extends Seeder
         'view all students' => ['superAdmin', 'admin', 'financeAdmin'],
         'create students' => ['superAdmin', 'admin'],
         'edit students' => ['superAdmin'],
+        'approve student TRN' => ['superAdmin'],
         'delete students' => ['superAdmin'],
         'assign students' => ['superAdmin', 'admin'],
         'change student status' => ['superAdmin', 'admin'],

@@ -235,7 +235,19 @@
             minLength: 2,
             autoSelect: true,
             source: (query, process) =>
-            $.get("{{ route('expense-student-search') }}", { query }, process),
+            $.get("{{ route('expense-student-search') }}", {
+                student: query,
+                expenseSelection: true,
+                expenseGroupType: state.value.expenseGroupType
+            }).done(data => {
+                if (!data.length) {
+                    const isTrnExpense = selectedExpenseType.value?.name?.trim().toUpperCase() === 'TRN';
+                    notification(isTrnExpense
+                        ? 'Student not found or not enrolled, search another name'
+                        : 'No matching students have a verified TRN for this expense type', 'error');
+                }
+                process(data);
+            }),
             updater: item => {
             state.value.studentId = item.id;
             state.value.studentName = item.name;

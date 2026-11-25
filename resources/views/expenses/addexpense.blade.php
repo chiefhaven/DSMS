@@ -351,10 +351,20 @@
                     autoSelect: true,
                     highlight: true,
                     source: function (query, process) {
-                        $.get(path, { student: query })
+                        $.get(path, {
+                            student: query,
+                            expenseSelection: true,
+                            expenseGroupType: state.value.expenseGroupType
+                        })
                             .done(function (data) {
                                 if (data.length === 0) {
-                                    notification('Student not found or not enrolled, search another name', 'error');
+                                    const isTrnExpense = selectedExpenseType.value?.name?.trim().toUpperCase() === 'TRN';
+                                    notification(
+                                        isTrnExpense
+                                            ? 'Student not found or not enrolled, search another name'
+                                            : 'No matching students have a verified TRN for this expense type',
+                                        'error'
+                                    );
                                     return process([]);
                                 }
                                 return process(data);

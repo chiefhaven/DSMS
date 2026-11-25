@@ -92,10 +92,12 @@
             @yield('artwork')
             <h1 id="error-title">@yield('title')</h1>
             <p class="message">@yield('message')</p>
-            <nav class="actions" aria-label="Recovery options">
-                <a class="button" href="{{ url('/') }}">Go home</a>
-                <a class="button button-secondary" href="{{ url('/login') }}">Sign in</a>
-            </nav>
+            @if (! $__env->hasSection('hide-actions'))
+                <nav class="actions" aria-label="Recovery options">
+                    <a class="button" href="{{ url('/') }}">Go home</a>
+                    <a class="button button-secondary" href="{{ url('/login') }}">Sign in</a>
+                </nav>
+            @endif
         </section>
         <footer>
             Supported by <a href="https://www.havenplustechnologies.co.mw/">HavenPlus Technologies</a>

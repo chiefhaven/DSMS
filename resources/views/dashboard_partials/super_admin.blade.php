@@ -174,16 +174,16 @@
                     </a>
                 </div>
 
-                <div class="card-body p-0 bg-white" style="max-height: 30em; overflow-y: auto;">
-                    <div class="table-responsive">
-                        <table class="table align-middle mb-0 fs-sm">
-                            <thead class="bg-light sticky-top">
+                <div class="card-body p-0 bg-white">
+                    <div class="table-responsive p-3">
+                        <table id="dashboardStudentsTable" class="table table-hover table-vcenter align-middle mb-0 fs-sm">
+                            <thead class="bg-light">
                                 <tr class="text-uppercase fs-xs text-muted tracking-wide">
-                                    <th class="text-center py-3" style="width: 80px;">View</th>
-                                    <th class="text-center py-3" style="width: 70px;">Photo</th>
-                                    <th class="py-3" style="min-width: 150px;">Name</th>
-                                    <th class="py-3">Gender</th>
-                                    <th class="d-none d-md-table-cell text-center py-3" style="min-width: 250px;">Course</th>
+                                    <th class="text-center" style="width: 80px;">View</th>
+                                    <th class="text-center" style="width: 70px;">Photo</th>
+                                    <th style="min-width: 150px;">Name</th>
+                                    <th>Gender</th>
+                                    <th class="d-none d-md-table-cell text-center" style="min-width: 250px;">Course</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -197,7 +197,7 @@
                                         };
                                     @endphp
                                     <tr>
-                                        <td class="text-center py-3">
+                                        <td class="text-center">
                                             <a
                                                 href="{{ route('students.show', $student->id) }}"
                                                 class="btn btn-sm btn-outline-primary rounded-2"
@@ -208,7 +208,7 @@
                                                 <i class="fa fa-eye"></i>
                                             </a>
                                         </td>
-                                        <td class="text-center py-3">
+                                        <td class="text-center">
                                             <img
                                                 class="rounded-circle border border-2 border-white shadow-sm"
                                                 src="{{ asset('media/avatars/avatar2.jpg') }}"
@@ -219,7 +219,7 @@
                                                 style="object-fit: cover;"
                                             >
                                         </td>
-                                        <td class="py-3">
+                                        <td>
                                             <div class="fw-semibold text-dark text-uppercase">
                                                 {{ $student->fname }} {{ $student->sname }}
                                             </div>
@@ -227,12 +227,12 @@
                                                 {{ $student->user?->email ?? 'No email registered' }}
                                             </div>
                                         </td>
-                                        <td class="py-3">
+                                        <td>
                                             <span class="badge rounded-pill {{ $genderStyles[0] }} {{ $genderStyles[1] }} fw-semibold px-3 py-1">
                                                 {{ $gender ?? 'Not specified' }}
                                             </span>
                                         </td>
-                                        <td class="d-none d-md-table-cell text-center py-3">
+                                        <td class="d-none d-md-table-cell text-center">
                                             @if($student->course)
                                                 <div class="">
                                                     {{ $student->course->name }}
@@ -270,32 +270,32 @@
                         Recent Invoices
                     </h6>
                 </div>
-                <div class="card-body p-0" style="max-height: 30em; overflow-y: auto;">
+                <div class="card-body p-0">
 
                     <!-- Skeleton Loader for Invoices -->
-                    <div v-if="loading" class="table-responsive">
-                        <table class="table align-middle mb-0 fs-sm">
+                    <div v-if="loading" class="table-responsive p-3">
+                        <table class="table table-vcenter align-middle mb-0 fs-sm">
                             <thead class="bg-light">
                                 <tr class="text-uppercase fs-xs text-muted tracking-wide">
-                                    <th class="py-3 ps-4" style="min-width: 200px;">Invoice No.</th>
-                                    <th class="d-none d-sm-table-cell py-3" style="min-width:200px">Date</th>
-                                    <th class="py-3" style="min-width: 150px;">Student</th>
-                                    <th class="text-end py-3 pe-4">Balance</th>
+                                    <th style="min-width: 200px;">Invoice No.</th>
+                                    <th class="d-none d-sm-table-cell" style="min-width:200px">Date</th>
+                                    <th style="min-width: 150px;">Student</th>
+                                    <th class="text-end">Balance</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="n in 6" :key="'inv-skel-'+n">
-                                    <td class="py-3 ps-4">
+                                    <td>
                                         <div class="skeleton skeleton-text" style="width: 80px;"></div>
                                     </td>
-                                    <td class="d-none d-sm-table-cell py-3">
+                                    <td class="d-none d-sm-table-cell">
                                         <div class="skeleton skeleton-text" style="width: 100px;"></div>
                                     </td>
-                                    <td class="py-3">
+                                    <td>
                                         <div class="skeleton skeleton-text" style="width: 140px;"></div>
                                         <div class="skeleton skeleton-text mt-2" style="width: 90px;"></div>
                                     </td>
-                                    <td class="text-end py-3 pe-4">
+                                    <td class="text-end">
                                         <div class="skeleton skeleton-text ms-auto" style="width: 70px;"></div>
                                     </td>
                                 </tr>
@@ -304,19 +304,19 @@
                     </div>
 
                     <!-- Loaded Invoices -->
-                    <div v-else class="table-responsive">
-                        <table class="table align-middle mb-0 fs-sm">
-                            <thead class="bg-light sticky-top">
+                    <div v-else class="table-responsive p-3">
+                        <table id="dashboardInvoicesTable" class="table table-hover table-vcenter align-middle mb-0 fs-sm">
+                            <thead class="bg-light">
                                 <tr class="text-uppercase fs-xs text-muted tracking-wide">
-                                    <th class="py-3 ps-4" style="min-width: 200px;">Invoice No.</th>
-                                    <th class="d-none d-sm-table-cell py-3" style="min-width:200px">Date</th>
-                                    <th class="py-3" style="min-width: 150px;">Student</th>
-                                    <th class="text-end py-3 pe-4">Balance</th>
+                                    <th style="min-width: 200px;">Invoice No.</th>
+                                    <th class="d-none d-sm-table-cell" style="min-width:200px">Date</th>
+                                    <th style="min-width: 150px;">Student</th>
+                                    <th class="text-end">Balance</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="item in info" :key="item.id">
-                                    <td class="py-3 ps-4">
+                                    <td>
                                         <a
                                             :href="'{{ route('invoices.show', '__invoice__') }}'.replace('__invoice__', encodeURIComponent(item.id))"
                                             class="fw-semibold text-dark text-decoration-none"
@@ -324,19 +324,19 @@
                                             @{{ item.invoice_number }}
                                         </a>
                                     </td>
-                                    <td class="d-none d-sm-table-cell py-3">
+                                    <td class="d-none d-sm-table-cell">
                                         <span class="text-muted">
                                             @{{ timeCreated(item.date_created) }}
                                         </span>
                                     </td>
-                                    <td class="py-3">
+                                    <td>
                                         <div class="fw-semibold text-dark">
                                             @{{ item.student?.fname || '' }}
                                             @{{ item.student?.mname || '' }}
                                             @{{ item.student?.sname || 'Unknown student' }}
                                         </div>
                                     </td>
-                                    <td class="text-end py-3 pe-4">
+                                    <td class="text-end">
                                         <span
                                             class="fw-bold"
                                             :class="Number(item.invoice_balance) > 0 ? 'text-danger' : 'text-success'"
@@ -366,24 +366,24 @@
                     </h6>
                 </div>
 
-                <div class="card-body p-3" style="max-height: 500px; overflow-y: auto;">
-                    <div class="table-responsive">
+                <div class="card-body p-0">
+                    <div class="table-responsive p-3">
                         <table id="activitiesTable"
-                            class="table align-middle mb-0 fs-sm">
-                            <thead class="bg-light sticky-top">
+                            class="table table-hover table-vcenter align-middle mb-0 fs-sm">
+                            <thead class="bg-light">
                                 <tr class="text-uppercase fs-xs text-muted tracking-wide">
-                                    <th class="py-3 ps-4" style="width: 55%;">Activity</th>
-                                    <th class="py-3" style="min-width: 100px;">Performed By</th>
-                                    <th class="text-end py-3 pe-4" style="min-width: 200px;">Date &amp; Time</th>
+                                    <th style="width: 55%;">Activity</th>
+                                    <th style="min-width: 100px;">Performed By</th>
+                                    <th class="text-end" style="min-width: 200px;">Date &amp; Time</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($activities as $activity)
                                     <tr>
-                                        <td class="py-3 ps-4">
+                                        <td>
                                             {{ $activity->description }}
                                         </td>
-                                        <td class="py-3">
+                                        <td>
                                             @php
                                                 $causer = $activity->causer;
                                                 $firstName = $causer?->administrator?->fname
@@ -397,7 +397,7 @@
                                                 {{ trim(($firstName ?? '') . ' ' . ($surname ?? '')) ?: 'System' }}
                                             </span>
                                         </td>
-                                        <td class="text-end py-3 pe-4 text-muted"
+                                        <td class="text-end text-muted"
                                             data-order="{{ $activity->created_at?->timestamp ?? 0 }}"
                                             data-bs-toggle="tooltip"
                                             title="{{ $activity->created_at?->diffForHumans() }}">
@@ -439,13 +439,13 @@
                     @php
                         $totalAttendances = $instructors->sum('attendance_count');
                     @endphp
-                    <div class="table-responsive" style="max-height: 24em; overflow: auto;">
-                        <table class="table align-middle mb-0 fs-sm">
-                            <thead class="bg-light sticky-top">
+                    <div class="p-3">
+                        <table id="dashboardInstructorsTable" class="table table-hover table-vcenter align-middle mb-0 fs-sm">
+                            <thead class="bg-light">
                                 <tr class="text-uppercase fs-xs text-muted tracking-wide">
-                                    <th class="py-3 ps-4" style="min-width: 200px;">Instructor</th>
-                                    <th class="text-center py-3">Attendance</th>
-                                    <th class="text-end py-3 pe-4">Bonus</th>
+                                    <th style="min-width: 200px;">Instructor</th>
+                                    <th class="text-center">Attendance</th>
+                                    <th class="text-end">Bonus</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -459,18 +459,18 @@
                                             ?? ($count * $settings->bonus);
                                     @endphp
                                     <tr>
-                                        <td class="py-3 ps-4">
+                                        <td>
                                             <div class="fw-semibold text-dark">
                                                 {{ $instructor->fname }}
                                                 {{ $instructor->sname }}
                                             </div>
                                         </td>
-                                        <td class="text-center py-3">
+                                        <td class="text-center">
                                             <span class="fw-semibold">
                                                 {{ number_format($count) }} ({{ number_format($percentage, 1) }}%)
                                             </span>
                                         </td>
-                                        <td class="text-end fw-semibold py-3 pe-4">
+                                        <td class="text-end fw-semibold">
                                             K{{ number_format($estimatedPay, 2) }}
                                         </td>
                                     </tr>
@@ -485,11 +485,11 @@
                             </tbody>
                             <tfoot class="bg-light">
                                 <tr>
-                                    <th class="py-3 ps-4 fw-bold">Total</th>
-                                    <th class="text-center py-3 fw-bold">
+                                    <th class="fw-bold">Total</th>
+                                    <th class="text-center fw-bold">
                                         {{ number_format($totalAttendances) }}
                                     </th>
-                                    <th class="text-end py-3 pe-4 fw-bold">
+                                    <th class="text-end fw-bold">
                                         K{{ number_format($instructors->sum('estimated_pay'), 2) }}
                                     </th>
                                 </tr>
@@ -530,7 +530,37 @@ document.addEventListener('DOMContentLoaded', function () {
         nextTick
     } = Vue;
 
+    const tableOptions = {
+        scrollCollapse: true,
+        scrollX: true,
+        pageLength: 10,
+        autoWidth: false
+    };
 
+    ['#dashboardStudentsTable', '#dashboardInstructorsTable'].forEach(selector => {
+        if ($.fn.DataTable && $(selector).length) {
+            $(selector).DataTable(tableOptions);
+        }
+    });
+
+    const invoiceTableSelector = '#dashboardInvoicesTable';
+    const destroyInvoicesTable = () => {
+        if ($.fn.DataTable && $.fn.DataTable.isDataTable(invoiceTableSelector)) {
+            $(invoiceTableSelector).DataTable().destroy();
+        }
+    };
+
+    const initializeInvoicesTable = async () => {
+        await nextTick();
+
+        if (
+            $.fn.DataTable
+            && $(invoiceTableSelector).length
+            && !$.fn.DataTable.isDataTable(invoiceTableSelector)
+        ) {
+            $(invoiceTableSelector).DataTable(tableOptions);
+        }
+    };
 
     /*
     |--------------------------------------------------------------------------
@@ -600,6 +630,7 @@ document.addEventListener('DOMContentLoaded', function () {
             };
 
             const loadInvoices = async () => {
+                destroyInvoicesTable();
                 loading.value = true;
 
                 try {
@@ -619,6 +650,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 } finally {
                     loading.value = false;
+                    await initializeInvoicesTable();
                 }
             };
 
@@ -913,6 +945,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if ($.fn.DataTable && $('#activitiesTable').length) {
         $('#activitiesTable').DataTable({
             order: [[2, 'desc']],
+            scrollCollapse: true,
+            scrollX: true,
 
             columnDefs: [
                 {

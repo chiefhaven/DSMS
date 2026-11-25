@@ -583,6 +583,12 @@ class ExpenseController extends Controller
             ], 200);
         }
 
+        if (!$this->isTrnExpenseType($expenseType) && !$this->studentHasVerifiedTrn($student)) {
+            return response()->json([
+                'feedback' => 'error',
+                'message' => 'A verified TRN is required to add this student to non-TRN expenses.'
+            ], 200);
+        }
 
         $allowedClasses = $expenseType->licenceClasses->pluck('class')->implode(', ');
         $studentClass = $student->course->licenceClass->class ?? 'N/A';
@@ -800,6 +806,10 @@ class ExpenseController extends Controller
         );
         $search = $request->get('student');
 
+        $filterByVerifiedTrn = $expenseAccess
+            && $request->boolean('expenseSelection')
+            && !$this->isTrnExpenseTypeId($request->input('expenseGroupType'));
+
         if ($bulkAccess && !$expenseAccess) {
             abort_unless($user->can('view students'), 403);
             $query = Student::readableBy($user);
@@ -814,6 +824,9 @@ class ExpenseController extends Controller
                 $query->where('fname', 'LIKE', "%{$search}%")
                     ->orWhere('mname', 'LIKE', "%{$search}%")
                     ->orWhere('sname', 'LIKE', "%{$search}%");
+            })
+            ->when($filterByVerifiedTrn, function ($query) {
+                $query->whereNotNull('trn')->whereRaw("TRIM(trn) <> ''");
             })
             ->select('id', 'fname', 'mname', 'sname')
             ->get();
@@ -831,6 +844,27 @@ class ExpenseController extends Controller
         });
 
         return response()->json($dataModified);
+    }
+
+    private function isTrnExpenseTypeId(?string $expenseTypeId): bool
+    {
+        if (strcasecmp(trim((string) $expenseTypeId), 'TRN') === 0) {
+            return true;
+        }
+
+        return $this->isTrnExpenseType(
+            $expenseTypeId ? ExpenseType::find($expenseTypeId) : null
+        );
+    }
+
+    private function isTrnExpenseType(?ExpenseType $expenseType): bool
+    {
+        return $expenseType !== null && strcasecmp(trim($expenseType->name), 'TRN') === 0;
+    }
+
+    private function studentHasVerifiedTrn(Student $student): bool
+    {
+        return is_string($student->trn) && trim($student->trn) !== '';
     }
 
 

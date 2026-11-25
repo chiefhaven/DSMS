@@ -21,6 +21,8 @@ use App\Models\TrainingLevel;
 use App\Notifications\StudentCarAssigned;
 use App\Notifications\StudentClassAssignment;
 use App\Notifications\StudentRegistered;
+use App\Notifications\StudentTrnApprovalRequestedNotification;
+use App\Notifications\StudentTrnChangeRejectedNotification;
 use Illuminate\Support\Str;
 use PDF;
 use RealRashid\SweetAlert\Facades\Alert;
@@ -29,6 +31,8 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
 class StudentController extends Controller
@@ -36,10 +40,15 @@ class StudentController extends Controller
     public function __construct()
     {
         $this->middleware('permission:view students')->only(['index', 'fetchStudents', 'fetchInstructorStudents', 'show', 'search']);
+        $this->middleware('permission:view students')->only('trnPicture');
         $this->middleware('permission:create students')->only(['create', 'store']);
         $this->middleware('permission:edit students')->only(['edit', 'update']);
         $this->middleware('permission:delete students')->only('destroy');
         $this->middleware('permission:change student status')->only('updateStudentStatus');
+        $this->middleware('permission:enter student TRN|edit student TRN')->only('updateTrn');
+        $this->middleware('permission:approve student TRN')->only([
+            'trnApprovalQueue', 'trnApprovalPicture', 'approveTrnChange', 'rejectTrnChange',
+        ]);
         $this->middleware('permission:assign students')->only(['assignCar', 'unAssignCar', 'assignClassRoom']);
         $this->middleware('permission:generate student reports')->only(['studentsPDF', 'lessonReport']);
         $this->middleware('permission:generate student letters')->only([
@@ -57,7 +66,7 @@ class StudentController extends Controller
                 $this->readableStudents()->findOrFail($student);
             }
             return $next($request);
-        })->only(['edit', 'update', 'destroy', 'updateStudentStatus', 'assignCar', 'unAssignCar', 'assignClassRoom']);
+        })->only(['edit', 'update', 'destroy', 'updateStudentStatus', 'updateTrn', 'assignCar', 'unAssignCar', 'assignClassRoom']);
         $this->middleware(function ($request, $next) {
             $this->readableStudents()->findOrFail($request->route('id'));
             return $next($request);
@@ -224,6 +233,21 @@ class StudentController extends Controller
                                     data-status=\"" . e($student->status) . "\">
                                         <i class='fas fa-toggle-on me-2'></i> Change status
                                 </button>" : '';
+                $editTrn = '';
+                $trnPermission = filled($student->trn) ? 'edit student TRN' : 'enter student TRN';
+                if (auth()->user()->can($trnPermission)) {
+                    $trnAction = filled($student->trn) ? 'Edit TRN' : 'Enter TRN';
+                    $editTrn = '<button type="button" class="dropdown-item edit-trn-btn"
+                                    data-id="' . e($student->id) . '"
+                                    data-fname="' . e($student->fname) . '"
+                                    data-mname="' . e($student->mname) . '"
+                                    data-sname="' . e($student->sname) . '"
+                                    data-trn="' . e($student->trn) . '"
+                                    data-trn-picture-url="' . e($student->trn_picture ? route('students.trn-picture', ['student' => $student->id]) : '') . '"
+                                    data-bs-toggle="modal" data-bs-target="#editStudentTrnModal">
+                                    <i class="fas fa-id-card me-2"></i> ' . $trnAction . '
+                                </button>';
+                }
                 if (auth()->user()->can('send balance reminders') && ($student->invoice->invoice_balance ?? 0) > 0) {
                     $paymentReminder = '
                         <form method="POST" action="' . url('send-balance-sms', [$student->id, 'Balance']) . '">
@@ -253,7 +277,7 @@ class StudentController extends Controller
                     <div class="dropdown d-inline-block">
                         <button class="btn btn-sm btn-primary rounded-pill px-3 text-nowrap" data-bs-toggle="dropdown"><i class="fa fa-angle-down me-1" aria-hidden="true"></i> Actions</button>
                         <div class="dropdown-menu dropdown-menu-end">
-                            ' . $view . $edit . $delete . $paymentReminder . $changeStatus . '
+                            ' . $view . $edit . $delete . $paymentReminder . $changeStatus . $editTrn . '
                         </div>
                     </div>
                 ';
@@ -484,7 +508,6 @@ class StudentController extends Controller
             'email.required' => 'Email address is required!',
             'email.unique' => 'Email address is already in use',
             'gender.required' => 'The "Gender" field is required!',
-            'trn.unique' => 'TRN must be unique!',
             'date_of_birth.required' => 'Date of birth is required',
             'signature.required' => 'Signature is required',
             'signature.image' => 'Signature must be an image',
@@ -501,7 +524,6 @@ class StudentController extends Controller
             'date_of_birth' => 'required',
             'district' => 'required',
             'phone' => 'required|unique:students',
-            'trn' => 'nullable|unique:students,trn',
             'signature' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ];
 
@@ -533,7 +555,6 @@ class StudentController extends Controller
         $student->mname = $request->input('mname');
         $student->sname = $post['sname'];
         $student->gender = $post['gender'];
-        $student->trn = $request->input('trn');
         $student->phone = $post['phone'];
         $student->address = $post['address'];
         $student->date_of_birth = $post['date_of_birth'];
@@ -679,7 +700,6 @@ class StudentController extends Controller
             'date_of_birth' => 'required',
             'district' => 'required',
             'phone' => 'required',
-            'trn' => 'nullable',
         ], $messages);
 
         $district = havenUtils::selectDistrict($post['district']);
@@ -695,7 +715,6 @@ class StudentController extends Controller
         $student->mname = $request->input('mname', $student->mname);
         $student->sname = $post['sname'];
         $student->gender = $post['gender'];
-        $student->trn = $request->input('trn');
         $student->phone = $post['phone'];
         $student->address = $post['address'];
         $student->date_of_birth = $post['date_of_birth'];
@@ -736,6 +755,406 @@ class StudentController extends Controller
             'message' => 'Student status updated to ' . $validated['status'],
             'status' => $validated['status']
         ]);
+    }
+
+    public function updateTrn(Request $request, $student)
+    {
+        $student = $this->readableStudents()->findOrFail($student);
+        $permission = filled($student->trn) ? 'edit student TRN' : 'enter student TRN';
+        abort_unless($request->user()->can($permission), 403);
+
+        $pendingRequest = DB::table('student_trn_approval_requests')
+            ->where('student_id', $student->getKey())
+            ->where('status', 'pending')
+            ->first();
+        $hasPicture = ($student->trn_picture && Storage::disk('local')->exists($student->trn_picture))
+            || ($pendingRequest && $pendingRequest->picture_path && Storage::disk('local')->exists($pendingRequest->picture_path));
+        $validated = $request->validate([
+            'trn' => [
+                'nullable',
+                'string',
+                'max:255',
+                Rule::unique('students', 'trn')->ignore($student->getKey(), $student->getKeyName()),
+                Rule::unique('student_trn_approval_requests', 'requested_trn')
+                    ->where(fn ($query) => $query->where('status', 'pending')->where('student_id', '!=', $student->getKey())),
+            ],
+            'trn_picture' => [$hasPicture ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+        ], [
+            'trn.unique' => 'This TRN is already assigned or awaiting approval for another student.',
+            'trn_picture.required' => 'A TRN picture is required.',
+        ]);
+
+        $isApprover = $request->user()->can('approve student TRN');
+        $uploadedPicturePath = $request->hasFile('trn_picture')
+            ? $request->file('trn_picture')->store($isApprover ? 'student-trn' : 'student-trn/pending', 'local')
+            : null;
+
+        if ($request->hasFile('trn_picture') && !$uploadedPicturePath) {
+            throw new \RuntimeException('Unable to store the uploaded TRN picture.');
+        }
+
+        if ($isApprover) {
+            try {
+                $pathsToDelete = DB::transaction(function () use ($student, $validated, $uploadedPicturePath, $request) {
+                    $lockedStudent = Student::whereKey($student->getKey())->lockForUpdate()->firstOrFail();
+
+                    return $this->applyApprovedTrn(
+                        $lockedStudent,
+                        $validated['trn'] ?? null,
+                        $uploadedPicturePath,
+                        (string) $request->user()->getKey()
+                    );
+                });
+            } catch (\Throwable $error) {
+                if ($uploadedPicturePath) {
+                    $this->deleteTrnPictureFiles([$uploadedPicturePath]);
+                }
+                throw $error;
+            }
+
+            $this->deleteTrnPictureFiles($pathsToDelete);
+            $student->refresh();
+
+            return response()->json([
+                'message' => 'Student TRN updated and approved successfully.',
+                'trn' => $student->trn,
+                'trn_picture_url' => $student->trn_picture ? route('students.trn-picture', ['student' => $student->id]) : null,
+                'approval_status' => 'approved',
+            ]);
+        }
+
+        $requestId = (string) Str::uuid();
+        try {
+            $pathsToDelete = DB::transaction(function () use ($student, $validated, $uploadedPicturePath, $request, $requestId) {
+                $lockedStudent = Student::whereKey($student->getKey())->lockForUpdate()->firstOrFail();
+                $this->validateTrnAvailability($lockedStudent, $validated['trn'] ?? null);
+                $existingRequest = DB::table('student_trn_approval_requests')
+                    ->where('student_id', $lockedStudent->getKey())
+                    ->where('status', 'pending')
+                    ->lockForUpdate()
+                    ->first();
+                $picturePath = $uploadedPicturePath ?: ($existingRequest->picture_path ?? null);
+                $effectivePicturePath = $picturePath ?: $lockedStudent->trn_picture;
+                if (!$effectivePicturePath || !Storage::disk('local')->exists($effectivePicturePath)) {
+                    Validator::make([], ['trn_picture' => 'required'], [
+                        'trn_picture.required' => 'A TRN picture is required.',
+                    ])->validate();
+                }
+
+                if ($existingRequest) {
+                    DB::table('student_trn_approval_requests')
+                        ->where('id', $existingRequest->id)
+                        ->update([
+                            'status' => 'superseded',
+                            'reviewed_by' => $request->user()->getKey(),
+                            'reviewed_at' => now(),
+                            'picture_path' => null,
+                            'updated_at' => now(),
+                        ]);
+                }
+
+                DB::table('student_trn_approval_requests')->insert([
+                    'id' => $requestId,
+                    'student_id' => $lockedStudent->getKey(),
+                    'requested_trn' => $validated['trn'] ?? null,
+                    'picture_path' => $picturePath,
+                    'requested_by' => $request->user()->getKey(),
+                    'status' => 'pending',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                return $existingRequest && $existingRequest->picture_path && $existingRequest->picture_path !== $picturePath
+                    ? [$existingRequest->picture_path]
+                    : [];
+            });
+        } catch (\Throwable $error) {
+            if ($uploadedPicturePath) {
+                $this->deleteTrnPictureFiles([$uploadedPicturePath]);
+            }
+            throw $error;
+        }
+
+        $this->deleteTrnPictureFiles($pathsToDelete);
+        $this->notifyTrnApprovers($student, $request->user());
+
+        return response()->json([
+            'message' => 'Student TRN change submitted for approval.',
+            'trn' => $student->trn,
+            'trn_picture_url' => $student->trn_picture ? route('students.trn-picture', ['student' => $student->id]) : null,
+            'approval_status' => 'pending',
+        ]);
+    }
+
+    public function trnApprovalQueue()
+    {
+        $approvalRequests = DB::table('student_trn_approval_requests as requests')
+            ->join('students', 'students.id', '=', 'requests.student_id')
+            ->leftJoin('users as requesters', 'requesters.id', '=', 'requests.requested_by')
+            ->where('requests.status', 'pending')
+            ->whereNull('students.deleted_at')
+            ->orderBy('requests.created_at')
+            ->select([
+                'requests.id',
+                'requests.student_id',
+                'requests.requested_trn',
+                'requests.picture_path',
+                'requests.requested_by',
+                'requests.created_at',
+                'students.fname',
+                'students.mname',
+                'students.sname',
+                'students.trn as current_trn',
+                'students.trn_picture as current_picture_path',
+                'requesters.name as requester_name',
+            ])
+            ->paginate(20);
+
+        return view('students.trn-approvals', compact('approvalRequests'));
+    }
+
+    public function trnApprovalPicture($approval)
+    {
+        $approvalRequest = DB::table('student_trn_approval_requests')
+            ->where('id', $approval)
+            ->where('status', 'pending')
+            ->firstOrFail();
+        $student = Student::findOrFail($approvalRequest->student_id);
+        $picturePath = $approvalRequest->picture_path ?: $student->trn_picture;
+        abort_unless($picturePath && Storage::disk('local')->exists($picturePath), 404);
+
+        return Storage::disk('local')->response(
+            $picturePath,
+            basename($picturePath),
+            ['Cache-Control' => 'private, no-store'],
+            'inline'
+        );
+    }
+
+    public function approveTrnChange(Request $request, $approval)
+    {
+        $pathsToDelete = DB::transaction(function () use ($request, $approval) {
+            $approvalRequest = DB::table('student_trn_approval_requests')
+                ->where('id', $approval)
+                ->where('status', 'pending')
+                ->lockForUpdate()
+                ->firstOrFail();
+            $student = Student::whereKey($approvalRequest->student_id)->lockForUpdate()->firstOrFail();
+
+            return $this->applyApprovedTrn(
+                $student,
+                $approvalRequest->requested_trn,
+                $approvalRequest->picture_path,
+                (string) $request->user()->getKey(),
+                $approvalRequest->id
+            );
+        });
+
+        $this->deleteTrnPictureFiles($pathsToDelete);
+
+        return redirect()->route('students.trn-approvals.index')->with('message', 'Student TRN change approved.');
+    }
+
+    public function rejectTrnChange(Request $request, $approval)
+    {
+        $rejectedRequest = DB::transaction(function () use ($request, $approval) {
+            $approvalRequest = DB::table('student_trn_approval_requests')
+                ->where('id', $approval)
+                ->where('status', 'pending')
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            DB::table('student_trn_approval_requests')
+                ->where('id', $approvalRequest->id)
+                ->update([
+                    'status' => 'rejected',
+                    'reviewed_by' => $request->user()->getKey(),
+                    'reviewed_at' => now(),
+                    'picture_path' => null,
+                    'updated_at' => now(),
+                ]);
+
+            return $approvalRequest;
+        });
+
+        if ($rejectedRequest->picture_path) {
+            $this->deleteTrnPictureFiles([$rejectedRequest->picture_path]);
+        }
+        $student = Student::withTrashed()->findOrFail($rejectedRequest->student_id);
+        $this->notifyTrnEditorOfRejection($student, $rejectedRequest->requested_by);
+
+        return redirect()->route('students.trn-approvals.index')->with('message', 'Student TRN change rejected.');
+    }
+
+    private function applyApprovedTrn(
+        Student $student,
+        ?string $trn,
+        ?string $picturePath,
+        string $reviewerId,
+        ?string $approvedRequestId = null
+    ): array {
+        $this->validateTrnAvailability($student, $trn);
+        $pendingRequests = DB::table('student_trn_approval_requests')
+            ->where('student_id', $student->getKey())
+            ->where('status', 'pending')
+            ->lockForUpdate()
+            ->get();
+        $oldPicturePath = $student->trn_picture;
+        $pendingRequestWithPicture = $pendingRequests->first(fn ($pendingRequest) => $pendingRequest->picture_path !== null);
+        $pendingPicturePath = $pendingRequestWithPicture->picture_path ?? null;
+        $effectivePicturePath = $picturePath
+            ?: (($oldPicturePath && Storage::disk('local')->exists($oldPicturePath)) ? $oldPicturePath : $pendingPicturePath);
+        if (!$effectivePicturePath || !Storage::disk('local')->exists($effectivePicturePath)) {
+            Validator::make([], ['trn_picture' => 'required'], [
+                'trn_picture.required' => 'A TRN picture is required before this change can be approved.',
+            ])->validate();
+        }
+
+        $student->trn = $trn;
+        $student->trn_picture = $effectivePicturePath;
+        $student->save();
+
+        foreach ($pendingRequests as $pendingRequest) {
+            $isApprovedRequest = $approvedRequestId && $pendingRequest->id === $approvedRequestId;
+            DB::table('student_trn_approval_requests')
+                ->where('id', $pendingRequest->id)
+                ->update([
+                    'status' => $isApprovedRequest ? 'approved' : 'superseded',
+                    'reviewed_by' => $reviewerId,
+                    'reviewed_at' => now(),
+                    'picture_path' => $isApprovedRequest ? $pendingRequest->picture_path : null,
+                    'updated_at' => now(),
+                ]);
+        }
+
+        if (!$approvedRequestId) {
+            DB::table('student_trn_approval_requests')->insert([
+                'id' => (string) Str::uuid(),
+                'student_id' => $student->getKey(),
+                'requested_trn' => $trn,
+                'picture_path' => $effectivePicturePath,
+                'requested_by' => $reviewerId,
+                'reviewed_by' => $reviewerId,
+                'status' => 'approved',
+                'reviewed_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        $pathsToDelete = [];
+        if ($oldPicturePath && $oldPicturePath !== $effectivePicturePath) {
+            $pathsToDelete[] = $oldPicturePath;
+        }
+        foreach ($pendingRequests as $pendingRequest) {
+            if (
+                $pendingRequest->id !== $approvedRequestId
+                && $pendingRequest->picture_path
+                && $pendingRequest->picture_path !== $effectivePicturePath
+            ) {
+                $pathsToDelete[] = $pendingRequest->picture_path;
+            }
+        }
+
+        return $pathsToDelete;
+    }
+
+    private function validateTrnAvailability(Student $student, ?string $trn): void
+    {
+        Validator::make(['trn' => $trn], [
+            'trn' => [
+                'nullable',
+                'string',
+                'max:255',
+                Rule::unique('students', 'trn')->ignore($student->getKey(), $student->getKeyName()),
+                Rule::unique('student_trn_approval_requests', 'requested_trn')
+                    ->where(fn ($query) => $query->where('status', 'pending')->where('student_id', '!=', $student->getKey())),
+            ],
+        ], [
+            'trn.unique' => 'This TRN is already assigned or awaiting approval for another student.',
+        ])->validate();
+    }
+
+    private function deleteTrnPictureFiles(array $paths): void
+    {
+        foreach (array_unique(array_filter($paths)) as $path) {
+            if (Storage::disk('local')->exists($path) && !Storage::disk('local')->delete($path)) {
+                Log::warning('Unable to remove a replaced or rejected TRN picture.', ['picture_path' => $path]);
+            }
+        }
+    }
+
+    private function notifyTrnApprovers(Student $student, User $requester): void
+    {
+        try {
+            $approvers = User::query()
+                ->permission('approve student TRN')
+                ->where('id', '!=', $requester->getKey())
+                ->get();
+
+            if ($approvers->isEmpty()) {
+                Log::warning('No users with the approve student TRN permission were found.', [
+                    'student_id' => $student->getKey(),
+                ]);
+                return;
+            }
+
+            $notification = new StudentTrnApprovalRequestedNotification(
+                $student,
+                $requester->name ?: 'A staff member'
+            );
+            foreach ($approvers as $approver) {
+                try {
+                    $approver->notify($notification);
+                } catch (\Throwable $exception) {
+                    Log::warning('Student TRN approval notification failed for an approver.', [
+                        'student_id' => $student->getKey(),
+                        'approver_id' => $approver->getKey(),
+                        'error' => $exception->getMessage(),
+                    ]);
+                }
+            }
+        } catch (\Throwable $exception) {
+            Log::warning('Student TRN approval notification failed.', [
+                'student_id' => $student->getKey(),
+                'error' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    private function notifyTrnEditorOfRejection(Student $student, string $requesterId): void
+    {
+        try {
+            $editor = User::find($requesterId);
+            if (!$editor) {
+                Log::warning('Unable to find the TRN change requester for rejection notification.', [
+                    'student_id' => $student->getKey(),
+                    'requester_id' => $requesterId,
+                ]);
+                return;
+            }
+
+            $editor->notify(new StudentTrnChangeRejectedNotification($student));
+        } catch (\Throwable $exception) {
+            Log::warning('Student TRN rejection notification failed.', [
+                'student_id' => $student->getKey(),
+                'requester_id' => $requesterId,
+                'error' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    public function trnPicture($student)
+    {
+        $student = $this->readableStudents()->findOrFail($student);
+        abort_unless($student->trn_picture && Storage::disk('local')->exists($student->trn_picture), 404);
+
+        return Storage::disk('local')->response(
+            $student->trn_picture,
+            basename($student->trn_picture),
+            ['Cache-Control' => 'private, no-store'],
+            'inline'
+        );
     }
 
 

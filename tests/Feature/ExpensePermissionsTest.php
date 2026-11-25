@@ -20,6 +20,7 @@ class ExpensePermissionsTest extends TestCase
             'database.connections.sqlite.database' => ':memory:',
             'cache.default' => 'array',
             'session.driver' => 'array',
+            'app.maintenance.enabled' => false,
         ]);
         (require base_path('vendor/spatie/laravel-permission/database/migrations/create_permission_tables.php.stub'))->up();
         foreach (['superAdmin', 'Super-Admin', 'admin', 'financeAdmin', 'instructor', 'student'] as $name) {
@@ -62,6 +63,7 @@ class ExpensePermissionsTest extends TestCase
             $table->string('fname');
             $table->string('mname')->nullable();
             $table->string('sname');
+            $table->string('trn')->nullable();
             $table->softDeletes();
         });
         Schema::create('expense_student', function (Blueprint $table) {
@@ -190,6 +192,46 @@ class ExpensePermissionsTest extends TestCase
         $role->revokePermissionTo('access management');
         $this->authenticate($role);
         $this->getJson('/expense-student-search?student=Test')->assertForbidden();
+    }
+
+    public function test_expense_student_search_requires_verified_trn_except_for_trn_expenses(): void
+    {
+        $role = Role::create(['name' => 'expense-trn-selector', 'guard_name' => 'web']);
+        $role->givePermissionTo('create expenses');
+        $this->authenticate($role);
+
+        DB::table('expense_types')->insert([
+            ['id' => 'type-trn', 'name' => 'TRN'],
+            ['id' => 'type-theory', 'name' => 'Theory'],
+        ]);
+        DB::table('students')->insert([
+            [
+                'id' => 'student-verified',
+                'course_id' => 'course-1',
+                'fname' => 'Test',
+                'sname' => 'Verified',
+                'trn' => 'TRN-123',
+            ],
+            [
+                'id' => 'student-unverified',
+                'course_id' => 'course-1',
+                'fname' => 'Test',
+                'sname' => 'Unverified',
+                'trn' => null,
+            ],
+        ]);
+
+        $nonTrnResults = $this->getJson('/expense-student-search?student=Test&expenseSelection=1&expenseGroupType=type-theory')
+            ->assertOk()
+            ->json();
+        $this->assertSame(['student-verified'], array_column($nonTrnResults, 'id'));
+
+        $trnResults = $this->getJson('/expense-student-search?student=Test&expenseSelection=1&expenseGroupType=type-trn')
+            ->assertOk()
+            ->json();
+        $this->assertCount(2, $trnResults);
+        $this->assertContains('student-verified', array_column($trnResults, 'id'));
+        $this->assertContains('student-unverified', array_column($trnResults, 'id'));
     }
 
     public function test_migration_preserves_qualified_role_and_direct_grants(): void

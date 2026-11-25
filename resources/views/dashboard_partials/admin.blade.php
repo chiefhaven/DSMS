@@ -31,21 +31,21 @@
                 </div>
             </div>
 
-            <div class="card-body p-0" style="max-height: 30em; overflow-y: auto;">
-                <div class="table-responsive">
-                    <table class="table align-middle mb-0 fs-sm">
-                        <thead class="bg-light sticky-top">
+            <div class="card-body p-0">
+                <div class="table-responsive p-3">
+                    <table id="dashboardStudentsTable" class="table table-hover table-vcenter align-middle mb-0 fs-sm">
+                        <thead class="bg-light">
                             <tr class="text-uppercase fs-xs text-muted tracking-wide">
-                                <th class="text-center py-3" style="width: 70px;">View</th>
-                                <th class="text-center py-3" style="min-width: 70px;">Photo</th>
-                                <th class="py-3" style="min-width: 150px;">Name</th>
-                                <th class="d-none d-sm-table-cell text-center py-3" style="min-width: 180px;">Course</th>
+                                <th class="text-center" style="width: 70px;">View</th>
+                                <th class="text-center" style="min-width: 70px;">Photo</th>
+                                <th style="min-width: 150px;">Name</th>
+                                <th class="d-none d-sm-table-cell text-center" style="min-width: 180px;">Course</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse ($students as $student)
                                 <tr>
-                                    <td class="text-center py-3">
+                                    <td class="text-center">
                                         <a
                                             href="{{ route('students.show', $student->id) }}"
                                             class="btn btn-sm btn-outline-primary rounded-2"
@@ -56,7 +56,7 @@
                                             <i class="fa fa-eye"></i>
                                         </a>
                                     </td>
-                                    <td class="text-center py-3">
+                                    <td class="text-center">
                                         <img
                                             class="rounded-circle border border-2 border-white shadow-sm"
                                             src="{{ asset('media/avatars/avatar2.jpg') }}"
@@ -67,7 +67,7 @@
                                             style="object-fit: cover;"
                                         >
                                     </td>
-                                    <td class="py-3">
+                                    <td>
                                         <div class="fw-semibold text-dark text-uppercase">
                                             {{ $student->fname }} {{ $student->mname }} {{ $student->sname }}
                                         </div>
@@ -75,7 +75,7 @@
                                             {{ $student->user->email ?? 'No email registered' }}
                                         </div>
                                     </td>
-                                    <td class="d-none d-sm-table-cell text-center py-3">
+                                    <td class="d-none d-sm-table-cell text-center">
                                         @if (isset($student->course->name))
                                             <span class="badge rounded-pill bg-primary bg-opacity-10 text-white fw-semibold px-3 py-1">
                                                 {{ $student->course->name }}
@@ -121,6 +121,7 @@
                             data-bs-toggle="tooltip"
                             title="Refresh"
                             aria-label="Refresh invoices"
+                            :disabled="loading"
                             @click="loadInvoices">
                         <i class="fa fa-sync-alt"></i>
                     </button>
@@ -134,35 +135,35 @@
                 </div>
             </div>
 
-            <div class="card-body p-0" style="max-height: 30em; overflow-y: auto;">
+            <div class="card-body p-0">
 
                 <!-- Skeleton Loader -->
-                <div v-if="loading" class="table-responsive">
-                    <table class="table align-middle mb-0 fs-sm">
+                <div v-if="loading" class="table-responsive p-3">
+                    <table class="table table-vcenter align-middle mb-0 fs-sm">
                         <thead class="bg-light">
                             <tr class="text-uppercase fs-xs text-muted tracking-wide">
-                                <th class="text-center py-3" style="width: 70px;">Action</th>
-                                <th class="py-3 ps-4" style="min-width: 200px;">Invoice No.</th>
-                                <th class="d-none d-sm-table-cell py-3" style="min-width:200px">Date</th>
-                                <th class="py-3" style="min-width: 150px;">Student</th>
-                                <th class="text-end py-3 pe-4">Balance</th>
+                                <th class="text-center" style="width: 70px;">Action</th>
+                                <th style="min-width: 200px;">Invoice No.</th>
+                                <th class="d-none d-sm-table-cell" style="min-width:200px">Date</th>
+                                <th style="min-width: 150px;">Student</th>
+                                <th class="text-end">Balance</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="n in 5" :key="'inv-skel-'+n">
-                                <td class="text-center py-3">
+                                <td class="text-center">
                                     <div class="skeleton skeleton-circle mx-auto" style="width: 24px; height: 24px;"></div>
                                 </td>
-                                <td class="py-3 ps-4">
+                                <td>
                                     <div class="skeleton skeleton-text" style="width: 80px;"></div>
                                 </td>
-                                <td class="d-none d-sm-table-cell py-3">
+                                <td class="d-none d-sm-table-cell">
                                     <div class="skeleton skeleton-text" style="width: 100px;"></div>
                                 </td>
-                                <td class="py-3">
+                                <td>
                                     <div class="skeleton skeleton-text" style="width: 140px;"></div>
                                 </td>
-                                <td class="text-end py-3 pe-4">
+                                <td class="text-end">
                                     <div class="skeleton skeleton-text ms-auto" style="width: 70px;"></div>
                                 </td>
                             </tr>
@@ -171,20 +172,20 @@
                 </div>
 
                 <!-- Loaded Invoices -->
-                <div v-else class="table-responsive">
-                    <table class="table align-middle mb-0 fs-sm">
-                        <thead class="bg-light sticky-top">
+                <div v-else class="table-responsive p-3">
+                    <table id="dashboardInvoicesTable" class="table table-hover table-vcenter align-middle mb-0 fs-sm">
+                        <thead class="bg-light">
                             <tr class="text-uppercase fs-xs text-muted tracking-wide">
-                                <th class="text-center py-3" style="width: 70px;">View</th>
-                                <th class="py-3 ps-4" style="min-width: 200px;">Invoice No.</th>
-                                <th class="d-none d-sm-table-cell py-3" style="min-width:200px">Date</th>
-                                <th class="py-3" style="min-width: 150px;">Student</th>
-                                <th class="text-end py-3 pe-4">Balance</th>
+                                <th class="text-center" style="width: 70px;">View</th>
+                                <th style="min-width: 200px;">Invoice No.</th>
+                                <th class="d-none d-sm-table-cell" style="min-width:200px">Date</th>
+                                <th style="min-width: 150px;">Student</th>
+                                <th class="text-end">Balance</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="item in info" :key="item.id">
-                                <td class="text-center py-3">
+                                <td class="text-center">
                                     <a
                                         :href="'{{ route('invoices.show', '__invoice__') }}'.replace('__invoice__', encodeURIComponent(item.id))"
                                         class="btn btn-sm btn-outline-primary rounded-2"
@@ -195,7 +196,7 @@
                                         <i class="fa fa-eye"></i>
                                     </a>
                                 </td>
-                                <td class="py-3 ps-4">
+                                <td>
                                     <a
                                         :href="'{{ route('invoices.show', '__invoice__') }}'.replace('__invoice__', encodeURIComponent(item.id))"
                                         class="fw-semibold text-dark text-decoration-none"
@@ -203,19 +204,19 @@
                                         @{{ item.invoice_number }}
                                     </a>
                                 </td>
-                                <td class="d-none d-sm-table-cell py-3">
+                                <td class="d-none d-sm-table-cell">
                                     <span class="text-muted">
                                         @{{ timeCreated(item.date_created) }}
                                     </span>
                                 </td>
-                                <td class="py-3">
+                                <td>
                                     <div class="fw-semibold text-dark text-uppercase">
                                         @{{ item.student?.fname || '' }}
                                         @{{ item.student?.mname || '' }}
                                         @{{ item.student?.sname || 'Unknown student' }}
                                     </div>
                                 </td>
-                                <td class="text-end py-3 pe-4">
+                                <td class="text-end">
                                     <span
                                         class="fw-bold"
                                         :class="Number(item.invoice_balance) > 0 ? 'text-danger' : 'text-success'"
@@ -240,6 +241,18 @@
 
 </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if ($.fn.DataTable && $('#dashboardStudentsTable').length) {
+        $('#dashboardStudentsTable').DataTable({
+            scrollCollapse: true,
+            scrollX: true,
+            pageLength: 10,
+            autoWidth: false
+        });
+    }
+});
+</script>
 
 {{-- ============================================================
      VUE APPLICATION — Invoices
@@ -248,7 +261,32 @@
 @can('view invoices')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const { createApp, ref, onMounted } = Vue;
+    const { createApp, ref, onMounted, nextTick } = Vue;
+    const invoiceTableSelector = '#dashboardInvoicesTable';
+    const tableOptions = {
+        scrollCollapse: true,
+        scrollX: true,
+        pageLength: 10,
+        autoWidth: false
+    };
+
+    const destroyInvoicesTable = () => {
+        if ($.fn.DataTable && $.fn.DataTable.isDataTable(invoiceTableSelector)) {
+            $(invoiceTableSelector).DataTable().destroy();
+        }
+    };
+
+    const initializeInvoicesTable = async () => {
+        await nextTick();
+
+        if (
+            $.fn.DataTable
+            && $(invoiceTableSelector).length
+            && !$.fn.DataTable.isDataTable(invoiceTableSelector)
+        ) {
+            $(invoiceTableSelector).DataTable(tableOptions);
+        }
+    };
 
     createApp({
         setup() {
@@ -276,6 +314,7 @@ document.addEventListener('DOMContentLoaded', function () {
             };
 
             const loadInvoices = async () => {
+                destroyInvoicesTable();
                 loading.value = true;
 
                 try {
@@ -295,6 +334,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 } finally {
                     loading.value = false;
+                    await initializeInvoicesTable();
                 }
             };
 

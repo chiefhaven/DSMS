@@ -20,6 +20,7 @@ class SettingsPermissionsTest extends TestCase
             'database.connections.sqlite.database' => ':memory:',
             'cache.default' => 'array',
             'session.driver' => 'array',
+            'app.maintenance.enabled' => false,
         ]);
         (require base_path('vendor/spatie/laravel-permission/database/migrations/create_permission_tables.php.stub'))->up();
         foreach (['superAdmin', 'Super-Admin', 'admin', 'financeAdmin', 'instructor', 'student'] as $name) {
@@ -56,6 +57,7 @@ class SettingsPermissionsTest extends TestCase
         $this->postJson('/attendance-time-update', [])->assertForbidden();
         $this->putJson('/invoice-settings', [])->assertForbidden();
         $this->postJson('/invoicesettings-update', [])->assertForbidden();
+        $this->postJson('/settings/maintenance', ['enabled' => '1'])->assertNotFound();
     }
 
     public function test_edit_permissions_are_independent(): void
@@ -67,6 +69,28 @@ class SettingsPermissionsTest extends TestCase
         $this->putJson('/settings', [])->assertUnprocessable();
         $this->postJson('/attendance-time-update', [])->assertForbidden();
         $this->putJson('/invoice-settings', [])->assertForbidden();
+    }
+
+    public function test_maintenance_mode_blocks_regular_users_but_allows_system_managers(): void
+    {
+        $reader = Role::create(['name' => 'maintenance-reader', 'guard_name' => 'web']);
+        $reader->givePermissionTo('view settings');
+        $manager = Role::create(['name' => 'maintenance-manager', 'guard_name' => 'web']);
+        $manager->givePermissionTo(['view settings', 'manage system']);
+
+        config(['app.maintenance.enabled' => true]);
+
+        $this->authenticate('maintenance-reader');
+        $this->get('/settings')
+            ->assertStatus(503)
+            ->assertSee('MBIRA DSMS')
+            ->assertSee('Maintenance in progress')
+            ->assertDontSee('Go home')
+            ->assertDontSee('Sign in');
+        $this->getJson('/api/student-mbira-version')->assertStatus(503);
+
+        $this->authenticate('maintenance-manager');
+        $this->get('/settings')->assertOk();
     }
 
     public function test_migration_preserves_existing_administration_grants(): void
