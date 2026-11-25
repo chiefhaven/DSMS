@@ -74,6 +74,11 @@ class Student extends Model
         return $this->hasMany(Attendance::class);
     }
 
+    public function tickets()
+    {
+        return $this->hasMany(StudentTicket::class);
+    }
+
     public function District()
     {
        return $this->belongsTo(District::class);

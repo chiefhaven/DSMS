@@ -34,7 +34,17 @@ class HomeController extends Controller
         $user = Auth::user();
 
         if ($user->hasRole('student') && !$user->hasRole('instructor') && !$user->can('access management')) {
-            return view('dashboard', ['title' => 'Dashboard']);
+            $student = $user->Student;
+            $openTicketStatuses = ['open', 'in_progress', 'waiting_on_student'];
+            $student?->loadMissing(['Course', 'Invoice']);
+
+            return view('dashboard', [
+                'title' => 'Dashboard',
+                'student' => $student,
+                'studentTicketCount' => $student?->tickets()->count() ?? 0,
+                'openStudentTicketCount' => $student?->tickets()->whereIn('status', $openTicketStatuses)->count() ?? 0,
+                'studentAttendanceCount' => $student?->attendance()->count() ?? 0,
+            ]);
         }
 
         $settings = Setting::findOrFail(1);

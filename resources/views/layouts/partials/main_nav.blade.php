@@ -5,6 +5,8 @@
     </script>
     @php
         $isDashboardActive = request()->routeIs('dashboard.home') || request()->is('/');
+        $isStudentTicketsActive = request()->routeIs('student.tickets.*');
+        $isAdminTicketsActive = request()->routeIs('admin.tickets.*');
 
         $isStudentsMenuActive = request()->is('students*') || request()->is('invoices*') || request()->is('payments*');
         $isStudentsActive = request()->is('students') || request()->is('students/*');
@@ -60,6 +62,26 @@
                 <span class="nav-main-link-name">Dashboard</span>
             </a>
         </li>
+
+        @role('student')
+            @can('view student tickets')
+                <li>
+                    <a class="nav-main-link {{ $isStudentTicketsActive ? 'active' : '' }}" href="{{ route('student.tickets.index') }}">
+                        <i class="nav-main-link-icon fa fa-life-ring"></i>
+                        <span class="nav-main-link-name">My tickets</span>
+                    </a>
+                </li>
+            @endcan
+        @endrole
+
+        @canany(['view all student tickets', 'manage student tickets'])
+            <li>
+                <a class="nav-main-link {{ $isAdminTicketsActive ? 'active' : '' }}" href="{{ route('admin.tickets.index') }}">
+                    <i class="nav-main-link-icon fa fa-ticket-alt"></i>
+                    <span class="nav-main-link-name">Student tickets</span>
+                </a>
+            </li>
+        @endcan
 
         {{-- Students --}}
         @canany(['view students', 'view invoices', 'view fee payments'])

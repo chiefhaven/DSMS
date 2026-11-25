@@ -197,10 +197,61 @@ class RoleManagementTest extends TestCase
         (new AccessPermissionsSeeder())->run();
 
         $this->assertTrue(Role::findByName('admin')->hasPermissionTo('manage administration'));
+        $this->assertTrue(Role::findByName('admin')->hasPermissionTo('manage student tickets'));
+        foreach ([
+            'view all student tickets',
+            'assign student tickets',
+            'reply to student tickets',
+            'close student tickets',
+            'reopen student tickets',
+        ] as $permission) {
+            $this->assertTrue(Role::findByName('admin')->hasPermissionTo($permission));
+        }
+        $this->assertTrue(Role::findByName('student')->hasPermissionTo('create student tickets'));
         $this->assertTrue(Role::findByName('financeAdmin')->hasPermissionTo('manage finance'));
         $this->assertTrue(Role::findByName('instructor')->hasPermissionTo('manage operations'));
         $this->assertTrue(Role::findByName('student')->hasPermissionTo('access portal'));
         $this->assertTrue(Role::findByName('superAdmin')->hasPermissionTo('manage system'));
+
+        foreach ([
+            'view hr departments',
+            'manage hr departments',
+            'view designations',
+            'manage designations',
+            'view salary grades',
+            'manage salary grades',
+        ] as $permission) {
+            Permission::findOrCreate($permission, 'web');
+        }
+
+        $groups = app(RoleController::class)->create()->getData()['permissionGroups'];
+        $groupNames = $groups->keys()->all();
+        $sortedGroupNames = $groupNames;
+        sort($sortedGroupNames, SORT_NATURAL | SORT_FLAG_CASE);
+        $this->assertSame($sortedGroupNames, $groupNames);
+        $this->assertContains('manage student tickets', $groups->get('Student tickets')->all());
+        foreach ([
+            'view student tickets',
+            'view all student tickets',
+            'create student tickets',
+            'assign student tickets',
+            'reply to student tickets',
+            'close student tickets',
+            'reopen student tickets',
+        ] as $permission) {
+            $this->assertContains($permission, $groups->get('Student tickets')->all());
+        }
+        $this->assertContains('view all students', $groups->get('Students')->all());
+        $this->assertContains('approve student TRN', $groups->get('Students')->all());
+        $this->assertContains('view bulk attendances', $groups->get('Attendance')->all());
+        $this->assertContains('view payroll', $groups->get('HR & Payroll')->all());
+        $this->assertContains('view leaves', $groups->get('HR & Payroll')->all());
+        $this->assertContains('manage hr departments', $groups->get('HR & Payroll')->all());
+        $this->assertContains('manage designations', $groups->get('HR & Payroll')->all());
+        $this->assertContains('manage salary grades', $groups->get('HR & Payroll')->all());
+        $groupedPermissions = $groups->flatten()->all();
+        $this->assertCount(Permission::where('guard_name', 'web')->count(), $groupedPermissions);
+        $this->assertCount(count(array_unique($groupedPermissions)), $groupedPermissions);
     }
 
     public function test_super_admin_role_cannot_be_deleted(): void

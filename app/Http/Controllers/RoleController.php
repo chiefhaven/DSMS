@@ -11,6 +11,24 @@ use Spatie\Permission\Models\Role;
 class RoleController extends Controller
 {
     private const PROTECTED_ROLES = ['superAdmin'];
+    private const PERMISSION_GROUP_ORDER = [
+        'Student tickets',
+        'Students',
+        'Student payments',
+        'Attendance',
+        'Expenses',
+        'Instructors',
+        'Administrators',
+        'Roles & permissions',
+        'School & lessons',
+        'Fleet',
+        'Schedules',
+        'Finance',
+        'HR & Payroll',
+        'Communications',
+        'Settings',
+        'System access',
+    ];
 
     public function __construct()
     {
@@ -88,8 +106,51 @@ class RoleController extends Controller
 
     private function permissionGroups()
     {
-        return Permission::where('guard_name', 'web')->orderBy('name')->pluck('name')->groupBy(
-            fn ($name) => ucfirst(trim(substr($name, (int) strpos($name, ' '))))
+        $groups = Permission::where('guard_name', 'web')->orderBy('name')->pluck('name')->groupBy(
+            fn ($name) => $this->permissionGroup($name)
         );
+
+        $orderedGroups = collect();
+        foreach (self::PERMISSION_GROUP_ORDER as $group) {
+            if ($groups->has($group)) {
+                $orderedGroups->put($group, $groups->get($group));
+            }
+        }
+
+        return $orderedGroups->union($groups)->sortKeys(SORT_NATURAL | SORT_FLAG_CASE);
+    }
+
+    private function permissionGroup(string $permission): string
+    {
+        $permission = strtolower($permission);
+
+        return match (true) {
+            str_contains($permission, 'student ticket') => 'Student tickets',
+            str_contains($permission, 'student') => 'Students',
+            str_contains($permission, 'attendance') => 'Attendance',
+            str_contains($permission, 'expense') => 'Expenses',
+            str_contains($permission, 'invoice'), str_contains($permission, 'fee payment') => 'Student payments',
+            str_contains($permission, 'instructor') => 'Instructors',
+            str_contains($permission, 'administrator') => 'Administrators',
+            str_contains($permission, 'roles') => 'Roles & permissions',
+            str_contains($permission, 'course'),
+            str_contains($permission, 'lesson'),
+            str_contains($permission, 'classroom'),
+            str_contains($permission, 'driving license') => 'School & lessons',
+            str_contains($permission, 'fleet'),
+            str_contains($permission, 'vehicle location') => 'Fleet',
+            str_contains($permission, 'schedule') => 'Schedules',
+            str_contains($permission, 'finance') => 'Finance',
+            str_contains($permission, 'payroll'),
+            str_contains($permission, 'payslip'),
+            str_contains($permission, 'leave'),
+            str_contains($permission, 'designation'),
+            str_contains($permission, 'salary grade'),
+            str_contains($permission, 'hr department') => 'HR & Payroll',
+            str_contains($permission, 'announcement'),
+            str_contains($permission, 'notification template') => 'Communications',
+            str_contains($permission, 'setting') => 'Settings',
+            default => 'System access',
+        };
     }
 }

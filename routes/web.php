@@ -325,3 +325,4 @@ require __DIR__.'/student-resources.php';
 require __DIR__.'/operations-resources.php';
 require __DIR__.'/teaching-resources.php';
 require __DIR__.'/management-resources.php';
+require __DIR__.'/ticketing-resources.php';
