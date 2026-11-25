@@ -13,34 +13,7 @@
             <div class="alert alert-success" role="status">{{ session('success') }}</div>
         @endif
 
-        <div class="row row-cols-2 row-cols-md-3 row-cols-xl-5 g-3 mb-4">
-            @foreach ([
-                ['label' => 'Total tickets', 'value' => $ticketSummary['total'], 'icon' => 'fa-ticket-alt', 'color' => 'primary'],
-                ['label' => 'Open', 'value' => $ticketSummary['open'], 'icon' => 'fa-envelope-open', 'color' => 'info'],
-                ['label' => 'In progress', 'value' => $ticketSummary['in_progress'], 'icon' => 'fa-spinner', 'color' => 'warning'],
-                ['label' => 'Waiting on student', 'value' => $ticketSummary['waiting_on_student'], 'icon' => 'fa-clock', 'color' => 'secondary'],
-                ['label' => 'Resolved / closed', 'value' => $ticketSummary['completed'], 'icon' => 'fa-check-circle', 'color' => 'success'],
-            ] as $summary)
-                <div class="col">
-                    <div class="card border-0 shadow-sm rounded-3 h-100 stat-card">
-                        <div class="card-body p-3 d-flex align-items-center">
-                            <div class="flex-shrink-0 me-3">
-                                <div class="rounded-circle bg-{{ $summary['color'] }} d-flex align-items-center justify-content-center"
-                                     style="width: 48px; height: 48px;">
-                                    <i class="fa {{ $summary['icon'] }} {{ in_array($summary['color'], ['warning', 'info'], true) ? 'text-dark' : 'text-white' }}" aria-hidden="true"></i>
-                                </div>
-                            </div>
-                            <div class="flex-grow-1 text-end overflow-hidden">
-                                <div class="fw-bold fs-5 text-dark lh-1 mb-1">{{ number_format($summary['value']) }}</div>
-                                <div class="fs-xs text-muted text-truncate text-uppercase tracking-wide">{{ $summary['label'] }}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-
-        <div class="block block-rounded block-bordered">
+        <div class="block block-rounded block-bordered mb-4">
             <div class="block-content block-content-full">
                 <div class="row g-2 align-items-end">
                     <div class="col-sm-6 col-md-4 col-xl-3">
@@ -62,7 +35,38 @@
                     </div>
                 </div>
             </div>
-            <div class="block-content block-content-full pt-0">
+        </div>
+
+        <div class="row row-cols-2 row-cols-md-3 row-cols-xl-6 g-3 mb-4">
+            @foreach ([
+                ['key' => 'total', 'label' => 'Total tickets', 'value' => $ticketSummary['total'], 'icon' => 'fa-ticket-alt', 'color' => 'primary'],
+                ['key' => 'open', 'label' => 'Open', 'value' => $ticketSummary['open'], 'icon' => 'fa-envelope-open', 'color' => 'info'],
+                ['key' => 'in_progress', 'label' => 'In progress', 'value' => $ticketSummary['in_progress'], 'icon' => 'fa-spinner', 'color' => 'warning'],
+                ['key' => 'waiting_on_student', 'label' => 'Waiting on student', 'value' => $ticketSummary['waiting_on_student'], 'icon' => 'fa-clock', 'color' => 'secondary'],
+                ['key' => 'completed', 'label' => 'Resolved / closed', 'value' => $ticketSummary['completed'], 'icon' => 'fa-check-circle', 'color' => 'success'],
+                ['key' => 'resolve_rate', 'label' => 'Resolve rate', 'value' => $ticketSummary['resolve_rate'], 'icon' => 'fa-percent', 'color' => 'primary'],
+            ] as $summary)
+                <div class="col">
+                    <div class="card border-0 shadow-sm rounded-3 h-100 stat-card">
+                        <div class="card-body p-3 d-flex align-items-center">
+                            <div class="flex-shrink-0 me-3">
+                                <div class="rounded-circle bg-{{ $summary['color'] }} d-flex align-items-center justify-content-center"
+                                     style="width: 48px; height: 48px;">
+                                    <i class="fa {{ $summary['icon'] }} {{ in_array($summary['color'], ['warning', 'info'], true) ? 'text-dark' : 'text-white' }}" aria-hidden="true"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 text-end overflow-hidden">
+                                <div class="fw-bold fs-5 text-dark lh-1 mb-1" data-ticket-summary="{{ $summary['key'] }}">{{ number_format($summary['value']) }}{{ $summary['key'] === 'resolve_rate' ? '%' : '' }}</div>
+                                <div class="fs-xs text-muted text-truncate text-uppercase tracking-wide">{{ $summary['label'] }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        <div class="block block-rounded block-bordered">
+            <div class="block-content block-content-full">
                 <div id="ticket-table-error" class="alert alert-danger d-none" role="alert"></div>
                 <table id="student-tickets-table" class="table table-bordered table-striped table-vcenter mb-0 w-100">
                     <thead>
@@ -108,6 +112,13 @@
                     },
                     dataSrc: function (response) {
                         $('#ticket-table-error').addClass('d-none').text('');
+                        Object.entries(response.ticketSummary || {}).forEach(([key, value]) => {
+                            const summary = document.querySelector(`[data-ticket-summary="${key}"]`);
+                            if (summary) {
+                                const formattedValue = Number(value).toLocaleString('en-US');
+                                summary.textContent = key === 'resolve_rate' ? `${formattedValue}%` : formattedValue;
+                            }
+                        });
                         return response.data;
                     }
                 },

@@ -190,7 +190,7 @@ class StudentTicketWorkflowTest extends TestCase
 
         $this->actingAs($student)->get(route('student.tickets.show', $ticket))->assertNotFound();
         $this->get(route('tickets.attachments.download', $attachment))->assertNotFound();
-        $this->get(route('admin.tickets.index'))->assertForbidden();
+        $this->get(route('admin.tickets.index'))->assertNotFound();
         $this->assertNotSame($studentProfile->id, $otherProfile->id);
     }
 
@@ -282,17 +282,69 @@ class StudentTicketWorkflowTest extends TestCase
             ]);
         }
 
-        $this->actingAs($admin)
-            ->get(route('admin.tickets.index'))
+        $response = $this->actingAs($admin)
+            ->get(route('admin.tickets.index'));
+
+        $response
             ->assertOk()
             ->assertSee('Total tickets')
             ->assertSee('Waiting on student')
+            ->assertSee('Resolve rate')
             ->assertViewHas('ticketSummary', [
                 'total' => 5,
                 'open' => 1,
                 'in_progress' => 1,
                 'waiting_on_student' => 1,
                 'completed' => 2,
+                'resolve_rate' => 40,
+            ]);
+        $html = $response->getContent();
+        $this->assertTrue(
+            strpos($html, 'id="ticket-status-filter"') < strpos($html, 'Total tickets')
+        );
+    }
+
+    public function test_ticket_summary_in_ajax_response_respects_created_date_filter(): void
+    {
+        [, $studentProfile] = $this->createStudent('Summary Date Student');
+        [$admin] = $this->createUserWithRole('Admin', 'admin');
+
+        $olderTicket = StudentTicket::query()->create([
+            'student_id' => $studentProfile->id,
+            'category' => 'general',
+            'subject' => 'Older ticket',
+            'status' => 'open',
+        ]);
+        $recentTicket = StudentTicket::query()->create([
+            'student_id' => $studentProfile->id,
+            'category' => 'general',
+            'subject' => 'Recent ticket',
+            'status' => 'closed',
+        ]);
+        DB::table('student_tickets')->where('id', $olderTicket->id)->update([
+            'created_at' => now()->subDays(10),
+            'updated_at' => now()->subDays(10),
+        ]);
+        DB::table('student_tickets')->where('id', $recentTicket->id)->update([
+            'created_at' => now()->subDays(3),
+            'updated_at' => now()->subDays(3),
+        ]);
+
+        $this->actingAs($admin)->getJson(route('admin.tickets.index', [
+            'draw' => 1,
+            'start' => 0,
+            'length' => 10,
+            'date_from' => now()->subDays(7)->toDateString(),
+            'date_to' => now()->toDateString(),
+        ]), ['HTTP_X-Requested-With' => 'XMLHttpRequest'])
+            ->assertOk()
+            ->assertJsonPath('ticketSummary', [
+                'total' => 1,
+                'open' => 0,
+                'in_progress' => 0,
+                'waiting_on_student' => 0,
+                'completed' => 1,
+                'resolve_rate' => 100,
             ]);
     }
 
@@ -307,11 +359,13 @@ class StudentTicketWorkflowTest extends TestCase
             ['subject' => 'Older ticket', 'date' => $olderDate],
             ['subject' => 'Recent ticket', 'date' => $recentDate],
         ] as $ticketData) {
-            StudentTicket::query()->create([
+            $ticket = StudentTicket::query()->create([
                 'student_id' => $studentProfile->id,
                 'category' => 'general',
                 'subject' => $ticketData['subject'],
                 'status' => 'open',
+            ]);
+            DB::table('student_tickets')->where('id', $ticket->id)->update([
                 'created_at' => $ticketData['date'],
                 'updated_at' => $ticketData['date'],
             ]);
@@ -327,9 +381,23 @@ class StudentTicketWorkflowTest extends TestCase
         ]), ['HTTP_X-Requested-With' => 'XMLHttpRequest']);
 
         $response->assertOk()
-            ->assertJsonPath('recordsTotal', 2)
+            ->assertJsonPath('recordsTotal', 1)
             ->assertJsonPath('recordsFiltered', 1)
             ->assertJsonPath('data.0.subject', 'Recent ticket');
+
+        $this->get(route('admin.tickets.index', [
+            'date_from' => now()->subDays(7)->toDateString(),
+            'date_to' => now()->toDateString(),
+        ]))
+            ->assertOk()
+            ->assertViewHas('ticketSummary', [
+                'total' => 1,
+                'open' => 1,
+                'in_progress' => 0,
+                'waiting_on_student' => 0,
+                'completed' => 0,
+                'resolve_rate' => 0,
+            ]);
 
         $this->getJson(route('admin.tickets.index', [
             'date_from' => now()->toDateString(),

@@ -129,27 +129,38 @@ class AdminStudentTicketController extends Controller
                 })
                 ->only(['ticket', 'student', 'subject', 'category', 'status', 'assigned_to', 'updated_at', 'actions'])
                 ->rawColumns(['status', 'actions'])
+                ->with('ticketSummary', $this->ticketSummary($filters))
                 ->toJson();
         }
-
-        $statusCounts = StudentTicket::query()
-            ->selectRaw('status, COUNT(*) as aggregate')
-            ->groupBy('status')
-            ->pluck('aggregate', 'status');
 
         return view('tickets.admin.index', [
             'statuses' => StudentTicket::STATUSES,
             'selectedStatus' => $filters['status'] ?? '',
             'selectedDateFrom' => $filters['date_from'] ?? '',
             'selectedDateTo' => $filters['date_to'] ?? '',
-            'ticketSummary' => [
-                'total' => (int) $statusCounts->sum(),
-                'open' => (int) $statusCounts->get('open', 0),
-                'in_progress' => (int) $statusCounts->get('in_progress', 0),
-                'waiting_on_student' => (int) $statusCounts->get('waiting_on_student', 0),
-                'completed' => (int) $statusCounts->get('resolved', 0) + (int) $statusCounts->get('closed', 0),
-            ],
+            'ticketSummary' => $this->ticketSummary($filters),
         ]);
+    }
+
+    private function ticketSummary(array $filters): array
+    {
+        $query = StudentTicket::query()
+            ->when($filters['date_from'] ?? null, fn ($query, $date) => $query->whereDate('created_at', '>=', $date))
+            ->when($filters['date_to'] ?? null, fn ($query, $date) => $query->whereDate('created_at', '<=', $date));
+        $statusCounts = $query->selectRaw('status, COUNT(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+        $total = (int) $statusCounts->sum();
+        $completed = (int) $statusCounts->get('resolved', 0) + (int) $statusCounts->get('closed', 0);
+
+        return [
+            'total' => $total,
+            'open' => (int) $statusCounts->get('open', 0),
+            'in_progress' => (int) $statusCounts->get('in_progress', 0),
+            'waiting_on_student' => (int) $statusCounts->get('waiting_on_student', 0),
+            'completed' => $completed,
+            'resolve_rate' => $total === 0 ? 0 : (int) round($completed / $total * 100),
+        ];
     }
 
     public function show(StudentTicket $ticket): View
