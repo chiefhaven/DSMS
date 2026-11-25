@@ -5,9 +5,11 @@ namespace Tests\Feature;
 use App\Models\StudentTicket;
 use App\Models\User;
 use App\Notifications\StudentTicketNotification;
+use App\Services\StudentTicketNotificationService;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -190,6 +192,41 @@ class StudentTicketWorkflowTest extends TestCase
         $this->get(route('tickets.attachments.download', $attachment))->assertNotFound();
         $this->get(route('admin.tickets.index'))->assertForbidden();
         $this->assertNotSame($studentProfile->id, $otherProfile->id);
+    }
+
+    public function test_ticket_notification_email_failure_is_logged_without_failing_database_notification(): void
+    {
+        [, $studentProfile] = $this->createStudent('Taylor Student');
+        [$admin] = $this->createUserWithRole('Admin', 'admin');
+        $ticket = StudentTicket::query()->create([
+            'student_id' => $studentProfile->id,
+            'category' => 'general',
+            'subject' => 'Need help',
+            'status' => 'open',
+        ]);
+        $mailException = new \RuntimeException('SMTP unavailable');
+
+        Notification::shouldReceive('sendNow')
+            ->once()
+            ->with($admin, \Mockery::type(StudentTicketNotification::class), ['database']);
+        Notification::shouldReceive('sendNow')
+            ->once()
+            ->with($admin, \Mockery::type(StudentTicketNotification::class), ['mail'])
+            ->andThrow($mailException);
+        Log::shouldReceive('error')
+            ->once()
+            ->with('Ticket notification email failed.', \Mockery::on(function (array $context) use ($ticket, $admin, $mailException) {
+                return $context['ticket_id'] === $ticket->id
+                    && $context['recipient_id'] === $admin->id
+                    && $context['exception'] === $mailException;
+            }));
+
+        app(StudentTicketNotificationService::class)->notifyAssignee(
+            $admin,
+            $ticket,
+            'Ticket assigned',
+            'You have been assigned this ticket.'
+        );
     }
 
     public function test_admin_ticket_list_supports_server_side_datatables_search_and_status_filter(): void

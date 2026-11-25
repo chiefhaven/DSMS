@@ -5,6 +5,9 @@ namespace App\Services;
 use App\Models\StudentTicket;
 use App\Models\User;
 use App\Notifications\StudentTicketNotification;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
+use Throwable;
 
 class StudentTicketNotificationService
 {
@@ -47,11 +50,27 @@ class StudentTicketNotificationService
         string $body,
         string $route
     ): void {
-        $recipient->notify(new StudentTicketNotification(
+        $notification = new StudentTicketNotification(
             $title,
             $body,
             route($route, $ticket),
             $ticket->id
-        ));
+        );
+
+        Notification::sendNow($recipient, $notification, ['database']);
+
+        if (!$recipient->email) {
+            return;
+        }
+
+        try {
+            Notification::sendNow($recipient, $notification, ['mail']);
+        } catch (Throwable $exception) {
+            Log::error('Ticket notification email failed.', [
+                'ticket_id' => $ticket->id,
+                'recipient_id' => $recipient->id,
+                'exception' => $exception,
+            ]);
+        }
     }
 }
