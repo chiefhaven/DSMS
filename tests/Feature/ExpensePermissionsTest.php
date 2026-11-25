@@ -234,6 +234,51 @@ class ExpensePermissionsTest extends TestCase
         $this->assertContains('student-unverified', array_column($trnResults, 'id'));
     }
 
+    public function test_check_student_trn_message_names_the_selected_expense_type(): void
+    {
+        $role = Role::create(['name' => 'expense-trn-message-selector', 'guard_name' => 'web']);
+        $role->givePermissionTo('create expenses');
+        $this->authenticate($role);
+
+        Schema::create('invoices', function (Blueprint $table) {
+            $table->id();
+            $table->string('student_id');
+            $table->softDeletes();
+        });
+        Schema::create('attendances', function (Blueprint $table) {
+            $table->id();
+            $table->string('student_id');
+            $table->softDeletes();
+        });
+
+        DB::table('expense_types')->insert([
+            'id' => 'type-theory',
+            'name' => 'Theory',
+        ]);
+        DB::table('expense_type_options')->insert([
+            'id' => 'option-theory',
+            'expense_type_id' => 'type-theory',
+        ]);
+        DB::table('students')->insert([
+            'id' => 'student-unverified',
+            'course_id' => 'course-1',
+            'fname' => 'Test',
+            'sname' => 'Unverified',
+            'trn' => null,
+        ]);
+        DB::table('invoices')->insert([
+            'student_id' => 'student-unverified',
+        ]);
+
+        $this->postJson('/checkStudent', [
+            'student' => 'student-unverified',
+            'expenseTypesOption' => 'option-theory',
+        ])->assertOk()->assertJson([
+            'feedback' => 'error',
+            'message' => 'A verified TRN is required to add this student to Theory expenses.',
+        ]);
+    }
+
     public function test_migration_preserves_qualified_role_and_direct_grants(): void
     {
         $role = Role::create(['name' => 'legacy-expense-manager', 'guard_name' => 'web']);

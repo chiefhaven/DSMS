@@ -586,7 +586,7 @@ class ExpenseController extends Controller
         if (!$this->isTrnExpenseType($expenseType) && !$this->studentHasVerifiedTrn($student)) {
             return response()->json([
                 'feedback' => 'error',
-                'message' => 'A verified TRN is required to add this student to non-TRN expenses.'
+                'message' => "A verified TRN is required to add this student to {$expenseType->name} expenses."
             ], 200);
         }
 
