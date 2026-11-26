@@ -50,68 +50,66 @@
      data-open-on-load="{{ $openFormOnLoad ? 'true' : 'false' }}"
      data-error-step="{{ $errorStep }}">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="block block-rounded block-themed block-transparent mb-0">
-                <div class="block-header bg-primary">
-                    <h3 class="block-title text-white" id="{{ $modalId }}-title">Edit vehicle details</h3>
-                    <div class="block-options">
-                        <button type="button" class="btn-block-option text-white" data-bs-dismiss="modal" aria-label="Close">
-                            <i class="fa fa-times" aria-hidden="true"></i>
-                        </button>
-                    </div>
+        <form class="modal-content border-0 shadow-lg block block-rounded block-themed mb-0"
+              method="POST" action="{{ route('my-vehicle.store', $fleet) }}" enctype="multipart/form-data">
+            <div class="block-header bg-primary">
+                <h3 class="block-title text-white" id="{{ $modalId }}-title">Edit vehicle details</h3>
+                <div class="block-options">
+                    <button type="button" class="btn-block-option text-white" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="fa fa-times" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+
+            @csrf
+            <input type="hidden" name="fleet_id" value="{{ $fleet->getKey() }}">
+            <div class="modal-body block-content py-3 px-4">
+                <div class="fs-sm text-muted mb-3">{{ $fleet->car_brand_model }} · {{ $fleet->car_registration_number }}</div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-semibold" data-fleet-step-title>Step 1 of 4</span>
+                    <span class="text-muted fs-sm">Supporting photos are required</span>
+                </div>
+                <div class="progress mb-4" role="progressbar" aria-label="Vehicle update progress" aria-valuemin="1" aria-valuemax="4" aria-valuenow="1" style="height: 5px;">
+                    <div class="progress-bar" data-fleet-progress style="width: 25%;"></div>
                 </div>
 
-                <form method="POST" action="{{ route('my-vehicle.store', $fleet) }}" enctype="multipart/form-data">
-                    @csrf
-                    <input type="hidden" name="fleet_id" value="{{ $fleet->getKey() }}">
-                    <div class="block-content py-3 px-4">
-                        <div class="fs-sm text-muted mb-3">{{ $fleet->car_brand_model }} · {{ $fleet->car_registration_number }}</div>
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="fw-semibold" data-fleet-step-title>Step 1 of 4</span>
-                            <span class="text-muted fs-sm">Supporting photos are required</span>
-                        </div>
-                        <div class="progress mb-4" role="progressbar" aria-label="Vehicle update progress" aria-valuemin="1" aria-valuemax="4" aria-valuenow="1" style="height: 5px;">
-                            <div class="progress-bar" data-fleet-progress style="width: 25%;"></div>
-                        </div>
+                @if ($errors->has('fleet'))
+                    <div class="alert alert-danger" role="alert">{{ $errors->first('fleet') }}</div>
+                @endif
 
-                        @if ($errors->has('fleet'))
-                            <div class="alert alert-danger" role="alert">{{ $errors->first('fleet') }}</div>
-                        @endif
-
-                        <div data-fleet-step="0">
-                            <h3 class="h5 mb-1">Current odometer</h3>
-                            <p class="text-muted fs-sm mb-3">Enter the vehicle's current odometer reading.</p>
-                            <label class="form-label" for="odometer-{{ $fleet->getKey() }}">Current odometer (km)</label>
-                            <input class="form-control @error('odometer_km') is-invalid @enderror"
-                                   id="odometer-{{ $fleet->getKey() }}" name="odometer_km" type="number" min="0" step="1"
-                                   value="{{ old('odometer_km', $currentOdometerKm ?? $fleet->odometer_km) }}" data-step-required required>
-                            @error('odometer_km')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                            <div class="mt-3">
-                                <label class="form-label" for="odometer-reading-date-{{ $fleet->getKey() }}">Odometer reading date</label>
-                                <input class="form-control js-datepicker @error('odometer_reading_date') is-invalid @enderror"
-                                       id="odometer-reading-date-{{ $fleet->getKey() }}" name="odometer_reading_date" type="text"
-                                       placeholder="YYYY-MM-DD" autocomplete="off" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}"
-                                       value="{{ old('odometer_reading_date', now()->format('Y-m-d')) }}" data-step-required required>
-                                <div class="form-text">The date this odometer reading was recorded. GPS-tracked distance after this date is added automatically.</div>
-                                @error('odometer_reading_date')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="mt-3">
-                                <label class="form-label" for="odometer-picture-{{ $fleet->getKey() }}">Odometer photo</label>
-                                <input class="form-control @error('odometer_picture') is-invalid @enderror"
-                                       id="odometer-picture-{{ $fleet->getKey() }}" name="odometer_picture" type="file"
-                                       accept=".jpg,.jpeg,.png,image/jpeg,image/png" data-step-required required>
-                                <div class="form-text">Required JPG or PNG, maximum 2 MB.</div>
-                                @error('odometer_picture')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div data-fleet-step="1">
+                <div data-fleet-step="0">
+                    <h3 class="h5 mb-1">Current odometer</h3>
+                    <p class="text-muted fs-sm mb-3">Enter the vehicle's current odometer reading.</p>
+                    <label class="form-label" for="odometer-{{ $fleet->getKey() }}">Current odometer (km)</label>
+                    <input class="form-control @error('odometer_km') is-invalid @enderror"
+                           id="odometer-{{ $fleet->getKey() }}" name="odometer_km" type="number" min="0" step="1"
+                           value="{{ old('odometer_km', $currentOdometerKm ?? $fleet->odometer_km) }}" data-step-required required>
+                    @error('odometer_km')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <div class="mt-3">
+                        <label class="form-label" for="odometer-reading-date-{{ $fleet->getKey() }}">Odometer reading date</label>
+                        <input class="form-control js-datepicker @error('odometer_reading_date') is-invalid @enderror"
+                               id="odometer-reading-date-{{ $fleet->getKey() }}" name="odometer_reading_date" type="text"
+                               placeholder="YYYY-MM-DD" autocomplete="off" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}"
+                               value="{{ old('odometer_reading_date', now()->format('Y-m-d')) }}" data-step-required required>
+                        <div class="form-text">The date this odometer reading was recorded.</div>
+                        @error('odometer_reading_date')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="mt-3">
+                        <label class="form-label" for="odometer-picture-{{ $fleet->getKey() }}">Odometer photo</label>
+                        <input class="form-control @error('odometer_picture') is-invalid @enderror"
+                               id="odometer-picture-{{ $fleet->getKey() }}" name="odometer_picture" type="file"
+                               accept=".jpg,.jpeg,.png,image/jpeg,image/png" data-step-required required>
+                        <div class="form-text">Required JPG or PNG, maximum 2 MB.</div>
+                        @error('odometer_picture')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+                <div data-fleet-step="1">
                             <h3 class="h5 mb-1">Last service date</h3>
                             <p class="text-muted fs-sm mb-3">Enter the date of the vehicle's most recent service.</p>
                             <label class="form-label" for="service-date-{{ $fleet->getKey() }}">Last service date</label>
@@ -179,9 +177,9 @@
                                 @enderror
                             </div>
                         </div>
-                    </div>
+            </div>
 
-                    <div class="block-content block-content-full bg-body-light d-flex justify-content-between align-items-center">
+            <div class="modal-footer block-content block-content-full bg-body-light d-flex justify-content-between align-items-center">
                         <button class="btn btn-alt-secondary" type="button" data-fleet-step-back disabled>
                             <i class="fa fa-arrow-left me-1" aria-hidden="true"></i>Back
                         </button>
@@ -194,10 +192,8 @@
                                 Submit
                             </button>
                         </div>
-                    </div>
-                </form>
             </div>
-        </div>
+        </form>
     </div>
 </div>
 

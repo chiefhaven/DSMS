@@ -293,6 +293,8 @@ class FleetUpdateApprovalTest extends TestCase
             'errors' => new \Illuminate\Support\ViewErrorBag(),
         ])->render();
 
+        $this->assertStringContainsString('modal-body block-content', $modal);
+        $this->assertStringContainsString('modal-footer block-content', $modal);
         $this->assertStringContainsString('Current odometer (km)', $modal);
         $this->assertStringContainsString('Last service date', $modal);
         $this->assertStringContainsString('COF due date', $modal);
