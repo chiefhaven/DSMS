@@ -319,7 +319,17 @@ class FleetUpdateApprovalTest extends TestCase
             'autoOpenVehicleModal' => true,
             'errors' => new \Illuminate\Support\ViewErrorBag(),
         ])->render();
-        $this->assertStringContainsString('data-open-on-load="true"', $autoOpenedModal);
+        $this->assertMatchesRegularExpression(
+            '/id="vehicle-update-prompt-'.$fleet->getKey().'"(?:(?!>).)*data-open-on-load="true"/s',
+            $autoOpenedModal
+        );
+        $this->assertMatchesRegularExpression(
+            '/id="edit-vehicle-modal-'.$fleet->getKey().'"(?:(?!>).)*data-open-on-load="false"/s',
+            $autoOpenedModal
+        );
+        $this->assertStringContainsString('data-open-vehicle-update-form', $autoOpenedModal);
+        $this->assertStringContainsString('Vehicle details need updating', $autoOpenedModal);
+        $this->assertStringContainsString('modal-title fs-5 text-white', $autoOpenedModal);
     }
 
     public function test_evidence_images_are_private_and_only_available_to_reviewers(): void

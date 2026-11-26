@@ -1,14 +1,45 @@
 @php
     $modalId = 'edit-vehicle-modal-'.$fleet->getKey();
+    $promptModalId = 'vehicle-update-prompt-'.$fleet->getKey();
     $errorStep = $errors->has('odometer_km') || $errors->has('odometer_reading_date')
         || $errors->has('odometer_picture') ? 0
         : ($errors->has('service_date') || $errors->has('service_date_picture') ? 1
         : ($errors->has('roadworthiness_expiry') || $errors->has('roadworthiness_picture') ? 2
         : ($errors->has('insurance_expiry') || $errors->has('insurance_picture') ? 3 : 0)));
-    $openModalOnLoad = ($errors->any() && (string) old('fleet_id') === (string) $fleet->getKey())
-        || (string) request('edit_vehicle') === (string) $fleet->getKey()
-        || ($autoOpenVehicleModal ?? false);
+    $openFormOnLoad = ($errors->any() && (string) old('fleet_id') === (string) $fleet->getKey())
+        || (string) request('edit_vehicle') === (string) $fleet->getKey();
+    $openPromptOnLoad = $autoOpenVehicleModal ?? false;
 @endphp
+
+@if ($openPromptOnLoad)
+    <div class="modal fade"
+         id="{{ $promptModalId }}"
+         tabindex="-1"
+         aria-labelledby="{{ $promptModalId }}-title"
+         aria-hidden="true"
+         data-vehicle-update-prompt
+         data-form-modal-id="{{ $modalId }}"
+         data-open-on-load="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-primary">
+                    <h2 class="modal-title fs-5 text-white" id="{{ $promptModalId }}-title">Vehicle details need updating</h2>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0">
+                        Please update your vehicle's odometer, service date, COF and insurance details.
+                        Photos are required, and updates are sent for approval.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-alt-secondary" data-bs-dismiss="modal">Later</button>
+                    <button type="button" class="btn btn-primary" data-open-vehicle-update-form>Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+@endif
 
 <div class="modal fade"
      id="{{ $modalId }}"
@@ -16,7 +47,7 @@
      aria-labelledby="{{ $modalId }}-title"
      aria-hidden="true"
      data-fleet-update-modal
-     data-open-on-load="{{ $openModalOnLoad ? 'true' : 'false' }}"
+     data-open-on-load="{{ $openFormOnLoad ? 'true' : 'false' }}"
      data-error-step="{{ $errorStep }}">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content border-0 shadow-lg">
@@ -245,6 +276,29 @@
                 if (trigger) {
                     trigger.click();
                 }
+            }
+        });
+
+        document.querySelectorAll('[data-vehicle-update-prompt]').forEach((prompt) => {
+            const formModal = document.getElementById(prompt.dataset.formModalId);
+            const updateButton = prompt.querySelector('[data-open-vehicle-update-form]');
+
+            updateButton.addEventListener('click', () => {
+                prompt.addEventListener('hidden.bs.modal', () => {
+                    const formInstance = bootstrap.Modal.getInstance(formModal)
+                        || new bootstrap.Modal(formModal);
+                    formInstance.show();
+                }, { once: true });
+
+                const promptInstance = bootstrap.Modal.getInstance(prompt)
+                    || new bootstrap.Modal(prompt);
+                promptInstance.hide();
+            });
+
+            if (prompt.dataset.openOnLoad === 'true') {
+                const promptInstance = bootstrap.Modal.getInstance(prompt)
+                    || new bootstrap.Modal(prompt);
+                promptInstance.show();
             }
         });
     </script>
