@@ -24,9 +24,15 @@
         $isLessonsActive = request()->is('lessons*');
         $isDrivingLicenseClassesActive = request()->is('driving-license-classes*');
 
-        $isFleetMenuActive = request()->is('fleet*') || request()->is('track-fleet*');
+        $isFleetMenuActive = request()->is('fleet*')
+            || request()->is('track-fleet*')
+            || request()->is('fleet-update-approvals*');
         $isFleetActive = request()->is('fleet') || request()->is('fleet/*');
         $isTrackFleetActive = request()->is('track-fleet*');
+        $isMyVehicleActive = request()->is('my-vehicle*');
+        $isFleetUpdateApprovalsActive = request()->is('fleet-update-approvals*');
+        $isPracticalInstructor = auth()->check()
+            && strtolower((string) (auth()->user()->Instructor?->department?->name ?? '')) === 'practical';
 
         $isExpensesMenuActive = request()->is('expenses*') || request()->is('scan-to-pay*') || request()->is('expense-payments*') || request()->is('expense-types*');
         $isAllExpensesActive = request()->routeIs('expenses.index') || request()->is('expenses/*/edit') || request()->is('expenses/*');
@@ -192,7 +198,16 @@
                 </li>
         @endif
 
-        @canany(['view fleet', 'view vehicle locations'])
+        @if ($isPracticalInstructor)
+            <li class="nav-main-item">
+                <a class="nav-main-link {{ $isMyVehicleActive ? 'active' : '' }}" href="{{ route('my-vehicle') }}">
+                    <i class="nav-main-link-icon fa fa-car" aria-hidden="true"></i>
+                    <span class="nav-main-link-name">My vehicle</span>
+                </a>
+            </li>
+        @endif
+
+        @if (auth()->check() && (auth()->user()->canAny(['view fleet', 'view vehicle locations', 'approve fleet updates']) || $isPracticalInstructor))
                 <li class="nav-main-item {{ $isFleetMenuActive ? 'open' : '' }}">
                     <a class="nav-main-link nav-main-link-submenu {{ $isFleetMenuActive ? 'active' : '' }}" data-toggle="submenu" aria-haspopup="true" aria-expanded="{{ $isFleetMenuActive ? 'true' : 'false' }}" href="#">
                         <i class="nav-main-link-icon fa fa-car"></i>
@@ -205,9 +220,12 @@
                         @can('view vehicle locations')
                         <li class="nav-main-item"><a class="nav-main-link {{ $isTrackFleetActive ? 'active' : '' }}" href="{{ url('/track-fleet') }}"><span class="nav-main-link-name">Track fleet</span></a></li>
                         @endcan
+                        @can('approve fleet updates')
+                        <li class="nav-main-item"><a class="nav-main-link {{ $isFleetUpdateApprovalsActive ? 'active' : '' }}" href="{{ route('fleet-update-approvals.index') }}"><span class="nav-main-link-name">Fleet data</span></a></li>
+                        @endcan
                     </ul>
                 </li>
-        @endcanany
+        @endif
 
             {{-- Expenses --}}
         @canany(['view expenses', 'create expenses', 'view expense types', 'view expense payments', 'record expense payments'])

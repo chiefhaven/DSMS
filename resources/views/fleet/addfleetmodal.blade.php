@@ -4,7 +4,7 @@
             <div class="block block-rounded block-themed block-transparent mb-0">
                 <div class="block-header modal-header bg-primary">
                     <h3 class="block-title text-white">
-                        <i class="fa fa-car me-2"></i> Add New Vehicle to Fleet
+                        Add New Vehicle to Fleet
                     </h3>
                     <div class="block-options">
                         <button type="button" class="btn-block-option text-white" data-bs-dismiss="modal" aria-label="Close">

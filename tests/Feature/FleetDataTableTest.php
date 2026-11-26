@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\FleetController;
+use Illuminate\Http\Request;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -108,6 +110,39 @@ class FleetDataTableTest extends TestCase
         $last = $this->fetch(['start' => 2]);
         $this->assertSame([3], array_column($last['data'], 'id'));
         $this->assertStringContainsString('Not assigned', $last['data'][0]['instructor_name']);
+        $this->travelBack();
+    }
+
+    public function test_fleet_summary_counts_document_expiry_and_service_due_vehicles(): void
+    {
+        $this->travelTo(\Carbon\Carbon::parse('2026-11-11 14:00:00', date_default_timezone_get()));
+        DB::table('fleets')->where('id', 1)->update([
+            'insurance_expiry' => '2026-12-01',
+            'roadworthiness_expiry' => '2026-11-10',
+            'odometer_km' => 120000,
+            'next_service_km' => 120000,
+        ]);
+        DB::table('fleets')->where('id', 2)->update([
+            'insurance_expiry' => '2026-12-02',
+            'roadworthiness_expiry' => '2026-12-01',
+            'odometer_km' => 100000,
+            'next_service_km' => 125000,
+        ]);
+        DB::table('fleets')->where('id', 3)->update([
+            'insurance_expiry' => null,
+            'roadworthiness_expiry' => '2026-12-02',
+            'odometer_km' => 20000,
+            'next_service_km' => 20000,
+        ]);
+
+        $view = app(FleetController::class)->index(Request::create('/fleet'));
+        $data = $view->getData();
+
+        $this->assertSame(3, $data['vehicleCount']);
+        $this->assertSame(2, $data['assignedVehicles']);
+        $this->assertSame(1, $data['insuranceDueCount']);
+        $this->assertSame(2, $data['roadworthinessDueCount']);
+        $this->assertSame(2, $data['serviceDueCount']);
         $this->travelBack();
     }
 

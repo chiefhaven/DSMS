@@ -72,7 +72,25 @@ class FleetController extends Controller
 
         $vehicleCount = Fleet::count();
         $assignedVehicles = Fleet::whereHas('Instructor')->count();
-        return view('fleet.fleet', compact('vehicleCount', 'assignedVehicles'));
+        $dueThrough = now()->startOfDay()->addDays(20)->toDateString();
+        $insuranceDueCount = Fleet::whereNotNull('insurance_expiry')
+            ->whereDate('insurance_expiry', '<=', $dueThrough)
+            ->count();
+        $roadworthinessDueCount = Fleet::whereNotNull('roadworthiness_expiry')
+            ->whereDate('roadworthiness_expiry', '<=', $dueThrough)
+            ->count();
+        $serviceDueCount = Fleet::whereNotNull('odometer_km')
+            ->whereNotNull('next_service_km')
+            ->whereColumn('odometer_km', '>=', 'next_service_km')
+            ->count();
+
+        return view('fleet.fleet', compact(
+            'vehicleCount',
+            'assignedVehicles',
+            'insuranceDueCount',
+            'roadworthinessDueCount',
+            'serviceDueCount'
+        ));
     }
 
     public function getFleet(Request $request)

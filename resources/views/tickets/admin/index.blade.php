@@ -77,7 +77,7 @@
             </div>
             <div class="block-content block-content-full fs-sm">
                 <div id="ticket-table-error" class="alert alert-danger d-none" role="alert"></div>
-                <table id="student-tickets-table" class="table table-hover table-vcenter align-middle mb-0 fs-sm w-100" aria-labelledby="student-tickets-table-title">
+                <table id="student-tickets-table" class="table table-striped table-hover table-vcenter align-middle mb-0 fs-sm w-100" aria-labelledby="student-tickets-table-title">
                     <thead class="bg-body-light">
                         <tr>
                             <th scope="col" class="fs-xs text-uppercase text-muted">Ticket</th>

@@ -21,6 +21,10 @@ class Kernel extends ConsoleKernel
         $schedule->command('staff:auto-end-contracts')->dailyAt('00:10')->timezone('Africa/Harare')
             ->description('Automatically mark staff contracts as ended when end date is reached');
 
+        $schedule->command('fleet:notify-dues')->dailyAt('08:00')->timezone('Africa/Harare')
+            ->withoutOverlapping()
+            ->description('Notify instructors and permitted administrators about fleet dues');
+
         $schedule->command('hrm:payroll-status')->monthlyOn(25, '07:30')->timezone('Africa/Harare')
             ->description('Report payroll status for the current month ahead of month-end processing');
 

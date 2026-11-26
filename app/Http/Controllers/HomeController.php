@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Attendance;
+use App\Models\FleetUpdateSubmission;
 use App\Models\Instructor;
 use App\Models\Invoice;
 use App\Models\Setting;
@@ -53,6 +54,7 @@ class HomeController extends Controller
 
         $attendanceCount = 0;
         $instructorEstimatedPay = 0;
+        $fleetUpdatePending = false;
 
         /*
         |--------------------------------------------------------------------------
@@ -62,7 +64,7 @@ class HomeController extends Controller
 
         if ($user->hasRole('instructor') && $user->instructor_id) {
 
-            $instructor = Instructor::find($user->instructor_id);
+            $instructor = Instructor::with(['department', 'fleet'])->find($user->instructor_id);
 
             if ($instructor) {
 
@@ -78,6 +80,16 @@ class HomeController extends Controller
 
                 $instructorEstimatedPay = $attendanceCount
                     * (float) $settings->bonus;
+
+                if (
+                    strtolower((string) $instructor->department?->name) === 'practical'
+                    && $instructor->fleet
+                ) {
+                    $fleetUpdatePending = FleetUpdateSubmission::query()
+                        ->where('fleet_id', $instructor->fleet->getKey())
+                        ->where('status', FleetUpdateSubmission::STATUS_PENDING)
+                        ->exists();
+                }
             }
         }
 
@@ -86,6 +98,7 @@ class HomeController extends Controller
                 'title' => 'Dashboard',
                 'attendanceCount' => $attendanceCount,
                 'instructorEstimatedPay' => $instructorEstimatedPay,
+                'fleetUpdatePending' => $fleetUpdatePending,
             ]);
         }
 
@@ -173,6 +186,7 @@ class HomeController extends Controller
             'title'                  => 'Dashboard',
             'attendanceCount'        => $attendanceCount,
             'instructorEstimatedPay' => $instructorEstimatedPay,
+            'fleetUpdatePending'     => $fleetUpdatePending,
             'instructors'            => $instructors,
             'activities'             => $activities,
             'students'               => $students,

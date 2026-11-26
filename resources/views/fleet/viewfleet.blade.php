@@ -21,7 +21,7 @@
 <!-- Hero -->
 <div class="bg-body-light">
   <div class="content content-full">
-    <div class="d-flex justify-content-between align-items-center gap-3">
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
       <div>
         <a class="fs-sm text-muted" href="{{ route('fleet.index') }}"><i class="fa fa-arrow-left me-1" aria-hidden="true"></i> Back to fleet</a>
         <h1 class="fs-3 fw-semibold mt-2 mb-1">{{ $fleet->car_brand_model }}</h1>
@@ -60,7 +60,7 @@
             <div class="row g-4">
                 <!-- Left Column -->
                 <div class="col-lg-4">
-                  <div class="block block-rounded h-100 mb-0">
+                  <div class="block block-rounded block-bordered h-100 mb-0">
                     <div class="block-header block-header-default">
                         <h2 class="block-title">Vehicle details</h2>
                         <span class="badge bg-primary-light text-primary">{{ $fleet->car_registration_number }}</span>
@@ -106,7 +106,7 @@
                 @can('view vehicle locations')
                 <!-- Right Column -->
                 <div class="col-lg-8">
-                  <div class="block block-rounded h-100 mb-0">
+                  <div class="block block-rounded block-bordered h-100 mb-0">
                     <div class="block-header block-header-default">
                         <h2 class="block-title">Location &amp; distance</h2>
                         <span class="badge bg-info-light text-info">Tracking</span>
@@ -209,64 +209,7 @@
 </div>
 
 <div class="content content-full pt-0">
-    <div class="block block-rounded">
-        <div class="block-header block-header-default">
-            <h2 class="block-title">Specifications &amp; maintenance</h2>
-        </div>
-        <div class="block-content block-content-full" id="vehicle-specifications">
-            <div class="row g-3">
-                @foreach ([
-                    [
-                        'title' => 'Vehicle', 'icon' => 'fa-car',
-                        'fields' => [
-                            'make' => 'Make', 'model' => 'Model', 'manufacture_year' => 'Year',
-                            'vin' => 'VIN / chassis', 'colour' => 'Colour', 'seating_capacity' => 'Seats',
-                        ],
-                    ],
-                    [
-                        'title' => 'Engine & drive', 'icon' => 'fa-cogs',
-                        'fields' => [
-                            'engine_capacity_cc' => 'Engine (cc)', 'engine_number' => 'Engine number',
-                            'fuel_type' => 'Fuel type', 'transmission' => 'Transmission',
-                            'odometer_km' => 'Odometer (km)',
-                        ],
-                    ],
-                    [
-                        'title' => 'Insurance & service', 'icon' => 'fa-shield-alt',
-                        'fields' => [
-                            'insurance_provider' => 'Insurer', 'insurance_expiry' => 'Insurance expiry',
-                            'roadworthiness_expiry' => 'Roadworthiness expiry', 'service_date' => 'Last service',
-                            'next_service_km' => 'Next service (km)',
-                        ],
-                    ],
-                ] as $group)
-                    <div class="col-12 col-lg-4">
-                        <section class="bg-body-light rounded-3 p-3 h-100" aria-labelledby="specification-group-{{ $loop->index }}">
-                            <h3 class="fs-base fw-semibold mb-3" id="specification-group-{{ $loop->index }}">
-                                <i class="fa {{ $group['icon'] }} text-primary me-2" aria-hidden="true"></i>{{ $group['title'] }}
-                            </h3>
-                            <dl class="mb-0">
-                                @foreach ($group['fields'] as $field => $label)
-                                    @php
-                                        $value = $fleet->{$field};
-                                        if ($value instanceof \DateTimeInterface) {
-                                            $value = $value->format('d M Y');
-                                        } elseif (in_array($field, ['engine_capacity_cc', 'odometer_km', 'next_service_km'], true) && $value !== null) {
-                                            $value = number_format($value);
-                                        }
-                                    @endphp
-                                    <div class="row g-2 py-2 {{ $loop->last ? '' : 'border-bottom' }}">
-                                        <dt class="col-6 text-muted fs-sm fw-normal">{{ $label }}</dt>
-                                        <dd class="col-6 text-end text-break fs-sm fw-semibold mb-0 {{ $value === null || $value === '' ? 'text-muted' : '' }}">{{ $value === null || $value === '' ? '-' : $value }}</dd>
-                                    </div>
-                                @endforeach
-                            </dl>
-                        </section>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-    </div>
+    @include('fleet.partials.vehicle-specifications')
 </div>
 
 <!-- SweetAlert Toast -->

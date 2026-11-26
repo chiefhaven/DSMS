@@ -13,6 +13,8 @@
             : 'Not yet assigned');
 
     $assignmentIcon = $fleet ? 'fa-car' : 'fa-chalkboard-teacher';
+    $fleetUpdatePending = $fleetUpdatePending ?? false;
+    $fleetUpdateModalId = $fleet ? 'edit-vehicle-modal-'.$fleet->getKey() : null;
 
     $attendanceCount = $attendanceCount ?? 0;
     $instructorEstimatedPay = $instructorEstimatedPay ?? 0;
@@ -24,6 +26,33 @@
     <div class="col-12">
         @include('/dashboard_partials/quotes')
     </div>
+
+    @if (strtolower((string) $departmentName) === 'practical' && $fleet)
+        <div class="col-12 mb-4">
+            @if ($fleetUpdatePending)
+                <div class="alert alert-warning d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-0"
+                     role="status">
+                    <p class="mb-0">Your vehicle update is awaiting approval. You can submit another update after it has been reviewed.</p>
+                    <a class="btn btn-alt-warning flex-shrink-0" href="{{ route('my-vehicle') }}">View vehicle</a>
+                </div>
+            @else
+                <div class="alert alert-primary d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-0"
+                     role="status">
+                    <div>
+                        <h2 class="h5 mb-1">Keep your vehicle details up to date</h2>
+                        <p class="mb-0">
+                            Review and submit your current odometer, last service date, COF due date, and insurance due date.
+                            Updates are sent for approval.
+                        </p>
+                    </div>
+                    <button class="btn btn-primary flex-shrink-0" type="button" data-bs-toggle="modal" data-bs-target="#{{ $fleetUpdateModalId }}">
+                        Update vehicle details
+                    </button>
+                </div>
+                @include('fleet.updates.partials.edit-modal', ['fleet' => $fleet])
+            @endif
+        </div>
+    @endif
 
     {{-- Quick actions --}}
     <div class="col-12 mb-4">

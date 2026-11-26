@@ -25,6 +25,13 @@
     object-fit: contain;
     flex-shrink: 0;
   }
+  #fleet-summary .stat-card {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  #fleet-summary .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+  }
 </style>
 @endsection
 
@@ -44,7 +51,7 @@
     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
       <div>
         <h1 class="fs-3 fw-semibold mb-1">Fleet</h1>
-        <p class="text-muted mb-0">Vehicles and instructor assignments.</p>
+        <p class="text-muted mb-0">Vehicle assignments, compliance dates, and upcoming service.</p>
       </div>
           @can('create fleet')
           <a href="{{ route('fleet.create') }}" class="btn btn-primary rounded-pill px-4 align-self-start align-self-sm-center">
@@ -76,21 +83,27 @@
       </div>
     @endif
 
-    <div class="row g-3 mb-4">
+    <div class="row g-3 mb-4" id="fleet-summary">
       @foreach ([
         ['label' => 'Vehicles', 'value' => $vehicleCount, 'icon' => 'fa-car', 'color' => 'primary'],
         ['label' => 'Instructor assigned', 'value' => $assignedVehicles, 'icon' => 'fa-user-check', 'color' => 'success'],
         ['label' => 'Unassigned', 'value' => $vehicleCount - $assignedVehicles, 'icon' => 'fa-user-clock', 'color' => 'warning'],
+        ['label' => 'Insurance due / expired', 'value' => $insuranceDueCount, 'icon' => 'fa-shield-alt', 'color' => 'danger'],
+        ['label' => 'Roadworthiness due / expired', 'value' => $roadworthinessDueCount, 'icon' => 'fa-clipboard-check', 'color' => 'warning'],
+        ['label' => 'Service due', 'value' => $serviceDueCount, 'icon' => 'fa-wrench', 'color' => 'info'],
       ] as $stat)
-        <div class="col-12 col-sm-4">
-          <div class="block block-rounded mb-0">
-            <div class="block-content block-content-full d-flex align-items-center gap-3">
-              <span class="item item-rounded bg-{{ $stat['color'] }}-light text-{{ $stat['color'] }}">
-                <i class="fa {{ $stat['icon'] }} fs-4" aria-hidden="true"></i>
-              </span>
-              <div>
-                <div class="fs-3 fw-semibold">{{ $stat['value'] }}</div>
-                <div class="text-muted fs-sm">{{ $stat['label'] }}</div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="card border-0 shadow-sm rounded-3 h-100 stat-card">
+            <div class="card-body p-3">
+              <div class="d-flex align-items-center justify-content-between gap-2">
+                <div class="rounded-circle bg-{{ $stat['color'] }} bg-opacity-10 d-flex align-items-center justify-content-center flex-shrink-0"
+                     style="width: 42px; height: 42px;">
+                  <i class="fa {{ $stat['icon'] }} text-{{ $stat['color'] }}" aria-hidden="true"></i>
+                </div>
+                <div class="text-end">
+                  <div class="fw-bold fs-4 text-dark lh-1">{{ number_format($stat['value']) }}</div>
+                  <div class="fs-xs text-muted mt-1">{{ $stat['label'] }}</div>
+                </div>
               </div>
             </div>
           </div>

@@ -73,7 +73,14 @@ class FleetFormTest extends TestCase
             file_get_contents(resource_path('views/fleet/fleet.blade.php'))
         );
         foreach ([1, 0] as $vehicleCount) {
-            $html = Blade::render($template, ['vehicleCount' => $vehicleCount, 'assignedVehicles' => 0, 'errors' => new ViewErrorBag]);
+            $html = Blade::render($template, [
+                'vehicleCount' => $vehicleCount,
+                'assignedVehicles' => 0,
+                'insuranceDueCount' => 0,
+                'roadworthinessDueCount' => 0,
+                'serviceDueCount' => 0,
+                'errors' => new ViewErrorBag,
+            ]);
             $document = new \DOMDocument;
             $previous = libxml_use_internal_errors(true);
             try {
@@ -83,6 +90,7 @@ class FleetFormTest extends TestCase
                 libxml_use_internal_errors($previous);
             }
             $xpath = new \DOMXPath($document);
+            $this->assertSame(6, $xpath->query('//div[contains(concat(" ", normalize-space(@class), " "), " stat-card ")]')->length);
             $this->assertSame(16, $xpath->query('//table[@id="fleet-table"]/thead/tr/th')->length);
             $this->assertSame([
                 'Actions', 'Vehicle', 'Registration', 'Instructor', 'Students', 'Insurance expiry',

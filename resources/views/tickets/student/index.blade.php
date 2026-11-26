@@ -34,7 +34,7 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table class="table table-hover table-vcenter align-middle mb-0 fs-sm">
+                <table class="table table-striped table-hover table-vcenter align-middle mb-0 fs-sm">
                     <thead class="bg-body-light">
                         <tr>
                             <th class="fs-xs text-uppercase text-muted" scope="col">Ticket</th>
