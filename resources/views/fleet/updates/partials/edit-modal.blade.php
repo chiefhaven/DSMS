@@ -1,11 +1,13 @@
 @php
     $modalId = 'edit-vehicle-modal-'.$fleet->getKey();
-    $errorStep = $errors->has('odometer_km') || $errors->has('odometer_picture') ? 0
+    $errorStep = $errors->has('odometer_km') || $errors->has('odometer_reading_date')
+        || $errors->has('odometer_picture') ? 0
         : ($errors->has('service_date') || $errors->has('service_date_picture') ? 1
         : ($errors->has('roadworthiness_expiry') || $errors->has('roadworthiness_picture') ? 2
         : ($errors->has('insurance_expiry') || $errors->has('insurance_picture') ? 3 : 0)));
     $openModalOnLoad = ($errors->any() && (string) old('fleet_id') === (string) $fleet->getKey())
-        || (string) request('edit_vehicle') === (string) $fleet->getKey();
+        || (string) request('edit_vehicle') === (string) $fleet->getKey()
+        || ($autoOpenVehicleModal ?? false);
 @endphp
 
 <div class="modal fade"
@@ -35,7 +37,7 @@
                         <div class="fs-sm text-muted mb-3">{{ $fleet->car_brand_model }} · {{ $fleet->car_registration_number }}</div>
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="fw-semibold" data-fleet-step-title>Step 1 of 4</span>
-                            <span class="text-muted fs-sm">Supporting photos are optional</span>
+                            <span class="text-muted fs-sm">Supporting photos are required</span>
                         </div>
                         <div class="progress mb-4" role="progressbar" aria-label="Vehicle update progress" aria-valuemin="1" aria-valuemax="4" aria-valuenow="1" style="height: 5px;">
                             <div class="progress-bar" data-fleet-progress style="width: 25%;"></div>
@@ -51,16 +53,27 @@
                             <label class="form-label" for="odometer-{{ $fleet->getKey() }}">Current odometer (km)</label>
                             <input class="form-control @error('odometer_km') is-invalid @enderror"
                                    id="odometer-{{ $fleet->getKey() }}" name="odometer_km" type="number" min="0" step="1"
-                                   value="{{ old('odometer_km', $fleet->odometer_km) }}" data-step-required required>
+                                   value="{{ old('odometer_km', $currentOdometerKm ?? $fleet->odometer_km) }}" data-step-required required>
                             @error('odometer_km')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                             <div class="mt-3">
+                                <label class="form-label" for="odometer-reading-date-{{ $fleet->getKey() }}">Odometer reading date</label>
+                                <input class="form-control js-datepicker @error('odometer_reading_date') is-invalid @enderror"
+                                       id="odometer-reading-date-{{ $fleet->getKey() }}" name="odometer_reading_date" type="text"
+                                       placeholder="YYYY-MM-DD" autocomplete="off" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}"
+                                       value="{{ old('odometer_reading_date', now()->format('Y-m-d')) }}" data-step-required required>
+                                <div class="form-text">The date this odometer reading was recorded. GPS-tracked distance after this date is added automatically.</div>
+                                @error('odometer_reading_date')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="mt-3">
                                 <label class="form-label" for="odometer-picture-{{ $fleet->getKey() }}">Odometer photo</label>
                                 <input class="form-control @error('odometer_picture') is-invalid @enderror"
                                        id="odometer-picture-{{ $fleet->getKey() }}" name="odometer_picture" type="file"
-                                       accept=".jpg,.jpeg,.png,image/jpeg,image/png">
-                                <div class="form-text">Optional JPG or PNG, maximum 2 MB.</div>
+                                       accept=".jpg,.jpeg,.png,image/jpeg,image/png" data-step-required required>
+                                <div class="form-text">Required JPG or PNG, maximum 2 MB.</div>
                                 @error('odometer_picture')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -71,8 +84,9 @@
                             <h3 class="h5 mb-1">Last service date</h3>
                             <p class="text-muted fs-sm mb-3">Enter the date of the vehicle's most recent service.</p>
                             <label class="form-label" for="service-date-{{ $fleet->getKey() }}">Last service date</label>
-                            <input class="form-control @error('service_date') is-invalid @enderror"
-                                   id="service-date-{{ $fleet->getKey() }}" name="service_date" type="date"
+                            <input class="form-control js-datepicker @error('service_date') is-invalid @enderror"
+                                   id="service-date-{{ $fleet->getKey() }}" name="service_date" type="text"
+                                   placeholder="YYYY-MM-DD" autocomplete="off" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}"
                                    value="{{ old('service_date', $fleet->service_date?->format('Y-m-d')) }}" data-step-required required>
                             @error('service_date')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -81,8 +95,8 @@
                                 <label class="form-label" for="service-date-picture-{{ $fleet->getKey() }}">Service record photo</label>
                                 <input class="form-control @error('service_date_picture') is-invalid @enderror"
                                        id="service-date-picture-{{ $fleet->getKey() }}" name="service_date_picture" type="file"
-                                       accept=".jpg,.jpeg,.png,image/jpeg,image/png">
-                                <div class="form-text">Optional JPG or PNG, maximum 2 MB.</div>
+                                       accept=".jpg,.jpeg,.png,image/jpeg,image/png" data-step-required required>
+                                <div class="form-text">Required JPG or PNG, maximum 2 MB.</div>
                                 @error('service_date_picture')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -93,8 +107,9 @@
                             <h3 class="h5 mb-1">Certificate of Fitness (COF)</h3>
                             <p class="text-muted fs-sm mb-3">Enter the expiry date shown on the vehicle's COF.</p>
                             <label class="form-label" for="cof-due-{{ $fleet->getKey() }}">COF due date</label>
-                            <input class="form-control @error('roadworthiness_expiry') is-invalid @enderror"
-                                   id="cof-due-{{ $fleet->getKey() }}" name="roadworthiness_expiry" type="date"
+                            <input class="form-control js-datepicker @error('roadworthiness_expiry') is-invalid @enderror"
+                                   id="cof-due-{{ $fleet->getKey() }}" name="roadworthiness_expiry" type="text"
+                                   placeholder="YYYY-MM-DD" autocomplete="off" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}"
                                    value="{{ old('roadworthiness_expiry', $fleet->roadworthiness_expiry?->format('Y-m-d')) }}" data-step-required required>
                             @error('roadworthiness_expiry')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -103,8 +118,8 @@
                                 <label class="form-label" for="cof-picture-{{ $fleet->getKey() }}">COF photo</label>
                                 <input class="form-control @error('roadworthiness_picture') is-invalid @enderror"
                                        id="cof-picture-{{ $fleet->getKey() }}" name="roadworthiness_picture" type="file"
-                                       accept=".jpg,.jpeg,.png,image/jpeg,image/png">
-                                <div class="form-text">Optional JPG or PNG, maximum 2 MB.</div>
+                                       accept=".jpg,.jpeg,.png,image/jpeg,image/png" data-step-required required>
+                                <div class="form-text">Required JPG or PNG, maximum 2 MB.</div>
                                 @error('roadworthiness_picture')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -115,8 +130,9 @@
                             <h3 class="h5 mb-1">Insurance</h3>
                             <p class="text-muted fs-sm mb-3">Enter the expiry date shown on the vehicle's insurance documents.</p>
                             <label class="form-label" for="insurance-due-{{ $fleet->getKey() }}">Insurance due date</label>
-                            <input class="form-control @error('insurance_expiry') is-invalid @enderror"
-                                   id="insurance-due-{{ $fleet->getKey() }}" name="insurance_expiry" type="date"
+                            <input class="form-control js-datepicker @error('insurance_expiry') is-invalid @enderror"
+                                   id="insurance-due-{{ $fleet->getKey() }}" name="insurance_expiry" type="text"
+                                   placeholder="YYYY-MM-DD" autocomplete="off" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}"
                                    value="{{ old('insurance_expiry', $fleet->insurance_expiry?->format('Y-m-d')) }}" data-step-required required>
                             @error('insurance_expiry')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -125,8 +141,8 @@
                                 <label class="form-label" for="insurance-picture-{{ $fleet->getKey() }}">Insurance document photo</label>
                                 <input class="form-control @error('insurance_picture') is-invalid @enderror"
                                        id="insurance-picture-{{ $fleet->getKey() }}" name="insurance_picture" type="file"
-                                       accept=".jpg,.jpeg,.png,image/jpeg,image/png">
-                                <div class="form-text">Optional JPG or PNG, maximum 2 MB.</div>
+                                       accept=".jpg,.jpeg,.png,image/jpeg,image/png" data-step-required required>
+                                <div class="form-text">Required JPG or PNG, maximum 2 MB.</div>
                                 @error('insurance_picture')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -166,14 +182,22 @@
             const stepTitle = modal.querySelector('[data-fleet-step-title]');
             let currentStep = 0;
 
+            if (typeof $ !== 'undefined' && $.fn.datepicker) {
+                $(modal).find('.js-datepicker').datepicker({
+                    format: 'yyyy-mm-dd',
+                    autoclose: true,
+                    todayHighlight: true,
+                });
+                $(modal).find('[name="odometer_reading_date"]').datepicker('setEndDate', new Date());
+            }
+
             const showStep = (index) => {
                 currentStep = Math.max(0, Math.min(index, steps.length - 1));
                 steps.forEach((step, stepIndex) => {
                     step.classList.toggle('d-none', stepIndex !== currentStep);
-                    const requiredField = step.querySelector('[data-step-required]');
-                    if (requiredField) {
+                    step.querySelectorAll('[data-step-required]').forEach((requiredField) => {
                         requiredField.required = stepIndex === currentStep;
-                    }
+                    });
                 });
 
                 backButton.disabled = currentStep === 0;
@@ -186,23 +210,27 @@
 
             backButton.addEventListener('click', () => showStep(currentStep - 1));
             nextButton.addEventListener('click', () => {
-                const requiredField = steps[currentStep].querySelector('[data-step-required]');
-                if (!requiredField.checkValidity()) {
-                    requiredField.reportValidity();
-                    return;
+                const requiredFields = Array.from(steps[currentStep].querySelectorAll('[data-step-required]'));
+                for (const requiredField of requiredFields) {
+                    if (!requiredField.checkValidity()) {
+                        requiredField.reportValidity();
+                        return;
+                    }
                 }
                 showStep(currentStep + 1);
             });
 
             form.addEventListener('submit', (event) => {
                 for (let stepIndex = 0; stepIndex < steps.length; stepIndex += 1) {
-                    const requiredField = steps[stepIndex].querySelector('[data-step-required]');
-                    requiredField.required = true;
-                    if (!requiredField.checkValidity()) {
-                        event.preventDefault();
-                        showStep(stepIndex);
-                        requiredField.reportValidity();
-                        return;
+                    const requiredFields = Array.from(steps[stepIndex].querySelectorAll('[data-step-required]'));
+                    for (const requiredField of requiredFields) {
+                        requiredField.required = true;
+                        if (!requiredField.checkValidity()) {
+                            event.preventDefault();
+                            showStep(stepIndex);
+                            requiredField.reportValidity();
+                            return;
+                        }
                     }
                 }
             });

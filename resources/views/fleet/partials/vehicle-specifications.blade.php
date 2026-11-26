@@ -17,7 +17,7 @@
                     'fields' => [
                         'engine_capacity_cc' => 'Engine (cc)', 'engine_number' => 'Engine number',
                         'fuel_type' => 'Fuel type', 'transmission' => 'Transmission',
-                        'odometer_km' => 'Odometer (km)',
+                        'odometer_km' => 'Odometer (km)', 'odometer_reading_date' => 'Odometer reading date',
                     ],
                 ],
                 [
@@ -37,7 +37,9 @@
                         <dl class="mb-0">
                             @foreach ($group['fields'] as $field => $label)
                                 @php
-                                    $value = $fleet->{$field};
+                                    $value = $field === 'odometer_km'
+                                        ? ($currentOdometerKm ?? $fleet->odometer_km)
+                                        : $fleet->{$field};
                                     if ($value instanceof \DateTimeInterface) {
                                         $value = $value->format('d M Y');
                                     } elseif (in_array($field, ['engine_capacity_cc', 'odometer_km', 'next_service_km'], true) && $value !== null) {

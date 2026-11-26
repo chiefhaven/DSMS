@@ -8,6 +8,7 @@ use App\Models\Instructor;
 use App\Models\Invoice;
 use App\Models\Setting;
 use App\Models\Student;
+use App\Services\FleetOdometerService;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
@@ -26,13 +27,15 @@ class HomeController extends Controller
     /**
      * Display dashboard.
      */
-    public function index(Request $request)
+    public function index(Request $request, FleetOdometerService $odometerService)
     {
         $validated = $request->validate([
             'filter' => ['nullable', 'string', 'max:255'],
         ]);
 
         $user = Auth::user();
+        $openVehicleUpdateModalAfterLogin = (bool) $request->session()
+            ->pull('open_vehicle_update_modal_after_login', false);
 
         if ($user->hasRole('student') && !$user->hasRole('instructor') && !$user->can('access management')) {
             $student = $user->Student;
@@ -55,6 +58,8 @@ class HomeController extends Controller
         $attendanceCount = 0;
         $instructorEstimatedPay = 0;
         $fleetUpdatePending = false;
+        $fleetCurrentOdometerKm = null;
+        $openVehicleUpdateModal = false;
 
         /*
         |--------------------------------------------------------------------------
@@ -85,10 +90,12 @@ class HomeController extends Controller
                     strtolower((string) $instructor->department?->name) === 'practical'
                     && $instructor->fleet
                 ) {
+                    $fleetCurrentOdometerKm = $odometerService->currentReading($instructor->fleet);
                     $fleetUpdatePending = FleetUpdateSubmission::query()
                         ->where('fleet_id', $instructor->fleet->getKey())
                         ->where('status', FleetUpdateSubmission::STATUS_PENDING)
                         ->exists();
+                    $openVehicleUpdateModal = $openVehicleUpdateModalAfterLogin && !$fleetUpdatePending;
                 }
             }
         }
@@ -99,6 +106,8 @@ class HomeController extends Controller
                 'attendanceCount' => $attendanceCount,
                 'instructorEstimatedPay' => $instructorEstimatedPay,
                 'fleetUpdatePending' => $fleetUpdatePending,
+                'fleetCurrentOdometerKm' => $fleetCurrentOdometerKm,
+                'openVehicleUpdateModal' => $openVehicleUpdateModal,
             ]);
         }
 
@@ -187,6 +196,8 @@ class HomeController extends Controller
             'attendanceCount'        => $attendanceCount,
             'instructorEstimatedPay' => $instructorEstimatedPay,
             'fleetUpdatePending'     => $fleetUpdatePending,
+            'fleetCurrentOdometerKm' => $fleetCurrentOdometerKm,
+            'openVehicleUpdateModal' => $openVehicleUpdateModal,
             'instructors'            => $instructors,
             'activities'             => $activities,
             'students'               => $students,

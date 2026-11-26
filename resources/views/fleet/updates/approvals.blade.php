@@ -50,12 +50,14 @@
                                 <td>{{ $submission->submitter?->name ?? 'Account removed' }}</td>
                                 <td class="fs-sm">
                                     <div>Odometer: {{ $submission->fleet->odometer_km === null ? '—' : number_format($submission->fleet->odometer_km).' km' }}</div>
+                                    <div>Odometer reading date: {{ $submission->fleet->odometer_reading_date?->format('Y-m-d') ?? '—' }}</div>
                                     <div>Last service: {{ $submission->fleet->service_date?->format('Y-m-d') ?? '—' }}</div>
                                     <div>COF: {{ $submission->fleet->roadworthiness_expiry?->format('Y-m-d') ?? '—' }}</div>
                                     <div>Insurance: {{ $submission->fleet->insurance_expiry?->format('Y-m-d') ?? '—' }}</div>
                                 </td>
                                 <td class="fs-sm">
                                     <div>Odometer: {{ number_format($submission->odometer_km) }} km</div>
+                                    <div>Odometer reading date: {{ $submission->odometer_reading_date?->format('Y-m-d') ?? '—' }}</div>
                                     <div>Last service: {{ $submission->service_date?->format('Y-m-d') ?? '—' }}</div>
                                     <div>COF: {{ $submission->roadworthiness_expiry->format('Y-m-d') }}</div>
                                     <div>Insurance: {{ $submission->insurance_expiry->format('Y-m-d') }}</div>

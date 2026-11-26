@@ -209,7 +209,7 @@
 </div>
 
 <div class="content content-full pt-0">
-    @include('fleet.partials.vehicle-specifications')
+    @include('fleet.partials.vehicle-specifications', ['currentOdometerKm' => $currentOdometerKm])
 </div>
 
 <!-- SweetAlert Toast -->

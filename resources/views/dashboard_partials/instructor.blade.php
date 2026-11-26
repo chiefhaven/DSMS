@@ -14,6 +14,8 @@
 
     $assignmentIcon = $fleet ? 'fa-car' : 'fa-chalkboard-teacher';
     $fleetUpdatePending = $fleetUpdatePending ?? false;
+    $fleetCurrentOdometerKm = $fleetCurrentOdometerKm ?? $fleet?->odometer_km;
+    $openVehicleUpdateModal = $openVehicleUpdateModal ?? false;
     $fleetUpdateModalId = $fleet ? 'edit-vehicle-modal-'.$fleet->getKey() : null;
 
     $attendanceCount = $attendanceCount ?? 0;
@@ -46,10 +48,14 @@
                         </p>
                     </div>
                     <button class="btn btn-primary flex-shrink-0" type="button" data-bs-toggle="modal" data-bs-target="#{{ $fleetUpdateModalId }}">
-                        Update vehicle details
+                        Update
                     </button>
                 </div>
-                @include('fleet.updates.partials.edit-modal', ['fleet' => $fleet])
+                @include('fleet.updates.partials.edit-modal', [
+                    'fleet' => $fleet,
+                    'currentOdometerKm' => $fleetCurrentOdometerKm,
+                    'autoOpenVehicleModal' => $openVehicleUpdateModal,
+                ])
             @endif
         </div>
     @endif

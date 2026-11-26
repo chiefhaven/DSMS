@@ -13,20 +13,6 @@
                             <h1 class="fs-3 fw-semibold mt-2 mb-1">{{ $fleet->car_brand_model }}</h1>
                             <p class="text-muted mb-0">{{ $fleet->car_registration_number }}</p>
                         </div>
-                        <div class="flex-shrink-0">
-                            <div class="dropdown d-inline-block">
-                                <button class="btn btn-primary rounded-pill px-4 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Actions
-                                </button>
-                                <div class="dropdown-menu dropdown-menu-end shadow-lg border-0">
-                                    @if ($pendingSubmission)
-                                        <button class="dropdown-item" type="button" disabled>Pending approval</button>
-                                    @else
-                                        <a class="dropdown-item" href="{{ route('dashboard.home', ['edit_vehicle' => $fleet->id]) }}">Edit on dashboard</a>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -70,7 +56,7 @@
                                 </div>
                                 @if ($pendingSubmission)
                                     <div class="alert alert-warning mt-3 mb-0" role="status">
-                                        An update submitted {{ $pendingSubmission->created_at->format('Y-m-d H:i') }} is awaiting approval. Editing is unavailable until it has been reviewed.
+                                        An update submitted {{ $pendingSubmission->created_at->format('Y-m-d H:i') }} is awaiting approval.
                                     </div>
                                 @endif
                             </div>
@@ -84,7 +70,10 @@
                     </div>
                 </div>
 
-                @include('fleet.partials.vehicle-specifications', ['fleet' => $fleet])
+                @include('fleet.partials.vehicle-specifications', [
+                    'fleet' => $fleet,
+                    'currentOdometerKm' => $currentOdometerByFleet[$fleet->getKey()] ?? $fleet->odometer_km,
+                ])
             </div>
 
         @empty

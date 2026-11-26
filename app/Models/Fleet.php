@@ -35,6 +35,8 @@ class Fleet extends Model
         'manufacture_year' => 'integer',
         'engine_capacity_cc' => 'integer',
         'odometer_km' => 'integer',
+        'odometer_reading_date' => 'date',
+        'odometer_reading_at' => 'datetime',
         'seating_capacity' => 'integer',
         'next_service_km' => 'integer',
         'insurance_expiry' => 'date',

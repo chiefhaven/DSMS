@@ -14,6 +14,7 @@ class FleetUpdateSubmission extends Model
         'fleet_id',
         'submitted_by',
         'odometer_km',
+        'odometer_reading_date',
         'service_date',
         'roadworthiness_expiry',
         'insurance_expiry',
@@ -29,6 +30,7 @@ class FleetUpdateSubmission extends Model
 
     protected $casts = [
         'odometer_km' => 'integer',
+        'odometer_reading_date' => 'date',
         'service_date' => 'date',
         'roadworthiness_expiry' => 'date',
         'insurance_expiry' => 'date',

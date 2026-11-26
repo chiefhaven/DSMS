@@ -10,6 +10,7 @@ use App\Http\Requests\UpdateFleetRequest;
 use App\Models\licenceClass;
 use RealRashid\SweetAlert\Facades\Alert;
 use App\Services\MbiraSyncService;
+use App\Services\FleetOdometerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
@@ -420,11 +421,12 @@ private function handleInstructorAssignmentForStore(Fleet $fleet, string $instru
      * @param  \App\Models\Fleet  $fleet
      * @return \Illuminate\Http\Response
      */
-    public function show(Request $request, ?Fleet $fleet = null)
+    public function show(Request $request, FleetOdometerService $odometerService, ?Fleet $fleet = null)
     {
         $fleet = $this->resolveFleet($request, $fleet)->load('instructor');
+        $currentOdometerKm = $odometerService->currentReading($fleet);
 
-        return view('fleet.viewfleet', compact('fleet'));
+        return view('fleet.viewfleet', compact('fleet', 'currentOdometerKm'));
     }
 
     /**
@@ -785,6 +787,8 @@ private function handleInstructorAssignmentForStore(Fleet $fleet, string $instru
 
     private function applyVehicleDetails(Fleet $fleet, array $data): void
     {
+        $previousOdometerKm = $fleet->odometer_km;
+
         if ($fleet->engine_capacity_reference && (
             (isset($data['engine_capacity_cc']) && (int) $data['engine_capacity_cc'] !== $fleet->engine_capacity_cc)
             || (isset($data['make']) && $data['make'] !== $fleet->make)
@@ -801,6 +805,15 @@ private function handleInstructorAssignmentForStore(Fleet $fleet, string $instru
             if (array_key_exists($field, $data)) {
                 $fleet->{$field} = $data[$field];
             }
+        }
+        if (
+            array_key_exists('odometer_km', $data)
+            && $fleet->odometer_km !== $previousOdometerKm
+            && $fleet->odometer_km !== null
+        ) {
+            $recordedAt = now();
+            $fleet->odometer_reading_date = $recordedAt->toDateString();
+            $fleet->odometer_reading_at = $recordedAt;
         }
         $fleet->car_brand_model = isset($data['make'], $data['model'])
             ? $data['make'].' '.$data['model']

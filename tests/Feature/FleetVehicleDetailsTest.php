@@ -109,6 +109,8 @@ class FleetVehicleDetailsTest extends TestCase
         $capacityMigration->up();
         $referenceMigration = require base_path('database/migrations/2026_11_11_012500_add_engine_capacity_reference_to_fleets.php');
         $referenceMigration->up();
+        $odometerDateMigration = require base_path('database/migrations/2026_11_26_000500_add_odometer_reading_date_to_fleets.php');
+        $odometerDateMigration->up();
 
         $controller = app(FleetController::class);
         $payload = [
@@ -130,6 +132,8 @@ class FleetVehicleDetailsTest extends TestCase
         $this->assertSame('Toyota Vitz', $saved->car_brand_model);
         $this->assertSame('Toyota', $saved->make);
         $this->assertSame(0, $saved->odometer_km);
+        $this->assertSame(now()->toDateString(), $saved->odometer_reading_date->format('Y-m-d'));
+        $this->assertSame(now()->format('Y-m-d H:i:s'), $saved->odometer_reading_at->format('Y-m-d H:i:s'));
         $this->assertSame('2027-01-31', $saved->insurance_expiry->format('Y-m-d'));
         foreach ((new StoreFleetRequest)->vehicleDetailsRules() as $field => $rule) {
             $value = $saved->{$field};

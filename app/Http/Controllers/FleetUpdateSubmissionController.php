@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Fleet;
 use App\Models\FleetUpdateSubmission;
 use App\Models\Instructor;
+use App\Services\FleetOdometerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -32,13 +33,16 @@ class FleetUpdateSubmissionController extends Controller
         $this->middleware('permission:approve fleet updates')->only(['approvals', 'approve', 'reject', 'evidence']);
     }
 
-    public function index(Request $request)
+    public function index(Request $request, FleetOdometerService $odometerService)
     {
         $instructor = $this->practicalInstructor($request);
         $fleets = Fleet::with('instructor')
             ->where('instructor_id', $instructor->getKey())
             ->orderBy('car_registration_number')
             ->get();
+        $currentOdometerByFleet = $fleets->mapWithKeys(fn (Fleet $fleet) => [
+            $fleet->getKey() => $odometerService->currentReading($fleet),
+        ]);
         $fleetIds = $fleets->modelKeys();
         $pendingByFleet = FleetUpdateSubmission::query()
             ->whereIn('fleet_id', $fleetIds)
@@ -52,7 +56,7 @@ class FleetUpdateSubmissionController extends Controller
             ->limit(20)
             ->get();
 
-        return view('fleet.updates.index', compact('fleets', 'pendingByFleet', 'submissions'));
+        return view('fleet.updates.index', compact('fleets', 'pendingByFleet', 'submissions', 'currentOdometerByFleet'));
     }
 
     public function store(Request $request, Fleet $fleet)
@@ -60,13 +64,14 @@ class FleetUpdateSubmissionController extends Controller
         $instructor = $this->practicalInstructor($request);
         $validated = $request->validate([
             'odometer_km' => 'required|integer|min:0|max:4294967295',
+            'odometer_reading_date' => 'required|date_format:Y-m-d|before_or_equal:today',
             'service_date' => 'required|date_format:Y-m-d',
             'roadworthiness_expiry' => 'required|date_format:Y-m-d',
             'insurance_expiry' => 'required|date_format:Y-m-d',
-            'odometer_picture' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'service_date_picture' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'roadworthiness_picture' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'insurance_picture' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'odometer_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'service_date_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'roadworthiness_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'insurance_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         $storedEvidencePaths = [];
@@ -106,6 +111,7 @@ class FleetUpdateSubmissionController extends Controller
                     'fleet_id' => $lockedFleet->getKey(),
                     'submitted_by' => $request->user()->getKey(),
                     'odometer_km' => $validated['odometer_km'],
+                    'odometer_reading_date' => $validated['odometer_reading_date'],
                     'service_date' => $validated['service_date'],
                     'roadworthiness_expiry' => $validated['roadworthiness_expiry'],
                     'insurance_expiry' => $validated['insurance_expiry'],
@@ -170,6 +176,14 @@ class FleetUpdateSubmissionController extends Controller
 
             $fleet = Fleet::whereKey($lockedSubmission->fleet_id)->lockForUpdate()->firstOrFail();
             $fleet->odometer_km = $lockedSubmission->odometer_km;
+            $odometerReadingDate = $lockedSubmission->odometer_reading_date;
+            $submittedAt = $lockedSubmission->created_at;
+            $fleet->odometer_reading_date = $odometerReadingDate ?? $submittedAt->toDateString();
+            $fleet->odometer_reading_at = (
+                !$odometerReadingDate || $odometerReadingDate->isSameDay($submittedAt)
+            )
+                ? $submittedAt
+                : $odometerReadingDate->copy()->addDay()->startOfDay();
             if ($lockedSubmission->service_date !== null) {
                 $fleet->service_date = $lockedSubmission->service_date;
             }

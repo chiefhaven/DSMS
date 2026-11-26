@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\Request;
 
 class LoginController extends Controller
 {
@@ -23,9 +24,22 @@ class LoginController extends Controller
 
     protected $maxAttempts = 4;
 
-    protected function credentials(\Illuminate\Http\Request $request)
+    protected function credentials(Request $request)
     {
         return [...$request->only($this->username(), 'password'), 'is_active' => true];
+    }
+
+    protected function authenticated(Request $request, $user)
+    {
+        $instructor = $user->instructor;
+
+        if (
+            $user->hasRole('instructor')
+            && strtolower((string) $instructor?->department?->name) === 'practical'
+            && $instructor?->fleet
+        ) {
+            $request->session()->put('open_vehicle_update_modal_after_login', true);
+        }
     }
 
     /**
