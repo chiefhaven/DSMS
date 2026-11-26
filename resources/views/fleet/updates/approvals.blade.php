@@ -65,16 +65,32 @@
                                 <td class="fs-sm">
                                     <div class="d-flex flex-column align-items-start gap-1">
                                         @if ($submission->odometer_picture_path)
-                                            <a href="{{ route('fleet-update-approvals.evidence', ['submission' => $submission, 'field' => 'odometer']) }}" target="_blank" rel="noopener noreferrer">Odometer photo</a>
+                                            <a class="btn btn-link p-0 text-start"
+                                               href="{{ route('fleet-update-approvals.evidence', ['submission' => $submission, 'field' => 'odometer']) }}"
+                                               data-bs-toggle="modal" data-bs-target="#fleet-evidence-modal"
+                                               data-fleet-evidence-title="Odometer photo"
+                                               data-fleet-evidence-url="{{ route('fleet-update-approvals.evidence', ['submission' => $submission, 'field' => 'odometer']) }}">Odometer photo</a>
                                         @endif
                                         @if ($submission->service_date_picture_path)
-                                            <a href="{{ route('fleet-update-approvals.evidence', ['submission' => $submission, 'field' => 'service-date']) }}" target="_blank" rel="noopener noreferrer">Service record photo</a>
+                                            <a class="btn btn-link p-0 text-start"
+                                               href="{{ route('fleet-update-approvals.evidence', ['submission' => $submission, 'field' => 'service-date']) }}"
+                                               data-bs-toggle="modal" data-bs-target="#fleet-evidence-modal"
+                                               data-fleet-evidence-title="Service record photo"
+                                               data-fleet-evidence-url="{{ route('fleet-update-approvals.evidence', ['submission' => $submission, 'field' => 'service-date']) }}">Service record photo</a>
                                         @endif
                                         @if ($submission->roadworthiness_picture_path)
-                                            <a href="{{ route('fleet-update-approvals.evidence', ['submission' => $submission, 'field' => 'cof-due']) }}" target="_blank" rel="noopener noreferrer">COF photo</a>
+                                            <a class="btn btn-link p-0 text-start"
+                                               href="{{ route('fleet-update-approvals.evidence', ['submission' => $submission, 'field' => 'cof-due']) }}"
+                                               data-bs-toggle="modal" data-bs-target="#fleet-evidence-modal"
+                                               data-fleet-evidence-title="COF photo"
+                                               data-fleet-evidence-url="{{ route('fleet-update-approvals.evidence', ['submission' => $submission, 'field' => 'cof-due']) }}">COF photo</a>
                                         @endif
                                         @if ($submission->insurance_picture_path)
-                                            <a href="{{ route('fleet-update-approvals.evidence', ['submission' => $submission, 'field' => 'insurance-due']) }}" target="_blank" rel="noopener noreferrer">Insurance photo</a>
+                                            <a class="btn btn-link p-0 text-start"
+                                               href="{{ route('fleet-update-approvals.evidence', ['submission' => $submission, 'field' => 'insurance-due']) }}"
+                                               data-bs-toggle="modal" data-bs-target="#fleet-evidence-modal"
+                                               data-fleet-evidence-title="Insurance photo"
+                                               data-fleet-evidence-url="{{ route('fleet-update-approvals.evidence', ['submission' => $submission, 'field' => 'insurance-due']) }}">Insurance photo</a>
                                         @endif
                                         @unless ($submission->odometer_picture_path || $submission->service_date_picture_path || $submission->roadworthiness_picture_path || $submission->insurance_picture_path)
                                             <span class="text-muted">—</span>
@@ -83,20 +99,38 @@
                                 </td>
                                 <td>{{ $submission->created_at->format('Y-m-d H:i') }}</td>
                                 <td class="text-end">
-                                    <div class="d-inline-flex flex-column gap-2">
-                                        <form method="POST" action="{{ route('fleet-update-approvals.approve', $submission) }}">
-                                            @csrf
-                                            <button type="submit" class="btn btn-success btn-sm rounded-pill px-3">
-                                                <i class="fa fa-check me-1" aria-hidden="true"></i>Approve
-                                            </button>
-                                        </form>
-                                        <form method="POST" action="{{ route('fleet-update-approvals.reject', $submission) }}">
-                                            @csrf
-                                            <input class="form-control form-control-sm mb-1" name="review_note" type="text" maxlength="2000" placeholder="Optional reason">
-                                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
-                                                <i class="fa fa-times me-1" aria-hidden="true"></i>Reject
-                                            </button>
-                                        </form>
+                                    <div class="dropdown">
+                                        <button class="btn btn-alt-secondary btn-sm dropdown-toggle"
+                                                type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"
+                                                aria-expanded="false"
+                                                aria-label="Actions for {{ $submission->fleet->car_registration_number }}">
+                                            Action
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <form method="POST" action="{{ route('fleet-update-approvals.approve', $submission) }}">
+                                                    @csrf
+                                                    <button type="submit" class="dropdown-item text-success">
+                                                        <i class="fa fa-check me-2" aria-hidden="true"></i>Approve
+                                                    </button>
+                                                </form>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <form method="POST" action="{{ route('fleet-update-approvals.reject', $submission) }}">
+                                                    @csrf
+                                                    <div class="px-3 py-2">
+                                                        <label class="form-label fs-xs mb-1" for="review-note-{{ $submission->getKey() }}">Optional rejection reason</label>
+                                                        <input class="form-control form-control-sm"
+                                                               id="review-note-{{ $submission->getKey() }}"
+                                                               name="review_note" type="text" maxlength="2000">
+                                                    </div>
+                                                    <button type="submit" class="dropdown-item text-danger">
+                                                        <i class="fa fa-times me-2" aria-hidden="true"></i>Reject
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        </ul>
                                     </div>
                                 </td>
                             </tr>
@@ -113,5 +147,44 @@
                 <div class="block-content block-content-full border-top">{{ $approvalRequests->links() }}</div>
             @endif
         </div>
+
+        <div class="modal fade" id="fleet-evidence-modal" tabindex="-1"
+             aria-labelledby="fleet-evidence-modal-title" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content border-0 shadow-lg">
+                    <div class="modal-header bg-primary">
+                        <h2 class="modal-title fs-5 text-white" id="fleet-evidence-modal-title">Evidence image</h2>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img class="img-fluid rounded" data-fleet-evidence-image alt="" style="max-height: 75vh;">
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        const fleetEvidenceModal = document.getElementById('fleet-evidence-modal');
+
+        fleetEvidenceModal.addEventListener('show.bs.modal', (event) => {
+            const trigger = event.relatedTarget;
+            if (!trigger) {
+                return;
+            }
+
+            const image = fleetEvidenceModal.querySelector('[data-fleet-evidence-image]');
+            const title = fleetEvidenceModal.querySelector('#fleet-evidence-modal-title');
+
+            image.src = trigger.dataset.fleetEvidenceUrl;
+            image.alt = trigger.dataset.fleetEvidenceTitle;
+            title.textContent = trigger.dataset.fleetEvidenceTitle;
+        });
+
+        fleetEvidenceModal.addEventListener('hidden.bs.modal', () => {
+            fleetEvidenceModal.querySelector('[data-fleet-evidence-image]').removeAttribute('src');
+        });
+    </script>
+@endpush

@@ -393,7 +393,13 @@ class FleetUpdateApprovalTest extends TestCase
             ->assertSee('Odometer photo')
             ->assertSee('Service record photo')
             ->assertSee('COF photo')
-            ->assertSee('Insurance photo');
+            ->assertSee('Insurance photo')
+            ->assertSee('id="fleet-evidence-modal"', false)
+            ->assertSee('data-bs-target="#fleet-evidence-modal"', false)
+            ->assertSee('data-fleet-evidence-url=', false)
+            ->assertSee('dropdown-toggle', false)
+            ->assertSee('aria-label="Actions for ABC 123"', false)
+            ->assertSee('name="review_note"', false);
 
         $evidenceUrl = route('fleet-update-approvals.evidence', [
             'submission' => $submission,
